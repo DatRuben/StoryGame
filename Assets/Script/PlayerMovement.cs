@@ -8,7 +8,7 @@ public class PlayerMovement : MonoBehaviour
     InputAction moveAction;
 
 
-    [SerializeField] float speed = 5;
+    [SerializeField] float speed = 10;
 
     void Start()
     {
