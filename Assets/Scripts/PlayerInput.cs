@@ -4,46 +4,42 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class ThirdPersonController : MonoBehaviour
+public class PlayerInput : MonoBehaviour
 {
     //input fields
-    private ThirdPersonActionsAssets playerActionsAsset;
+    private PlayerInputActions playerInput;
     private InputAction move;
 
     //movement fields
     private Rigidbody rb;
-    [SerializeField]
-    private float movementForce = 1f;
-    [SerializeField]
-    private float jumpForce = 5f;
-    [SerializeField]
-    private float maxSpeed = 5f;
+    [SerializeField] private float movementForce = 1f;
+    [SerializeField] private float jumpForce = 5f;
+    [SerializeField] private float maxSpeed = 5f;
     private Vector3 forceDirection = Vector3.zero;
 
-    [SerializeField]
-    private Camera playerCamera;
+    [SerializeField] private Camera playerCamera;
     private Animator animator;
 
     private void Awake()
     {
         rb = this.GetComponent<Rigidbody>();
-        playerActionsAsset = new ThirdPersonActionsAssets();
+        playerInput = new PlayerInputActions();
         animator = this.GetComponent<Animator>();
     }
 
     private void OnEnable()
     {
-        playerActionsAsset.Player.Jump.started += DoJump;
-        playerActionsAsset.Player.Attack.started += DoAttack;
-        move = playerActionsAsset.Player.Move;
-        playerActionsAsset.Player.Enable();
+        playerInput.Player.Jump.started += DoJump;
+        playerInput.Player.Attack.started += DoAttack;
+        move = playerInput.Player.Move;
+        playerInput.Player.Enable();
     }
 
     private void OnDisable()
     {
-        playerActionsAsset.Player.Jump.started -= DoJump;
-        playerActionsAsset.Player.Attack.started -= DoAttack;
-        playerActionsAsset.Player.Disable();
+        playerInput.Player.Jump.started -= DoJump;
+        playerInput.Player.Attack.started -= DoAttack;
+        playerInput.Player.Disable();
     }
 
     private void FixedUpdate()
