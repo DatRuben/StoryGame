@@ -15,6 +15,9 @@ public class PlayerInput : MonoBehaviour
     [SerializeField] private float movementForce = 1f;
     [SerializeField] private float jumpForce = 5f;
     [SerializeField] private float maxSpeed = 5f;
+    [SerializeField] private Transform groundCheck;
+    [SerializeField] private float groundCheckRadius = 0.2f;
+    [SerializeField] private LayerMask groundLayer;
     private Vector3 forceDirection = Vector3.zero;
 
     [SerializeField] private Camera playerCamera;
@@ -88,30 +91,42 @@ public class PlayerInput : MonoBehaviour
 
     private void DoJump(InputAction.CallbackContext obj)
     {
-        Debug.Log("Jump attempt");
-        forceDirection += Vector3.up * jumpForce;
+        if (!IsGrounded())
+            return;
 
-        if (IsGrounded())
-        {
-            Debug.Log("Jumped");
-        }
-        else
-        {
-            Debug.Log("Jump failed");
-        }
+        // Reset downward velocity before jumping
+        rb.linearVelocity = new Vector3(
+            rb.linearVelocity.x,
+            0f,
+            rb.linearVelocity.z
+        );
+
+        rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
     }
 
     private bool IsGrounded()
     {
-        Ray ray = new Ray(this.transform.position + Vector3.up * 0.25f, Vector3.down);
-        if (Physics.Raycast(ray, out RaycastHit hit, 0.3f))
-            return true;
-        else
-            return false;
+        return Physics.CheckSphere(
+            groundCheck.position,
+            groundCheckRadius,
+            groundLayer
+        );
     }
 
     private void DoAttack(InputAction.CallbackContext obj)
     {
         animator.SetTrigger("attack");
+    }
+    private void OnDrawGizmosSelected()
+    {
+        if (groundCheck == null)
+            return;
+
+        Gizmos.color = Color.green;
+
+        Gizmos.DrawWireSphere(
+            groundCheck.position,
+            groundCheckRadius
+        );
     }
 }
