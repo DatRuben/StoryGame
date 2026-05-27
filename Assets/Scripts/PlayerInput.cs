@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
-
+using TMPro;
 public class PlayerInput : MonoBehaviour
 {
     //input fields
@@ -18,7 +18,10 @@ public class PlayerInput : MonoBehaviour
     [SerializeField] private Transform groundCheck;
     [SerializeField] private float groundCheckRadius = 0.2f;
     [SerializeField] private LayerMask groundLayer;
-    private Vector3 forceDirection = Vector3.zero;
+    [SerializeField] private float fallMultiplier = 3f;
+    [SerializeField] private float lowJumpMultiplier = 2f;
+
+    [SerializeField] private TextMeshProUGUI speedText;
 
     [SerializeField] private Camera playerCamera;
     private Animator animator;
@@ -47,17 +50,52 @@ public class PlayerInput : MonoBehaviour
 
     private void FixedUpdate()
     {
-        forceDirection += move.ReadValue<Vector2>().x * GetCameraRight(playerCamera) * movementForce;
-        forceDirection += move.ReadValue<Vector2>().y * GetCameraForward(playerCamera) * movementForce;
+        Vector2 input = move.ReadValue<Vector2>();
 
-        rb.AddForce(forceDirection, ForceMode.Impulse);
-        forceDirection = Vector3.zero;
+        Vector3 movement =
+            input.x * GetCameraRight(playerCamera) +
+            input.y * GetCameraForward(playerCamera);
 
+        movement.Normalize();
+
+        Vector3 targetVelocity = movement * maxSpeed;
+
+        Vector3 currentVelocity = rb.linearVelocity;
+
+        Vector3 velocityChange =
+            targetVelocity - new Vector3(
+                currentVelocity.x,
+                0f,
+                currentVelocity.z
+            );
+
+        float acceleration =
+            input.magnitude > 0
+            ? movementForce
+            : movementForce * 2f;
+
+        rb.AddForce(
+            velocityChange * acceleration,
+            ForceMode.Acceleration
+            );
+
+        //gravity code
         if (rb.linearVelocity.y < 0f)
-            rb.linearVelocity -= Vector3.down * Physics.gravity.y * Time.fixedDeltaTime;
+        {
+            rb.linearVelocity += Vector3.up * Physics.gravity.y * (fallMultiplier - 1) * Time.fixedDeltaTime;
+        }
+        else if (rb.linearVelocity.y > 0f &&
+                 !Keyboard.current.spaceKey.isPressed)
+        {
+            rb.linearVelocity += Vector3.up * Physics.gravity.y * (lowJumpMultiplier - 1) * Time.fixedDeltaTime;
+        }
+        //gravity end
 
         Vector3 horizontalVelocity = rb.linearVelocity;
         horizontalVelocity.y = 0;
+
+        speedText.text = "Speed: " + horizontalVelocity.magnitude.ToString("F2");
+
         if (horizontalVelocity.sqrMagnitude > maxSpeed * maxSpeed)
             rb.linearVelocity = horizontalVelocity.normalized * maxSpeed + Vector3.up * rb.linearVelocity.y;
 
