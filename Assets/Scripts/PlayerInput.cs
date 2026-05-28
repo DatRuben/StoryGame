@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using TMPro;
+using Unity.Cinemachine;
+
 public class PlayerInput : MonoBehaviour
 {
     //input fields
@@ -21,10 +23,16 @@ public class PlayerInput : MonoBehaviour
     [SerializeField] private float fallMultiplier = 3f;
     [SerializeField] private float lowJumpMultiplier = 2f;
 
+    [SerializeField] private CinemachineOrbitalFollow orbitalFollow;
+    [SerializeField] private Transform cameraTransform;
+    [SerializeField] private float rotationSpeed = 10f;
+
     [SerializeField] private TextMeshProUGUI speedText;
 
     [SerializeField] private Camera playerCamera;
     private Animator animator;
+
+    private bool cameraLocked = false;
 
     private void Awake()
     {
@@ -37,7 +45,10 @@ public class PlayerInput : MonoBehaviour
     {
         playerInput.Player.Jump.started += DoJump;
         playerInput.Player.Attack.started += DoAttack;
+        playerInput.Player.CameraLock.started += ToggleCameraLock;
+
         move = playerInput.Player.Move;
+
         playerInput.Player.Enable();
     }
 
@@ -45,6 +56,8 @@ public class PlayerInput : MonoBehaviour
     {
         playerInput.Player.Jump.started -= DoJump;
         playerInput.Player.Attack.started -= DoAttack;
+        playerInput.Player.CameraLock.started -= ToggleCameraLock;
+
         playerInput.Player.Disable();
     }
 
@@ -104,13 +117,30 @@ public class PlayerInput : MonoBehaviour
 
     private void LookAt()
     {
-        Vector3 direction = rb.linearVelocity;
-        direction.y = 0f;
+        Vector3 direction;
 
-        if (move.ReadValue<Vector2>().sqrMagnitude > 0.1f && direction.sqrMagnitude > 0.1f)
-            this.rb.rotation = Quaternion.LookRotation(direction, Vector3.up);
+        if (cameraLocked)
+        {
+            direction = cameraTransform.forward;
+            direction.y = 0f;
+        }
         else
-            rb.angularVelocity = Vector3.zero;
+        {
+            direction = rb.linearVelocity;
+            direction.y = 0f;
+        }
+
+        if (direction.sqrMagnitude > 0.1f)
+        {
+            Quaternion targetRotation =
+                Quaternion.LookRotation(direction);
+
+            rb.rotation = Quaternion.Slerp(
+                rb.rotation,
+                targetRotation,
+                rotationSpeed * Time.fixedDeltaTime
+            );
+        }
     }
 
     private Vector3 GetCameraForward(Camera playerCamera)
@@ -166,5 +196,11 @@ public class PlayerInput : MonoBehaviour
             groundCheck.position,
             groundCheckRadius
         );
+    }
+
+    private void ToggleCameraLock(InputAction.CallbackContext obj)
+    {
+        cameraLocked = !cameraLocked;
+        orbitalFollow.HorizontalAxis.Recentering.Enabled = cameraLocked;
     }
 }
