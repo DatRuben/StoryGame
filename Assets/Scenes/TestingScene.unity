@@ -2901,7 +2901,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ThirdPersonController
   movementForce: 8
   jumpForce: 7
-  maxSpeed: 12
   groundCheck: {fileID: 1609922832}
   groundCheckRadius: 0.25
   groundLayer:
@@ -2909,6 +2908,8 @@ MonoBehaviour:
     m_Bits: 128
   fallMultiplier: 4
   lowJumpMultiplier: 3
+  sprintSpeed: 16
+  walkSpeed: 10
   orbitalFollow: {fileID: 0}
   cameraTransform: {fileID: 330585546}
   rotationSpeed: 10
@@ -3258,7 +3259,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: 0, z: -135.11935, w: -27.104279}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0

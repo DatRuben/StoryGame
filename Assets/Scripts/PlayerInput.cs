@@ -14,14 +14,16 @@ public class PlayerInput : MonoBehaviour
 
     //movement fields
     private Rigidbody rb;
-    [SerializeField] private float movementForce = 1f;
-    [SerializeField] private float jumpForce = 5f;
-    [SerializeField] private float maxSpeed = 5f;
+    [SerializeField] private float movementForce = 8f;
+    [SerializeField] private float jumpForce = 7f;
     [SerializeField] private Transform groundCheck;
-    [SerializeField] private float groundCheckRadius = 0.2f;
+    [SerializeField] private float groundCheckRadius = 0.25f;
     [SerializeField] private LayerMask groundLayer;
-    [SerializeField] private float fallMultiplier = 3f;
-    [SerializeField] private float lowJumpMultiplier = 2f;
+    [SerializeField] private float fallMultiplier = 4f;
+    [SerializeField] private float lowJumpMultiplier = 3f;
+    [SerializeField] private float sprintSpeed = 15f;
+    [SerializeField] private float walkSpeed = 10f;
+
 
     [SerializeField] private CinemachineOrbitalFollow orbitalFollow;
     [SerializeField] private Transform cameraTransform;
@@ -30,9 +32,12 @@ public class PlayerInput : MonoBehaviour
     [SerializeField] private TextMeshProUGUI speedText;
 
     [SerializeField] private Camera playerCamera;
+
     private Animator animator;
 
     private bool cameraLocked = false;
+
+    private bool isSprinting = false;
 
     private void Awake()
     {
@@ -49,6 +54,9 @@ public class PlayerInput : MonoBehaviour
 
         move = playerInput.Player.Move;
 
+        playerInput.Player.Sprint.started += StartSprint;
+        playerInput.Player.Sprint.canceled += StopSprint;
+
         playerInput.Player.Enable();
     }
 
@@ -57,6 +65,9 @@ public class PlayerInput : MonoBehaviour
         playerInput.Player.Jump.started -= DoJump;
         playerInput.Player.Attack.started -= DoAttack;
         playerInput.Player.CameraLock.started -= ToggleCameraLock;
+
+        playerInput.Player.Sprint.started -= StartSprint;
+        playerInput.Player.Sprint.canceled -= StopSprint;
 
         playerInput.Player.Disable();
     }
@@ -71,7 +82,9 @@ public class PlayerInput : MonoBehaviour
 
         movement.Normalize();
 
-        Vector3 targetVelocity = movement * maxSpeed;
+        float currentSpeed = isSprinting ? sprintSpeed : walkSpeed;
+
+        Vector3 targetVelocity = movement * currentSpeed;
 
         Vector3 currentVelocity = rb.linearVelocity;
 
@@ -109,8 +122,12 @@ public class PlayerInput : MonoBehaviour
 
         speedText.text = "Speed: " + horizontalVelocity.magnitude.ToString("F2");
 
-        if (horizontalVelocity.sqrMagnitude > maxSpeed * maxSpeed)
-            rb.linearVelocity = horizontalVelocity.normalized * maxSpeed + Vector3.up * rb.linearVelocity.y;
+        if (horizontalVelocity.sqrMagnitude > currentSpeed * currentSpeed)
+        {
+            rb.linearVelocity =
+                horizontalVelocity.normalized * currentSpeed +
+                Vector3.up * rb.linearVelocity.y;
+        }
 
         LookAt();
     }
@@ -201,5 +218,15 @@ public class PlayerInput : MonoBehaviour
     private void ToggleCameraLock(InputAction.CallbackContext obj)
     {
         cameraLocked = !cameraLocked;
+    }
+
+    private void StartSprint(InputAction.CallbackContext obj)
+    {
+        isSprinting = true;
+    }
+
+    private void StopSprint(InputAction.CallbackContext obj)
+    {
+        isSprinting = false;
     }
 }
