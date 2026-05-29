@@ -2908,7 +2908,7 @@ MonoBehaviour:
     m_Bits: 128
   fallMultiplier: 4
   lowJumpMultiplier: 3
-  sprintSpeed: 16
+  sprintSpeed: 15
   walkSpeed: 10
   orbitalFollow: {fileID: 0}
   cameraTransform: {fileID: 330585546}

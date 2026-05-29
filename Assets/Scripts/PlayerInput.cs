@@ -14,7 +14,9 @@ public class PlayerInput : MonoBehaviour
 
     //movement fields
     private Rigidbody rb;
-    [SerializeField] private float movementForce = 8f;
+    [SerializeField] private float groundAcceleration = 8f;
+    [SerializeField] private float airAcceleration = 2f;
+    [SerializeField] private float deceleration = 16f;
     [SerializeField] private float jumpForce = 7f;
     [SerializeField] private Transform groundCheck;
     [SerializeField] private float groundCheckRadius = 0.25f;
@@ -95,15 +97,21 @@ public class PlayerInput : MonoBehaviour
                 currentVelocity.z
             );
 
-        float acceleration =
-            input.magnitude > 0
-            ? movementForce
-            : movementForce * 2f;
+        float acceleration;
 
-        rb.AddForce(
-            velocityChange * acceleration,
-            ForceMode.Acceleration
-            );
+        if (IsGrounded())
+        {
+            acceleration =
+                input.magnitude > 0
+                ? groundAcceleration
+                : deceleration;
+        }
+        else
+        {
+            acceleration = airAcceleration;
+        }
+
+        rb.AddForce(velocityChange * acceleration, ForceMode.Acceleration);
 
         //gravity code
         if (rb.linearVelocity.y < 0f)
