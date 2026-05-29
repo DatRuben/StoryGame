@@ -201,6 +201,5 @@ public class PlayerInput : MonoBehaviour
     private void ToggleCameraLock(InputAction.CallbackContext obj)
     {
         cameraLocked = !cameraLocked;
-        orbitalFollow.HorizontalAxis.Recentering.Enabled = cameraLocked;
     }
 }
