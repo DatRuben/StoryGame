@@ -23,8 +23,17 @@ public class PlayerInput : MonoBehaviour
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private float fallMultiplier = 4f;
     [SerializeField] private float lowJumpMultiplier = 3f;
+    [SerializeField] private float jumpUpMultiplier = 1.5f;
     [SerializeField] private float sprintSpeed = 15f;
     [SerializeField] private float walkSpeed = 10f;
+    [SerializeField] private float groundCheckDistance = 0.75f;
+    [SerializeField] private float maxGroundAngle = 55f;
+    [SerializeField] private float wallContactMemory = 0.1f;
+    [SerializeField] private float jumpGroundIgnoreTime = 0.15f;
+    private Vector3 groundNormal = Vector3.up;
+    private Vector3 wallNormal = Vector3.zero;
+    private float lastWallContactTime = -999f;
+    private float lastJumpTime = -999f;
 
 
     [SerializeField] private CinemachineOrbitalFollow orbitalFollow;
@@ -76,30 +85,69 @@ public class PlayerInput : MonoBehaviour
 
     private void FixedUpdate()
     {
+        bool grounded =
+            IsGrounded() &&
+            Time.time - lastJumpTime > jumpGroundIgnoreTime;
+
         Vector2 input = move.ReadValue<Vector2>();
 
         Vector3 movement =
             input.x * GetCameraRight(playerCamera) +
             input.y * GetCameraForward(playerCamera);
 
-        movement.Normalize();
+        if (movement.sqrMagnitude > 1f)
+            movement.Normalize();
+
+        // Move along the slope surface when grounded
+        if (grounded && movement.sqrMagnitude > 0.01f)
+        {
+            movement = Vector3.ProjectOnPlane(
+                movement,
+                groundNormal
+            ).normalized;
+        }
+
+        // If airborne and touching a wall, stop trying to move directly into it
+        if (!grounded && movement.sqrMagnitude > 0.01f &&
+            RecentlyTouchedWall(out Vector3 recentWallNormal))
+        {
+            if (Vector3.Dot(movement, recentWallNormal) < 0f)
+            {
+                movement = Vector3.ProjectOnPlane(
+                    movement,
+                    recentWallNormal
+                );
+
+                movement.y = 0f;
+
+                if (movement.sqrMagnitude > 0.01f)
+                    movement.Normalize();
+            }
+        }
 
         float currentSpeed = isSprinting ? sprintSpeed : walkSpeed;
 
         Vector3 targetVelocity = movement * currentSpeed;
 
-        Vector3 currentVelocity = rb.linearVelocity;
+        Vector3 currentVelocityAlongSurface;
+
+        if (grounded)
+        {
+            currentVelocityAlongSurface =
+                Vector3.ProjectOnPlane(rb.linearVelocity, groundNormal);
+        }
+        else
+        {
+            currentVelocityAlongSurface = rb.linearVelocity;
+            currentVelocityAlongSurface.y = 0f;
+        }
 
         Vector3 velocityChange =
-            targetVelocity - new Vector3(
-                currentVelocity.x,
-                0f,
-                currentVelocity.z
-            );
+            targetVelocity - currentVelocityAlongSurface;
 
         float acceleration;
 
-        if (IsGrounded())
+        if (grounded)
         {
             acceleration =
                 input.magnitude > 0
@@ -111,30 +159,88 @@ public class PlayerInput : MonoBehaviour
             acceleration = airAcceleration;
         }
 
-        rb.AddForce(velocityChange * acceleration, ForceMode.Acceleration);
+        rb.AddForce(
+            velocityChange * acceleration,
+            ForceMode.Acceleration
+        );
+        // If airborne and touching a wall, remove velocity pushing into the wall
+        if (!grounded && RecentlyTouchedWall(out Vector3 recentWallNormalAfterForce))
+        {
+            float intoWall = Vector3.Dot(rb.linearVelocity, recentWallNormalAfterForce);
 
-        //gravity code
-        if (rb.linearVelocity.y < 0f)
-        {
-            rb.linearVelocity += Vector3.up * Physics.gravity.y * (fallMultiplier - 1) * Time.fixedDeltaTime;
+            if (intoWall < 0f)
+            {
+                rb.linearVelocity -= recentWallNormalAfterForce * intoWall;
+            }
         }
-        else if (rb.linearVelocity.y > 0f &&
-                 !Keyboard.current.spaceKey.isPressed)
+
+        // Extra gravity only while airborne
+        if (!grounded)
         {
-            rb.linearVelocity += Vector3.up * Physics.gravity.y * (lowJumpMultiplier - 1) * Time.fixedDeltaTime;
+            if (rb.linearVelocity.y < 0f)
+            {
+                rb.linearVelocity += Vector3.up *
+                    Physics.gravity.y *
+                    (fallMultiplier - 1f) *
+                    Time.fixedDeltaTime;
+            }
+            else if (rb.linearVelocity.y > 0f)
+            {
+                float upwardMultiplier =
+                    Keyboard.current.spaceKey.isPressed
+                    ? jumpUpMultiplier
+                    : lowJumpMultiplier;
+
+                rb.linearVelocity += Vector3.up *
+                    Physics.gravity.y *
+                    (upwardMultiplier - 1f) *
+                    Time.fixedDeltaTime;
+            }
         }
-        //gravity end
+
+        Vector3 velocityToClamp;
+
+        if (grounded)
+        {
+            velocityToClamp =
+                Vector3.ProjectOnPlane(rb.linearVelocity, groundNormal);
+        }
+        else
+        {
+            velocityToClamp = rb.linearVelocity;
+            velocityToClamp.y = 0f;
+        }
+
+        if (velocityToClamp.sqrMagnitude > currentSpeed * currentSpeed)
+        {
+            Vector3 clampedVelocity =
+                velocityToClamp.normalized * currentSpeed;
+
+            if (grounded)
+            {
+                rb.linearVelocity = clampedVelocity;
+            }
+            else
+            {
+                rb.linearVelocity =
+                    clampedVelocity +
+                    Vector3.up * rb.linearVelocity.y;
+            }
+        }
 
         Vector3 horizontalVelocity = rb.linearVelocity;
-        horizontalVelocity.y = 0;
+        horizontalVelocity.y = 0f;
 
-        speedText.text = "Speed: " + horizontalVelocity.magnitude.ToString("F2");
+        Vector3 surfaceVelocity = grounded
+            ? Vector3.ProjectOnPlane(rb.linearVelocity, groundNormal)
+            : horizontalVelocity;
 
-        if (horizontalVelocity.sqrMagnitude > currentSpeed * currentSpeed)
+        if (speedText != null)
         {
-            rb.linearVelocity =
-                horizontalVelocity.normalized * currentSpeed +
-                Vector3.up * rb.linearVelocity.y;
+            speedText.text =
+                "Grounded: " + grounded +
+                "\nHorizontal Speed: " + horizontalVelocity.magnitude.ToString("F2") +
+                "\nSurface Speed: " + surfaceVelocity.magnitude.ToString("F2");
         }
 
         LookAt();
@@ -187,23 +293,53 @@ public class PlayerInput : MonoBehaviour
         if (!IsGrounded())
             return;
 
-        // Reset downward velocity before jumping
         rb.linearVelocity = new Vector3(
             rb.linearVelocity.x,
             0f,
             rb.linearVelocity.z
         );
 
+        lastJumpTime = Time.time;
+
         rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
     }
 
     private bool IsGrounded()
     {
-        return Physics.CheckSphere(
+        bool nearGround = Physics.CheckSphere(
             groundCheck.position,
             groundCheckRadius,
-            groundLayer
+            groundLayer,
+            QueryTriggerInteraction.Ignore
         );
+
+        if (!nearGround)
+        {
+            groundNormal = Vector3.up;
+            return false;
+        }
+
+        Vector3 rayStart = groundCheck.position + Vector3.up * 0.25f;
+
+        if (Physics.Raycast(
+            rayStart,
+            Vector3.down,
+            out RaycastHit hit,
+            groundCheckDistance,
+            groundLayer,
+            QueryTriggerInteraction.Ignore))
+        {
+            float groundAngle = Vector3.Angle(hit.normal, Vector3.up);
+
+            if (groundAngle <= maxGroundAngle)
+            {
+                groundNormal = hit.normal;
+                return true;
+            }
+        }
+
+        groundNormal = Vector3.up;
+        return false;
     }
 
     private void DoAttack(InputAction.CallbackContext obj)
@@ -236,5 +372,36 @@ public class PlayerInput : MonoBehaviour
     private void StopSprint(InputAction.CallbackContext obj)
     {
         isSprinting = false;
+    }
+
+    private void OnCollisionStay(Collision collision)
+    {
+        foreach (ContactPoint contact in collision.contacts)
+        {
+            float angle = Vector3.Angle(contact.normal, Vector3.up);
+
+            // Anything steeper than maxGroundAngle counts as a wall/steep surface
+            if (angle > maxGroundAngle)
+            {
+                wallNormal = contact.normal;
+                wallNormal.y = 0f;
+
+                if (wallNormal.sqrMagnitude > 0.001f)
+                {
+                    wallNormal.Normalize();
+                    lastWallContactTime = Time.time;
+                }
+
+                break;
+            }
+        }
+    }
+
+    private bool RecentlyTouchedWall(out Vector3 recentWallNormal)
+    {
+        recentWallNormal = wallNormal;
+
+        return Time.time - lastWallContactTime <= wallContactMemory &&
+               wallNormal.sqrMagnitude > 0.001f;
     }
 }
