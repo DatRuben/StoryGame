@@ -15,6 +15,8 @@ public class PlayerInput : MonoBehaviour
     // movement fields
     private Rigidbody rb;
 
+    [SerializeField] private RaceProfile movementProfile;
+
     [SerializeField] private float groundAcceleration = 8f;
     [SerializeField] private float airAcceleration = 2f;
     [SerializeField] private float deceleration = 16f;
