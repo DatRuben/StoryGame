@@ -8,53 +8,66 @@ using Unity.Cinemachine;
 
 public class PlayerInput : MonoBehaviour
 {
-    //input fields
+    // input fields
     private PlayerInputActions playerInput;
     private InputAction move;
 
-    //movement fields
+    // movement fields
     private Rigidbody rb;
+
+    [SerializeField] private RaceProfile movementProfile;
+
     [SerializeField] private float groundAcceleration = 8f;
     [SerializeField] private float airAcceleration = 2f;
     [SerializeField] private float deceleration = 16f;
+
     [SerializeField] private float jumpForce = 7f;
+
     [SerializeField] private Transform groundCheck;
     [SerializeField] private float groundCheckRadius = 0.25f;
+    [SerializeField] private float groundCheckDistance = 0.75f;
     [SerializeField] private LayerMask groundLayer;
+    [SerializeField] private float maxGroundAngle = 55f;
+
     [SerializeField] private float fallMultiplier = 4f;
     [SerializeField] private float lowJumpMultiplier = 3f;
     [SerializeField] private float jumpUpMultiplier = 1.5f;
+
     [SerializeField] private float sprintSpeed = 15f;
     [SerializeField] private float walkSpeed = 10f;
-    [SerializeField] private float groundCheckDistance = 0.75f;
-    [SerializeField] private float maxGroundAngle = 55f;
+
     [SerializeField] private float wallContactMemory = 0.1f;
     [SerializeField] private float jumpGroundIgnoreTime = 0.15f;
+
+    [SerializeField] private bool preventSlopeSliding = true;
+    [SerializeField] private float slopeSlideCancelStrength = 1f;
+
     private Vector3 groundNormal = Vector3.up;
     private Vector3 wallNormal = Vector3.zero;
     private float lastWallContactTime = -999f;
     private float lastJumpTime = -999f;
 
-
+    // camera fields
     [SerializeField] private CinemachineOrbitalFollow orbitalFollow;
     [SerializeField] private Transform cameraTransform;
     [SerializeField] private float rotationSpeed = 10f;
-
-    [SerializeField] private TextMeshProUGUI speedText;
-
     [SerializeField] private Camera playerCamera;
+
+    // UI fields
+    [SerializeField] private TextMeshProUGUI speedText;
 
     private Animator animator;
 
     private bool cameraLocked = false;
+    public bool CameraLocked => cameraLocked;
 
     private bool isSprinting = false;
 
     private void Awake()
     {
-        rb = this.GetComponent<Rigidbody>();
+        rb = GetComponent<Rigidbody>();
         playerInput = new PlayerInputActions();
-        animator = this.GetComponent<Animator>();
+        animator = GetComponent<Animator>();
     }
 
     private void OnEnable()
@@ -91,12 +104,38 @@ public class PlayerInput : MonoBehaviour
 
         Vector2 input = move.ReadValue<Vector2>();
 
+        Vector3 moveForward = GetCameraForward(playerCamera);
+        Vector3 moveRight = GetCameraRight(playerCamera);
+
         Vector3 movement =
-            input.x * GetCameraRight(playerCamera) +
-            input.y * GetCameraForward(playerCamera);
+            input.x * moveRight +
+            input.y * moveForward;
 
         if (movement.sqrMagnitude > 1f)
             movement.Normalize();
+
+        Vector3 facingDirection;
+
+        if (cameraLocked)
+        {
+            // Locked mode:
+            // Player faces the camera/crosshair forward direction.
+            facingDirection = cameraTransform.forward;
+            facingDirection.y = 0f;
+
+            if (facingDirection.sqrMagnitude > 0.01f)
+                facingDirection.Normalize();
+        }
+        else
+        {
+            // Unlocked mode:
+            // Player faces movement direction.
+            facingDirection = movement;
+            facingDirection.y = 0f;
+
+            if (facingDirection.sqrMagnitude > 0.01f)
+                facingDirection.Normalize();
+        }
 
         // Move along the slope surface when grounded
         if (grounded && movement.sqrMagnitude > 0.01f)
@@ -107,11 +146,20 @@ public class PlayerInput : MonoBehaviour
             ).normalized;
         }
 
-        // If airborne and touching a wall, stop trying to move directly into it
-        if (!grounded && movement.sqrMagnitude > 0.01f &&
+        // If touching a wall/steep surface, do not turn forward input into wall-surfing
+        if (movement.sqrMagnitude > 0.01f &&
             RecentlyTouchedWall(out Vector3 recentWallNormal))
         {
-            if (Vector3.Dot(movement, recentWallNormal) < 0f)
+            float intoWallAmount =
+                Vector3.Dot(movement.normalized, recentWallNormal);
+
+            // Strongly pressing into the wall/steep slope = stop movement
+            if (intoWallAmount < -0.35f)
+            {
+                movement = Vector3.zero;
+            }
+            // Lightly angled into the wall = allow some sliding
+            else if (intoWallAmount < 0f)
             {
                 movement = Vector3.ProjectOnPlane(
                     movement,
@@ -122,6 +170,8 @@ public class PlayerInput : MonoBehaviour
 
                 if (movement.sqrMagnitude > 0.01f)
                     movement.Normalize();
+                else
+                    movement = Vector3.zero;
             }
         }
 
@@ -145,32 +195,62 @@ public class PlayerInput : MonoBehaviour
         Vector3 velocityChange =
             targetVelocity - currentVelocityAlongSurface;
 
+        bool hasMovementDirection =
+            movement.sqrMagnitude > 0.01f;
+
         float acceleration;
 
         if (grounded)
         {
             acceleration =
-                input.magnitude > 0
+                hasMovementDirection
                 ? groundAcceleration
                 : deceleration;
         }
         else
         {
-            acceleration = airAcceleration;
+            acceleration =
+                hasMovementDirection
+                ? airAcceleration
+                : deceleration;
         }
 
         rb.AddForce(
             velocityChange * acceleration,
             ForceMode.Acceleration
         );
-        // If airborne and touching a wall, remove velocity pushing into the wall
-        if (!grounded && RecentlyTouchedWall(out Vector3 recentWallNormalAfterForce))
+
+        // Prevent sliding down walkable slopes
+        if (preventSlopeSliding && grounded)
         {
-            float intoWall = Vector3.Dot(rb.linearVelocity, recentWallNormalAfterForce);
+            float slopeAngle =
+                Vector3.Angle(groundNormal, Vector3.up);
+
+            if (slopeAngle > 0.1f && slopeAngle <= maxGroundAngle)
+            {
+                Vector3 gravityAlongSlope =
+                    Vector3.ProjectOnPlane(
+                        Physics.gravity,
+                        groundNormal
+                    );
+
+                rb.AddForce(
+                    -gravityAlongSlope * slopeSlideCancelStrength,
+                    ForceMode.Acceleration
+                );
+            }
+        }
+
+        // Remove velocity pushing into walls/steep surfaces
+        if (RecentlyTouchedWall(out Vector3 recentWallNormalAfterForce))
+        {
+            float intoWall =
+                Vector3.Dot(rb.linearVelocity, recentWallNormalAfterForce);
 
             if (intoWall < 0f)
             {
-                rb.linearVelocity -= recentWallNormalAfterForce * intoWall;
+                rb.linearVelocity -=
+                    recentWallNormalAfterForce * intoWall;
             }
         }
 
@@ -243,28 +323,18 @@ public class PlayerInput : MonoBehaviour
                 "\nSurface Speed: " + surfaceVelocity.magnitude.ToString("F2");
         }
 
-        LookAt();
+        LookAt(facingDirection);
     }
 
-    private void LookAt()
+    private void LookAt(Vector3 desiredDirection)
     {
-        Vector3 direction;
-
-        if (cameraLocked)
-        {
-            direction = cameraTransform.forward;
-            direction.y = 0f;
-        }
-        else
-        {
-            direction = rb.linearVelocity;
-            direction.y = 0f;
-        }
+        Vector3 direction = desiredDirection;
+        direction.y = 0f;
 
         if (direction.sqrMagnitude > 0.1f)
         {
             Quaternion targetRotation =
-                Quaternion.LookRotation(direction);
+                Quaternion.LookRotation(direction, Vector3.up);
 
             rb.rotation = Quaternion.Slerp(
                 rb.rotation,
@@ -277,14 +347,22 @@ public class PlayerInput : MonoBehaviour
     private Vector3 GetCameraForward(Camera playerCamera)
     {
         Vector3 forward = playerCamera.transform.forward;
-        forward.y = 0;
+        forward.y = 0f;
+
+        if (forward.sqrMagnitude < 0.01f)
+            return transform.forward;
+
         return forward.normalized;
     }
 
     private Vector3 GetCameraRight(Camera playerCamera)
     {
         Vector3 right = playerCamera.transform.right;
-        right.y = 0;
+        right.y = 0f;
+
+        if (right.sqrMagnitude < 0.01f)
+            return transform.right;
+
         return right.normalized;
     }
 
@@ -319,7 +397,8 @@ public class PlayerInput : MonoBehaviour
             return false;
         }
 
-        Vector3 rayStart = groundCheck.position + Vector3.up * 0.25f;
+        Vector3 rayStart =
+            groundCheck.position + Vector3.up * 0.25f;
 
         if (Physics.Raycast(
             rayStart,
@@ -329,7 +408,8 @@ public class PlayerInput : MonoBehaviour
             groundLayer,
             QueryTriggerInteraction.Ignore))
         {
-            float groundAngle = Vector3.Angle(hit.normal, Vector3.up);
+            float groundAngle =
+                Vector3.Angle(hit.normal, Vector3.up);
 
             if (groundAngle <= maxGroundAngle)
             {
@@ -345,18 +425,6 @@ public class PlayerInput : MonoBehaviour
     private void DoAttack(InputAction.CallbackContext obj)
     {
         animator.SetTrigger("attack");
-    }
-    private void OnDrawGizmosSelected()
-    {
-        if (groundCheck == null)
-            return;
-
-        Gizmos.color = Color.green;
-
-        Gizmos.DrawWireSphere(
-            groundCheck.position,
-            groundCheckRadius
-        );
     }
 
     private void ToggleCameraLock(InputAction.CallbackContext obj)
@@ -378,7 +446,8 @@ public class PlayerInput : MonoBehaviour
     {
         foreach (ContactPoint contact in collision.contacts)
         {
-            float angle = Vector3.Angle(contact.normal, Vector3.up);
+            float angle =
+                Vector3.Angle(contact.normal, Vector3.up);
 
             // Anything steeper than maxGroundAngle counts as a wall/steep surface
             if (angle > maxGroundAngle)
@@ -403,5 +472,18 @@ public class PlayerInput : MonoBehaviour
 
         return Time.time - lastWallContactTime <= wallContactMemory &&
                wallNormal.sqrMagnitude > 0.001f;
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        if (groundCheck == null)
+            return;
+
+        Gizmos.color = Color.green;
+
+        Gizmos.DrawWireSphere(
+            groundCheck.position,
+            groundCheckRadius
+        );
     }
 }
