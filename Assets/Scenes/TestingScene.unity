@@ -3275,9 +3275,10 @@ GameObject:
   - component: {fileID: 816001212}
   - component: {fileID: 816001213}
   - component: {fileID: 816001214}
+  - component: {fileID: 816001215}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -3474,6 +3475,22 @@ MonoBehaviour:
   rotationSpeed: 10
   playerCamera: {fileID: 330585545}
   speedText: {fileID: 872080309}
+--- !u!114 &816001215
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 816001207}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56a66fdedba50ee429bfff2a1d72e0e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RaceProfileApplier
+  raceProfile: {fileID: 11400000, guid: b129ca34dc2505b4bb75de6a89cfaaba, type: 2}
+  capsuleCollider: {fileID: 816001208}
+  groundCheck: {fileID: 1609922832}
+  cameraPivot: {fileID: 572652583}
 --- !u!1 &820849752
 GameObject:
   m_ObjectHideFlags: 0
