@@ -6,6 +6,16 @@ public class InventoryGrid
     private readonly int height;
 
     private readonly ItemData[,] cells;
+    public int Width => width;
+    public int Height => height;
+
+    public ItemData GetCell(int x, int y)
+    {
+        if (!IsInsideGrid(x, y))
+            return null;
+
+        return cells[x, y];
+    }
 
     public InventoryGrid(int width, int height)
     {
