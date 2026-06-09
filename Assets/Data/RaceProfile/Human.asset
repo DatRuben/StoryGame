@@ -20,7 +20,7 @@ MonoBehaviour:
   description: Standard Human
   capsuleRadius: 0.5
   capsuleHeight: 2
-  capsuleCenter: {x: 0, y: 0, z: 0}
+  capsuleCenter: {x: 0, y: 2, z: 0}
   capsuleDirection: 1
   groundCheckLocalPosition: {x: 0, y: -0.9, z: 0}
   cameraPivotLocalPosition: {x: 0, y: 0.9, z: 0}
