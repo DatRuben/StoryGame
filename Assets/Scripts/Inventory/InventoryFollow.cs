@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.UI;
 
 public class InventoryFollow : MonoBehaviour
 {
@@ -11,6 +10,10 @@ public class InventoryFollow : MonoBehaviour
     [SerializeField] private Vector3 worldOffset = new Vector3(0f, 1.2f, 0f);
     [SerializeField] private Vector2 screenOffset = new Vector2(180f, 0f);
 
+    [Header("Smoothing")]
+    [SerializeField] private bool smoothPosition = true;
+    [SerializeField] private float smoothTime = 0.05f;
+
     [Header("Screen Clamp")]
     [SerializeField] private bool clampToScreen = true;
     [SerializeField] private Vector2 screenPadding = new Vector2(24f, 24f);
@@ -18,6 +21,9 @@ public class InventoryFollow : MonoBehaviour
     private RectTransform rectTransform;
     private Canvas rootCanvas;
     private RectTransform canvasRect;
+
+    private Vector2 smoothVelocity;
+    private bool wasInventoryOpen;
 
     private void Awake()
     {
@@ -36,13 +42,21 @@ public class InventoryFollow : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (!InventoryMenuController.IsInventoryOpen)
-            return;
+        bool inventoryOpen =
+            InventoryMenuController.IsInventoryOpen;
 
-        UpdatePosition();
+        if (!inventoryOpen)
+        {
+            wasInventoryOpen = false;
+            return;
+        }
+
+        UpdatePosition(!wasInventoryOpen);
+
+        wasInventoryOpen = true;
     }
 
-    private void UpdatePosition()
+    private void UpdatePosition(bool snap)
     {
         if (target == null ||
             playerCamera == null ||
@@ -77,17 +91,31 @@ public class InventoryFollow : MonoBehaviour
         if (!hasPoint)
             return;
 
-        Vector2 finalPosition =
+        Vector2 targetPosition =
             localPoint + screenOffset;
 
         if (clampToScreen)
         {
-            finalPosition =
-                ClampToCanvas(finalPosition);
+            targetPosition =
+                ClampToCanvas(targetPosition);
+        }
+
+        if (snap || !smoothPosition)
+        {
+            rectTransform.anchoredPosition = targetPosition;
+            smoothVelocity = Vector2.zero;
+            return;
         }
 
         rectTransform.anchoredPosition =
-            finalPosition;
+            Vector2.SmoothDamp(
+                rectTransform.anchoredPosition,
+                targetPosition,
+                ref smoothVelocity,
+                smoothTime,
+                Mathf.Infinity,
+                Time.unscaledDeltaTime
+            );
     }
 
     private Vector2 ClampToCanvas(Vector2 position)
@@ -104,17 +132,28 @@ public class InventoryFollow : MonoBehaviour
         float canvasHalfHeight =
             canvasRect.rect.height * 0.5f;
 
+        Vector2 pivot =
+            rectTransform.pivot;
+
         float minX =
-            -canvasHalfWidth + screenPadding.x;
+            -canvasHalfWidth +
+            screenPadding.x +
+            panelWidth * pivot.x;
 
         float maxX =
-            canvasHalfWidth - panelWidth - screenPadding.x;
+            canvasHalfWidth -
+            screenPadding.x -
+            panelWidth * (1f - pivot.x);
 
         float minY =
-            -canvasHalfHeight + panelHeight * 0.5f + screenPadding.y;
+            -canvasHalfHeight +
+            screenPadding.y +
+            panelHeight * pivot.y;
 
         float maxY =
-            canvasHalfHeight - panelHeight * 0.5f - screenPadding.y;
+            canvasHalfHeight -
+            screenPadding.y -
+            panelHeight * (1f - pivot.y);
 
         position.x =
             Mathf.Clamp(position.x, minX, maxX);
