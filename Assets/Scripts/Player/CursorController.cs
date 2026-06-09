@@ -16,6 +16,13 @@ public class CursorController : MonoBehaviour
 
     private void Update()
     {
+        if (InventoryMenuController.IsInventoryOpen)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            return;
+        }
+
         // Optional: press Esc to unlock while testing in editor
         if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
         {

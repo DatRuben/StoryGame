@@ -5,13 +5,15 @@ public class InventoryMenuController : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private CanvasGroup inventoryCanvasGroup;
-    [SerializeField] private GameObject crosshair;
+    [SerializeField] private Behaviour[] componentsDisabledWhileOpen;
 
     [Header("Settings")]
     [SerializeField] private bool startsOpen = false;
 
     private PlayerInputActions playerInput;
     private bool isOpen;
+
+    public static bool IsInventoryOpen { get; private set; }
 
     private void Awake()
     {
@@ -46,6 +48,7 @@ public class InventoryMenuController : MonoBehaviour
     private void SetInventoryOpen(bool open)
     {
         isOpen = open;
+        IsInventoryOpen = open;
 
         if (inventoryCanvasGroup != null)
         {
@@ -54,9 +57,12 @@ public class InventoryMenuController : MonoBehaviour
             inventoryCanvasGroup.blocksRaycasts = open;
         }
 
-        if (crosshair != null)
+        foreach (Behaviour component in componentsDisabledWhileOpen)
         {
-            crosshair.SetActive(!open);
+            if (component != null)
+            {
+                component.enabled = !open;
+            }
         }
 
         if (open)

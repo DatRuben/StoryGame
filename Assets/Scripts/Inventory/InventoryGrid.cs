@@ -5,24 +5,36 @@ public class InventoryGrid
     private readonly int width;
     private readonly int height;
 
-    private readonly ItemData[,] cells;
+    private readonly PlacedInventoryItem[,] cells;
+
     public int Width => width;
     public int Height => height;
-
-    public ItemData GetCell(int x, int y)
-    {
-        if (!IsInsideGrid(x, y))
-            return null;
-
-        return cells[x, y];
-    }
 
     public InventoryGrid(int width, int height)
     {
         this.width = width;
         this.height = height;
 
-        cells = new ItemData[width, height];
+        cells = new PlacedInventoryItem[width, height];
+    }
+
+    public ItemData GetCell(int x, int y)
+    {
+        PlacedInventoryItem placedItem =
+            GetPlacedItem(x, y);
+
+        if (placedItem == null)
+            return null;
+
+        return placedItem.ItemData;
+    }
+
+    public PlacedInventoryItem GetPlacedItem(int x, int y)
+    {
+        if (!IsInsideGrid(x, y))
+            return null;
+
+        return cells[x, y];
     }
 
     public bool CanPlaceItem(
@@ -67,6 +79,13 @@ public class InventoryGrid
         if (!CanPlaceItem(item, startX, startY, rotated))
             return false;
 
+        PlacedInventoryItem placedItem =
+            new PlacedInventoryItem(
+                item,
+                new Vector2Int(startX, startY),
+                rotated
+            );
+
         int itemWidth = item.GetWidth(rotated);
         int itemHeight = item.GetHeight(rotated);
 
@@ -80,11 +99,57 @@ public class InventoryGrid
                 int gridX = startX + x;
                 int gridY = startY + y;
 
-                cells[gridX, gridY] = item;
+                cells[gridX, gridY] = placedItem;
             }
         }
 
         return true;
+    }
+
+    public bool RemoveItem(PlacedInventoryItem placedItem)
+    {
+        if (placedItem == null)
+            return false;
+
+        bool removedAnyCell = false;
+
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                if (cells[x, y] == placedItem)
+                {
+                    cells[x, y] = null;
+                    removedAnyCell = true;
+                }
+            }
+        }
+
+        return removedAnyCell;
+    }
+
+    public bool RemoveItemAt(int x, int y)
+    {
+        PlacedInventoryItem placedItem =
+            GetPlacedItem(x, y);
+
+        if (placedItem == null)
+            return false;
+
+        return RemoveItem(placedItem);
+    }
+
+    public PlacedInventoryItem PickUpItemAt(int x, int y)
+    {
+        PlacedInventoryItem placedItem =
+            GetPlacedItem(x, y);
+
+        if (placedItem == null)
+            return null;
+
+        RemoveItem(placedItem);
+
+        return placedItem;
     }
 
     private bool IsInsideGrid(int x, int y)

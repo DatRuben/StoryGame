@@ -3274,8 +3274,8 @@ GameObject:
   - component: {fileID: 816001208}
   - component: {fileID: 816001212}
   - component: {fileID: 816001213}
-  - component: {fileID: 816001214}
   - component: {fileID: 816001215}
+  - component: {fileID: 816001216}
   m_Layer: 0
   m_Name: PlayerModel
   m_TagString: Player
@@ -3390,7 +3390,7 @@ Rigidbody:
   serializedVersion: 5
   m_Mass: 1
   m_LinearDamping: 0
-  m_AngularDamping: 8
+  m_AngularDamping: 0
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
   m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
@@ -3437,44 +3437,6 @@ MonoBehaviour:
   m_DefaultActionMap: Player
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 330585545}
---- !u!114 &816001214
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 816001207}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d5eff18cc248d6149a7d862a6689dd4a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ThirdPersonController
-  movementProfile: {fileID: 0}
-  groundAcceleration: 8
-  airAcceleration: 2
-  deceleration: 16
-  jumpForce: 7
-  groundCheck: {fileID: 1609922832}
-  groundCheckRadius: 0.25
-  groundCheckDistance: 0.75
-  groundLayer:
-    serializedVersion: 2
-    m_Bits: 128
-  maxGroundAngle: 55
-  fallMultiplier: 6
-  lowJumpMultiplier: 3
-  jumpUpMultiplier: 1.75
-  sprintSpeed: 15
-  walkSpeed: 10
-  wallContactMemory: 0.1
-  jumpGroundIgnoreTime: 0.15
-  preventSlopeSliding: 1
-  slopeSlideCancelStrength: 1
-  orbitalFollow: {fileID: 0}
-  cameraTransform: {fileID: 330585546}
-  rotationSpeed: 10
-  playerCamera: {fileID: 330585545}
-  speedText: {fileID: 872080309}
 --- !u!114 &816001215
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3491,6 +3453,48 @@ MonoBehaviour:
   capsuleCollider: {fileID: 816001208}
   groundCheck: {fileID: 1609922832}
   cameraPivot: {fileID: 572652583}
+--- !u!114 &816001216
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 816001207}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5eff18cc248d6149a7d862a6689dd4a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ThirdPersonController
+  groundAcceleration: 8
+  airAcceleration: 2
+  deceleration: 16
+  jumpForce: 7
+  sprintSpeed: 15
+  walkSpeed: 10
+  groundCheck: {fileID: 1609922832}
+  groundCheckRadius: 0.25
+  groundCheckDistance: 0.75
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 128
+  maxGroundAngle: 55
+  jumpGroundIgnoreTime: 0.15
+  fallMultiplier: 6
+  lowJumpMultiplier: 3
+  jumpUpMultiplier: 1.75
+  preventSlopeSliding: 1
+  slopeSlideCancelStrength: 1
+  preventDefaultMovementLaunch: 1
+  allowedDefaultUpwardSpeed: 0.5
+  recentlyGroundedTime: 0.15
+  flatGroundAngle: 5
+  defaultExternalLaunchTime: 0.35
+  wallContactMemory: 0.1
+  orbitalFollow: {fileID: 0}
+  cameraTransform: {fileID: 330585546}
+  playerCamera: {fileID: 330585545}
+  rotationSpeed: 10
+  speedText: {fileID: 872080309}
 --- !u!1 &820849752
 GameObject:
   m_ObjectHideFlags: 0
@@ -5428,6 +5432,7 @@ GameObject:
   - component: {fileID: 1350866572}
   - component: {fileID: 1350866571}
   - component: {fileID: 1350866575}
+  - component: {fileID: 1350866576}
   m_Layer: 5
   m_Name: UI Canvas
   m_TagString: Untagged
@@ -5533,7 +5538,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 134a3ffe8488360438540c16e9bb621d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerCrosshairScript
-  playerInput: {fileID: 816001214}
+  playerInput: {fileID: 816001216}
   character: {fileID: 816001211}
   playerCamera: {fileID: 330585545}
   crosshair: {fileID: 946322017}
@@ -5544,6 +5549,29 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 128
   useCameraPitchWhenUnlocked: 1
+--- !u!114 &1350866576
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1350866570}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 333592bdffb300e4a97865f1dfb60d0e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HeldItemClosedPreviewUI
+  playerInventory: {fileID: 2123556395}
+  cellPrefab: {fileID: 8116548169804476811, guid: 66689b1e950ee7349b173f27e743a4d1, type: 3}
+  topRightOffset: {x: -24, y: -24}
+  panelWidth: 320
+  panelHeight: 200
+  previewCellSize: {x: 24, y: 24}
+  previewSpacing: {x: 1, y: 1}
+  previewColor: {r: 1, g: 1, b: 1, a: 0.7}
+  holdingPrefix: 'Holding: '
+  fontSize: 22
+  textColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &1364555043
 GameObject:
   m_ObjectHideFlags: 0
@@ -7523,6 +7551,7 @@ GameObject:
   - component: {fileID: 1711152530}
   - component: {fileID: 1711152531}
   - component: {fileID: 1711152532}
+  - component: {fileID: 1711152533}
   m_Layer: 5
   m_Name: InventoryPanel
   m_TagString: Untagged
@@ -7544,10 +7573,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1350866574}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 360, y: 280}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1711152528
 CanvasRenderer:
@@ -7598,6 +7627,10 @@ MonoBehaviour:
   cellPrefab: {fileID: 8116548169804476811, guid: 66689b1e950ee7349b173f27e743a4d1, type: 3}
   emptyColor: {r: 0, g: 0, b: 0, a: 0.35}
   occupiedColor: {r: 1, g: 1, b: 1, a: 0.85}
+  validPlacementColor: {r: 0.2, g: 1, b: 0.2, a: 0.85}
+  invalidPlacementColor: {r: 1, g: 0.2, b: 0.2, a: 0.85}
+  heldPreviewColor: {r: 1, g: 1, b: 1, a: 0.65}
+  heldPreviewOffset: {x: 0, y: 0}
 --- !u!225 &1711152531
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -7623,8 +7656,27 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InventoryMenuController
   inventoryCanvasGroup: {fileID: 1711152531}
-  crosshair: {fileID: 946322016}
+  componentsDisabledWhileOpen:
+  - {fileID: 636625049}
   startsOpen: 0
+--- !u!114 &1711152533
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1711152525}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 018e5f0e45c9e6649b7d326d10d4a33c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InventoryFollow
+  target: {fileID: 816001211}
+  playerCamera: {fileID: 330585545}
+  worldOffset: {x: 0, y: 1.2, z: 0}
+  screenOffset: {x: 180, y: 0}
+  clampToScreen: 1
+  screenPadding: {x: 24, y: 24}
 --- !u!1 &1725643933
 GameObject:
   m_ObjectHideFlags: 0
@@ -9937,6 +9989,6 @@ SceneRoots:
   - {fileID: 1145009791}
   - {fileID: 423149969}
   - {fileID: 838998855}
+  - {fileID: 2123556394}
   - {fileID: 1469089763}
   - {fileID: 43210447}
-  - {fileID: 2123556394}

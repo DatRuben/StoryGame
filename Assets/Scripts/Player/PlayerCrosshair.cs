@@ -33,6 +33,8 @@ public class PlayerCrosshair : MonoBehaviour
             canvasRect = canvas.GetComponent<RectTransform>();
 
         crosshairGraphic = crosshair.GetComponent<Graphic>();
+
+        HideCrosshair();
     }
 
     private void LateUpdate()
@@ -43,6 +45,13 @@ public class PlayerCrosshair : MonoBehaviour
             crosshair == null ||
             aimTarget == null)
         {
+            HideCrosshair();
+            return;
+        }
+
+        if (InventoryMenuController.IsInventoryOpen)
+        {
+            HideCrosshair();
             return;
         }
 
@@ -56,10 +65,14 @@ public class PlayerCrosshair : MonoBehaviour
         }
     }
 
+    private void HideCrosshair()
+    {
+        if (crosshairGraphic != null)
+            crosshairGraphic.enabled = false;
+    }
+
     private void UpdateLockedAim()
     {
-        // Locked mode:
-        // Crosshair is visible and centered.
         if (crosshairGraphic != null)
             crosshairGraphic.enabled = true;
 
@@ -96,11 +109,7 @@ public class PlayerCrosshair : MonoBehaviour
 
     private void UpdateUnlockedHiddenAim()
     {
-        // Unlocked mode:
-        // Crosshair is hidden, but AimTarget still updates
-        // as if the old character-facing crosshair existed.
-        if (crosshairGraphic != null)
-            crosshairGraphic.enabled = false;
+        HideCrosshair();
 
         Vector3 rayStart =
             character.position + Vector3.up * aimHeight;
@@ -131,7 +140,9 @@ public class PlayerCrosshair : MonoBehaviour
 
     private Vector3 GetUnlockedAimDirection()
     {
-        Vector3 flatForward = character.forward;
+        Vector3 flatForward =
+            character.forward;
+
         flatForward.y = 0f;
 
         if (flatForward.sqrMagnitude < 0.01f)
@@ -162,7 +173,9 @@ public class PlayerCrosshair : MonoBehaviour
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
             canvasRect,
             screenPosition,
-            canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : playerCamera,
+            canvas.renderMode == RenderMode.ScreenSpaceOverlay
+                ? null
+                : playerCamera,
             out Vector2 localPoint
         );
 
