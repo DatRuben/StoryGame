@@ -1,10 +1,26 @@
 using UnityEngine;
 
+public enum ItemCategory
+{
+    Weapon,
+    Armor,
+    Equipment,
+    Consumable,
+    Food,
+    Ingredients,
+    Material,
+    Misc,
+    Unique
+}
+
 [CreateAssetMenu(menuName = "Game/Item Data")]
 public class ItemData : ScriptableObject
 {
     [Header("Identity")]
     public string itemName;
+
+    [Header("Item Type")]
+    public ItemCategory itemCategory = ItemCategory.Misc;
 
     [Header("Inventory Shape")]
     [Min(1)] public int shapeWidth = 1;

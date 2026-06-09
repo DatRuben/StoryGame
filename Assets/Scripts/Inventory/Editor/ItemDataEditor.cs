@@ -1,4 +1,3 @@
-using NUnit.Framework.Interfaces;
 using UnityEditor;
 using UnityEngine;
 
@@ -11,6 +10,16 @@ public class ItemDataEditor : Editor
 
         EditorGUILayout.LabelField("Identity", EditorStyles.boldLabel);
         item.itemName = EditorGUILayout.TextField("Item Name", item.itemName);
+
+        EditorGUILayout.Space();
+
+        EditorGUILayout.LabelField("Item Type", EditorStyles.boldLabel);
+
+        item.itemCategory =
+            (ItemCategory)EditorGUILayout.EnumPopup(
+                "Item Category",
+                item.itemCategory
+            );
 
         EditorGUILayout.Space();
 

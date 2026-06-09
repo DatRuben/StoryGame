@@ -10,9 +10,15 @@ public class InventoryFollow : MonoBehaviour
     [SerializeField] private Vector3 worldOffset = new Vector3(0f, 1.2f, 0f);
     [SerializeField] private Vector2 screenOffset = new Vector2(180f, 0f);
 
+    [Header("Follow")]
+    [SerializeField] private bool followContinuouslyWhileOpen = true;
+
     [Header("Smoothing")]
     [SerializeField] private bool smoothPosition = true;
-    [SerializeField] private float smoothTime = 0.05f;
+    [SerializeField] private float smoothTime = 0.1f;
+
+    [Header("Pixel Stability")]
+    [SerializeField] private bool snapToPixel = true;
 
     [Header("Screen Clamp")]
     [SerializeField] private bool clampToScreen = true;
@@ -37,7 +43,8 @@ public class InventoryFollow : MonoBehaviour
             playerCamera = Camera.main;
 
         // Left-middle pivot means the panel grows to the right of the target.
-        rectTransform.pivot = new Vector2(0f, 0.5f);
+        if (rectTransform != null)
+            rectTransform.pivot = new Vector2(0f, 0.5f);
     }
 
     private void LateUpdate()
@@ -48,20 +55,33 @@ public class InventoryFollow : MonoBehaviour
         if (!inventoryOpen)
         {
             wasInventoryOpen = false;
+            smoothVelocity = Vector2.zero;
             return;
         }
 
-        UpdatePosition(!wasInventoryOpen);
+        bool justOpened =
+            !wasInventoryOpen;
 
-        wasInventoryOpen = true;
+        if (justOpened)
+        {
+            UpdatePosition(true);
+            wasInventoryOpen = true;
+            return;
+        }
+
+        if (!followContinuouslyWhileOpen)
+            return;
+
+        UpdatePosition(false);
     }
 
-    private void UpdatePosition(bool snap)
+    private void UpdatePosition(bool snapImmediately)
     {
         if (target == null ||
             playerCamera == null ||
             rootCanvas == null ||
-            canvasRect == null)
+            canvasRect == null ||
+            rectTransform == null)
         {
             return;
         }
@@ -100,14 +120,16 @@ public class InventoryFollow : MonoBehaviour
                 ClampToCanvas(targetPosition);
         }
 
-        if (snap || !smoothPosition)
+        if (snapImmediately || !smoothPosition)
         {
-            rectTransform.anchoredPosition = targetPosition;
+            rectTransform.anchoredPosition =
+                ApplyPixelSnap(targetPosition);
+
             smoothVelocity = Vector2.zero;
             return;
         }
 
-        rectTransform.anchoredPosition =
+        Vector2 smoothedPosition =
             Vector2.SmoothDamp(
                 rectTransform.anchoredPosition,
                 targetPosition,
@@ -116,6 +138,9 @@ public class InventoryFollow : MonoBehaviour
                 Mathf.Infinity,
                 Time.unscaledDeltaTime
             );
+
+        rectTransform.anchoredPosition =
+            ApplyPixelSnap(smoothedPosition);
     }
 
     private Vector2 ClampToCanvas(Vector2 position)
@@ -162,5 +187,21 @@ public class InventoryFollow : MonoBehaviour
             Mathf.Clamp(position.y, minY, maxY);
 
         return position;
+    }
+
+    private Vector2 ApplyPixelSnap(Vector2 position)
+    {
+        if (!snapToPixel)
+            return position;
+
+        float scaleFactor = 1f;
+
+        if (rootCanvas != null)
+            scaleFactor = Mathf.Max(1f, rootCanvas.scaleFactor);
+
+        return new Vector2(
+            Mathf.Round(position.x * scaleFactor) / scaleFactor,
+            Mathf.Round(position.y * scaleFactor) / scaleFactor
+        );
     }
 }

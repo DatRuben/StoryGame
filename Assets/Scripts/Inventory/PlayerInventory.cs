@@ -13,14 +13,27 @@ public class PlayerInventory : MonoBehaviour
     [SerializeField] private int startingY = 1;
     [SerializeField] private bool startingRotated = false;
 
+    [Header("Weapon Slot")]
+    [SerializeField] private ItemData weaponSlotItem;
+    [SerializeField] private bool weaponDrawn = false;
+
     public InventoryGrid Grid { get; private set; }
 
+    // Cursor/inventory-held item.
+    // This is the item that follows the mouse while inventory is open.
     public PlacedInventoryItem HeldItem { get; private set; }
 
     public bool IsHoldingItem => HeldItem != null;
 
+    // Equipped weapon slot item.
+    // If weaponDrawn is true, this weapon is visually in the character's hands.
+    public ItemData WeaponSlotItem => weaponSlotItem;
+    public bool IsWeaponDrawn => weaponDrawn;
+    public bool HasWeaponInSlot => weaponSlotItem != null;
+
     public event Action OnInventoryChanged;
     public event Action OnHeldItemChanged;
+    public event Action OnEquipmentChanged;
 
     private void Awake()
     {
@@ -29,6 +42,8 @@ public class PlayerInventory : MonoBehaviour
 
     private void Start()
     {
+        ValidateWeaponSlot();
+
         if (startingItem != null)
         {
             TryPlaceItem(
@@ -37,6 +52,26 @@ public class PlayerInventory : MonoBehaviour
                 startingY,
                 startingRotated
             );
+        }
+    }
+
+    private void ValidateWeaponSlot()
+    {
+        if (weaponSlotItem == null)
+        {
+            weaponDrawn = false;
+            return;
+        }
+
+        if (!IsWeapon(weaponSlotItem))
+        {
+            Debug.LogWarning(
+                weaponSlotItem.itemName +
+                " is assigned to the weapon slot, but it is not marked as a Weapon."
+            );
+
+            weaponSlotItem = null;
+            weaponDrawn = false;
         }
     }
 
@@ -77,6 +112,36 @@ public class PlayerInventory : MonoBehaviour
         return placed;
     }
 
+    public bool CanEquipHeldItemToWeaponSlot()
+    {
+        if (HeldItem == null ||
+            HeldItem.ItemData == null)
+        {
+            return false;
+        }
+
+        if (weaponSlotItem != null)
+            return false;
+
+        return IsWeapon(HeldItem.ItemData);
+    }
+
+    public bool TryEquipHeldItemToWeaponSlot()
+    {
+        if (!CanEquipHeldItemToWeaponSlot())
+            return false;
+
+        weaponSlotItem = HeldItem.ItemData;
+        weaponDrawn = false;
+
+        HeldItem = null;
+
+        OnHeldItemChanged?.Invoke();
+        OnEquipmentChanged?.Invoke();
+
+        return true;
+    }
+
     public PlacedInventoryItem TryPickUpItemAt(
         int x,
         int y)
@@ -86,6 +151,19 @@ public class PlayerInventory : MonoBehaviour
 
         if (HeldItem != null)
             return null;
+
+        PlacedInventoryItem itemAtCell =
+            Grid.GetPlacedItem(x, y);
+
+        if (itemAtCell == null)
+            return null;
+
+        // If the character is holding their equipped weapon,
+        // put it away before letting them cursor-hold an inventory item.
+        if (weaponDrawn)
+        {
+            SheatheWeapon();
+        }
 
         PlacedInventoryItem pickedItem =
             Grid.PickUpItemAt(x, y);
@@ -158,5 +236,66 @@ public class PlayerInventory : MonoBehaviour
         OnHeldItemChanged?.Invoke();
 
         return true;
+    }
+
+    public bool TryEquipWeaponToSlot(ItemData weaponItem)
+    {
+        if (!IsWeapon(weaponItem))
+            return false;
+
+        if (weaponSlotItem != null)
+            return false;
+
+        weaponSlotItem = weaponItem;
+        weaponDrawn = false;
+
+        OnEquipmentChanged?.Invoke();
+
+        return true;
+    }
+
+    public bool DrawWeapon()
+    {
+        if (weaponSlotItem == null)
+            return false;
+
+        // Do not draw the equipped weapon while managing a cursor-held item.
+        if (HeldItem != null)
+            return false;
+
+        if (weaponDrawn)
+            return true;
+
+        weaponDrawn = true;
+
+        OnEquipmentChanged?.Invoke();
+
+        return true;
+    }
+
+    public bool SheatheWeapon()
+    {
+        if (!weaponDrawn)
+            return false;
+
+        weaponDrawn = false;
+
+        OnEquipmentChanged?.Invoke();
+
+        return true;
+    }
+
+    public bool ToggleWeaponDrawn()
+    {
+        if (weaponDrawn)
+            return SheatheWeapon();
+
+        return DrawWeapon();
+    }
+
+    public bool IsWeapon(ItemData item)
+    {
+        return item != null &&
+               item.itemCategory == ItemCategory.Weapon;
     }
 }
