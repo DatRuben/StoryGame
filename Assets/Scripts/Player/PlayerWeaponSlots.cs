@@ -418,6 +418,10 @@ public class WeaponSet
 
 public class PlayerWeaponSlots : MonoBehaviour
 {
+    [Header("References")]
+    [SerializeField] private PlayerInventory playerInventory;
+    [SerializeField] private PlayerHolding playerHolding;
+
     [Header("Weapon Sets")]
     [SerializeField] private WeaponSet weaponSet1 = new WeaponSet();
     [SerializeField] private WeaponSet weaponSet2 = new WeaponSet();
@@ -446,6 +450,15 @@ public class PlayerWeaponSlots : MonoBehaviour
 
     public event Action OnWeaponSlotsChanged;
 
+    private void Awake()
+    {
+        if (playerInventory == null)
+            playerInventory = GetComponent<PlayerInventory>();
+
+        if (playerHolding == null)
+            playerHolding = GetComponent<PlayerHolding>();
+    }
+
     private void OnValidate()
     {
         weaponSet1?.Validate();
@@ -472,6 +485,62 @@ public class PlayerWeaponSlots : MonoBehaviour
         OnWeaponSlotsChanged?.Invoke();
     }
 
+    public bool ActiveSetCanCoexistWithHeldItem(ItemData item)
+    {
+        if (item == null)
+            return true;
+
+        if (ActiveWeaponSet == null)
+            return true;
+
+        if (ActiveWeaponSet.Mode == WeaponSetMode.ManualSaddleTurret)
+            return false;
+
+        int occupiedHands =
+            GetActiveSetOccupiedHandCount();
+
+        int neededHands =
+            item.handUsage == ItemHandUsage.TwoHanded
+                ? 2
+                : 1;
+
+        return occupiedHands + neededHands <= 2;
+    }
+
+    private int GetActiveSetOccupiedHandCount()
+    {
+        if (ActiveWeaponSet == null)
+            return 0;
+
+        switch (ActiveWeaponSet.Mode)
+        {
+            case WeaponSetMode.OneHandedPair:
+                int handCount = 0;
+
+                if (ActiveWeaponSet.LeftHandWeapon != null)
+                    handCount++;
+
+                if (ActiveWeaponSet.RightHandWeapon != null)
+                    handCount++;
+
+                return handCount;
+
+            case WeaponSetMode.TwoHandedWeapon:
+                return ActiveWeaponSet.TwoHandedWeapon != null
+                    ? 2
+                    : 0;
+
+            case WeaponSetMode.MouthWeapon:
+                return 0;
+
+            case WeaponSetMode.ManualSaddleTurret:
+                return 2;
+
+            default:
+                return 0;
+        }
+    }
+
     public bool TryEquipWeaponToActiveSet(
         ItemData weapon,
         WeaponEquipPoint equipPoint)
@@ -493,6 +562,12 @@ public class PlayerWeaponSlots : MonoBehaviour
 
         if (set == null)
             return false;
+
+        if (setIndex == activeWeaponSetIndex &&
+            weaponsDrawn)
+        {
+            SheatheWeapons();
+        }
 
         bool equipped =
             set.TryEquipWeapon(
@@ -532,6 +607,12 @@ public class PlayerWeaponSlots : MonoBehaviour
         if (set == null)
             return null;
 
+        if (setIndex == activeWeaponSetIndex &&
+            weaponsDrawn)
+        {
+            SheatheWeapons();
+        }
+
         ItemData removedWeapon =
             set.RemoveWeaponInSlot(equipPoint);
 
@@ -558,6 +639,12 @@ public class PlayerWeaponSlots : MonoBehaviour
 
         if (set == null)
             return false;
+
+        if (setIndex == activeWeaponSetIndex &&
+            weaponsDrawn)
+        {
+            SheatheWeapons();
+        }
 
         bool reserved =
             set.TryReserveForManualSaddleTurret(
@@ -619,6 +706,29 @@ public class PlayerWeaponSlots : MonoBehaviour
 
         if (weaponsDrawn)
             return true;
+
+        if (playerInventory != null &&
+            playerInventory.IsHoldingItem)
+        {
+            if (!playerInventory.MouseHeldItemCountsAsHeld)
+                return false;
+
+            ItemData heldItem =
+                playerInventory.HeldItem.ItemData;
+
+            bool canKeepHeldItem =
+                ActiveSetCanCoexistWithHeldItem(heldItem);
+
+            if (!canKeepHeldItem)
+                playerInventory.TryStoreHeldItemInInventoryOrDrop();
+        }
+
+        if (playerHolding != null &&
+            playerHolding.HasAnyHeldItem)
+        {
+            if (ActiveWeaponSet.Mode == WeaponSetMode.ManualSaddleTurret)
+                playerHolding.ClearAllHolding();
+        }
 
         weaponsDrawn = true;
 

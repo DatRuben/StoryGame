@@ -55,8 +55,8 @@ public class RaceProfile : ScriptableObject
     public CapsuleDirection capsuleDirection = CapsuleDirection.YAxis;
 
     [Header("Player Setup")]
-    public Vector3 groundCheckLocalPosition = new Vector3(0f, -.9f, 0f);
-    public Vector3 cameraPivotLocalPosition = new Vector3(0f, .9f, 0f);
+    public Vector3 groundCheckLocalPosition = new Vector3(0f, -0.9f, 0f);
+    public Vector3 cameraPivotLocalPosition = new Vector3(0f, 0.9f, 0f);
 
     [Header("Movement")]
     public float walkSpeed = 10f;
@@ -86,6 +86,11 @@ public class RaceProfile : ScriptableObject
     public bool usesSize2FeralWeapons = false;
     public bool usesSize3FeralWeapons = false;
 
+    [Header("Special Equipment Rules")]
+    public bool canHoldItemInMouth = false;
+    public bool canUseMouthWeapons = false;
+    public bool canEquipSaddles = false;
+
     [Header("Magic Rules")]
     public bool naturalCatalyst = false;
 
@@ -106,16 +111,10 @@ public class RaceProfile : ScriptableObject
 
     [Header("Aether Inventory")]
     public bool hasAetherInventory = false;
-    //public float naturalInventoryWeightCapacity = 0f;
-    //public int naturalInventorySlotCapacity = 0;
 
     [Header("Mount / Riding Rules")]
     public bool canBeRidden = false;
     public bool canRideMounts = true;
-
-    [Header("Holding Rules")]
-    public bool canHoldItemInMouth = false;
-    public bool canUseMouthWeapons = false;
 
     [Header("Special Body Parts")]
     public bool hasWings = false;

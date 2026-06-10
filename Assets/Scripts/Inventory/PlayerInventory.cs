@@ -1,19 +1,32 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
+
+[Serializable]
+public class StartingInventoryItem
+{
+    public ItemData item;
+    public int x;
+    public int y;
+
+    [Tooltip("0 = 0°, 1 = 90°, 2 = 180°, 3 = 270°")]
+    [Range(0, 3)]
+    public int rotationSteps;
+}
 
 public class PlayerInventory : MonoBehaviour
 {
+    [Header("References")]
+    [SerializeField] private PlayerWeaponSlots playerWeaponSlots;
+
     [Header("Grid Size")]
     [SerializeField] private int gridWidth = 8;
     [SerializeField] private int gridHeight = 6;
 
-    [Header("Test Starting Item")]
-    [SerializeField] private ItemData startingItem;
-    [SerializeField] private int startingX = 1;
-    [SerializeField] private int startingY = 1;
-
-    [Tooltip("0 = 0°, 1 = 90°, 2 = 180°, 3 = 270°")]
-    [SerializeField] private int startingRotationSteps = 0;
+    [Header("Test Starting Items")]
+    [SerializeField]
+    private List<StartingInventoryItem> startingItems =
+        new List<StartingInventoryItem>();
 
     [Header("Old Weapon Slot - Temporary")]
     [SerializeField] private ItemData weaponSlotItem;
@@ -50,21 +63,15 @@ public class PlayerInventory : MonoBehaviour
     private void Awake()
     {
         Grid = new InventoryGrid(gridWidth, gridHeight);
+
+        if (playerWeaponSlots == null)
+            playerWeaponSlots = GetComponent<PlayerWeaponSlots>();
     }
 
     private void Start()
     {
         ValidateWeaponSlot();
-
-        if (startingItem != null)
-        {
-            TryPlaceItem(
-                startingItem,
-                startingX,
-                startingY,
-                startingRotationSteps
-            );
-        }
+        PlaceStartingItems();
     }
 
     private void ValidateWeaponSlot()
@@ -84,6 +91,41 @@ public class PlayerInventory : MonoBehaviour
 
             weaponSlotItem = null;
             weaponDrawn = false;
+        }
+    }
+
+    private void PlaceStartingItems()
+    {
+        for (int i = 0; i < startingItems.Count; i++)
+        {
+            StartingInventoryItem startingItem =
+                startingItems[i];
+
+            if (startingItem == null ||
+                startingItem.item == null)
+            {
+                continue;
+            }
+
+            bool placed =
+                TryPlaceItem(
+                    startingItem.item,
+                    startingItem.x,
+                    startingItem.y,
+                    startingItem.rotationSteps
+                );
+
+            if (!placed)
+            {
+                Debug.LogWarning(
+                    "Could not place starting item: " +
+                    startingItem.item.itemName +
+                    " at " +
+                    startingItem.x +
+                    ", " +
+                    startingItem.y
+                );
+            }
         }
     }
 
@@ -136,6 +178,31 @@ public class PlayerInventory : MonoBehaviour
         return placed;
     }
 
+    public bool TryAddItemToFirstAvailableSpace(
+        ItemData item,
+        int rotationSteps = 0)
+    {
+        if (Grid == null || item == null)
+            return false;
+
+        for (int y = 0; y < Grid.Height; y++)
+        {
+            for (int x = 0; x < Grid.Width; x++)
+            {
+                if (!Grid.CanPlaceItem(item, x, y, rotationSteps))
+                    continue;
+
+                Grid.PlaceItem(item, x, y, rotationSteps);
+
+                OnInventoryChanged?.Invoke();
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public PlacedInventoryItem TryPickUpItemAt(
         int x,
         int y,
@@ -153,14 +220,30 @@ public class PlayerInventory : MonoBehaviour
         if (itemAtCell == null)
             return null;
 
-        if (countsAsHeld &&
-            weaponDrawn &&
-            WeaponConflictsWithHeldItem(
-                weaponSlotItem,
-                itemAtCell.ItemData
-            ))
+        if (countsAsHeld)
         {
-            SheatheWeapon();
+            if (playerWeaponSlots != null &&
+                playerWeaponSlots.WeaponsDrawn)
+            {
+                bool canKeepWeaponsDrawn =
+                    playerWeaponSlots.ActiveSetCanCoexistWithHeldItem(
+                        itemAtCell.ItemData
+                    );
+
+                if (!canKeepWeaponsDrawn)
+                    playerWeaponSlots.SheatheWeapons();
+            }
+
+            if (weaponDrawn)
+            {
+                bool oldWeaponCanStayDrawn =
+                    weaponSlotItem != null &&
+                    weaponSlotItem.handUsage == ItemHandUsage.OneHanded &&
+                    itemAtCell.ItemData.handUsage == ItemHandUsage.OneHanded;
+
+                if (!oldWeaponCanStayDrawn)
+                    SheatheWeapon();
+            }
         }
 
         PlacedInventoryItem pickedItem =
@@ -317,6 +400,65 @@ public class PlayerInventory : MonoBehaviour
         return item;
     }
 
+    public bool TryStoreHeldItemInInventoryOrDrop()
+    {
+        if (HeldItem == null ||
+            HeldItem.ItemData == null)
+        {
+            MouseHeldItemCountsAsHeld = false;
+            return true;
+        }
+
+        ItemData itemData =
+            HeldItem.ItemData;
+
+        int rotationSteps =
+            HeldItem.RotationSteps;
+
+        for (int y = 0; y < Grid.Height; y++)
+        {
+            for (int x = 0; x < Grid.Width; x++)
+            {
+                bool canPlace =
+                    Grid.CanPlaceItem(
+                        itemData,
+                        x,
+                        y,
+                        rotationSteps
+                    );
+
+                if (!canPlace)
+                    continue;
+
+                Grid.PlaceItem(
+                    itemData,
+                    x,
+                    y,
+                    rotationSteps
+                );
+
+                HeldItem = null;
+                MouseHeldItemCountsAsHeld = false;
+
+                OnInventoryChanged?.Invoke();
+                OnHeldItemChanged?.Invoke();
+
+                return true;
+            }
+        }
+
+        Debug.Log(
+            "Dropped held item because there was no room in the inventory. Temporary behavior: item disappears."
+        );
+
+        HeldItem = null;
+        MouseHeldItemCountsAsHeld = false;
+
+        OnHeldItemChanged?.Invoke();
+
+        return false;
+    }
+
     public bool CanEquipHeldItemToWeaponSlot()
     {
         if (HeldItem == null ||
@@ -444,13 +586,14 @@ public class PlayerInventory : MonoBehaviour
             return true;
 
         if (HeldItem != null &&
-            MouseHeldItemCountsAsHeld &&
-            WeaponConflictsWithHeldItem(
-                weaponSlotItem,
-                HeldItem.ItemData
-            ))
+            MouseHeldItemCountsAsHeld)
         {
-            TryStoreMouseHeldItemInInventoryOrDrop();
+            bool canKeepHeldItem =
+                weaponSlotItem.handUsage == ItemHandUsage.OneHanded &&
+                HeldItem.ItemData.handUsage == ItemHandUsage.OneHanded;
+
+            if (!canKeepHeldItem)
+                TryStoreHeldItemInInventoryOrDrop();
         }
 
         weaponDrawn = true;
@@ -484,84 +627,5 @@ public class PlayerInventory : MonoBehaviour
     {
         return item != null &&
                item.itemCategory == ItemCategory.Weapon;
-    }
-
-    private bool WeaponConflictsWithHeldItem(
-        ItemData weapon,
-        ItemData heldItem)
-    {
-        if (weapon == null ||
-            heldItem == null)
-        {
-            return false;
-        }
-
-        bool weaponIsTwoHanded =
-            weapon.handUsage == ItemHandUsage.TwoHanded;
-
-        bool heldItemIsTwoHanded =
-            heldItem.handUsage == ItemHandUsage.TwoHanded;
-
-        return weaponIsTwoHanded ||
-               heldItemIsTwoHanded;
-    }
-
-    private bool TryStoreMouseHeldItemInInventoryOrDrop()
-    {
-        if (HeldItem == null ||
-            HeldItem.ItemData == null)
-        {
-            MouseHeldItemCountsAsHeld = false;
-            return true;
-        }
-
-        ItemData itemData =
-            HeldItem.ItemData;
-
-        int rotationSteps =
-            HeldItem.RotationSteps;
-
-        for (int y = 0; y < Grid.Height; y++)
-        {
-            for (int x = 0; x < Grid.Width; x++)
-            {
-                bool canPlace =
-                    Grid.CanPlaceItem(
-                        itemData,
-                        x,
-                        y,
-                        rotationSteps
-                    );
-
-                if (!canPlace)
-                    continue;
-
-                Grid.PlaceItem(
-                    itemData,
-                    x,
-                    y,
-                    rotationSteps
-                );
-
-                HeldItem = null;
-                MouseHeldItemCountsAsHeld = false;
-
-                OnInventoryChanged?.Invoke();
-                OnHeldItemChanged?.Invoke();
-
-                return true;
-            }
-        }
-
-        Debug.Log(
-            "Dropped held item because there was no room in the inventory. Temporary behavior: item disappears."
-        );
-
-        HeldItem = null;
-        MouseHeldItemCountsAsHeld = false;
-
-        OnHeldItemChanged?.Invoke();
-
-        return false;
     }
 }

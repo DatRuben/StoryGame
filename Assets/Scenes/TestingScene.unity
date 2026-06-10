@@ -14907,6 +14907,9 @@ GameObject:
   - component: {fileID: 2044314365}
   - component: {fileID: 2044314364}
   - component: {fileID: 2044314363}
+  - component: {fileID: 2044314367}
+  - component: {fileID: 2044314366}
+  - component: {fileID: 2044314368}
   m_Layer: 5
   m_Name: SaddleSlot
   m_TagString: Untagged
@@ -15016,6 +15019,67 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2044314361}
   m_CullTransparentMesh: 1
+--- !u!114 &2044314366
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2044314361}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c5369fef60f7e343be3d0aa27950470, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SaddleSlotUI
+  playerInventory: {fileID: 2123556395}
+  playerEquipment: {fileID: 2123556402}
+  slotImage: {fileID: 2044314364}
+  slotText: {fileID: 961400911}
+  button: {fileID: 2044314363}
+  canvasGroup: {fileID: 2044314367}
+  onlyShowWhenInventoryOpen: 0
+  emptyText: Saddle
+  equipText: Equip Saddle
+  swapText: Swap Saddle
+  cannotEquipText: Cannot Equip
+  turretSuffix: ' + Turret'
+  emptyColor: {r: 0, g: 0, b: 0, a: 0.35}
+  equippedColor: {r: 1, g: 1, b: 1, a: 0.85}
+  turretColor: {r: 0.8, g: 0.55, b: 1, a: 0.9}
+  canEquipColor: {r: 0.2, g: 1, b: 0.2, a: 0.85}
+  invalidColor: {r: 1, g: 0.2, b: 0.2, a: 0.85}
+--- !u!225 &2044314367
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2044314361}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
+--- !u!114 &2044314368
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2044314361}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
+  m_IgnoreLayout: 0
+  m_MinWidth: -1
+  m_MinHeight: -1
+  m_PreferredWidth: -1
+  m_PreferredHeight: -1
+  m_FlexibleWidth: -1
+  m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!1 &2057406762
 GameObject:
   m_ObjectHideFlags: 0
@@ -16246,12 +16310,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 730cabd51bb12d340949456afe59c3aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInventory
+  playerWeaponSlots: {fileID: 2123556403}
   gridWidth: 25
   gridHeight: 20
-  startingItem: {fileID: 11400000, guid: 32bd2806bcd662b438e86ac184b3181e, type: 2}
-  startingX: 0
-  startingY: 0
-  startingRotationSteps: 0
+  startingItems:
+  - item: {fileID: 11400000, guid: 139703b42c33d0941a6e24841d8b3155, type: 2}
+    x: 0
+    y: 0
+    rotationSteps: 0
+  - item: {fileID: 11400000, guid: 3b972127d5278944d9888d995cb842c2, type: 2}
+    x: 0
+    y: 10
+    rotationSteps: 0
+  - item: {fileID: 11400000, guid: 32bd2806bcd662b438e86ac184b3181e, type: 2}
+    x: 10
+    y: 10
+    rotationSteps: 0
+  - item: {fileID: 11400000, guid: b50a35d9086d53b48ac4a5a7520b184e, type: 2}
+    x: 10
+    y: 0
+    rotationSteps: 0
   weaponSlotItem: {fileID: 0}
   weaponDrawn: 0
 --- !u!114 &2123556396
@@ -16270,9 +16348,8 @@ MonoBehaviour:
   capsuleCollider: {fileID: 2123556399}
   groundCheck: {fileID: 1609922832}
   cameraPivot: {fileID: 572652583}
-  playerInput: {fileID: 2123556397}
-  playerHolding: {fileID: 2123556401}
   playerWeaponSlots: {fileID: 2123556403}
+  playerEquipment: {fileID: 2123556402}
 --- !u!114 &2123556397
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16416,6 +16493,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerEquipment
   playerWeaponSlots: {fileID: 2123556403}
   equippedSaddle: {fileID: 0}
+  canEquipSaddles: 0
   manualSaddleTurretWeaponSetIndex: 1
 --- !u!114 &2123556403
 MonoBehaviour:
@@ -16429,6 +16507,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e331799bedeff2d449be1d18b51072e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerWeaponSlots
+  playerInventory: {fileID: 2123556395}
+  playerHolding: {fileID: 2123556401}
   weaponSet1:
     mode: 2
     leftHandWeapon: {fileID: 0}
@@ -16439,7 +16519,7 @@ MonoBehaviour:
   weaponSet2:
     mode: 1
     leftHandWeapon: {fileID: 11400000, guid: 831bda00be51f13498b164482fa7d507, type: 2}
-    rightHandWeapon: {fileID: 0}
+    rightHandWeapon: {fileID: 11400000, guid: 831bda00be51f13498b164482fa7d507, type: 2}
     twoHandedWeapon: {fileID: 0}
     mouthWeapon: {fileID: 0}
     saddleSourceEquipment: {fileID: 0}
