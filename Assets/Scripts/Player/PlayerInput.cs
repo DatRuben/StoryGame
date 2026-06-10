@@ -579,6 +579,19 @@ public class PlayerInput : MonoBehaviour
                wallNormal.sqrMagnitude > 0.001f;
     }
 
+    public void ApplyRaceMovement(RaceProfile raceProfile)
+    {
+        if (raceProfile == null)
+            return;
+
+        walkSpeed = raceProfile.walkSpeed;
+        sprintSpeed = raceProfile.sprintSpeed;
+        groundAcceleration = raceProfile.groundAcceleration;
+        airAcceleration = raceProfile.airAcceleration;
+        deceleration = raceProfile.deceleration;
+        jumpForce = raceProfile.jumpForce;
+    }
+
     private void OnDrawGizmosSelected()
     {
         if (groundCheck == null)

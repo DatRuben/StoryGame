@@ -22,6 +22,7 @@ public class InventoryGridUI : MonoBehaviour
 
     private GridLayoutGroup gridLayoutGroup;
     private Canvas rootCanvas;
+    private PlayerInputActions playerInput;
 
     private RectTransform heldPreviewRoot;
     private GridLayoutGroup heldPreviewLayoutGroup;
@@ -31,11 +32,6 @@ public class InventoryGridUI : MonoBehaviour
     private readonly List<Vector2Int> cellCoordinates = new List<Vector2Int>();
 
     private Vector2Int hoveredCoordinate = new Vector2Int(-1, -1);
-
-    // This is the important new part.
-    // Example:
-    // If you click the top-right cell of a 2x2 item,
-    // heldGrabOffset becomes (1, 1).
     private Vector2Int heldGrabOffset = Vector2Int.zero;
 
     private PlacedInventoryItem HeldItem
@@ -53,6 +49,25 @@ public class InventoryGridUI : MonoBehaviour
     {
         gridLayoutGroup = GetComponent<GridLayoutGroup>();
         rootCanvas = GetComponentInParent<Canvas>();
+        playerInput = new PlayerInputActions();
+    }
+
+    private void OnEnable()
+    {
+        if (playerInput == null)
+            playerInput = new PlayerInputActions();
+
+        playerInput.Player.RotateItem.started += OnRotateItem;
+        playerInput.Player.Enable();
+    }
+
+    private void OnDisable()
+    {
+        if (playerInput != null)
+        {
+            playerInput.Player.RotateItem.started -= OnRotateItem;
+            playerInput.Player.Disable();
+        }
     }
 
     private void Start()
@@ -82,6 +97,54 @@ public class InventoryGridUI : MonoBehaviour
             playerInventory.OnInventoryChanged -= Refresh;
             playerInventory.OnHeldItemChanged -= HandleHeldItemChanged;
         }
+    }
+
+    private void OnRotateItem(InputAction.CallbackContext context)
+    {
+        if (!InventoryMenuController.IsInventoryOpen)
+            return;
+
+        if (playerInventory == null ||
+            !playerInventory.IsHoldingItem)
+        {
+            return;
+        }
+
+        bool rotated =
+            playerInventory.RotateHeldItemCounterClockwise();
+
+        if (!rotated)
+            return;
+
+        ClampHeldGrabOffsetToHeldItem();
+        BuildHeldItemPreview();
+        Refresh();
+    }
+
+    private void ClampHeldGrabOffsetToHeldItem()
+    {
+        PlacedInventoryItem heldItem =
+            HeldItem;
+
+        if (heldItem == null)
+        {
+            heldGrabOffset = Vector2Int.zero;
+            return;
+        }
+
+        heldGrabOffset.x =
+            Mathf.Clamp(
+                heldGrabOffset.x,
+                0,
+                Mathf.Max(0, heldItem.Width - 1)
+            );
+
+        heldGrabOffset.y =
+            Mathf.Clamp(
+                heldGrabOffset.y,
+                0,
+                Mathf.Max(0, heldItem.Height - 1)
+            );
     }
 
     private void BuildGrid()
@@ -282,6 +345,8 @@ public class InventoryGridUI : MonoBehaviour
         heldGrabOffset =
             coordinate - pickedItem.Position;
 
+        ClampHeldGrabOffsetToHeldItem();
+
         Debug.Log(
             "Picked up item: " +
             pickedItem.ItemData.itemName +
@@ -344,7 +409,7 @@ public class InventoryGridUI : MonoBehaviour
         return heldItem.ItemData.IsCellOccupied(
             localX,
             localY,
-            heldItem.Rotated
+            heldItem.RotationSteps
         );
     }
 
@@ -485,7 +550,7 @@ public class InventoryGridUI : MonoBehaviour
                         itemData.IsCellOccupied(
                             x,
                             y,
-                            heldItem.Rotated
+                            heldItem.RotationSteps
                         );
 
                     image.raycastTarget = false;

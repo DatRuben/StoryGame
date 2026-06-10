@@ -8,8 +8,12 @@ public class ItemDataEditor : Editor
     {
         ItemData item = (ItemData)target;
 
+        EditorGUI.BeginChangeCheck();
+
         EditorGUILayout.LabelField("Identity", EditorStyles.boldLabel);
-        item.itemName = EditorGUILayout.TextField("Item Name", item.itemName);
+
+        item.itemName =
+            EditorGUILayout.TextField("Item Name", item.itemName);
 
         EditorGUILayout.Space();
 
@@ -25,13 +29,17 @@ public class ItemDataEditor : Editor
 
         EditorGUILayout.LabelField("Inventory Shape", EditorStyles.boldLabel);
 
-        int newWidth = EditorGUILayout.IntField("Shape Width", item.shapeWidth);
-        int newHeight = EditorGUILayout.IntField("Shape Height", item.shapeHeight);
+        int newWidth =
+            EditorGUILayout.IntField("Shape Width", item.shapeWidth);
+
+        int newHeight =
+            EditorGUILayout.IntField("Shape Height", item.shapeHeight);
 
         newWidth = Mathf.Max(1, newWidth);
         newHeight = Mathf.Max(1, newHeight);
 
-        if (newWidth != item.shapeWidth || newHeight != item.shapeHeight)
+        if (newWidth != item.shapeWidth ||
+            newHeight != item.shapeHeight)
         {
             Undo.RecordObject(item, "Resize Item Shape");
 
@@ -43,9 +51,8 @@ public class ItemDataEditor : Editor
             EditorUtility.SetDirty(item);
         }
 
-        item.canRotate = EditorGUILayout.Toggle("Can Rotate", item.canRotate);
-
         EditorGUILayout.Space();
+
         EditorGUILayout.LabelField("Shape Grid", EditorStyles.boldLabel);
 
         DrawShapeGrid(item);
@@ -71,6 +78,11 @@ public class ItemDataEditor : Editor
 
             EditorUtility.SetDirty(item);
         }
+
+        if (EditorGUI.EndChangeCheck())
+        {
+            EditorUtility.SetDirty(item);
+        }
     }
 
     private void DrawShapeGrid(ItemData item)
@@ -83,21 +95,27 @@ public class ItemDataEditor : Editor
 
             for (int x = 0; x < item.shapeWidth; x++)
             {
-                int index = y * item.shapeWidth + x;
+                int index =
+                    y * item.shapeWidth + x;
 
-                bool occupied = item.occupiedCells[index];
+                bool occupied =
+                    item.occupiedCells[index];
 
-                GUIStyle style = new GUIStyle(GUI.skin.button);
+                GUIStyle style =
+                    new GUIStyle(GUI.skin.button);
+
                 style.fixedWidth = 30;
                 style.fixedHeight = 30;
 
-                string label = occupied ? "X" : ".";
+                string label =
+                    occupied ? "X" : ".";
 
                 if (GUILayout.Button(label, style))
                 {
                     Undo.RecordObject(item, "Toggle Item Shape Cell");
 
-                    item.occupiedCells[index] = !occupied;
+                    item.occupiedCells[index] =
+                        !item.occupiedCells[index];
 
                     EditorUtility.SetDirty(item);
                 }
@@ -109,16 +127,19 @@ public class ItemDataEditor : Editor
 
     private void ResizeOccupiedCells(ItemData item)
     {
-        bool[] oldCells = item.occupiedCells;
+        int requiredSize =
+            Mathf.Max(1, item.shapeWidth * item.shapeHeight);
 
-        bool[] newCells = new bool[item.shapeWidth * item.shapeHeight];
+        bool[] newCells =
+            new bool[requiredSize];
 
-        if (oldCells != null)
+        if (item.occupiedCells != null)
         {
-            int copyLength = Mathf.Min(oldCells.Length, newCells.Length);
+            int copyLength =
+                Mathf.Min(item.occupiedCells.Length, newCells.Length);
 
             for (int i = 0; i < copyLength; i++)
-                newCells[i] = oldCells[i];
+                newCells[i] = item.occupiedCells[i];
         }
 
         item.occupiedCells = newCells;
@@ -126,11 +147,14 @@ public class ItemDataEditor : Editor
 
     private void EnsureOccupiedCells(ItemData item)
     {
-        int requiredSize = item.shapeWidth * item.shapeHeight;
+        int requiredSize =
+            Mathf.Max(1, item.shapeWidth * item.shapeHeight);
 
-        if (item.occupiedCells == null || item.occupiedCells.Length != requiredSize)
+        if (item.occupiedCells == null ||
+            item.occupiedCells.Length != requiredSize)
         {
             ResizeOccupiedCells(item);
+            EditorUtility.SetDirty(item);
         }
     }
 }

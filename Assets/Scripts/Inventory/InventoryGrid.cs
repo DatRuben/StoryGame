@@ -41,19 +41,25 @@ public class InventoryGrid
         ItemData item,
         int startX,
         int startY,
-        bool rotated)
+        int rotationSteps)
     {
         if (item == null)
             return false;
 
-        int itemWidth = item.GetWidth(rotated);
-        int itemHeight = item.GetHeight(rotated);
+        rotationSteps =
+            ItemData.NormalizeRotationSteps(rotationSteps);
+
+        int itemWidth =
+            item.GetWidth(rotationSteps);
+
+        int itemHeight =
+            item.GetHeight(rotationSteps);
 
         for (int y = 0; y < itemHeight; y++)
         {
             for (int x = 0; x < itemWidth; x++)
             {
-                if (!item.IsCellOccupied(x, y, rotated))
+                if (!item.IsCellOccupied(x, y, rotationSteps))
                     continue;
 
                 int gridX = startX + x;
@@ -74,26 +80,32 @@ public class InventoryGrid
         ItemData item,
         int startX,
         int startY,
-        bool rotated)
+        int rotationSteps)
     {
-        if (!CanPlaceItem(item, startX, startY, rotated))
+        if (!CanPlaceItem(item, startX, startY, rotationSteps))
             return false;
+
+        rotationSteps =
+            ItemData.NormalizeRotationSteps(rotationSteps);
 
         PlacedInventoryItem placedItem =
             new PlacedInventoryItem(
                 item,
                 new Vector2Int(startX, startY),
-                rotated
+                rotationSteps
             );
 
-        int itemWidth = item.GetWidth(rotated);
-        int itemHeight = item.GetHeight(rotated);
+        int itemWidth =
+            item.GetWidth(rotationSteps);
+
+        int itemHeight =
+            item.GetHeight(rotationSteps);
 
         for (int y = 0; y < itemHeight; y++)
         {
             for (int x = 0; x < itemWidth; x++)
             {
-                if (!item.IsCellOccupied(x, y, rotated))
+                if (!item.IsCellOccupied(x, y, rotationSteps))
                     continue;
 
                 int gridX = startX + x;

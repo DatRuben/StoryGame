@@ -4,23 +4,30 @@ public class PlacedInventoryItem
 {
     public ItemData ItemData { get; private set; }
     public Vector2Int Position { get; private set; }
-    public bool Rotated { get; private set; }
+
+    // 0 = 0°
+    // 1 = 90°
+    // 2 = 180°
+    // 3 = 270°
+    public int RotationSteps { get; private set; }
 
     public PlacedInventoryItem(
         ItemData itemData,
         Vector2Int position,
-        bool rotated)
+        int rotationSteps)
     {
         ItemData = itemData;
         Position = position;
-        Rotated = rotated;
+
+        RotationSteps =
+            NormalizeRotationSteps(rotationSteps);
     }
 
     public int Width
     {
         get
         {
-            return ItemData.GetWidth(Rotated);
+            return ItemData.GetWidth(RotationSteps);
         }
     }
 
@@ -28,7 +35,29 @@ public class PlacedInventoryItem
     {
         get
         {
-            return ItemData.GetHeight(Rotated);
+            return ItemData.GetHeight(RotationSteps);
         }
+    }
+
+    public void RotateCounterClockwise()
+    {
+        RotationSteps =
+            NormalizeRotationSteps(RotationSteps - 1);
+    }
+
+    public void SetRotationSteps(int rotationSteps)
+    {
+        RotationSteps =
+            NormalizeRotationSteps(rotationSteps);
+    }
+
+    private int NormalizeRotationSteps(int rotationSteps)
+    {
+        rotationSteps %= 4;
+
+        if (rotationSteps < 0)
+            rotationSteps += 4;
+
+        return rotationSteps;
     }
 }

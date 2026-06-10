@@ -10148,10 +10148,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInventory
   gridWidth: 25
   gridHeight: 20
-  startingItem: {fileID: 11400000, guid: 831bda00be51f13498b164482fa7d507, type: 2}
+  startingItem: {fileID: 11400000, guid: 00840a1482c71db4d9ff7c9360be1132, type: 2}
   startingX: 0
   startingY: 0
-  startingRotated: 0
+  startingRotationSteps: 0
   weaponSlotItem: {fileID: 0}
   weaponDrawn: 0
 --- !u!114 &2123556396
@@ -10170,6 +10170,7 @@ MonoBehaviour:
   capsuleCollider: {fileID: 2123556399}
   groundCheck: {fileID: 1609922832}
   cameraPivot: {fileID: 572652583}
+  playerInput: {fileID: 2123556397}
 --- !u!114 &2123556397
 MonoBehaviour:
   m_ObjectHideFlags: 0

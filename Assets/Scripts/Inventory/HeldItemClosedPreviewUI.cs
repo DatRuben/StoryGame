@@ -83,13 +83,9 @@ public class HeldItemClosedPreviewUI : MonoBehaviour
                 typeof(VerticalLayoutGroup)
             );
 
-        containerObject.transform.SetParent(
-            rootCanvas.transform,
-            false
-        );
+        containerObject.transform.SetParent(rootCanvas.transform, false);
 
-        containerRoot =
-            containerObject.GetComponent<RectTransform>();
+        containerRoot = containerObject.GetComponent<RectTransform>();
 
         containerRoot.anchorMin = new Vector2(1f, 1f);
         containerRoot.anchorMax = new Vector2(1f, 1f);
@@ -97,9 +93,7 @@ public class HeldItemClosedPreviewUI : MonoBehaviour
         containerRoot.anchoredPosition = topRightOffset;
         containerRoot.sizeDelta = new Vector2(panelWidth, panelHeight);
 
-        containerCanvasGroup =
-            containerObject.GetComponent<CanvasGroup>();
-
+        containerCanvasGroup = containerObject.GetComponent<CanvasGroup>();
         containerCanvasGroup.blocksRaycasts = false;
         containerCanvasGroup.interactable = false;
 
@@ -120,14 +114,9 @@ public class HeldItemClosedPreviewUI : MonoBehaviour
                 typeof(TextMeshProUGUI)
             );
 
-        textObject.transform.SetParent(
-            containerRoot,
-            false
-        );
+        textObject.transform.SetParent(containerRoot, false);
 
-        heldItemNameText =
-            textObject.GetComponent<TextMeshProUGUI>();
-
+        heldItemNameText = textObject.GetComponent<TextMeshProUGUI>();
         heldItemNameText.fontSize = fontSize;
         heldItemNameText.color = textColor;
         heldItemNameText.alignment = TextAlignmentOptions.TopRight;
@@ -146,10 +135,7 @@ public class HeldItemClosedPreviewUI : MonoBehaviour
                 typeof(GridLayoutGroup)
             );
 
-        previewObject.transform.SetParent(
-            containerRoot,
-            false
-        );
+        previewObject.transform.SetParent(containerRoot, false);
 
         previewGridRoot =
             previewObject.GetComponent<RectTransform>();
@@ -160,23 +146,12 @@ public class HeldItemClosedPreviewUI : MonoBehaviour
         previewLayoutGroup =
             previewObject.GetComponent<GridLayoutGroup>();
 
-        previewLayoutGroup.startCorner =
-            GridLayoutGroup.Corner.UpperLeft;
-
-        previewLayoutGroup.startAxis =
-            GridLayoutGroup.Axis.Horizontal;
-
-        previewLayoutGroup.childAlignment =
-            TextAnchor.UpperLeft;
-
-        previewLayoutGroup.constraint =
-            GridLayoutGroup.Constraint.FixedColumnCount;
-
-        previewLayoutGroup.cellSize =
-            previewCellSize;
-
-        previewLayoutGroup.spacing =
-            previewSpacing;
+        previewLayoutGroup.startCorner = GridLayoutGroup.Corner.UpperLeft;
+        previewLayoutGroup.startAxis = GridLayoutGroup.Axis.Horizontal;
+        previewLayoutGroup.childAlignment = TextAnchor.UpperRight;
+        previewLayoutGroup.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+        previewLayoutGroup.cellSize = previewCellSize;
+        previewLayoutGroup.spacing = previewSpacing;
 
         containerObject.SetActive(false);
     }
@@ -245,10 +220,7 @@ public class HeldItemClosedPreviewUI : MonoBehaviour
             for (int x = 0; x < heldItem.Width; x++)
             {
                 GameObject cellObject =
-                    Instantiate(
-                        cellPrefab,
-                        previewGridRoot
-                    );
+                    Instantiate(cellPrefab, previewGridRoot);
 
                 InventoryCellUI cellUI =
                     cellObject.GetComponent<InventoryCellUI>();
@@ -271,7 +243,7 @@ public class HeldItemClosedPreviewUI : MonoBehaviour
                         itemData.IsCellOccupied(
                             x,
                             y,
-                            heldItem.Rotated
+                            heldItem.RotationSteps
                         );
 
                     image.raycastTarget = false;

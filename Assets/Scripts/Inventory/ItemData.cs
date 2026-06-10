@@ -28,8 +28,6 @@ public class ItemData : ScriptableObject
 
     public bool[] occupiedCells = new bool[1] { true };
 
-    public bool canRotate = true;
-
     private void OnValidate()
     {
         int requiredSize = Mathf.Max(1, shapeWidth * shapeHeight);
@@ -40,7 +38,8 @@ public class ItemData : ScriptableObject
 
             if (occupiedCells != null)
             {
-                int copyLength = Mathf.Min(occupiedCells.Length, newCells.Length);
+                int copyLength =
+                    Mathf.Min(occupiedCells.Length, newCells.Length);
 
                 for (int i = 0; i < copyLength; i++)
                     newCells[i] = occupiedCells[i];
@@ -50,26 +49,93 @@ public class ItemData : ScriptableObject
         }
     }
 
-    public int GetWidth(bool rotated)
+    public int GetWidth(int rotationSteps)
     {
-        return rotated ? shapeHeight : shapeWidth;
+        rotationSteps = NormalizeRotationSteps(rotationSteps);
+
+        bool swapsWidthAndHeight =
+            rotationSteps == 1 ||
+            rotationSteps == 3;
+
+        return swapsWidthAndHeight ? shapeHeight : shapeWidth;
     }
 
-    public int GetHeight(bool rotated)
+    public int GetHeight(int rotationSteps)
     {
-        return rotated ? shapeWidth : shapeHeight;
+        rotationSteps = NormalizeRotationSteps(rotationSteps);
+
+        bool swapsWidthAndHeight =
+            rotationSteps == 1 ||
+            rotationSteps == 3;
+
+        return swapsWidthAndHeight ? shapeWidth : shapeHeight;
     }
 
-    public bool IsCellOccupied(int x, int y, bool rotated)
+    public bool IsCellOccupied(
+        int x,
+        int y,
+        int rotationSteps)
     {
-        if (!rotated)
+        rotationSteps = NormalizeRotationSteps(rotationSteps);
+
+        int originalX;
+        int originalY;
+
+        switch (rotationSteps)
         {
-            return occupiedCells[y * shapeWidth + x];
+            case 1:
+                // 90 degrees clockwise.
+                originalX = y;
+                originalY = shapeHeight - 1 - x;
+                break;
+
+            case 2:
+                // 180 degrees.
+                originalX = shapeWidth - 1 - x;
+                originalY = shapeHeight - 1 - y;
+                break;
+
+            case 3:
+                // 270 degrees clockwise.
+                originalX = shapeWidth - 1 - y;
+                originalY = x;
+                break;
+
+            default:
+                // 0 degrees.
+                originalX = x;
+                originalY = y;
+                break;
         }
 
-        int originalX = y;
-        int originalY = shapeHeight - 1 - x;
+        if (originalX < 0 ||
+            originalY < 0 ||
+            originalX >= shapeWidth ||
+            originalY >= shapeHeight)
+        {
+            return false;
+        }
 
-        return occupiedCells[originalY * shapeWidth + originalX];
+        int index =
+            originalY * shapeWidth + originalX;
+
+        if (occupiedCells == null ||
+            index < 0 ||
+            index >= occupiedCells.Length)
+        {
+            return false;
+        }
+
+        return occupiedCells[index];
+    }
+
+    public static int NormalizeRotationSteps(int rotationSteps)
+    {
+        rotationSteps %= 4;
+
+        if (rotationSteps < 0)
+            rotationSteps += 4;
+
+        return rotationSteps;
     }
 }

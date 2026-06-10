@@ -11,7 +11,9 @@ public class PlayerInventory : MonoBehaviour
     [SerializeField] private ItemData startingItem;
     [SerializeField] private int startingX = 1;
     [SerializeField] private int startingY = 1;
-    [SerializeField] private bool startingRotated = false;
+
+    [Tooltip("0 = 0°, 1 = 90°, 2 = 180°, 3 = 270°")]
+    [SerializeField] private int startingRotationSteps = 0;
 
     [Header("Weapon Slot")]
     [SerializeField] private ItemData weaponSlotItem;
@@ -50,7 +52,7 @@ public class PlayerInventory : MonoBehaviour
                 startingItem,
                 startingX,
                 startingY,
-                startingRotated
+                startingRotationSteps
             );
         }
     }
@@ -79,7 +81,7 @@ public class PlayerInventory : MonoBehaviour
         ItemData item,
         int x,
         int y,
-        bool rotated)
+        int rotationSteps)
     {
         if (Grid == null)
             return false;
@@ -88,7 +90,7 @@ public class PlayerInventory : MonoBehaviour
             item,
             x,
             y,
-            rotated
+            rotationSteps
         );
     }
 
@@ -96,13 +98,18 @@ public class PlayerInventory : MonoBehaviour
         ItemData item,
         int x,
         int y,
-        bool rotated)
+        int rotationSteps)
     {
         if (Grid == null)
             return false;
 
         bool placed =
-            Grid.PlaceItem(item, x, y, rotated);
+            Grid.PlaceItem(
+                item,
+                x,
+                y,
+                rotationSteps
+            );
 
         if (placed)
         {
@@ -196,7 +203,7 @@ public class PlayerInventory : MonoBehaviour
             HeldItem.ItemData,
             x,
             y,
-            HeldItem.Rotated
+            HeldItem.RotationSteps
         );
     }
 
@@ -216,15 +223,15 @@ public class PlayerInventory : MonoBehaviour
         ItemData itemData =
             HeldItem.ItemData;
 
-        bool rotated =
-            HeldItem.Rotated;
+        int rotationSteps =
+            HeldItem.RotationSteps;
 
         bool placed =
             Grid.PlaceItem(
                 itemData,
                 x,
                 y,
-                rotated
+                rotationSteps
             );
 
         if (!placed)
@@ -233,6 +240,21 @@ public class PlayerInventory : MonoBehaviour
         HeldItem = null;
 
         OnInventoryChanged?.Invoke();
+        OnHeldItemChanged?.Invoke();
+
+        return true;
+    }
+
+    public bool RotateHeldItemCounterClockwise()
+    {
+        if (HeldItem == null ||
+            HeldItem.ItemData == null)
+        {
+            return false;
+        }
+
+        HeldItem.RotateCounterClockwise();
+
         OnHeldItemChanged?.Invoke();
 
         return true;

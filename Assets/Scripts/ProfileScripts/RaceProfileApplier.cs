@@ -8,6 +8,7 @@ public class RaceProfileApplier : MonoBehaviour
     [SerializeField] private CapsuleCollider capsuleCollider;
     [SerializeField] private Transform groundCheck;
     [SerializeField] private Transform cameraPivot;
+    [SerializeField] private PlayerInput playerInput;
 
     private void Awake()
     {
@@ -25,6 +26,12 @@ public class RaceProfileApplier : MonoBehaviour
         if (raceProfile == null)
             return;
 
+        if (capsuleCollider == null)
+            capsuleCollider = GetComponent<CapsuleCollider>();
+
+        if (playerInput == null)
+            playerInput = GetComponent<PlayerInput>();
+
         if (capsuleCollider != null)
         {
             capsuleCollider.height = raceProfile.capsuleHeight;
@@ -35,12 +42,19 @@ public class RaceProfileApplier : MonoBehaviour
 
         if (groundCheck != null)
         {
-            groundCheck.localPosition = raceProfile.groundCheckLocalPosition;
+            groundCheck.localPosition =
+                raceProfile.groundCheckLocalPosition;
         }
 
         if (cameraPivot != null)
         {
-            cameraPivot.localPosition = raceProfile.cameraPivotLocalPosition;
+            cameraPivot.localPosition =
+                raceProfile.cameraPivotLocalPosition;
+        }
+
+        if (playerInput != null)
+        {
+            playerInput.ApplyRaceMovement(raceProfile);
         }
     }
 }
