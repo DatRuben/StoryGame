@@ -75,10 +75,10 @@ public class WeaponSlotUI : MonoBehaviour
 
         if (playerInventory.IsHoldingItem)
         {
-            bool equipped =
-                playerInventory.TryEquipHeldItemToWeaponSlot();
+            bool swappedOrEquipped =
+                playerInventory.TrySwapHeldWeaponWithWeaponSlot();
 
-            if (!equipped)
+            if (!swappedOrEquipped)
             {
                 Debug.Log("Held item cannot be equipped to weapon slot.");
             }
@@ -89,7 +89,7 @@ public class WeaponSlotUI : MonoBehaviour
 
         if (playerInventory.HasWeaponInSlot)
         {
-            playerInventory.ToggleWeaponDrawn();
+            playerInventory.TryPickUpWeaponSlotItem();
             Refresh();
         }
     }

@@ -58,6 +58,9 @@ public class PlayerInput : MonoBehaviour
     [Header("UI")]
     [SerializeField] private TextMeshProUGUI speedText;
 
+    [Header("Inventory / Equipment")]
+    [SerializeField] private PlayerInventory playerInventory;
+
     private Animator animator;
 
     private Vector3 groundNormal = Vector3.up;
@@ -79,6 +82,8 @@ public class PlayerInput : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         playerInput = new PlayerInputActions();
         animator = GetComponent<Animator>();
+        if (playerInventory == null)
+            playerInventory = GetComponent<PlayerInventory>();
     }
 
     private void OnEnable()
@@ -95,6 +100,8 @@ public class PlayerInput : MonoBehaviour
         playerInput.Player.Sprint.started += StartSprint;
         playerInput.Player.Sprint.canceled += StopSprint;
 
+        playerInput.Player.SheatheUnsheathe.started += ToggleWeaponSheathe;
+
         playerInput.Player.Enable();
     }
 
@@ -109,6 +116,8 @@ public class PlayerInput : MonoBehaviour
 
         playerInput.Player.Sprint.started -= StartSprint;
         playerInput.Player.Sprint.canceled -= StopSprint;
+
+        playerInput.Player.SheatheUnsheathe.started -= ToggleWeaponSheathe;
 
         playerInput.Player.Disable();
     }
@@ -590,6 +599,14 @@ public class PlayerInput : MonoBehaviour
         airAcceleration = raceProfile.airAcceleration;
         deceleration = raceProfile.deceleration;
         jumpForce = raceProfile.jumpForce;
+    }
+
+    private void ToggleWeaponSheathe(InputAction.CallbackContext context)
+    {
+        if (playerInventory == null)
+            return;
+
+        playerInventory.ToggleWeaponDrawn();
     }
 
     private void OnDrawGizmosSelected()

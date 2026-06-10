@@ -21,17 +21,19 @@ public class PlayerInventory : MonoBehaviour
 
     public InventoryGrid Grid { get; private set; }
 
-    // Cursor/inventory-held item.
-    // This is the item that follows the mouse while inventory is open.
     public PlacedInventoryItem HeldItem { get; private set; }
 
     public bool IsHoldingItem => HeldItem != null;
 
-    // Equipped weapon slot item.
-    // If weaponDrawn is true, this weapon is visually in the character's hands.
     public ItemData WeaponSlotItem => weaponSlotItem;
     public bool IsWeaponDrawn => weaponDrawn;
     public bool HasWeaponInSlot => weaponSlotItem != null;
+
+    public bool CenterHeldItemOnCursorRequested { get; private set; }
+
+    // True = quick-click picked item, so it counts as actually being held.
+    // False = click-drag inventory move, so it does not count as held.
+    public bool MouseHeldItemCountsAsHeld { get; private set; }
 
     public event Action OnInventoryChanged;
     public event Action OnHeldItemChanged;
@@ -77,6 +79,15 @@ public class PlayerInventory : MonoBehaviour
         }
     }
 
+    public bool ConsumeCenterHeldItemOnCursorRequest()
+    {
+        if (!CenterHeldItemOnCursorRequested)
+            return false;
+
+        CenterHeldItemOnCursorRequested = false;
+        return true;
+    }
+
     public bool CanPlaceItem(
         ItemData item,
         int x,
@@ -119,39 +130,10 @@ public class PlayerInventory : MonoBehaviour
         return placed;
     }
 
-    public bool CanEquipHeldItemToWeaponSlot()
-    {
-        if (HeldItem == null ||
-            HeldItem.ItemData == null)
-        {
-            return false;
-        }
-
-        if (weaponSlotItem != null)
-            return false;
-
-        return IsWeapon(HeldItem.ItemData);
-    }
-
-    public bool TryEquipHeldItemToWeaponSlot()
-    {
-        if (!CanEquipHeldItemToWeaponSlot())
-            return false;
-
-        weaponSlotItem = HeldItem.ItemData;
-        weaponDrawn = false;
-
-        HeldItem = null;
-
-        OnHeldItemChanged?.Invoke();
-        OnEquipmentChanged?.Invoke();
-
-        return true;
-    }
-
     public PlacedInventoryItem TryPickUpItemAt(
         int x,
-        int y)
+        int y,
+        bool countsAsHeld = true)
     {
         if (Grid == null)
             return null;
@@ -165,9 +147,12 @@ public class PlayerInventory : MonoBehaviour
         if (itemAtCell == null)
             return null;
 
-        // If the character is holding their equipped weapon,
-        // put it away before letting them cursor-hold an inventory item.
-        if (weaponDrawn)
+        if (countsAsHeld &&
+            weaponDrawn &&
+            WeaponConflictsWithHeldItem(
+                weaponSlotItem,
+                itemAtCell.ItemData
+            ))
         {
             SheatheWeapon();
         }
@@ -179,6 +164,7 @@ public class PlayerInventory : MonoBehaviour
             return null;
 
         HeldItem = pickedItem;
+        MouseHeldItemCountsAsHeld = countsAsHeld;
 
         OnInventoryChanged?.Invoke();
         OnHeldItemChanged?.Invoke();
@@ -238,6 +224,7 @@ public class PlayerInventory : MonoBehaviour
             return false;
 
         HeldItem = null;
+        MouseHeldItemCountsAsHeld = false;
 
         OnInventoryChanged?.Invoke();
         OnHeldItemChanged?.Invoke();
@@ -256,6 +243,108 @@ public class PlayerInventory : MonoBehaviour
         HeldItem.RotateCounterClockwise();
 
         OnHeldItemChanged?.Invoke();
+
+        return true;
+    }
+
+    public bool CanEquipHeldItemToWeaponSlot()
+    {
+        if (HeldItem == null ||
+            HeldItem.ItemData == null)
+        {
+            return false;
+        }
+
+        if (weaponSlotItem != null)
+            return false;
+
+        return IsWeapon(HeldItem.ItemData);
+    }
+
+    public bool TryEquipHeldItemToWeaponSlot()
+    {
+        if (!CanEquipHeldItemToWeaponSlot())
+            return false;
+
+        weaponSlotItem = HeldItem.ItemData;
+        weaponDrawn = false;
+
+        HeldItem = null;
+        MouseHeldItemCountsAsHeld = false;
+
+        OnHeldItemChanged?.Invoke();
+        OnEquipmentChanged?.Invoke();
+
+        return true;
+    }
+
+    public bool TryPickUpWeaponSlotItem()
+    {
+        if (weaponSlotItem == null)
+            return false;
+
+        if (HeldItem != null)
+            return false;
+
+        if (weaponDrawn)
+            SheatheWeapon();
+
+        HeldItem =
+            new PlacedInventoryItem(
+                weaponSlotItem,
+                Vector2Int.zero,
+                0
+            );
+
+        CenterHeldItemOnCursorRequested = true;
+        MouseHeldItemCountsAsHeld = true;
+
+        weaponSlotItem = null;
+        weaponDrawn = false;
+
+        OnHeldItemChanged?.Invoke();
+        OnEquipmentChanged?.Invoke();
+
+        return true;
+    }
+
+    public bool TrySwapHeldWeaponWithWeaponSlot()
+    {
+        if (HeldItem == null ||
+            HeldItem.ItemData == null)
+        {
+            return false;
+        }
+
+        if (!IsWeapon(HeldItem.ItemData))
+            return false;
+
+        if (weaponSlotItem == null)
+            return TryEquipHeldItemToWeaponSlot();
+
+        if (weaponDrawn)
+            SheatheWeapon();
+
+        ItemData oldWeapon =
+            weaponSlotItem;
+
+        weaponSlotItem =
+            HeldItem.ItemData;
+
+        HeldItem =
+            new PlacedInventoryItem(
+                oldWeapon,
+                Vector2Int.zero,
+                0
+            );
+
+        CenterHeldItemOnCursorRequested = true;
+        MouseHeldItemCountsAsHeld = true;
+
+        weaponDrawn = false;
+
+        OnHeldItemChanged?.Invoke();
+        OnEquipmentChanged?.Invoke();
 
         return true;
     }
@@ -281,12 +370,18 @@ public class PlayerInventory : MonoBehaviour
         if (weaponSlotItem == null)
             return false;
 
-        // Do not draw the equipped weapon while managing a cursor-held item.
-        if (HeldItem != null)
-            return false;
-
         if (weaponDrawn)
             return true;
+
+        if (HeldItem != null &&
+            MouseHeldItemCountsAsHeld &&
+            WeaponConflictsWithHeldItem(
+                weaponSlotItem,
+                HeldItem.ItemData
+            ))
+        {
+            TryStoreMouseHeldItemInInventoryOrDrop();
+        }
 
         weaponDrawn = true;
 
@@ -319,5 +414,83 @@ public class PlayerInventory : MonoBehaviour
     {
         return item != null &&
                item.itemCategory == ItemCategory.Weapon;
+    }
+
+    private bool WeaponConflictsWithHeldItem(
+        ItemData weapon,
+        ItemData heldItem)
+    {
+        if (weapon == null ||
+            heldItem == null)
+        {
+            return false;
+        }
+
+        bool weaponIsTwoHanded =
+            weapon.handUsage == ItemHandUsage.TwoHanded;
+
+        bool heldItemIsTwoHanded =
+            heldItem.handUsage == ItemHandUsage.TwoHanded;
+
+        return weaponIsTwoHanded || heldItemIsTwoHanded;
+    }
+
+    private bool TryStoreMouseHeldItemInInventoryOrDrop()
+    {
+        if (HeldItem == null ||
+            HeldItem.ItemData == null)
+        {
+            MouseHeldItemCountsAsHeld = false;
+            return true;
+        }
+
+        ItemData itemData =
+            HeldItem.ItemData;
+
+        int rotationSteps =
+            HeldItem.RotationSteps;
+
+        for (int y = 0; y < Grid.Height; y++)
+        {
+            for (int x = 0; x < Grid.Width; x++)
+            {
+                bool canPlace =
+                    Grid.CanPlaceItem(
+                        itemData,
+                        x,
+                        y,
+                        rotationSteps
+                    );
+
+                if (!canPlace)
+                    continue;
+
+                Grid.PlaceItem(
+                    itemData,
+                    x,
+                    y,
+                    rotationSteps
+                );
+
+                HeldItem = null;
+                MouseHeldItemCountsAsHeld = false;
+
+                OnInventoryChanged?.Invoke();
+                OnHeldItemChanged?.Invoke();
+
+                return true;
+            }
+        }
+
+        Debug.Log(
+            "Dropped held item because there was no room in the inventory. Temporary behavior: item disappears."
+        );
+
+        HeldItem = null;
+        MouseHeldItemCountsAsHeld = false;
+
+        OnHeldItemChanged?.Invoke();
+
+        return false;
     }
 }

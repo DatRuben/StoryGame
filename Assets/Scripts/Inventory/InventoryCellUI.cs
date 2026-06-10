@@ -6,7 +6,9 @@ using UnityEngine.UI;
 public class InventoryCellUI :
     MonoBehaviour,
     IPointerEnterHandler,
-    IPointerExitHandler
+    IPointerExitHandler,
+    IPointerDownHandler,
+    IPointerUpHandler
 {
     [SerializeField] private Image image;
     [SerializeField] private Button button;
@@ -16,18 +18,24 @@ public class InventoryCellUI :
     private Action<Vector2Int> onClicked;
     private Action<Vector2Int> onPointerEntered;
     private Action<Vector2Int> onPointerExited;
+    private Action<Vector2Int> onPointerDown;
+    private Action<Vector2Int> onPointerUp;
 
     public void Initialize(
         Vector2Int coordinate,
         Color startColor,
         Action<Vector2Int> onClicked,
         Action<Vector2Int> onPointerEntered,
-        Action<Vector2Int> onPointerExited)
+        Action<Vector2Int> onPointerExited,
+        Action<Vector2Int> onPointerDown = null,
+        Action<Vector2Int> onPointerUp = null)
     {
         this.coordinate = coordinate;
         this.onClicked = onClicked;
         this.onPointerEntered = onPointerEntered;
         this.onPointerExited = onPointerExited;
+        this.onPointerDown = onPointerDown;
+        this.onPointerUp = onPointerUp;
 
         if (image == null)
             image = GetComponent<Image>();
@@ -67,5 +75,21 @@ public class InventoryCellUI :
     public void OnPointerExit(PointerEventData eventData)
     {
         onPointerExited?.Invoke(coordinate);
+    }
+
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        if (eventData.button != PointerEventData.InputButton.Left)
+            return;
+
+        onPointerDown?.Invoke(coordinate);
+    }
+
+    public void OnPointerUp(PointerEventData eventData)
+    {
+        if (eventData.button != PointerEventData.InputButton.Left)
+            return;
+
+        onPointerUp?.Invoke(coordinate);
     }
 }

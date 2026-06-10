@@ -13,6 +13,12 @@ public enum ItemCategory
     Unique
 }
 
+public enum ItemHandUsage
+{
+    OneHanded,
+    TwoHanded
+}
+
 [CreateAssetMenu(menuName = "Game/Item Data")]
 public class ItemData : ScriptableObject
 {
@@ -21,6 +27,16 @@ public class ItemData : ScriptableObject
 
     [Header("Item Type")]
     public ItemCategory itemCategory = ItemCategory.Misc;
+
+    [Header("Held UI")]
+    public Sprite itemIcon;
+    public ItemHandUsage handUsage = ItemHandUsage.OneHanded;
+
+    [TextArea]
+    public string heldControlsText;
+
+    [TextArea]
+    public string weaponControlsText;
 
     [Header("Inventory Shape")]
     [Min(1)] public int shapeWidth = 1;
@@ -32,14 +48,19 @@ public class ItemData : ScriptableObject
     {
         int requiredSize = Mathf.Max(1, shapeWidth * shapeHeight);
 
-        if (occupiedCells == null || occupiedCells.Length != requiredSize)
+        if (occupiedCells == null ||
+            occupiedCells.Length != requiredSize)
         {
-            bool[] newCells = new bool[requiredSize];
+            bool[] newCells =
+                new bool[requiredSize];
 
             if (occupiedCells != null)
             {
                 int copyLength =
-                    Mathf.Min(occupiedCells.Length, newCells.Length);
+                    Mathf.Min(
+                        occupiedCells.Length,
+                        newCells.Length
+                    );
 
                 for (int i = 0; i < copyLength; i++)
                     newCells[i] = occupiedCells[i];
@@ -51,24 +72,30 @@ public class ItemData : ScriptableObject
 
     public int GetWidth(int rotationSteps)
     {
-        rotationSteps = NormalizeRotationSteps(rotationSteps);
+        rotationSteps =
+            NormalizeRotationSteps(rotationSteps);
 
         bool swapsWidthAndHeight =
             rotationSteps == 1 ||
             rotationSteps == 3;
 
-        return swapsWidthAndHeight ? shapeHeight : shapeWidth;
+        return swapsWidthAndHeight
+            ? shapeHeight
+            : shapeWidth;
     }
 
     public int GetHeight(int rotationSteps)
     {
-        rotationSteps = NormalizeRotationSteps(rotationSteps);
+        rotationSteps =
+            NormalizeRotationSteps(rotationSteps);
 
         bool swapsWidthAndHeight =
             rotationSteps == 1 ||
             rotationSteps == 3;
 
-        return swapsWidthAndHeight ? shapeWidth : shapeHeight;
+        return swapsWidthAndHeight
+            ? shapeWidth
+            : shapeHeight;
     }
 
     public bool IsCellOccupied(
@@ -76,7 +103,8 @@ public class ItemData : ScriptableObject
         int y,
         int rotationSteps)
     {
-        rotationSteps = NormalizeRotationSteps(rotationSteps);
+        rotationSteps =
+            NormalizeRotationSteps(rotationSteps);
 
         int originalX;
         int originalY;
@@ -84,25 +112,21 @@ public class ItemData : ScriptableObject
         switch (rotationSteps)
         {
             case 1:
-                // 90 degrees clockwise.
                 originalX = y;
                 originalY = shapeHeight - 1 - x;
                 break;
 
             case 2:
-                // 180 degrees.
                 originalX = shapeWidth - 1 - x;
                 originalY = shapeHeight - 1 - y;
                 break;
 
             case 3:
-                // 270 degrees clockwise.
                 originalX = shapeWidth - 1 - y;
                 originalY = x;
                 break;
 
             default:
-                // 0 degrees.
                 originalX = x;
                 originalY = y;
                 break;
@@ -129,7 +153,8 @@ public class ItemData : ScriptableObject
         return occupiedCells[index];
     }
 
-    public static int NormalizeRotationSteps(int rotationSteps)
+    public static int NormalizeRotationSteps(
+        int rotationSteps)
     {
         rotationSteps %= 4;
 

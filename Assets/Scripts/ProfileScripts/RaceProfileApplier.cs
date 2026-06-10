@@ -9,6 +9,7 @@ public class RaceProfileApplier : MonoBehaviour
     [SerializeField] private Transform groundCheck;
     [SerializeField] private Transform cameraPivot;
     [SerializeField] private PlayerInput playerInput;
+    [SerializeField] private PlayerHolding playerHolding;
 
     private void Awake()
     {
@@ -56,5 +57,11 @@ public class RaceProfileApplier : MonoBehaviour
         {
             playerInput.ApplyRaceMovement(raceProfile);
         }
+
+        if (playerHolding == null)
+            playerHolding = GetComponent<PlayerHolding>();
+
+        if (playerHolding != null)
+            playerHolding.ApplyRaceProfile(raceProfile);
     }
 }

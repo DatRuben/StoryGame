@@ -6,18 +6,28 @@ public class ItemDataEditor : Editor
 {
     public override void OnInspectorGUI()
     {
-        ItemData item = (ItemData)target;
+        ItemData item =
+            (ItemData)target;
 
         EditorGUI.BeginChangeCheck();
 
-        EditorGUILayout.LabelField("Identity", EditorStyles.boldLabel);
+        EditorGUILayout.LabelField(
+            "Identity",
+            EditorStyles.boldLabel
+        );
 
         item.itemName =
-            EditorGUILayout.TextField("Item Name", item.itemName);
+            EditorGUILayout.TextField(
+                "Item Name",
+                item.itemName
+            );
 
         EditorGUILayout.Space();
 
-        EditorGUILayout.LabelField("Item Type", EditorStyles.boldLabel);
+        EditorGUILayout.LabelField(
+            "Item Type",
+            EditorStyles.boldLabel
+        );
 
         item.itemCategory =
             (ItemCategory)EditorGUILayout.EnumPopup(
@@ -27,21 +37,73 @@ public class ItemDataEditor : Editor
 
         EditorGUILayout.Space();
 
-        EditorGUILayout.LabelField("Inventory Shape", EditorStyles.boldLabel);
+        EditorGUILayout.LabelField(
+            "Held UI",
+            EditorStyles.boldLabel
+        );
+
+        item.itemIcon =
+            (Sprite)EditorGUILayout.ObjectField(
+                "Item Icon",
+                item.itemIcon,
+                typeof(Sprite),
+                false
+            );
+
+        item.handUsage =
+            (ItemHandUsage)EditorGUILayout.EnumPopup(
+                "Hand Usage",
+                item.handUsage
+            );
+
+        EditorGUILayout.LabelField("Held Controls Text");
+
+        item.heldControlsText =
+            EditorGUILayout.TextArea(
+                item.heldControlsText,
+                GUILayout.MinHeight(40f)
+            );
+
+        EditorGUILayout.LabelField("Weapon Controls Text");
+
+        item.weaponControlsText =
+            EditorGUILayout.TextArea(
+                item.weaponControlsText,
+                GUILayout.MinHeight(40f)
+            );
+
+        EditorGUILayout.Space();
+
+        EditorGUILayout.LabelField(
+            "Inventory Shape",
+            EditorStyles.boldLabel
+        );
 
         int newWidth =
-            EditorGUILayout.IntField("Shape Width", item.shapeWidth);
+            EditorGUILayout.IntField(
+                "Shape Width",
+                item.shapeWidth
+            );
 
         int newHeight =
-            EditorGUILayout.IntField("Shape Height", item.shapeHeight);
+            EditorGUILayout.IntField(
+                "Shape Height",
+                item.shapeHeight
+            );
 
-        newWidth = Mathf.Max(1, newWidth);
-        newHeight = Mathf.Max(1, newHeight);
+        newWidth =
+            Mathf.Max(1, newWidth);
+
+        newHeight =
+            Mathf.Max(1, newHeight);
 
         if (newWidth != item.shapeWidth ||
             newHeight != item.shapeHeight)
         {
-            Undo.RecordObject(item, "Resize Item Shape");
+            Undo.RecordObject(
+                item,
+                "Resize Item Shape"
+            );
 
             item.shapeWidth = newWidth;
             item.shapeHeight = newHeight;
@@ -53,7 +115,10 @@ public class ItemDataEditor : Editor
 
         EditorGUILayout.Space();
 
-        EditorGUILayout.LabelField("Shape Grid", EditorStyles.boldLabel);
+        EditorGUILayout.LabelField(
+            "Shape Grid",
+            EditorStyles.boldLabel
+        );
 
         DrawShapeGrid(item);
 
@@ -61,7 +126,10 @@ public class ItemDataEditor : Editor
 
         if (GUILayout.Button("Fill All Cells"))
         {
-            Undo.RecordObject(item, "Fill Item Shape");
+            Undo.RecordObject(
+                item,
+                "Fill Item Shape"
+            );
 
             for (int i = 0; i < item.occupiedCells.Length; i++)
                 item.occupiedCells[i] = true;
@@ -71,7 +139,10 @@ public class ItemDataEditor : Editor
 
         if (GUILayout.Button("Clear All Cells"))
         {
-            Undo.RecordObject(item, "Clear Item Shape");
+            Undo.RecordObject(
+                item,
+                "Clear Item Shape"
+            );
 
             for (int i = 0; i < item.occupiedCells.Length; i++)
                 item.occupiedCells[i] = false;
@@ -112,7 +183,10 @@ public class ItemDataEditor : Editor
 
                 if (GUILayout.Button(label, style))
                 {
-                    Undo.RecordObject(item, "Toggle Item Shape Cell");
+                    Undo.RecordObject(
+                        item,
+                        "Toggle Item Shape Cell"
+                    );
 
                     item.occupiedCells[index] =
                         !item.occupiedCells[index];
@@ -128,7 +202,10 @@ public class ItemDataEditor : Editor
     private void ResizeOccupiedCells(ItemData item)
     {
         int requiredSize =
-            Mathf.Max(1, item.shapeWidth * item.shapeHeight);
+            Mathf.Max(
+                1,
+                item.shapeWidth * item.shapeHeight
+            );
 
         bool[] newCells =
             new bool[requiredSize];
@@ -136,7 +213,10 @@ public class ItemDataEditor : Editor
         if (item.occupiedCells != null)
         {
             int copyLength =
-                Mathf.Min(item.occupiedCells.Length, newCells.Length);
+                Mathf.Min(
+                    item.occupiedCells.Length,
+                    newCells.Length
+                );
 
             for (int i = 0; i < copyLength; i++)
                 newCells[i] = item.occupiedCells[i];
@@ -148,7 +228,10 @@ public class ItemDataEditor : Editor
     private void EnsureOccupiedCells(ItemData item)
     {
         int requiredSize =
-            Mathf.Max(1, item.shapeWidth * item.shapeHeight);
+            Mathf.Max(
+                1,
+                item.shapeWidth * item.shapeHeight
+            );
 
         if (item.occupiedCells == null ||
             item.occupiedCells.Length != requiredSize)

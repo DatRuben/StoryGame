@@ -4006,6 +4006,41 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 872080307}
   m_CullTransparentMesh: 1
+--- !u!1 &873361716
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 873361717}
+  m_Layer: 5
+  m_Name: ItemOutline
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &873361717
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 873361716}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1711152526}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &887826316
 GameObject:
   m_ObjectHideFlags: 0
@@ -4703,6 +4738,64 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1048701890}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1093962941
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1093962942}
+  - component: {fileID: 1093962943}
+  m_Layer: 5
+  m_Name: PlayerResourcesUI
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1093962942
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1093962941}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1350866574}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1093962943
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1093962941}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0b14b7b3a27b5d48831d184084b596c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerResourcesUI
+  playerResources: {fileID: 2123556400}
+  topLeftOffset: {x: 40, y: -40}
+  barSize: {x: 620, y: 36}
+  barSpacing: 10
+  healthColor: {r: 1, g: 0, b: 0, a: 1}
+  staminaColor: {r: 0, g: 1, b: 0, a: 1}
+  manaColor: {r: 0, g: 1, b: 1, a: 1}
+  barBackgroundColor: {r: 0, g: 0, b: 0, a: 0.55}
+  borderColor: {r: 0, g: 0, b: 0, a: 1}
+  borderThickness: 4
 --- !u!1 &1113558460
 GameObject:
   m_ObjectHideFlags: 0
@@ -5815,6 +5908,8 @@ RectTransform:
   - {fileID: 1925061171}
   - {fileID: 1711152526}
   - {fileID: 58276821}
+  - {fileID: 1093962942}
+  - {fileID: 1419455397}
   m_Father: {fileID: 1469089763}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -6230,6 +6325,74 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1415852704}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1419455396
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1419455397}
+  - component: {fileID: 1419455398}
+  m_Layer: 5
+  m_Name: HeldItemUI
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1419455397
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1419455396}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1350866574}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1419455398
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1419455396}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 187b2c77d0d8fd84ba09a01a4d575c49, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HeldItemUI
+  playerInventory: {fileID: 2123556395}
+  playerHolding: {fileID: 2123556401}
+  topLeftOffset: {x: 40, y: -190}
+  cardSpacing: 12
+  oneHandCardSize: {x: 140, y: 180}
+  twoHandCardSize: {x: 290, y: 180}
+  cardColor: {r: 0.45, g: 0.45, b: 0.45, a: 0.75}
+  emptyCardColor: {r: 0.2, g: 0.2, b: 0.2, a: 0.45}
+  cardBorderColor: {r: 0, g: 0, b: 0, a: 1}
+  itemIconFallbackColor: {r: 1, g: 1, b: 1, a: 0.35}
+  textColor: {r: 1, g: 1, b: 1, a: 1}
+  emptyTextColor: {r: 1, g: 1, b: 1, a: 0.45}
+  itemNameFontSize: 18
+  controlsFontSize: 15
+  leftHandSymbol: L
+  rightHandSymbol: R
+  twoHandSymbol: L + R
+  mouthSymbol: Mouth
+  drawnWeaponSymbol: Weapon
+  borderThickness: 4
 --- !u!1 &1469089762
 GameObject:
   m_ObjectHideFlags: 0
@@ -7902,7 +8065,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1711152526}
   - component: {fileID: 1711152528}
-  - component: {fileID: 1711152529}
   - component: {fileID: 1711152530}
   - component: {fileID: 1711152531}
   - component: {fileID: 1711152532}
@@ -7925,7 +8087,9 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 2002706984}
+  - {fileID: 873361717}
   m_Father: {fileID: 1350866574}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -7941,30 +8105,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1711152525}
   m_CullTransparentMesh: 1
---- !u!114 &1711152529
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1711152525}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8a8695521f0d02e499659fee002a26c2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.GridLayoutGroup
-  m_Padding:
-    m_Left: 0
-    m_Right: 0
-    m_Top: 0
-    m_Bottom: 0
-  m_ChildAlignment: 0
-  m_StartCorner: 0
-  m_StartAxis: 0
-  m_CellSize: {x: 40, y: 40}
-  m_Spacing: {x: 2, y: 2}
-  m_Constraint: 0
-  m_ConstraintCount: 2
 --- !u!114 &1711152530
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7978,13 +8118,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InventoryGridUI
   playerInventory: {fileID: 2123556395}
-  cellParent: {fileID: 1711152526}
+  cellParent: {fileID: 2002706984}
   cellPrefab: {fileID: 8116548169804476811, guid: 66689b1e950ee7349b173f27e743a4d1, type: 3}
+  itemOutline: {fileID: 873361717}
+  dragStartDistance: 12
   emptyColor: {r: 0, g: 0, b: 0, a: 0.35}
   occupiedColor: {r: 1, g: 1, b: 1, a: 0.85}
   validPlacementColor: {r: 0.2, g: 1, b: 0.2, a: 0.85}
   invalidPlacementColor: {r: 1, g: 0.2, b: 0.2, a: 0.85}
   heldPreviewColor: {r: 1, g: 1, b: 1, a: 0.65}
+  dragOriginalGhostColor: {r: 0.39215687, g: 0.39215687, b: 0.39215687, a: 0.78431374}
+  itemOutlineColor: {r: 0, g: 0, b: 0, a: 0.78431374}
+  dragOriginalOutlineColor: {r: 0, g: 0, b: 0, a: 0.78431374}
+  itemOutlineThickness: 3
+  fillPaddingBetweenCells: 1
   heldPreviewOffset: {x: 0, y: 0}
 --- !u!225 &1711152531
 CanvasGroup:
@@ -9327,6 +9474,66 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1964234053}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &2002706983
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2002706984}
+  - component: {fileID: 2002706985}
+  m_Layer: 5
+  m_Name: CellGrid
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &2002706984
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2002706983}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1711152526}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &2002706985
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2002706983}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a8695521f0d02e499659fee002a26c2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.GridLayoutGroup
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 0
+  m_StartCorner: 0
+  m_StartAxis: 0
+  m_CellSize: {x: 40, y: 40}
+  m_Spacing: {x: 2, y: 2}
+  m_Constraint: 0
+  m_ConstraintCount: 2
 --- !u!1 &2004901219
 GameObject:
   m_ObjectHideFlags: 0
@@ -10110,6 +10317,8 @@ GameObject:
   - component: {fileID: 2123556396}
   - component: {fileID: 2123556399}
   - component: {fileID: 2123556398}
+  - component: {fileID: 2123556400}
+  - component: {fileID: 2123556401}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -10148,11 +10357,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInventory
   gridWidth: 25
   gridHeight: 20
-  startingItem: {fileID: 11400000, guid: 00840a1482c71db4d9ff7c9360be1132, type: 2}
+  startingItem: {fileID: 11400000, guid: 831bda00be51f13498b164482fa7d507, type: 2}
   startingX: 0
   startingY: 0
   startingRotationSteps: 0
-  weaponSlotItem: {fileID: 0}
+  weaponSlotItem: {fileID: 11400000, guid: 00840a1482c71db4d9ff7c9360be1132, type: 2}
   weaponDrawn: 0
 --- !u!114 &2123556396
 MonoBehaviour:
@@ -10171,6 +10380,7 @@ MonoBehaviour:
   groundCheck: {fileID: 1609922832}
   cameraPivot: {fileID: 572652583}
   playerInput: {fileID: 2123556397}
+  playerHolding: {fileID: 2123556401}
 --- !u!114 &2123556397
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10213,6 +10423,7 @@ MonoBehaviour:
   playerCamera: {fileID: 330585545}
   rotationSpeed: 10
   speedText: {fileID: 872080309}
+  playerInventory: {fileID: 2123556395}
 --- !u!54 &2123556398
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -10263,6 +10474,41 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 2, z: 0}
+--- !u!114 &2123556400
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2123556393}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d365944a07b11364291657856e54f39a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerResources
+  maxHealth: 100
+  currentHealth: 100
+  maxStamina: 100
+  currentStamina: 100
+  maxMana: 100
+  currentMana: 100
+--- !u!114 &2123556401
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2123556393}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46ae5785e9fc69a4fa4bcbe24fc116b6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerHolding
+  canHoldItemInMouth: 0
+  leftHandItem: {fileID: 0}
+  rightHandItem: {fileID: 0}
+  twoHandedItem: {fileID: 0}
+  mouthItem: {fileID: 0}
 --- !u!1 &2129206564
 GameObject:
   m_ObjectHideFlags: 0
