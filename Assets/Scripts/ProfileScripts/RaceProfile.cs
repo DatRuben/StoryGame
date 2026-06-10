@@ -113,8 +113,9 @@ public class RaceProfile : ScriptableObject
     public bool canBeRidden = false;
     public bool canRideMounts = true;
 
-    [Header("Holding")]
+    [Header("Holding Rules")]
     public bool canHoldItemInMouth = false;
+    public bool canUseMouthWeapons = false;
 
     [Header("Special Body Parts")]
     public bool hasWings = false;

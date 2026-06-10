@@ -60,6 +60,7 @@ public class PlayerInput : MonoBehaviour
 
     [Header("Inventory / Equipment")]
     [SerializeField] private PlayerInventory playerInventory;
+    [SerializeField] private PlayerWeaponSlots playerWeaponSlots;
 
     private Animator animator;
 
@@ -84,6 +85,8 @@ public class PlayerInput : MonoBehaviour
         animator = GetComponent<Animator>();
         if (playerInventory == null)
             playerInventory = GetComponent<PlayerInventory>();
+        if (playerWeaponSlots == null)
+            playerWeaponSlots = GetComponent<PlayerWeaponSlots>();
     }
 
     private void OnEnable()
@@ -102,6 +105,8 @@ public class PlayerInput : MonoBehaviour
 
         playerInput.Player.SheatheUnsheathe.started += ToggleWeaponSheathe;
 
+        playerInput.Player.SwitchWeapon.started += SwitchWeaponSet;
+
         playerInput.Player.Enable();
     }
 
@@ -118,6 +123,8 @@ public class PlayerInput : MonoBehaviour
         playerInput.Player.Sprint.canceled -= StopSprint;
 
         playerInput.Player.SheatheUnsheathe.started -= ToggleWeaponSheathe;
+
+        playerInput.Player.SwitchWeapon.started -= SwitchWeaponSet;
 
         playerInput.Player.Disable();
     }
@@ -603,12 +610,24 @@ public class PlayerInput : MonoBehaviour
 
     private void ToggleWeaponSheathe(InputAction.CallbackContext context)
     {
-        if (playerInventory == null)
+        if (playerWeaponSlots == null)
             return;
 
-        playerInventory.ToggleWeaponDrawn();
+        playerWeaponSlots.ToggleWeaponsDrawn();
     }
 
+    private void SwitchWeaponSet(InputAction.CallbackContext context)
+    {
+        if (playerWeaponSlots == null)
+            return;
+
+        int nextWeaponSetIndex =
+            playerWeaponSlots.ActiveWeaponSetIndex == 0
+                ? 1
+                : 0;
+
+        playerWeaponSlots.SetActiveWeaponSet(nextWeaponSetIndex);
+    }
     private void OnDrawGizmosSelected()
     {
         if (groundCheck == null)

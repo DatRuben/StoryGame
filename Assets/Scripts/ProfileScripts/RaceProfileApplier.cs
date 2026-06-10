@@ -10,6 +10,7 @@ public class RaceProfileApplier : MonoBehaviour
     [SerializeField] private Transform cameraPivot;
     [SerializeField] private PlayerInput playerInput;
     [SerializeField] private PlayerHolding playerHolding;
+    [SerializeField] private PlayerWeaponSlots playerWeaponSlots;
 
     private void Awake()
     {
@@ -63,5 +64,11 @@ public class RaceProfileApplier : MonoBehaviour
 
         if (playerHolding != null)
             playerHolding.ApplyRaceProfile(raceProfile);
+
+        if (playerWeaponSlots == null)
+            playerWeaponSlots = GetComponent<PlayerWeaponSlots>();
+
+        if (playerWeaponSlots != null)
+            playerWeaponSlots.ApplyRaceProfile(raceProfile);
     }
 }

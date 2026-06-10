@@ -15,14 +15,13 @@ public class PlayerInventory : MonoBehaviour
     [Tooltip("0 = 0°, 1 = 90°, 2 = 180°, 3 = 270°")]
     [SerializeField] private int startingRotationSteps = 0;
 
-    [Header("Weapon Slot")]
+    [Header("Old Weapon Slot - Temporary")]
     [SerializeField] private ItemData weaponSlotItem;
     [SerializeField] private bool weaponDrawn = false;
 
     public InventoryGrid Grid { get; private set; }
 
     public PlacedInventoryItem HeldItem { get; private set; }
-
     public bool IsHoldingItem => HeldItem != null;
 
     public ItemData WeaponSlotItem => weaponSlotItem;
@@ -31,9 +30,18 @@ public class PlayerInventory : MonoBehaviour
 
     public bool CenterHeldItemOnCursorRequested { get; private set; }
 
-    // True = quick-click picked item, so it counts as actually being held.
-    // False = click-drag inventory move, so it does not count as held.
     public bool MouseHeldItemCountsAsHeld { get; private set; }
+
+    public int HeldItemRotationSteps
+    {
+        get
+        {
+            if (HeldItem == null)
+                return 0;
+
+            return HeldItem.RotationSteps;
+        }
+    }
 
     public event Action OnInventoryChanged;
     public event Action OnHeldItemChanged;
@@ -71,7 +79,7 @@ public class PlayerInventory : MonoBehaviour
         {
             Debug.LogWarning(
                 weaponSlotItem.itemName +
-                " is assigned to the weapon slot, but it is not marked as a Weapon."
+                " is assigned to the old weapon slot, but it is not marked as a Weapon."
             );
 
             weaponSlotItem = null;
@@ -123,9 +131,7 @@ public class PlayerInventory : MonoBehaviour
             );
 
         if (placed)
-        {
             OnInventoryChanged?.Invoke();
-        }
 
         return placed;
     }
@@ -172,9 +178,7 @@ public class PlayerInventory : MonoBehaviour
         return HeldItem;
     }
 
-    public bool CanPlaceHeldItem(
-        int x,
-        int y)
+    public bool CanPlaceHeldItem(int x, int y)
     {
         if (Grid == null)
             return false;
@@ -193,9 +197,7 @@ public class PlayerInventory : MonoBehaviour
         );
     }
 
-    public bool TryPlaceHeldItem(
-        int x,
-        int y)
+    public bool TryPlaceHeldItem(int x, int y)
     {
         if (Grid == null)
             return false;
@@ -245,6 +247,74 @@ public class PlayerInventory : MonoBehaviour
         OnHeldItemChanged?.Invoke();
 
         return true;
+    }
+
+    public void ClearHeldItemAfterExternalMove()
+    {
+        if (HeldItem == null)
+            return;
+
+        HeldItem = null;
+        MouseHeldItemCountsAsHeld = false;
+        CenterHeldItemOnCursorRequested = false;
+
+        OnHeldItemChanged?.Invoke();
+    }
+
+    public void SetMouseHeldItemFromExternal(
+        ItemData item,
+        int rotationSteps = 0,
+        bool countsAsHeld = true)
+    {
+        if (item == null)
+        {
+            HeldItem = null;
+            MouseHeldItemCountsAsHeld = false;
+            CenterHeldItemOnCursorRequested = false;
+
+            OnHeldItemChanged?.Invoke();
+            return;
+        }
+
+        HeldItem =
+            new PlacedInventoryItem(
+                item,
+                Vector2Int.zero,
+                rotationSteps
+            );
+
+        MouseHeldItemCountsAsHeld = countsAsHeld;
+        CenterHeldItemOnCursorRequested = true;
+
+        OnHeldItemChanged?.Invoke();
+    }
+
+    public bool HasUsableMouseHeldWeapon()
+    {
+        return GetUsableMouseHeldWeapon() != null;
+    }
+
+    public ItemData GetUsableMouseHeldWeapon()
+    {
+        if (!MouseHeldItemCountsAsHeld)
+            return null;
+
+        if (HeldItem == null ||
+            HeldItem.ItemData == null)
+        {
+            return null;
+        }
+
+        ItemData item =
+            HeldItem.ItemData;
+
+        if (!IsWeapon(item))
+            return null;
+
+        if (item.weaponUseType != WeaponUseType.HandWeapon)
+            return null;
+
+        return item;
     }
 
     public bool CanEquipHeldItemToWeaponSlot()
@@ -432,7 +502,8 @@ public class PlayerInventory : MonoBehaviour
         bool heldItemIsTwoHanded =
             heldItem.handUsage == ItemHandUsage.TwoHanded;
 
-        return weaponIsTwoHanded || heldItemIsTwoHanded;
+        return weaponIsTwoHanded ||
+               heldItemIsTwoHanded;
     }
 
     private bool TryStoreMouseHeldItemInInventoryOrDrop()

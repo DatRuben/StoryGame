@@ -6,11 +6,26 @@ public class ItemDataEditor : Editor
 {
     public override void OnInspectorGUI()
     {
-        ItemData item =
-            (ItemData)target;
+        ItemData item = (ItemData)target;
 
         EditorGUI.BeginChangeCheck();
 
+        DrawIdentitySection(item);
+        DrawItemTypeSection(item);
+        DrawHeldSection(item);
+        DrawWeaponUseSection(item);
+        DrawCarryRequirementsSection(item);
+        DrawSaddleEquipmentSection(item);
+        DrawInventoryShapeSection(item);
+
+        if (EditorGUI.EndChangeCheck())
+        {
+            EditorUtility.SetDirty(item);
+        }
+    }
+
+    private void DrawIdentitySection(ItemData item)
+    {
         EditorGUILayout.LabelField(
             "Identity",
             EditorStyles.boldLabel
@@ -23,7 +38,10 @@ public class ItemDataEditor : Editor
             );
 
         EditorGUILayout.Space();
+    }
 
+    private void DrawItemTypeSection(ItemData item)
+    {
         EditorGUILayout.LabelField(
             "Item Type",
             EditorStyles.boldLabel
@@ -36,7 +54,10 @@ public class ItemDataEditor : Editor
             );
 
         EditorGUILayout.Space();
+    }
 
+    private void DrawHeldSection(ItemData item)
+    {
         EditorGUILayout.LabelField(
             "Held UI",
             EditorStyles.boldLabel
@@ -73,7 +94,100 @@ public class ItemDataEditor : Editor
             );
 
         EditorGUILayout.Space();
+    }
 
+    private void DrawWeaponUseSection(ItemData item)
+    {
+        if (item.itemCategory != ItemCategory.Weapon)
+        {
+            item.weaponUseType = WeaponUseType.HandWeapon;
+            return;
+        }
+
+        EditorGUILayout.LabelField(
+            "Weapon Use",
+            EditorStyles.boldLabel
+        );
+
+        item.weaponUseType =
+            (WeaponUseType)EditorGUILayout.EnumPopup(
+                "Weapon Use Type",
+                item.weaponUseType
+            );
+
+        EditorGUILayout.Space();
+    }
+
+    private void DrawCarryRequirementsSection(ItemData item)
+    {
+        EditorGUILayout.LabelField(
+            "Future Carry Requirements",
+            EditorStyles.boldLabel
+        );
+
+        item.carrySize =
+            Mathf.Max(
+                1,
+                EditorGUILayout.IntField(
+                    "Carry Size",
+                    item.carrySize
+                )
+            );
+
+        item.carryWeight =
+            Mathf.Max(
+                0f,
+                EditorGUILayout.FloatField(
+                    "Carry Weight",
+                    item.carryWeight
+                )
+            );
+
+        EditorGUILayout.Space();
+    }
+
+    private void DrawSaddleEquipmentSection(ItemData item)
+    {
+        if (item.itemCategory != ItemCategory.Equipment)
+        {
+            item.hasManualSaddleTurret = false;
+            item.manualSaddleTurretControlsText = "";
+            return;
+        }
+
+        EditorGUILayout.LabelField(
+            "Saddle Equipment",
+            EditorStyles.boldLabel
+        );
+
+        item.hasManualSaddleTurret =
+            EditorGUILayout.Toggle(
+                "Has Manual Saddle Turret",
+                item.hasManualSaddleTurret
+            );
+
+        if (item.hasManualSaddleTurret)
+        {
+            EditorGUILayout.LabelField(
+                "Manual Saddle Turret Controls Text"
+            );
+
+            item.manualSaddleTurretControlsText =
+                EditorGUILayout.TextArea(
+                    item.manualSaddleTurretControlsText,
+                    GUILayout.MinHeight(40f)
+                );
+        }
+        else
+        {
+            item.manualSaddleTurretControlsText = "";
+        }
+
+        EditorGUILayout.Space();
+    }
+
+    private void DrawInventoryShapeSection(ItemData item)
+    {
         EditorGUILayout.LabelField(
             "Inventory Shape",
             EditorStyles.boldLabel
@@ -91,11 +205,8 @@ public class ItemDataEditor : Editor
                 item.shapeHeight
             );
 
-        newWidth =
-            Mathf.Max(1, newWidth);
-
-        newHeight =
-            Mathf.Max(1, newHeight);
+        newWidth = Mathf.Max(1, newWidth);
+        newHeight = Mathf.Max(1, newHeight);
 
         if (newWidth != item.shapeWidth ||
             newHeight != item.shapeHeight)
@@ -131,6 +242,8 @@ public class ItemDataEditor : Editor
                 "Fill Item Shape"
             );
 
+            EnsureOccupiedCells(item);
+
             for (int i = 0; i < item.occupiedCells.Length; i++)
                 item.occupiedCells[i] = true;
 
@@ -144,14 +257,11 @@ public class ItemDataEditor : Editor
                 "Clear Item Shape"
             );
 
+            EnsureOccupiedCells(item);
+
             for (int i = 0; i < item.occupiedCells.Length; i++)
                 item.occupiedCells[i] = false;
 
-            EditorUtility.SetDirty(item);
-        }
-
-        if (EditorGUI.EndChangeCheck())
-        {
             EditorUtility.SetDirty(item);
         }
     }
@@ -212,6 +322,9 @@ public class ItemDataEditor : Editor
 
         if (item.occupiedCells != null)
         {
+            int oldWidth = item.shapeWidth;
+            int oldHeight = item.shapeHeight;
+
             int copyLength =
                 Mathf.Min(
                     item.occupiedCells.Length,

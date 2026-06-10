@@ -208,6 +208,15 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""SwitchWeapon"",
+                    ""type"": ""Button"",
+                    ""id"": ""9b47b038-974c-4f86-9b4f-c1100160d884"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -639,6 +648,17 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""action"": ""Sheathe/Unsheathe"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""841b0a8c-bb07-4718-854b-1bddb8e36af5"",
+                    ""path"": ""<Keyboard>/q"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SwitchWeapon"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -721,6 +741,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         m_Player_Inventory = m_Player.FindAction("Inventory", throwIfNotFound: true);
         m_Player_RotateItem = m_Player.FindAction("RotateItem", throwIfNotFound: true);
         m_Player_SheatheUnsheathe = m_Player.FindAction("Sheathe/Unsheathe", throwIfNotFound: true);
+        m_Player_SwitchWeapon = m_Player.FindAction("SwitchWeapon", throwIfNotFound: true);
     }
 
     ~@PlayerInputActions()
@@ -814,6 +835,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Inventory;
     private readonly InputAction m_Player_RotateItem;
     private readonly InputAction m_Player_SheatheUnsheathe;
+    private readonly InputAction m_Player_SwitchWeapon;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -877,6 +899,10 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Player/SheatheUnsheathe".
         /// </summary>
         public InputAction @SheatheUnsheathe => m_Wrapper.m_Player_SheatheUnsheathe;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/SwitchWeapon".
+        /// </summary>
+        public InputAction @SwitchWeapon => m_Wrapper.m_Player_SwitchWeapon;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -942,6 +968,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @SheatheUnsheathe.started += instance.OnSheatheUnsheathe;
             @SheatheUnsheathe.performed += instance.OnSheatheUnsheathe;
             @SheatheUnsheathe.canceled += instance.OnSheatheUnsheathe;
+            @SwitchWeapon.started += instance.OnSwitchWeapon;
+            @SwitchWeapon.performed += instance.OnSwitchWeapon;
+            @SwitchWeapon.canceled += instance.OnSwitchWeapon;
         }
 
         /// <summary>
@@ -992,6 +1021,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @SheatheUnsheathe.started -= instance.OnSheatheUnsheathe;
             @SheatheUnsheathe.performed -= instance.OnSheatheUnsheathe;
             @SheatheUnsheathe.canceled -= instance.OnSheatheUnsheathe;
+            @SwitchWeapon.started -= instance.OnSwitchWeapon;
+            @SwitchWeapon.performed -= instance.OnSwitchWeapon;
+            @SwitchWeapon.canceled -= instance.OnSwitchWeapon;
         }
 
         /// <summary>
@@ -1188,5 +1220,12 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnSheatheUnsheathe(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "SwitchWeapon" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSwitchWeapon(InputAction.CallbackContext context);
     }
 }

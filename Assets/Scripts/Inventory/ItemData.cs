@@ -19,6 +19,12 @@ public enum ItemHandUsage
     TwoHanded
 }
 
+public enum WeaponUseType
+{
+    HandWeapon,
+    MouthWeapon
+}
+
 [CreateAssetMenu(menuName = "Game/Item Data")]
 public class ItemData : ScriptableObject
 {
@@ -30,6 +36,8 @@ public class ItemData : ScriptableObject
 
     [Header("Held UI")]
     public Sprite itemIcon;
+
+    [Tooltip("Temporary/default hand usage. Later this can be calculated from race size, strength, carry size, and weight.")]
     public ItemHandUsage handUsage = ItemHandUsage.OneHanded;
 
     [TextArea]
@@ -37,6 +45,19 @@ public class ItemData : ScriptableObject
 
     [TextArea]
     public string weaponControlsText;
+
+    [Header("Weapon Use")]
+    public WeaponUseType weaponUseType = WeaponUseType.HandWeapon;
+
+    [Header("Future Carry Requirements")]
+    [Min(1)] public int carrySize = 1;
+    [Min(0f)] public float carryWeight = 1f;
+
+    [Header("Saddle Equipment")]
+    public bool hasManualSaddleTurret;
+
+    [TextArea]
+    public string manualSaddleTurretControlsText;
 
     [Header("Inventory Shape")]
     [Min(1)] public int shapeWidth = 1;
@@ -51,16 +72,12 @@ public class ItemData : ScriptableObject
         if (occupiedCells == null ||
             occupiedCells.Length != requiredSize)
         {
-            bool[] newCells =
-                new bool[requiredSize];
+            bool[] newCells = new bool[requiredSize];
 
             if (occupiedCells != null)
             {
                 int copyLength =
-                    Mathf.Min(
-                        occupiedCells.Length,
-                        newCells.Length
-                    );
+                    Mathf.Min(occupiedCells.Length, newCells.Length);
 
                 for (int i = 0; i < copyLength; i++)
                     newCells[i] = occupiedCells[i];
@@ -68,12 +85,22 @@ public class ItemData : ScriptableObject
 
             occupiedCells = newCells;
         }
+
+        if (itemCategory != ItemCategory.Weapon)
+        {
+            weaponUseType = WeaponUseType.HandWeapon;
+        }
+
+        if (itemCategory != ItemCategory.Equipment)
+        {
+            hasManualSaddleTurret = false;
+            manualSaddleTurretControlsText = "";
+        }
     }
 
     public int GetWidth(int rotationSteps)
     {
-        rotationSteps =
-            NormalizeRotationSteps(rotationSteps);
+        rotationSteps = NormalizeRotationSteps(rotationSteps);
 
         bool swapsWidthAndHeight =
             rotationSteps == 1 ||
@@ -86,8 +113,7 @@ public class ItemData : ScriptableObject
 
     public int GetHeight(int rotationSteps)
     {
-        rotationSteps =
-            NormalizeRotationSteps(rotationSteps);
+        rotationSteps = NormalizeRotationSteps(rotationSteps);
 
         bool swapsWidthAndHeight =
             rotationSteps == 1 ||
@@ -103,8 +129,7 @@ public class ItemData : ScriptableObject
         int y,
         int rotationSteps)
     {
-        rotationSteps =
-            NormalizeRotationSteps(rotationSteps);
+        rotationSteps = NormalizeRotationSteps(rotationSteps);
 
         int originalX;
         int originalY;
@@ -153,8 +178,7 @@ public class ItemData : ScriptableObject
         return occupiedCells[index];
     }
 
-    public static int NormalizeRotationSteps(
-        int rotationSteps)
+    public static int NormalizeRotationSteps(int rotationSteps)
     {
         rotationSteps %= 4;
 
