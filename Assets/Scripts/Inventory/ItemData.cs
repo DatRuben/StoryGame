@@ -3,7 +3,6 @@ using UnityEngine;
 public enum ItemCategory
 {
     Weapon,
-    Armor,
     Equipment,
     Consumable,
     Food,
@@ -17,6 +16,14 @@ public enum ItemHandUsage
 {
     OneHanded,
     TwoHanded
+}
+
+public enum EquipmentSlotType
+{
+    Saddle,
+    Armor,
+    Helmet,
+    Accessory
 }
 
 public enum WeaponUseType
@@ -52,6 +59,9 @@ public class ItemData : ScriptableObject
     [Header("Future Carry Requirements")]
     [Min(1)] public int carrySize = 1;
     [Min(0f)] public float carryWeight = 1f;
+
+    [Header("Equipment")]
+    public EquipmentSlotType equipmentSlotType = EquipmentSlotType.Saddle;
 
     [Header("Saddle Equipment")]
     public bool hasManualSaddleTurret;
@@ -91,7 +101,8 @@ public class ItemData : ScriptableObject
             weaponUseType = WeaponUseType.HandWeapon;
         }
 
-        if (itemCategory != ItemCategory.Equipment)
+        if (itemCategory != ItemCategory.Equipment ||
+            equipmentSlotType != EquipmentSlotType.Saddle)
         {
             hasManualSaddleTurret = false;
             manualSaddleTurretControlsText = "";

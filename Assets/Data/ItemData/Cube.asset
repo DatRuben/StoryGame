@@ -13,8 +13,17 @@ MonoBehaviour:
   m_Name: Cube
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   itemName: Cube
-  itemCategory: 7
+  itemCategory: 6
+  itemIcon: {fileID: 0}
+  handUsage: 0
+  heldControlsText: 
+  weaponControlsText: 
+  weaponUseType: 0
+  carrySize: 1
+  carryWeight: 1
+  equipmentSlotType: 0
+  hasManualSaddleTurret: 0
+  manualSaddleTurretControlsText: 
   shapeWidth: 4
   shapeHeight: 4
   occupiedCells: 01010101010101010101010101010101
-  canRotate: 1

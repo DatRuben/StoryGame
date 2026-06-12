@@ -156,6 +156,26 @@ public class ItemDataEditor : Editor
         }
 
         EditorGUILayout.LabelField(
+            "Equipment",
+            EditorStyles.boldLabel
+        );
+
+        item.equipmentSlotType =
+            (EquipmentSlotType)EditorGUILayout.EnumPopup(
+                "Equipment Slot Type",
+                item.equipmentSlotType
+            );
+
+        EditorGUILayout.Space();
+
+        if (item.equipmentSlotType != EquipmentSlotType.Saddle)
+        {
+            item.hasManualSaddleTurret = false;
+            item.manualSaddleTurretControlsText = "";
+            return;
+        }
+
+        EditorGUILayout.LabelField(
             "Saddle Equipment",
             EditorStyles.boldLabel
         );

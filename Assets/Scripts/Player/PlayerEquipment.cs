@@ -62,9 +62,8 @@ public class PlayerEquipment : MonoBehaviour
         if (item == null)
             return false;
 
-        // Temporary rule:
-        // until we add EquipmentSlotType, any Equipment item can go in SaddleSlot.
-        return item.itemCategory == ItemCategory.Equipment;
+        return item.itemCategory == ItemCategory.Equipment &&
+               item.equipmentSlotType == EquipmentSlotType.Saddle;
     }
 
     public bool TryEquipSaddle(ItemData saddleItem)

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Saddle Gun
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
   itemName: SaddleGun
-  itemCategory: 2
+  itemCategory: 1
   itemIcon: {fileID: 0}
   handUsage: 1
   heldControlsText: 
@@ -21,8 +21,9 @@ MonoBehaviour:
   weaponUseType: 0
   carrySize: 1
   carryWeight: 1
+  equipmentSlotType: 0
   hasManualSaddleTurret: 1
-  manualSaddleTurretControlsText: 
+  manualSaddleTurretControlsText: shoot
   shapeWidth: 10
   shapeHeight: 10
   occupiedCells: 01010101010101010101010101010101010101010001010101010101010000000101010101010000000000000101000000000000000001010000010100010101010101010101010101010101010101010000000001000000010100000000010000000000
