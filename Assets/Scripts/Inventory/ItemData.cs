@@ -20,9 +20,9 @@ public enum ItemHandUsage
 
 public enum EquipmentSlotType
 {
-    Saddle,
     Armor,
     Helmet,
+    Saddle,
     Accessory
 }
 

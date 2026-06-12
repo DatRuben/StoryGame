@@ -2,7 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class SaddleSlotUI : MonoBehaviour
+public class EquipmentSlotUI : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private PlayerInventory playerInventory;
@@ -13,13 +13,16 @@ public class SaddleSlotUI : MonoBehaviour
     [SerializeField] private Button button;
     [SerializeField] private CanvasGroup canvasGroup;
 
+    [Header("Slot")]
+    [SerializeField] private EquipmentSlotType equipmentSlotType;
+
     [Header("Visibility")]
     [SerializeField] private bool onlyShowWhenInventoryOpen = true;
 
     [Header("Text")]
-    [SerializeField] private string emptyText = "Saddle";
-    [SerializeField] private string equipText = "Equip Saddle";
-    [SerializeField] private string swapText = "Swap Saddle";
+    [SerializeField] private string emptyText = "";
+    [SerializeField] private string equipText = "";
+    [SerializeField] private string swapText = "";
     [SerializeField] private string cannotEquipText = "Cannot Equip";
     [SerializeField] private string turretSuffix = " + Turret";
 
@@ -83,16 +86,16 @@ public class SaddleSlotUI : MonoBehaviour
 
         if (playerInventory.IsHoldingItem)
         {
-            TryEquipHeldSaddle();
+            TryEquipHeldItem();
             Refresh();
             return;
         }
 
-        TryPickUpEquippedSaddle();
+        TryPickUpEquippedItem();
         Refresh();
     }
 
-    private void TryEquipHeldSaddle()
+    private void TryEquipHeldItem()
     {
         if (playerInventory.HeldItem == null ||
             playerInventory.HeldItem.ItemData == null)
@@ -103,25 +106,33 @@ public class SaddleSlotUI : MonoBehaviour
         ItemData heldItem =
             playerInventory.HeldItem.ItemData;
 
-        if (!playerEquipment.CanEquipSaddle(heldItem))
+        if (!playerEquipment.CanEquipItemToSlot(
+                heldItem,
+                equipmentSlotType))
         {
-            Debug.Log("Held item cannot be equipped as a saddle.");
+            Debug.Log(
+                "Held item cannot be equipped to " +
+                GetSlotName() +
+                "."
+            );
+
             return;
         }
 
         bool equipped =
-            playerEquipment.TryEquipSaddle(
+            playerEquipment.TryEquipItemToSlot(
                 heldItem,
-                out ItemData replacedSaddle
+                equipmentSlotType,
+                out ItemData replacedItem
             );
 
         if (!equipped)
             return;
 
-        if (replacedSaddle != null)
+        if (replacedItem != null)
         {
             playerInventory.SetMouseHeldItemFromExternal(
-                replacedSaddle,
+                replacedItem,
                 0,
                 true
             );
@@ -132,16 +143,18 @@ public class SaddleSlotUI : MonoBehaviour
         }
     }
 
-    private void TryPickUpEquippedSaddle()
+    private void TryPickUpEquippedItem()
     {
-        ItemData removedSaddle =
-            playerEquipment.UnequipSaddle();
+        ItemData removedItem =
+            playerEquipment.UnequipSlot(
+                equipmentSlotType
+            );
 
-        if (removedSaddle == null)
+        if (removedItem == null)
             return;
 
         playerInventory.SetMouseHeldItemFromExternal(
-            removedSaddle,
+            removedItem,
             0,
             true
         );
@@ -151,7 +164,11 @@ public class SaddleSlotUI : MonoBehaviour
     {
         if (playerEquipment == null)
         {
-            SetSlot(emptyText, emptyColor);
+            SetSlot(
+                GetEmptyText(),
+                emptyColor
+            );
+
             return;
         }
 
@@ -162,24 +179,31 @@ public class SaddleSlotUI : MonoBehaviour
             return;
         }
 
-        ItemData saddle =
-            playerEquipment.EquippedSaddle;
+        ItemData equippedItem =
+            playerEquipment.GetEquippedItem(
+                equipmentSlotType
+            );
 
-        if (saddle == null)
+        if (equippedItem == null)
         {
-            SetSlot(emptyText, emptyColor);
+            SetSlot(
+                GetEmptyText(),
+                emptyColor
+            );
+
             return;
         }
 
         string text =
-            string.IsNullOrWhiteSpace(saddle.itemName)
-                ? "Saddle"
-                : saddle.itemName;
+            string.IsNullOrWhiteSpace(equippedItem.itemName)
+                ? GetSlotName()
+                : equippedItem.itemName;
 
         Color color =
             equippedColor;
 
-        if (saddle.hasManualSaddleTurret)
+        if (equipmentSlotType == EquipmentSlotType.Saddle &&
+            equippedItem.hasManualSaddleTurret)
         {
             text += turretSuffix;
             color = turretColor;
@@ -201,22 +225,85 @@ public class SaddleSlotUI : MonoBehaviour
             playerInventory.HeldItem.ItemData;
 
         bool canEquip =
-            playerEquipment.CanEquipSaddle(heldItem);
+            playerEquipment.CanEquipItemToSlot(
+                heldItem,
+                equipmentSlotType
+            );
 
         if (!canEquip)
         {
-            SetSlot(cannotEquipText, invalidColor);
+            SetSlot(
+                cannotEquipText,
+                invalidColor
+            );
+
             return;
         }
 
-        if (playerEquipment.EquippedSaddle == null)
+        ItemData equippedItem =
+            playerEquipment.GetEquippedItem(
+                equipmentSlotType
+            );
+
+        if (equippedItem == null)
         {
-            SetSlot(equipText, canEquipColor);
+            SetSlot(
+                GetEquipText(),
+                canEquipColor
+            );
         }
         else
         {
-            SetSlot(swapText, canEquipColor);
+            SetSlot(
+                GetSwapText(),
+                canEquipColor
+            );
         }
+    }
+
+    private string GetSlotName()
+    {
+        switch (equipmentSlotType)
+        {
+            case EquipmentSlotType.Saddle:
+                return "Saddle";
+
+            case EquipmentSlotType.Armor:
+                return "Armor";
+
+            case EquipmentSlotType.Helmet:
+                return "Helmet";
+
+            case EquipmentSlotType.Accessory:
+                return "Accessory";
+
+            default:
+                return "Equipment";
+        }
+    }
+
+    private string GetEmptyText()
+    {
+        if (!string.IsNullOrWhiteSpace(emptyText))
+            return emptyText;
+
+        return GetSlotName();
+    }
+
+    private string GetEquipText()
+    {
+        if (!string.IsNullOrWhiteSpace(equipText))
+            return equipText;
+
+        return "Equip " + GetSlotName();
+    }
+
+    private string GetSwapText()
+    {
+        if (!string.IsNullOrWhiteSpace(swapText))
+            return swapText;
+
+        return "Swap " + GetSlotName();
     }
 
     private void SetSlot(string text, Color color)

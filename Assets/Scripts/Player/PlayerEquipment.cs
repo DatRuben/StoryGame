@@ -8,6 +8,9 @@ public class PlayerEquipment : MonoBehaviour
 
     [Header("Equipment")]
     [SerializeField] private ItemData equippedSaddle;
+    [SerializeField] private ItemData equippedArmor;
+    [SerializeField] private ItemData equippedHelmet;
+    [SerializeField] private ItemData equippedAccessory;
 
     [Header("Race Rules")]
     [SerializeField] private bool canEquipSaddles = false;
@@ -17,6 +20,10 @@ public class PlayerEquipment : MonoBehaviour
     [SerializeField] private int manualSaddleTurretWeaponSetIndex = 1;
 
     public ItemData EquippedSaddle => equippedSaddle;
+    public ItemData EquippedArmor => equippedArmor;
+    public ItemData EquippedHelmet => equippedHelmet;
+    public ItemData EquippedAccessory => equippedAccessory;
+
     public bool HasEquippedSaddle => equippedSaddle != null;
     public bool CanEquipSaddles => canEquipSaddles;
 
@@ -54,16 +61,131 @@ public class PlayerEquipment : MonoBehaviour
         OnEquipmentChanged?.Invoke();
     }
 
-    public bool CanEquipSaddle(ItemData item)
+    public bool CanEquipItemToSlot(
+        ItemData item,
+        EquipmentSlotType slotType)
     {
-        if (!canEquipSaddles)
-            return false;
-
         if (item == null)
             return false;
 
-        return item.itemCategory == ItemCategory.Equipment &&
-               item.equipmentSlotType == EquipmentSlotType.Saddle;
+        if (item.itemCategory != ItemCategory.Equipment)
+            return false;
+
+        if (item.equipmentSlotType != slotType)
+            return false;
+
+        if (slotType == EquipmentSlotType.Saddle &&
+            !canEquipSaddles)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    public bool TryEquipItemToSlot(
+        ItemData item,
+        EquipmentSlotType slotType,
+        out ItemData replacedItem)
+    {
+        replacedItem = null;
+
+        if (!CanEquipItemToSlot(item, slotType))
+            return false;
+
+        if (slotType == EquipmentSlotType.Saddle)
+        {
+            return TryEquipSaddle(
+                item,
+                out replacedItem
+            );
+        }
+
+        replacedItem =
+            GetEquippedItem(slotType);
+
+        SetEquippedItemDirect(
+            slotType,
+            item
+        );
+
+        OnEquipmentChanged?.Invoke();
+
+        return true;
+    }
+
+    public ItemData UnequipSlot(EquipmentSlotType slotType)
+    {
+        if (slotType == EquipmentSlotType.Saddle)
+            return UnequipSaddle();
+
+        ItemData oldItem =
+            GetEquippedItem(slotType);
+
+        if (oldItem == null)
+            return null;
+
+        SetEquippedItemDirect(
+            slotType,
+            null
+        );
+
+        OnEquipmentChanged?.Invoke();
+
+        return oldItem;
+    }
+
+    public ItemData GetEquippedItem(EquipmentSlotType slotType)
+    {
+        switch (slotType)
+        {
+            case EquipmentSlotType.Saddle:
+                return equippedSaddle;
+
+            case EquipmentSlotType.Armor:
+                return equippedArmor;
+
+            case EquipmentSlotType.Helmet:
+                return equippedHelmet;
+
+            case EquipmentSlotType.Accessory:
+                return equippedAccessory;
+
+            default:
+                return null;
+        }
+    }
+
+    private void SetEquippedItemDirect(
+        EquipmentSlotType slotType,
+        ItemData item)
+    {
+        switch (slotType)
+        {
+            case EquipmentSlotType.Saddle:
+                equippedSaddle = item;
+                break;
+
+            case EquipmentSlotType.Armor:
+                equippedArmor = item;
+                break;
+
+            case EquipmentSlotType.Helmet:
+                equippedHelmet = item;
+                break;
+
+            case EquipmentSlotType.Accessory:
+                equippedAccessory = item;
+                break;
+        }
+    }
+
+    public bool CanEquipSaddle(ItemData item)
+    {
+        return CanEquipItemToSlot(
+            item,
+            EquipmentSlotType.Saddle
+        );
     }
 
     public bool TryEquipSaddle(ItemData saddleItem)

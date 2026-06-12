@@ -44,6 +44,7 @@ public class InventoryGridUI : MonoBehaviour
 
     private Vector2Int hoveredCoordinate = new Vector2Int(-1, -1);
     private Vector2Int heldGrabOffset = Vector2Int.zero;
+    private bool centerHeldPreviewOnMouse = false;
 
     private bool pointerIsDown;
     private bool pendingDragPickup;
@@ -145,7 +146,15 @@ public class InventoryGridUI : MonoBehaviour
         if (!rotated)
             return;
 
-        ClampHeldGrabOffsetToHeldItem();
+        if (centerHeldPreviewOnMouse)
+        {
+            CenterHeldItemOnMouse();
+        }
+        else
+        {
+            ClampHeldGrabOffsetToHeldItem();
+        }
+
         BuildHeldItemPreview();
         Refresh();
     }
@@ -235,10 +244,7 @@ public class InventoryGridUI : MonoBehaviour
         if (pickedItem == null)
             return;
 
-        heldGrabOffset =
-            coordinate - pickedItem.Position;
-
-        ClampHeldGrabOffsetToHeldItem();
+        CenterHeldItemOnMouse();
 
         isDraggingItem = true;
         pendingDragPickup = false;
@@ -275,6 +281,7 @@ public class InventoryGridUI : MonoBehaviour
             if (placed)
             {
                 heldGrabOffset = Vector2Int.zero;
+                centerHeldPreviewOnMouse = false;
                 Refresh();
                 return;
             }
@@ -295,6 +302,7 @@ public class InventoryGridUI : MonoBehaviour
             playerInventory.HeldItem == null)
         {
             heldGrabOffset = Vector2Int.zero;
+            centerHeldPreviewOnMouse = false;
             Refresh();
             return;
         }
@@ -317,6 +325,7 @@ public class InventoryGridUI : MonoBehaviour
         }
 
         heldGrabOffset = Vector2Int.zero;
+        centerHeldPreviewOnMouse = false;
         Refresh();
     }
 
@@ -527,6 +536,7 @@ public class InventoryGridUI : MonoBehaviour
             else
             {
                 heldGrabOffset = Vector2Int.zero;
+                centerHeldPreviewOnMouse = false;
             }
 
             Refresh();
@@ -600,10 +610,7 @@ public class InventoryGridUI : MonoBehaviour
             return;
         }
 
-        heldGrabOffset =
-            coordinate - pickedItem.Position;
-
-        ClampHeldGrabOffsetToHeldItem();
+        CenterHeldItemOnMouse();
 
         Debug.Log(
             "Picked up item: " +
@@ -635,6 +642,40 @@ public class InventoryGridUI : MonoBehaviour
     private Vector2Int GetHeldPlacementOrigin(Vector2Int hoveredCell)
     {
         return hoveredCell - heldGrabOffset;
+    }
+
+    private void CenterHeldItemOnMouse()
+    {
+        PlacedInventoryItem heldItem =
+            HeldItem;
+
+        if (heldItem == null ||
+            heldItem.ItemData == null)
+        {
+            heldGrabOffset = Vector2Int.zero;
+            centerHeldPreviewOnMouse = false;
+            return;
+        }
+
+        int centerX =
+            Mathf.Max(
+                0,
+                heldItem.Width / 2
+            );
+
+        int centerY =
+            Mathf.Max(
+                0,
+                heldItem.Height / 2
+            );
+
+        heldGrabOffset =
+            new Vector2Int(
+                centerX,
+                centerY
+            );
+
+        centerHeldPreviewOnMouse = true;
     }
 
     private bool IsHeldItemPreview(
@@ -717,6 +758,12 @@ public class InventoryGridUI : MonoBehaviour
 
     private void HandleHeldItemChanged()
     {
+        if (playerInventory != null &&
+            playerInventory.ConsumeCenterHeldItemOnCursorRequest())
+        {
+            CenterHeldItemOnMouse();
+        }
+
         BuildHeldItemPreview();
         Refresh();
     }
@@ -812,6 +859,7 @@ public class InventoryGridUI : MonoBehaviour
             heldItem.ItemData == null)
         {
             heldPreviewRoot.gameObject.SetActive(false);
+            centerHeldPreviewOnMouse = false;
             return;
         }
 
@@ -938,6 +986,22 @@ public class InventoryGridUI : MonoBehaviour
 
         Vector2 spacing =
             heldPreviewLayoutGroup.spacing;
+
+        if (centerHeldPreviewOnMouse)
+        {
+            float width =
+                heldItem.Width * cellSize.x +
+                Mathf.Max(0, heldItem.Width - 1) * spacing.x;
+
+            float height =
+                heldItem.Height * cellSize.y +
+                Mathf.Max(0, heldItem.Height - 1) * spacing.y;
+
+            return new Vector2(
+                width * 0.5f,
+                -height * 0.5f
+            );
+        }
 
         int visualRowFromTop =
             heldItem.Height - 1 - heldGrabOffset.y;
