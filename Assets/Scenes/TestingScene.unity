@@ -2520,7 +2520,7 @@ MonoBehaviour:
   IgnoreTimeScale: 0
   WorldUpOverride: {fileID: 0}
   ChannelMask: -1
-  UpdateMethod: 2
+  UpdateMethod: 1
   BlendUpdateMethod: 1
   LensModeOverride:
     Enabled: 0
@@ -13041,6 +13041,7 @@ GameObject:
   - component: {fileID: 1711152530}
   - component: {fileID: 1711152531}
   - component: {fileID: 1711152533}
+  - component: {fileID: 1711152534}
   m_Layer: 5
   m_Name: InventoryPanel
   m_TagString: Untagged
@@ -13067,7 +13068,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 360, y: 360}
+  m_SizeDelta: {x: 502, y: 334}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1711152528
 CanvasRenderer:
@@ -13100,8 +13101,8 @@ MonoBehaviour:
   invalidPlacementColor: {r: 1, g: 0.2, b: 0.2, a: 0.85}
   heldPreviewColor: {r: 1, g: 1, b: 1, a: 0.65}
   dragOriginalGhostColor: {r: 0.39215687, g: 0.39215687, b: 0.39215687, a: 0.78431374}
-  itemOutlineColor: {r: 0, g: 0, b: 0, a: 0.78431374}
-  dragOriginalOutlineColor: {r: 0, g: 0, b: 0, a: 0.78431374}
+  itemOutlineColor: {r: 0, g: 0, b: 0, a: 0.88235295}
+  dragOriginalOutlineColor: {r: 0, g: 0, b: 0, a: 0.88235295}
   itemOutlineThickness: 3
   fillPaddingBetweenCells: 1
   heldPreviewOffset: {x: 0, y: 0}
@@ -13139,6 +13140,36 @@ MonoBehaviour:
   snapToPixel: 1
   clampToScreen: 1
   screenPadding: {x: 24, y: 24}
+--- !u!114 &1711152534
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1711152525}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 0, g: 1, b: 1, a: 0.09803922}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
 --- !u!1 &1725643933
 GameObject:
   m_ObjectHideFlags: 0
@@ -17311,35 +17342,27 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInventory
   playerWeaponSlots: {fileID: 2123556403}
-  gridWidth: 25
-  gridHeight: 20
+  gridWidth: 12
+  gridHeight: 8
   startingItems:
-  - item: {fileID: 11400000, guid: 139703b42c33d0941a6e24841d8b3155, type: 2}
-    x: 0
-    y: 0
-    rotationSteps: 0
   - item: {fileID: 11400000, guid: 3b972127d5278944d9888d995cb842c2, type: 2}
-    x: 0
-    y: 10
+    x: 2
+    y: 0
     rotationSteps: 0
   - item: {fileID: 11400000, guid: 32bd2806bcd662b438e86ac184b3181e, type: 2}
-    x: 10
-    y: 10
-    rotationSteps: 0
-  - item: {fileID: 11400000, guid: b50a35d9086d53b48ac4a5a7520b184e, type: 2}
-    x: 10
+    x: 0
     y: 0
     rotationSteps: 0
+  - item: {fileID: 11400000, guid: b50a35d9086d53b48ac4a5a7520b184e, type: 2}
+    x: 0
+    y: 5
+    rotationSteps: 3
   - item: {fileID: 11400000, guid: 0f044c448178dfd46b389b72b4e163fc, type: 2}
     x: 0
-    y: 15
-    rotationSteps: 0
+    y: 2
+    rotationSteps: 3
   - item: {fileID: 11400000, guid: e9ed5f24771b067409d07614c77793e8, type: 2}
-    x: 10
-    y: 15
-    rotationSteps: 0
-  - item: {fileID: 11400000, guid: 37bec4820d607a14cb0c945455e3c9ba, type: 2}
-    x: 0
+    x: 5
     y: 5
     rotationSteps: 0
   weaponSlotItem: {fileID: 0}
@@ -17403,6 +17426,7 @@ MonoBehaviour:
   cameraTransform: {fileID: 330585546}
   playerCamera: {fileID: 330585545}
   rotationSpeed: 10
+  cameraLockIgnoreFixedFrames: 2
   speedText: {fileID: 872080309}
   playerInventory: {fileID: 2123556395}
   playerWeaponSlots: {fileID: 2123556403}

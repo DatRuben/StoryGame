@@ -54,6 +54,7 @@ public class PlayerInput : MonoBehaviour
     [SerializeField] private Transform cameraTransform;
     [SerializeField] private Camera playerCamera;
     [SerializeField] private float rotationSpeed = 10f;
+    [SerializeField] private int cameraLockIgnoreFixedFrames = 2;
 
     [Header("UI")]
     [SerializeField] private TextMeshProUGUI speedText;
@@ -74,6 +75,7 @@ public class PlayerInput : MonoBehaviour
 
     private bool cameraLocked = false;
     public bool CameraLocked => cameraLocked;
+    private int cameraLockFramesToIgnore = 0;
 
     private bool isSprinting = false;
     private bool isJumpHeld = false;
@@ -399,12 +401,18 @@ public class PlayerInput : MonoBehaviour
 
     private void LookAt()
     {
+        if (cameraLockFramesToIgnore > 0)
+        {
+            cameraLockFramesToIgnore--;
+            rb.angularVelocity = Vector3.zero;
+            return;
+        }
+
         Vector3 direction;
 
         if (cameraLocked)
         {
-            direction = cameraTransform.forward;
-            direction.y = 0f;
+            direction = GetCameraForward(playerCamera);
         }
         else
         {
@@ -418,12 +426,15 @@ public class PlayerInput : MonoBehaviour
         Quaternion targetRotation =
             Quaternion.LookRotation(direction, Vector3.up);
 
-        rb.rotation =
+        Quaternion smoothedRotation =
             Quaternion.Slerp(
                 rb.rotation,
                 targetRotation,
                 rotationSpeed * Time.fixedDeltaTime
             );
+
+        rb.MoveRotation(smoothedRotation);
+        rb.angularVelocity = Vector3.zero;
     }
 
     private Vector3 GetCameraForward(Camera camera)
@@ -541,6 +552,10 @@ public class PlayerInput : MonoBehaviour
     private void ToggleCameraLock(InputAction.CallbackContext obj)
     {
         cameraLocked = !cameraLocked;
+        cameraLockFramesToIgnore = cameraLockIgnoreFixedFrames;
+
+        if (rb != null)
+            rb.angularVelocity = Vector3.zero;
     }
 
     private void StartSprint(InputAction.CallbackContext obj)

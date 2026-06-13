@@ -30,7 +30,9 @@ public class CursorController : MonoBehaviour
         }
 
         // Optional: click game window to lock again
-        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
+        if (Mouse.current != null &&
+            Mouse.current.leftButton.wasPressedThisFrame &&
+            Cursor.lockState != CursorLockMode.Locked)
         {
             LockCursor();
         }

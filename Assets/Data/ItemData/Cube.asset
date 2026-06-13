@@ -24,6 +24,6 @@ MonoBehaviour:
   equipmentSlotType: 0
   hasManualSaddleTurret: 0
   manualSaddleTurretControlsText: 
-  shapeWidth: 4
-  shapeHeight: 4
-  occupiedCells: 01010101010101010101010101010101
+  shapeWidth: 2
+  shapeHeight: 2
+  occupiedCells: 01010101

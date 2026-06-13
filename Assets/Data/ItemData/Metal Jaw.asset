@@ -21,8 +21,9 @@ MonoBehaviour:
   weaponUseType: 1
   carrySize: 1
   carryWeight: 1
+  equipmentSlotType: 2
   hasManualSaddleTurret: 0
   manualSaddleTurretControlsText: 
-  shapeWidth: 5
-  shapeHeight: 5
-  occupiedCells: 00010101000101010101010100010101010001010001000100
+  shapeWidth: 3
+  shapeHeight: 3
+  occupiedCells: 010101010001010001

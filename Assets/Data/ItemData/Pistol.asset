@@ -14,6 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
   itemName: Pistol
   itemCategory: 0
-  shapeWidth: 3
-  shapeHeight: 3
-  occupiedCells: 000001000101010101
+  itemIcon: {fileID: 0}
+  handUsage: 0
+  heldControlsText: 
+  weaponControlsText: 
+  weaponUseType: 0
+  carrySize: 1
+  carryWeight: 1
+  equipmentSlotType: 2
+  hasManualSaddleTurret: 0
+  manualSaddleTurretControlsText: 
+  shapeWidth: 2
+  shapeHeight: 2
+  occupiedCells: 00010101

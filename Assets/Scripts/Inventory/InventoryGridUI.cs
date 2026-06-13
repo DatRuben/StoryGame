@@ -1,9 +1,10 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
-public class InventoryGridUI : MonoBehaviour
+public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
 {
     [Header("References")]
     [SerializeField] private PlayerInventory playerInventory;
@@ -207,7 +208,18 @@ public class InventoryGridUI : MonoBehaviour
 
         if (Mouse.current.leftButton.wasReleasedThisFrame)
         {
-            CompleteDragDrop(hoveredCoordinate);
+            Vector2Int releaseCoordinate =
+                hoveredCoordinate;
+
+            if (!IsValidGridCoordinate(releaseCoordinate))
+            {
+                TryGetGridCoordinateFromScreenPoint(
+                    Mouse.current.position.ReadValue(),
+                    out releaseCoordinate
+                );
+            }
+
+            CompleteDragDrop(releaseCoordinate);
         }
     }
 
@@ -501,6 +513,33 @@ public class InventoryGridUI : MonoBehaviour
         BuildItemOutlines();
     }
 
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if (eventData.button != PointerEventData.InputButton.Left)
+            return;
+
+        if (playerInventory == null ||
+            playerInventory.Grid == null)
+        {
+            return;
+        }
+
+        if (!InventoryMenuController.IsInventoryOpen)
+            return;
+
+        if (!playerInventory.IsHoldingItem)
+            return;
+
+        if (!TryGetGridCoordinateFromScreenPoint(
+                eventData.position,
+                out Vector2Int coordinate))
+        {
+            return;
+        }
+
+        OnCellClicked(coordinate);
+    }
+
     private void OnCellClicked(Vector2Int coordinate)
     {
         if (suppressNextClick)
@@ -637,6 +676,167 @@ public class InventoryGridUI : MonoBehaviour
 
             Refresh();
         }
+    }
+
+    private bool TryGetGridCoordinateFromScreenPoint(
+        Vector2 screenPosition,
+        out Vector2Int coordinate)
+    {
+        coordinate = new Vector2Int(-1, -1);
+
+        if (playerInventory == null ||
+            playerInventory.Grid == null ||
+            cellParent == null ||
+            gridLayoutGroup == null ||
+            rootCanvas == null)
+        {
+            return false;
+        }
+
+        RectTransform cellParentRect =
+            cellParent as RectTransform;
+
+        if (cellParentRect == null)
+            return false;
+
+        Camera canvasCamera =
+            rootCanvas.renderMode == RenderMode.ScreenSpaceOverlay
+                ? null
+                : rootCanvas.worldCamera;
+
+        bool hasPoint =
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                cellParentRect,
+                screenPosition,
+                canvasCamera,
+                out Vector2 localPoint
+            );
+
+        if (!hasPoint)
+            return false;
+
+        Rect rect =
+            cellParentRect.rect;
+
+        float xFromLeft =
+            localPoint.x - rect.xMin;
+
+        float yFromTop =
+            rect.yMax - localPoint.y;
+
+        xFromLeft -= gridLayoutGroup.padding.left;
+        yFromTop -= gridLayoutGroup.padding.top;
+
+        if (xFromLeft < 0f ||
+            yFromTop < 0f)
+        {
+            return false;
+        }
+
+        Vector2 cellSize =
+            gridLayoutGroup.cellSize;
+
+        Vector2 spacing =
+            gridLayoutGroup.spacing;
+
+        float pitchX =
+            cellSize.x + spacing.x;
+
+        float pitchY =
+            cellSize.y + spacing.y;
+
+        if (pitchX <= 0f ||
+            pitchY <= 0f)
+        {
+            return false;
+        }
+
+        int x =
+            GetNearestGridIndex(
+                xFromLeft,
+                cellSize.x,
+                spacing.x,
+                pitchX,
+                playerInventory.Grid.Width
+            );
+
+        int rowFromTop =
+            GetNearestGridIndex(
+                yFromTop,
+                cellSize.y,
+                spacing.y,
+                pitchY,
+                playerInventory.Grid.Height
+            );
+
+        if (x < 0 ||
+            rowFromTop < 0)
+        {
+            return false;
+        }
+
+        int y =
+            playerInventory.Grid.Height - 1 - rowFromTop;
+
+        coordinate =
+            new Vector2Int(x, y);
+
+        return IsValidGridCoordinate(coordinate);
+    }
+
+    private int GetNearestGridIndex(
+        float distance,
+        float cellSize,
+        float spacing,
+        float pitch,
+        int count)
+    {
+        if (count <= 0)
+            return -1;
+
+        int index =
+            Mathf.FloorToInt(distance / pitch);
+
+        if (index < 0 ||
+            index >= count)
+        {
+            return -1;
+        }
+
+        float insidePitch =
+            distance - index * pitch;
+
+        if (insidePitch > cellSize &&
+            spacing > 0f)
+        {
+            float gapPosition =
+                insidePitch - cellSize;
+
+            if (gapPosition > spacing * 0.5f)
+                index++;
+        }
+
+        if (index < 0 ||
+            index >= count)
+        {
+            return -1;
+        }
+
+        return index;
+    }
+
+    private bool IsValidGridCoordinate(Vector2Int coordinate)
+    {
+        if (playerInventory == null ||
+            playerInventory.Grid == null)
+        {
+            return false;
+        }
+
+        return coordinate.x >= 0 &&
+               coordinate.y >= 0 &&
+               coordinate.x < playerInventory.Grid.Width &&
+               coordinate.y < playerInventory.Grid.Height;
     }
 
     private Vector2Int GetHeldPlacementOrigin(Vector2Int hoveredCell)
