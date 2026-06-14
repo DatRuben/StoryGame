@@ -178,29 +178,92 @@ public class PlayerInventory : MonoBehaviour
         return placed;
     }
 
-    public bool TryAddItemToFirstAvailableSpace(
-        ItemData item,
-        int rotationSteps = 0)
+    public bool TryMergeHeldItemIntoStackAt(int x, int y)
     {
-        if (Grid == null || item == null)
+        if (Grid == null)
             return false;
 
-        for (int y = 0; y < Grid.Height; y++)
+        if (HeldItem == null ||
+            HeldItem.ItemData == null)
         {
-            for (int x = 0; x < Grid.Width; x++)
-            {
-                if (!Grid.CanPlaceItem(item, x, y, rotationSteps))
-                    continue;
-
-                Grid.PlaceItem(item, x, y, rotationSteps);
-
-                OnInventoryChanged?.Invoke();
-
-                return true;
-            }
+            return false;
         }
 
-        return false;
+        PlacedInventoryItem targetStack =
+            Grid.GetPlacedItem(x, y);
+
+        if (targetStack == null ||
+            targetStack.ItemData == null)
+        {
+            return false;
+        }
+
+        if (targetStack == HeldItem)
+            return false;
+
+        if (targetStack.ItemData != HeldItem.ItemData)
+            return false;
+
+        if (!targetStack.ItemData.isStackable)
+            return false;
+
+        if (!targetStack.HasRoomInStack)
+            return false;
+
+        int heldQuantity =
+            Mathf.Max(1, HeldItem.Quantity);
+
+        int addedQuantity =
+            targetStack.AddQuantity(heldQuantity);
+
+        if (addedQuantity <= 0)
+            return false;
+
+        int remainingQuantity =
+            heldQuantity - addedQuantity;
+
+        if (remainingQuantity <= 0)
+        {
+            HeldItem = null;
+            MouseHeldItemCountsAsHeld = false;
+            CenterHeldItemOnCursorRequested = false;
+        }
+        else
+        {
+            HeldItem.SetQuantity(remainingQuantity);
+            CenterHeldItemOnCursorRequested = true;
+        }
+
+        OnInventoryChanged?.Invoke();
+        OnHeldItemChanged?.Invoke();
+
+        return true;
+    }
+
+    public bool TryAddItemToFirstAvailableSpace(
+        ItemData item,
+        int rotationSteps = 0,
+        int quantity = 1)
+    {
+        if (Grid == null ||
+            item == null ||
+            quantity <= 0)
+        {
+            return false;
+        }
+
+        bool fullyAdded =
+            Grid.TryAddItemTopLeft(
+                item,
+                rotationSteps,
+                quantity,
+                out int remainingQuantity
+            );
+
+        if (remainingQuantity < quantity)
+            OnInventoryChanged?.Invoke();
+
+        return fullyAdded;
     }
 
     public PlacedInventoryItem TryPickUpItemAt(
@@ -297,12 +360,16 @@ public class PlayerInventory : MonoBehaviour
         int rotationSteps =
             HeldItem.RotationSteps;
 
+        int quantity =
+            Mathf.Max(1, HeldItem.Quantity);
+
         bool placed =
             Grid.PlaceItem(
                 itemData,
                 x,
                 y,
-                rotationSteps
+                rotationSteps,
+                quantity
             );
 
         if (!placed)
@@ -409,54 +476,49 @@ public class PlayerInventory : MonoBehaviour
             return true;
         }
 
+        if (Grid == null)
+            return false;
+
         ItemData itemData =
             HeldItem.ItemData;
 
         int rotationSteps =
             HeldItem.RotationSteps;
 
-        for (int y = 0; y < Grid.Height; y++)
-        {
-            for (int x = 0; x < Grid.Width; x++)
-            {
-                bool canPlace =
-                    Grid.CanPlaceItem(
-                        itemData,
-                        x,
-                        y,
-                        rotationSteps
-                    );
+        int quantity =
+            Mathf.Max(1, HeldItem.Quantity);
 
-                if (!canPlace)
-                    continue;
+        bool fullyStored =
+            Grid.TryAddItemTopLeft(
+                itemData,
+                rotationSteps,
+                quantity,
+                out int remainingQuantity
+            );
 
-                Grid.PlaceItem(
-                    itemData,
-                    x,
-                    y,
-                    rotationSteps
-                );
+        int storedQuantity =
+            quantity - remainingQuantity;
 
-                HeldItem = null;
-                MouseHeldItemCountsAsHeld = false;
-
-                OnInventoryChanged?.Invoke();
-                OnHeldItemChanged?.Invoke();
-
-                return true;
-            }
-        }
-
-        Debug.Log(
-            "Dropped held item because there was no room in the inventory. Temporary behavior: item disappears."
-        );
+        if (storedQuantity > 0)
+            OnInventoryChanged?.Invoke();
 
         HeldItem = null;
         MouseHeldItemCountsAsHeld = false;
 
+        if (!fullyStored)
+        {
+            Debug.Log(
+                "Dropped " +
+                remainingQuantity +
+                " of " +
+                itemData.itemName +
+                " because there was no room in the inventory. Temporary behavior: item disappears."
+            );
+        }
+
         OnHeldItemChanged?.Invoke();
 
-        return false;
+        return fullyStored;
     }
 
     public bool CanEquipHeldItemToWeaponSlot()

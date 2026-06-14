@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -19,6 +20,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
     [SerializeField] private Color emptyColor = new Color(0f, 0f, 0f, 0.35f);
     [SerializeField] private Color occupiedColor = new Color(1f, 1f, 1f, 0.85f);
     [SerializeField] private Color validPlacementColor = new Color(0.2f, 1f, 0.2f, 0.85f);
+    [SerializeField] private Color partialStackPlacementColor = new Color(1f, 0.85f, 0.15f, 0.85f);
     [SerializeField] private Color invalidPlacementColor = new Color(1f, 0.2f, 0.2f, 0.85f);
     [SerializeField] private Color heldPreviewColor = new Color(1f, 1f, 1f, 0.65f);
     [SerializeField] private Color dragOriginalGhostColor = new Color(0.45f, 0.45f, 0.45f, 0.35f);
@@ -281,6 +283,28 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
 
         if (releaseIsValid)
         {
+            bool merged =
+                playerInventory.TryMergeHeldItemIntoStackAt(
+                    releaseCoordinate.x,
+                    releaseCoordinate.y
+                );
+
+            if (merged)
+            {
+                if (!playerInventory.IsHoldingItem)
+                {
+                    heldGrabOffset = Vector2Int.zero;
+                    centerHeldPreviewOnMouse = false;
+                }
+                else
+                {
+                    CenterHeldItemOnMouse();
+                }
+
+                Refresh();
+                return;
+            }
+
             Vector2Int placementOrigin =
                 GetHeldPlacementOrigin(releaseCoordinate);
 
@@ -480,6 +504,31 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
             if (hasHeldItem &&
                 hoverIsValid &&
                 inventoryOpen &&
+                TryGetStackPreviewColor(
+                    coordinate,
+                    out Color stackPreviewColor))
+            {
+                cell.SetColor(stackPreviewColor);
+
+                PlacedInventoryItem placedItemForQuantity =
+                    grid.GetPlacedItem(
+                        coordinate.x,
+                        coordinate.y
+                    );
+
+                cell.SetQuantityText(
+                    GetQuantityTextForCell(
+                        placedItemForQuantity,
+                        coordinate
+                    )
+                );
+
+                continue;
+            }
+
+            if (hasHeldItem &&
+                hoverIsValid &&
+                inventoryOpen &&
                 IsHeldItemPreview(coordinate, placementOrigin))
             {
                 cell.SetColor(
@@ -488,29 +537,145 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
                     : invalidPlacementColor
                 );
 
+                cell.SetQuantityText("");
                 continue;
             }
 
             if (isDraggingItem && IsOriginalFootprint(coordinate))
             {
                 cell.SetColor(dragOriginalGhostColor);
+                cell.SetQuantityText("");
                 continue;
             }
 
-            ItemData item =
-                grid.GetCell(
+            PlacedInventoryItem placedItem =
+                grid.GetPlacedItem(
                     coordinate.x,
                     coordinate.y
                 );
+
+            ItemData item =
+                placedItem != null
+                    ? placedItem.ItemData
+                    : null;
 
             cell.SetColor(
                 item == null
                 ? emptyColor
                 : occupiedColor
             );
+
+            cell.SetQuantityText(
+                GetQuantityTextForCell(
+                    placedItem,
+                    coordinate
+                )
+            );
         }
 
         BuildItemOutlines();
+    }
+
+
+    private string GetQuantityTextForCell(
+        PlacedInventoryItem placedItem,
+        Vector2Int coordinate)
+    {
+        if (placedItem == null ||
+            placedItem.ItemData == null)
+        {
+            return "";
+        }
+
+        if (!placedItem.ItemData.isStackable)
+            return "";
+
+        if (placedItem.Quantity <= 1)
+            return "";
+
+        // Only show the number once, not on every occupied cell.
+        if (placedItem.Position != coordinate)
+            return "";
+
+        return placedItem.Quantity.ToString();
+    }
+
+    private bool TryGetStackPreviewColor(
+        Vector2Int coordinate,
+        out Color previewColor)
+    {
+        previewColor = invalidPlacementColor;
+
+        if (playerInventory == null ||
+            playerInventory.Grid == null)
+        {
+            return false;
+        }
+
+        PlacedInventoryItem heldItem =
+            HeldItem;
+
+        if (heldItem == null ||
+            heldItem.ItemData == null ||
+            !heldItem.ItemData.isStackable)
+        {
+            return false;
+        }
+
+        if (!IsValidGridCoordinate(hoveredCoordinate))
+            return false;
+
+        PlacedInventoryItem targetStack =
+            playerInventory.Grid.GetPlacedItem(
+                hoveredCoordinate.x,
+                hoveredCoordinate.y
+            );
+
+        if (targetStack == null ||
+            targetStack.ItemData == null)
+        {
+            return false;
+        }
+
+        if (targetStack.ItemData != heldItem.ItemData)
+            return false;
+
+        if (!targetStack.ItemData.isStackable)
+            return false;
+
+        // Only color the cells belonging to the target stack.
+        PlacedInventoryItem cellStack =
+            playerInventory.Grid.GetPlacedItem(
+                coordinate.x,
+                coordinate.y
+            );
+
+        if (cellStack != targetStack)
+            return false;
+
+        int maxStackSize =
+            Mathf.Max(
+                1,
+                targetStack.ItemData.maxStackSize
+            );
+
+        int roomLeft =
+            maxStackSize - targetStack.Quantity;
+
+        if (roomLeft <= 0)
+        {
+            previewColor = invalidPlacementColor;
+            return true;
+        }
+
+        if (roomLeft >= heldItem.Quantity)
+        {
+            previewColor = validPlacementColor;
+            return true;
+        }
+
+        previewColor = partialStackPlacementColor;
+        return true;
     }
 
     public void OnPointerClick(PointerEventData eventData)
@@ -556,6 +721,28 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
 
         if (playerInventory.IsHoldingItem)
         {
+            bool merged =
+                playerInventory.TryMergeHeldItemIntoStackAt(
+                    coordinate.x,
+                    coordinate.y
+                );
+
+            if (merged)
+            {
+                if (!playerInventory.IsHoldingItem)
+                {
+                    heldGrabOffset = Vector2Int.zero;
+                    centerHeldPreviewOnMouse = false;
+                }
+                else
+                {
+                    CenterHeldItemOnMouse();
+                }
+
+                Refresh();
+                return;
+            }
+
             Vector2Int placementOrigin =
                 GetHeldPlacementOrigin(coordinate);
 
@@ -1069,6 +1256,8 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
         ItemData itemData =
             heldItem.ItemData;
 
+        bool quantityTextAssigned = false;
+
         for (int y = heldItem.Height - 1; y >= 0; y--)
         {
             for (int x = 0; x < heldItem.Width; x++)
@@ -1091,18 +1280,18 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
                 if (button != null)
                     button.interactable = false;
 
+                bool occupied =
+                    itemData.IsCellOccupied(
+                        x,
+                        y,
+                        heldItem.RotationSteps
+                    );
+
                 Image image =
                     cellObject.GetComponent<Image>();
 
                 if (image != null)
                 {
-                    bool occupied =
-                        itemData.IsCellOccupied(
-                            x,
-                            y,
-                            heldItem.RotationSteps
-                        );
-
                     image.raycastTarget = false;
 
                     image.color =
@@ -1110,6 +1299,28 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
                         ? heldPreviewColor
                         : new Color(0f, 0f, 0f, 0f);
                 }
+
+                TextMeshProUGUI quantityText =
+                    cellObject.GetComponentInChildren<TextMeshProUGUI>(true);
+
+                bool showQuantity =
+                    occupied &&
+                    !quantityTextAssigned &&
+                    itemData.isStackable &&
+                    heldItem.Quantity > 1;
+
+                if (quantityText != null)
+                {
+                    quantityText.text =
+                        showQuantity
+                        ? heldItem.Quantity.ToString()
+                        : "";
+
+                    quantityText.gameObject.SetActive(showQuantity);
+                }
+
+                if (showQuantity)
+                    quantityTextAssigned = true;
             }
         }
 

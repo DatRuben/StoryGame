@@ -690,10 +690,16 @@ public class PlayerWeaponSlots : MonoBehaviour
         if (activeWeaponSetIndex == setIndex)
             return;
 
+        bool shouldDrawAfterSwitch =
+            weaponsDrawn;
+
         activeWeaponSetIndex = setIndex;
         weaponsDrawn = false;
 
         OnWeaponSlotsChanged?.Invoke();
+
+        if (shouldDrawAfterSwitch)
+            DrawWeapons();
     }
 
     public bool DrawWeapons()

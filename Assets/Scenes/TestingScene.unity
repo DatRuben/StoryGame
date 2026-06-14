@@ -17365,6 +17365,14 @@ MonoBehaviour:
     x: 5
     y: 5
     rotationSteps: 0
+  - item: {fileID: 11400000, guid: 48d9c9da68f5a08438adc60ddacdd474, type: 2}
+    x: 6
+    y: 7
+    rotationSteps: 0
+  - item: {fileID: 11400000, guid: 48d9c9da68f5a08438adc60ddacdd474, type: 2}
+    x: 7
+    y: 7
+    rotationSteps: 0
   weaponSlotItem: {fileID: 0}
   weaponDrawn: 0
 --- !u!114 &2123556396

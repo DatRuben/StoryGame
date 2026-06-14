@@ -15,6 +15,7 @@ public class ItemDataEditor : Editor
         DrawHeldSection(item);
         DrawWeaponUseSection(item);
         DrawCarryRequirementsSection(item);
+        DrawStackingSection(item);
         DrawSaddleEquipmentSection(item);
         DrawInventoryShapeSection(item);
 
@@ -142,6 +143,38 @@ public class ItemDataEditor : Editor
                     item.carryWeight
                 )
             );
+
+        EditorGUILayout.Space();
+    }
+
+    private void DrawStackingSection(ItemData item)
+    {
+        EditorGUILayout.LabelField(
+            "Stacking",
+            EditorStyles.boldLabel
+        );
+
+        item.isStackable =
+            EditorGUILayout.Toggle(
+                "Is Stackable",
+                item.isStackable
+            );
+
+        if (item.isStackable)
+        {
+            item.maxStackSize =
+                Mathf.Max(
+                    2,
+                    EditorGUILayout.IntField(
+                        "Max Stack Size",
+                        item.maxStackSize
+                    )
+                );
+        }
+        else
+        {
+            item.maxStackSize = 1;
+        }
 
         EditorGUILayout.Space();
     }

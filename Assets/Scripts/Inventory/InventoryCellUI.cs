@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using TMPro;
 
 public class InventoryCellUI :
     MonoBehaviour,
@@ -12,6 +13,7 @@ public class InventoryCellUI :
 {
     [SerializeField] private Image image;
     [SerializeField] private Button button;
+    [SerializeField] private TextMeshProUGUI quantityText;
 
     private Vector2Int coordinate;
 
@@ -51,6 +53,11 @@ public class InventoryCellUI :
             button.onClick.RemoveAllListeners();
             button.onClick.AddListener(Click);
         }
+
+        if (quantityText == null)
+            quantityText = GetComponentInChildren<TextMeshProUGUI>(true);
+
+        SetQuantityText("");
     }
 
     public void SetColor(Color color)
@@ -60,6 +67,21 @@ public class InventoryCellUI :
 
         if (image != null)
             image.color = color;
+    }
+
+    public void SetQuantityText(string text)
+    {
+        if (quantityText == null)
+            quantityText = GetComponentInChildren<TextMeshProUGUI>(true);
+
+        if (quantityText == null)
+            return;
+
+        quantityText.text = text;
+
+        quantityText.gameObject.SetActive(
+            !string.IsNullOrEmpty(text)
+        );
     }
 
     private void Click()

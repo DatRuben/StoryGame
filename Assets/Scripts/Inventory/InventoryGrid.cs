@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class InventoryGrid
@@ -80,7 +81,8 @@ public class InventoryGrid
         ItemData item,
         int startX,
         int startY,
-        int rotationSteps)
+        int rotationSteps,
+        int quantity = 1)
     {
         if (!CanPlaceItem(item, startX, startY, rotationSteps))
             return false;
@@ -92,7 +94,8 @@ public class InventoryGrid
             new PlacedInventoryItem(
                 item,
                 new Vector2Int(startX, startY),
-                rotationSteps
+                rotationSteps,
+                quantity
             );
 
         int itemWidth =
@@ -116,6 +119,157 @@ public class InventoryGrid
         }
 
         return true;
+    }
+
+    public bool TryAddItemTopLeft(
+    ItemData item,
+    int startingRotationSteps,
+    int quantity,
+    out int remainingQuantity)
+    {
+        remainingQuantity =
+            Mathf.Max(0, quantity);
+
+        if (item == null ||
+            remainingQuantity <= 0)
+        {
+            return false;
+        }
+
+        if (item.isStackable)
+        {
+            remainingQuantity =
+                AddToExistingStacksTopLeft(
+                    item,
+                    remainingQuantity
+                );
+        }
+
+        while (remainingQuantity > 0)
+        {
+            int amountToPlace =
+                item.isStackable
+                    ? Mathf.Min(
+                        remainingQuantity,
+                        Mathf.Max(1, item.maxStackSize)
+                    )
+                    : 1;
+
+            bool foundSpace =
+                TryFindFirstAvailableSpaceTopLeft(
+                    item,
+                    startingRotationSteps,
+                    out Vector2Int position,
+                    out int rotationSteps
+                );
+
+            if (!foundSpace)
+                break;
+
+            bool placed =
+                PlaceItem(
+                    item,
+                    position.x,
+                    position.y,
+                    rotationSteps,
+                    amountToPlace
+                );
+
+            if (!placed)
+                break;
+
+            remainingQuantity -= amountToPlace;
+        }
+
+        return remainingQuantity == 0;
+    }
+
+    public bool TryFindFirstAvailableSpaceTopLeft(
+        ItemData item,
+        int startingRotationSteps,
+        out Vector2Int position,
+        out int rotationSteps)
+    {
+        position = new Vector2Int(-1, -1);
+        rotationSteps = 0;
+
+        if (item == null)
+            return false;
+
+        for (int y = height - 1; y >= 0; y--)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                for (int rotationOffset = 0; rotationOffset < 4; rotationOffset++)
+                {
+                    int testRotationSteps =
+                        ItemData.NormalizeRotationSteps(
+                            startingRotationSteps + rotationOffset
+                        );
+
+                    if (!CanPlaceItem(item, x, y, testRotationSteps))
+                        continue;
+
+                    position =
+                        new Vector2Int(x, y);
+
+                    rotationSteps =
+                        testRotationSteps;
+
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private int AddToExistingStacksTopLeft(
+        ItemData item,
+        int quantity)
+    {
+        if (item == null ||
+            !item.isStackable ||
+            quantity <= 0)
+        {
+            return quantity;
+        }
+
+        HashSet<PlacedInventoryItem> checkedStacks =
+            new HashSet<PlacedInventoryItem>();
+
+        for (int y = height - 1; y >= 0; y--)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                PlacedInventoryItem placedItem =
+                    cells[x, y];
+
+                if (placedItem == null)
+                    continue;
+
+                if (checkedStacks.Contains(placedItem))
+                    continue;
+
+                checkedStacks.Add(placedItem);
+
+                if (placedItem.ItemData != item)
+                    continue;
+
+                if (!placedItem.HasRoomInStack)
+                    continue;
+
+                int added =
+                    placedItem.AddQuantity(quantity);
+
+                quantity -= added;
+
+                if (quantity <= 0)
+                    return 0;
+            }
+        }
+
+        return quantity;
     }
 
     public bool RemoveItem(PlacedInventoryItem placedItem)

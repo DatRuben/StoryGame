@@ -69,6 +69,12 @@ public class ItemData : ScriptableObject
     [TextArea]
     public string manualSaddleTurretControlsText;
 
+    [Header("Stacking")]
+    public bool isStackable = false;
+
+    [Min(1)]
+    public int maxStackSize = 1;
+
     [Header("Inventory Shape")]
     [Min(1)] public int shapeWidth = 1;
     [Min(1)] public int shapeHeight = 1;
@@ -78,6 +84,15 @@ public class ItemData : ScriptableObject
     private void OnValidate()
     {
         int requiredSize = Mathf.Max(1, shapeWidth * shapeHeight);
+
+        if (!isStackable)
+        {
+            maxStackSize = 1;
+        }
+        else
+        {
+            maxStackSize = Mathf.Max(2, maxStackSize);
+        }
 
         if (occupiedCells == null ||
             occupiedCells.Length != requiredSize)

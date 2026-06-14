@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d8e8438f34b389044baee99c41231754, type: 3}
+  m_Name: Light Ammo
+  m_EditorClassIdentifier: Assembly-CSharp::ItemData
+  itemName: LightAmmo
+  itemCategory: 6
+  itemIcon: {fileID: 0}
+  handUsage: 0
+  heldControlsText: 
+  weaponControlsText: 
+  weaponUseType: 0
+  carrySize: 1
+  carryWeight: 1
+  equipmentSlotType: 2
+  hasManualSaddleTurret: 0
+  manualSaddleTurretControlsText: 
+  isStackable: 1
+  maxStackSize: 100
+  shapeWidth: 1
+  shapeHeight: 1
+  occupiedCells: 01
