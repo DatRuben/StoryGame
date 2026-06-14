@@ -6,6 +6,10 @@ using UnityEngine;
 public class StartingInventoryItem
 {
     public ItemData item;
+
+    [Min(1)]
+    public int quantity = 1;
+
     public int x;
     public int y;
 
@@ -68,9 +72,56 @@ public class PlayerInventory : MonoBehaviour
             playerWeaponSlots = GetComponent<PlayerWeaponSlots>();
     }
 
+    private void OnValidate()
+    {
+        ClampStartingItemQuantities();
+    }
+
+    private void ClampStartingItemQuantities()
+    {
+        if (startingItems == null)
+            return;
+
+        for (int i = 0; i < startingItems.Count; i++)
+        {
+            StartingInventoryItem startingItem =
+                startingItems[i];
+
+            if (startingItem == null)
+                continue;
+
+            startingItem.quantity =
+                GetSafeQuantityForItem(
+                    startingItem.item,
+                    startingItem.quantity
+                );
+        }
+    }
+
+    private int GetSafeQuantityForItem(
+        ItemData item,
+        int quantity)
+    {
+        quantity =
+            Mathf.Max(1, quantity);
+
+        if (item == null)
+            return quantity;
+
+        if (!item.isStackable)
+            return 1;
+
+        return Mathf.Clamp(
+            quantity,
+            1,
+            Mathf.Max(1, item.maxStackSize)
+        );
+    }
+
     private void Start()
     {
         ValidateWeaponSlot();
+        ClampStartingItemQuantities();
         PlaceStartingItems();
     }
 
@@ -112,7 +163,8 @@ public class PlayerInventory : MonoBehaviour
                     startingItem.item,
                     startingItem.x,
                     startingItem.y,
-                    startingItem.rotationSteps
+                    startingItem.rotationSteps,
+                    startingItem.quantity
                 );
 
             if (!placed)
@@ -159,17 +211,25 @@ public class PlayerInventory : MonoBehaviour
         ItemData item,
         int x,
         int y,
-        int rotationSteps)
+        int rotationSteps,
+        int quantity = 1)
     {
         if (Grid == null)
             return false;
+
+        int safeQuantity =
+            GetSafeQuantityForItem(
+                item,
+                quantity
+            );
 
         bool placed =
             Grid.PlaceItem(
                 item,
                 x,
                 y,
-                rotationSteps
+                rotationSteps,
+                safeQuantity
             );
 
         if (placed)
@@ -251,6 +311,12 @@ public class PlayerInventory : MonoBehaviour
         {
             return false;
         }
+
+        quantity =
+            GetSafeQuantityForItem(
+            item,
+            quantity
+            );
 
         bool fullyAdded =
             Grid.TryAddItemTopLeft(
