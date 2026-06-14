@@ -217,6 +217,24 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""TestKey1"",
+                    ""type"": ""Button"",
+                    ""id"": ""9c43c1ad-7266-4244-bae3-e3405301b53d"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""TestKey2"",
+                    ""type"": ""Button"",
+                    ""id"": ""250f744a-2093-4f92-8d0b-87ad4cc77af1"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -659,6 +677,28 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""action"": ""SwitchWeapon"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""83f2a1ef-b181-4c49-a5e2-263f8d0949b0"",
+                    ""path"": ""<Keyboard>/o"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""TestKey1"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""fed750af-81a5-465f-b204-c9037ec3d5bf"",
+                    ""path"": ""<Keyboard>/p"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""TestKey2"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -742,6 +782,8 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         m_Player_RotateItem = m_Player.FindAction("RotateItem", throwIfNotFound: true);
         m_Player_SheatheUnsheathe = m_Player.FindAction("Sheathe/Unsheathe", throwIfNotFound: true);
         m_Player_SwitchWeapon = m_Player.FindAction("SwitchWeapon", throwIfNotFound: true);
+        m_Player_TestKey1 = m_Player.FindAction("TestKey1", throwIfNotFound: true);
+        m_Player_TestKey2 = m_Player.FindAction("TestKey2", throwIfNotFound: true);
     }
 
     ~@PlayerInputActions()
@@ -836,6 +878,8 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_RotateItem;
     private readonly InputAction m_Player_SheatheUnsheathe;
     private readonly InputAction m_Player_SwitchWeapon;
+    private readonly InputAction m_Player_TestKey1;
+    private readonly InputAction m_Player_TestKey2;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -904,6 +948,14 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @SwitchWeapon => m_Wrapper.m_Player_SwitchWeapon;
         /// <summary>
+        /// Provides access to the underlying input action "Player/TestKey1".
+        /// </summary>
+        public InputAction @TestKey1 => m_Wrapper.m_Player_TestKey1;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/TestKey2".
+        /// </summary>
+        public InputAction @TestKey2 => m_Wrapper.m_Player_TestKey2;
+        /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
         public InputActionMap Get() { return m_Wrapper.m_Player; }
@@ -971,6 +1023,12 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @SwitchWeapon.started += instance.OnSwitchWeapon;
             @SwitchWeapon.performed += instance.OnSwitchWeapon;
             @SwitchWeapon.canceled += instance.OnSwitchWeapon;
+            @TestKey1.started += instance.OnTestKey1;
+            @TestKey1.performed += instance.OnTestKey1;
+            @TestKey1.canceled += instance.OnTestKey1;
+            @TestKey2.started += instance.OnTestKey2;
+            @TestKey2.performed += instance.OnTestKey2;
+            @TestKey2.canceled += instance.OnTestKey2;
         }
 
         /// <summary>
@@ -1024,6 +1082,12 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @SwitchWeapon.started -= instance.OnSwitchWeapon;
             @SwitchWeapon.performed -= instance.OnSwitchWeapon;
             @SwitchWeapon.canceled -= instance.OnSwitchWeapon;
+            @TestKey1.started -= instance.OnTestKey1;
+            @TestKey1.performed -= instance.OnTestKey1;
+            @TestKey1.canceled -= instance.OnTestKey1;
+            @TestKey2.started -= instance.OnTestKey2;
+            @TestKey2.performed -= instance.OnTestKey2;
+            @TestKey2.canceled -= instance.OnTestKey2;
         }
 
         /// <summary>
@@ -1227,5 +1291,19 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnSwitchWeapon(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "TestKey1" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnTestKey1(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "TestKey2" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnTestKey2(InputAction.CallbackContext context);
     }
 }
