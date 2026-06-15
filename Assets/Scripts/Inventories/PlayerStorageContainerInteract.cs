@@ -261,6 +261,20 @@ public class PlayerStorageContainerInteract : MonoBehaviour
         return true;
     }
 
+    public bool TryPlaceHeldPlayerItemInOpenContainerAtScreenPosition(
+    Vector2 screenPosition)
+    {
+        if (currentOpenContainer == null ||
+            containerGridUI == null)
+        {
+            return false;
+        }
+
+        return containerGridUI.TryPlaceHeldItemAtScreenPosition(
+            screenPosition
+        );
+    }
+
     private void CloseContainer()
     {
         currentOpenContainer = null;

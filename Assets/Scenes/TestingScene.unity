@@ -3700,8 +3700,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StorageContainerGridUI
   storageContainer: {fileID: 0}
   playerInventory: {fileID: 2123556395}
+  playerInventoryGridUI: {fileID: 1711152530}
   cellParent: {fileID: 472123727}
   cellPrefab: {fileID: 8116548169804476811, guid: 66689b1e950ee7349b173f27e743a4d1, type: 3}
+  allowDragToPlayerInventory: 1
+  dragStartDistance: 12
   emptyColor: {r: 0, g: 0, b: 0, a: 0.35}
   occupiedColor: {r: 1, g: 1, b: 1, a: 0.85}
 --- !u!114 &472123729

@@ -307,6 +307,25 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
             releaseCoordinate.x >= 0 &&
             releaseCoordinate.y >= 0;
 
+        if (!StorageContainerGridUI.HasPendingStorageDrag &&
+            Mouse.current != null &&
+            playerStorageContainerInteract != null)
+        {
+            bool placedInStorage =
+                playerStorageContainerInteract
+                    .TryPlaceHeldPlayerItemInOpenContainerAtScreenPosition(
+                        Mouse.current.position.ReadValue()
+                    );
+
+            if (placedInStorage)
+            {
+                heldGrabOffset = Vector2Int.zero;
+                centerHeldPreviewOnMouse = false;
+                Refresh();
+                return;
+            }
+        }
+
         if (releaseIsValid)
         {
             bool merged =
@@ -317,6 +336,9 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
 
             if (merged)
             {
+                if (StorageContainerGridUI.HasPendingStorageDrag)
+                    StorageContainerGridUI.CommitPendingStorageDrag();
+
                 if (!playerInventory.IsHoldingItem)
                 {
                     heldGrabOffset = Vector2Int.zero;
@@ -342,11 +364,26 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
 
             if (placed)
             {
+                if (StorageContainerGridUI.HasPendingStorageDrag)
+                    StorageContainerGridUI.CommitPendingStorageDrag();
+
                 heldGrabOffset = Vector2Int.zero;
                 centerHeldPreviewOnMouse = false;
                 Refresh();
                 return;
             }
+        }
+
+        if (StorageContainerGridUI.HasPendingStorageDrag)
+        {
+            StorageContainerGridUI.CancelPendingStorageDrag(
+                playerInventory
+            );
+
+            heldGrabOffset = Vector2Int.zero;
+            centerHeldPreviewOnMouse = false;
+            Refresh();
+            return;
         }
 
         ReturnDraggedItemToOriginalPosition();
@@ -358,6 +395,18 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
         pointerIsDown = false;
         pendingDragPickup = false;
         suppressNextClick = true;
+
+        if (StorageContainerGridUI.HasPendingStorageDrag)
+        {
+            StorageContainerGridUI.CancelPendingStorageDrag(
+                playerInventory
+            );
+
+            heldGrabOffset = Vector2Int.zero;
+            centerHeldPreviewOnMouse = false;
+            Refresh();
+            return;
+        }
 
         if (playerInventory == null ||
             !playerInventory.IsHoldingItem ||
@@ -731,6 +780,61 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
         OnCellClicked(coordinate);
     }
 
+
+    public bool TryDropHeldItemAtScreenPoint(
+        Vector2 screenPosition)
+    {
+        if (playerInventory == null ||
+            playerInventory.Grid == null ||
+            !playerInventory.IsHoldingItem)
+        {
+            return false;
+        }
+
+        if (!InventoryMenuController.IsInventoryOpen)
+            return false;
+
+        if (!TryGetGridCoordinateFromScreenPoint(
+                screenPosition,
+                out Vector2Int coordinate))
+        {
+            return false;
+        }
+
+        bool hadPendingStorageDrag =
+            StorageContainerGridUI.HasPendingStorageDrag;
+
+        PlacedInventoryItem heldItemBefore =
+            playerInventory.HeldItem;
+
+        int quantityBefore =
+            heldItemBefore != null
+                ? heldItemBefore.Quantity
+                : 0;
+
+        OnCellClicked(coordinate);
+
+        if (!hadPendingStorageDrag)
+            return true;
+
+        if (!StorageContainerGridUI.HasPendingStorageDrag)
+            return true;
+
+        if (!playerInventory.IsHoldingItem)
+            return true;
+
+        if (playerInventory.HeldItem != heldItemBefore)
+            return true;
+
+        if (playerInventory.HeldItem != null &&
+            playerInventory.HeldItem.Quantity != quantityBefore)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     private bool IsQuickTransferHeld()
     {
         if (Keyboard.current == null)
@@ -744,8 +848,13 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
     {
         if (suppressNextClick)
         {
+            if (!StorageContainerGridUI.HasPendingStorageDrag)
+            {
+                suppressNextClick = false;
+                return;
+            }
+
             suppressNextClick = false;
-            return;
         }
 
         if (playerInventory == null ||
@@ -785,6 +894,9 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
 
             if (merged)
             {
+                if (StorageContainerGridUI.HasPendingStorageDrag)
+                    StorageContainerGridUI.CommitPendingStorageDrag();
+
                 if (!playerInventory.IsHoldingItem)
                 {
                     heldGrabOffset = Vector2Int.zero;
@@ -810,6 +922,18 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
 
             if (!placed)
             {
+                if (StorageContainerGridUI.HasPendingStorageDrag)
+                {
+                    StorageContainerGridUI.CancelPendingStorageDrag(
+                        playerInventory
+                    );
+
+                    heldGrabOffset = Vector2Int.zero;
+                    centerHeldPreviewOnMouse = false;
+                    Refresh();
+                    return;
+                }
+
                 Debug.Log(
                     "Cannot place held item at: " +
                     placementOrigin
@@ -817,6 +941,9 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
             }
             else
             {
+                if (StorageContainerGridUI.HasPendingStorageDrag)
+                    StorageContainerGridUI.CommitPendingStorageDrag();
+
                 heldGrabOffset = Vector2Int.zero;
                 centerHeldPreviewOnMouse = false;
             }
