@@ -9,6 +9,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
 {
     [Header("References")]
     [SerializeField] private PlayerInventory playerInventory;
+    [SerializeField] private PlayerStorageContainerInteract playerStorageContainerInteract;
     [SerializeField] private Transform cellParent;
     [SerializeField] private GameObject cellPrefab;
     [SerializeField] private RectTransform itemOutline;
@@ -81,6 +82,13 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
 
         rootCanvas = GetComponentInParent<Canvas>();
         playerInput = new PlayerInputActions();
+
+        if (playerStorageContainerInteract == null &&
+            playerInventory != null)
+        {
+            playerStorageContainerInteract =
+                playerInventory.GetComponent<PlayerStorageContainerInteract>();
+        }
     }
 
     private void OnEnable()
@@ -230,6 +238,24 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
         if (playerInventory == null ||
             playerInventory.Grid == null)
         {
+            return;
+        }
+
+        if (IsQuickTransferHeld() &&
+            !playerInventory.IsHoldingItem)
+        {
+            if (playerStorageContainerInteract != null)
+            {
+                playerStorageContainerInteract.TryQuickTransferPlayerItemToOpenContainer(
+                    playerInventory,
+                    coordinate
+                );
+            }
+
+            heldGrabOffset = Vector2Int.zero;
+            centerHeldPreviewOnMouse = false;
+
+            Refresh();
             return;
         }
 
@@ -705,6 +731,15 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
         OnCellClicked(coordinate);
     }
 
+    private bool IsQuickTransferHeld()
+    {
+        if (Keyboard.current == null)
+            return false;
+
+        return Keyboard.current.leftCtrlKey.isPressed ||
+               Keyboard.current.rightCtrlKey.isPressed;
+    }
+
     private void OnCellClicked(Vector2Int coordinate)
     {
         if (suppressNextClick)
@@ -717,6 +752,27 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
             playerInventory.Grid == null)
         {
             return;
+        }
+
+        if (IsQuickTransferHeld() &&
+            !playerInventory.IsHoldingItem)
+        {
+            if (playerStorageContainerInteract != null)
+            {
+                bool transferred =
+                    playerStorageContainerInteract.TryQuickTransferPlayerItemToOpenContainer(
+                        playerInventory,
+                        coordinate
+                    );
+
+                if (transferred)
+                {
+                    heldGrabOffset = Vector2Int.zero;
+                    centerHeldPreviewOnMouse = false;
+                    Refresh();
+                    return;
+                }
+            }
         }
 
         if (playerInventory.IsHoldingItem)

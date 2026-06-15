@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 
 public class StorageContainerGridUI : MonoBehaviour
 {
@@ -68,6 +69,8 @@ public class StorageContainerGridUI : MonoBehaviour
 
     private void BuildGrid()
     {
+        ClearGrid();
+
         if (storageContainer == null ||
             storageContainer.Grid == null ||
             cellParent == null ||
@@ -75,14 +78,6 @@ public class StorageContainerGridUI : MonoBehaviour
         {
             return;
         }
-
-        foreach (Transform child in cellParent)
-        {
-            Destroy(child.gameObject);
-        }
-
-        cells.Clear();
-        cellCoordinates.Clear();
 
         InventoryGrid grid =
             storageContainer.Grid;
@@ -129,6 +124,20 @@ public class StorageContainerGridUI : MonoBehaviour
                 cellCoordinates.Add(coordinate);
             }
         }
+    }
+
+    private void ClearGrid()
+    {
+        if (cellParent != null)
+        {
+            foreach (Transform child in cellParent)
+            {
+                Destroy(child.gameObject);
+            }
+        }
+
+        cells.Clear();
+        cellCoordinates.Clear();
     }
 
     private void Refresh()
@@ -204,6 +213,15 @@ public class StorageContainerGridUI : MonoBehaviour
         return placedItem.Quantity.ToString();
     }
 
+    private bool IsQuickTransferHeld()
+    {
+        if (Keyboard.current == null)
+            return false;
+
+        return Keyboard.current.leftCtrlKey.isPressed ||
+               Keyboard.current.rightCtrlKey.isPressed;
+    }
+
     private void OnCellClicked(Vector2Int coordinate)
     {
         if (storageContainer == null ||
@@ -213,70 +231,98 @@ public class StorageContainerGridUI : MonoBehaviour
             return;
         }
 
-        if (playerInventory.IsHoldingItem)
+        if (IsQuickTransferHeld() &&
+            !playerInventory.IsHoldingItem)
         {
-            bool merged =
-                TryMergeHeldItemIntoContainerStackAt(
-                    coordinate.x,
-                    coordinate.y
-                );
+            QuickTransferContainerItemToPlayer(
+                coordinate
+            );
 
-            if (merged)
-            {
-                Refresh();
-                return;
-            }
-
-            PlacedInventoryItem heldItem =
-                playerInventory.HeldItem;
-
-            if (heldItem == null ||
-                heldItem.ItemData == null)
-            {
-                return;
-            }
-
-            bool placed =
-                storageContainer.PlaceItem(
-                    heldItem.ItemData,
-                    coordinate.x,
-                    coordinate.y,
-                    heldItem.RotationSteps,
-                    heldItem.Quantity
-                );
-
-            if (!placed)
-                return;
-
-            playerInventory.ClearHeldItemAfterExternalMove();
-            Refresh();
             return;
         }
 
+        if (playerInventory.IsHoldingItem)
+        {
+            TryPlaceOrMergeHeldItemIntoContainer(
+                coordinate
+            );
+
+            return;
+        }
+
+        PickUpContainerItem(
+            coordinate
+        );
+    }
+
+    private void PickUpContainerItem(
+        Vector2Int coordinate)
+    {
         PlacedInventoryItem pickedItem =
             storageContainer.PickUpItemAt(
                 coordinate.x,
                 coordinate.y
             );
 
-        if (pickedItem == null)
+        if (pickedItem == null ||
+            pickedItem.ItemData == null)
+        {
             return;
+        }
 
         playerInventory.SetMouseHeldItemFromExternal(
             pickedItem.ItemData,
             pickedItem.RotationSteps,
-            true
+            true,
+            pickedItem.Quantity
         );
-
-        if (playerInventory.HeldItem != null)
-            playerInventory.HeldItem.SetQuantity(pickedItem.Quantity);
 
         Refresh();
     }
 
+    private void TryPlaceOrMergeHeldItemIntoContainer(
+        Vector2Int coordinate)
+    {
+        bool merged =
+            TryMergeHeldItemIntoContainerStackAt(
+                coordinate.x,
+                coordinate.y
+            );
+
+        if (merged)
+        {
+            Refresh();
+            return;
+        }
+
+        PlacedInventoryItem heldItem =
+            playerInventory.HeldItem;
+
+        if (heldItem == null ||
+            heldItem.ItemData == null)
+        {
+            return;
+        }
+
+        bool placed =
+            storageContainer.PlaceItem(
+                heldItem.ItemData,
+                coordinate.x,
+                coordinate.y,
+                heldItem.RotationSteps,
+                heldItem.Quantity
+            );
+
+        if (!placed)
+            return;
+
+        playerInventory.ClearHeldItemAfterExternalMove();
+        Refresh();
+    }
+
     private bool TryMergeHeldItemIntoContainerStackAt(
-    int x,
-    int y)
+        int x,
+        int y)
     {
         if (storageContainer == null ||
             storageContainer.Grid == null ||
@@ -297,7 +343,10 @@ public class StorageContainerGridUI : MonoBehaviour
         }
 
         PlacedInventoryItem targetStack =
-            storageContainer.Grid.GetPlacedItem(x, y);
+            storageContainer.Grid.GetPlacedItem(
+                x,
+                y
+            );
 
         if (targetStack == null ||
             targetStack.ItemData == null)
@@ -325,12 +374,59 @@ public class StorageContainerGridUI : MonoBehaviour
         }
         else
         {
-            heldItem.SetQuantity(remainingQuantity);
+            playerInventory.SetHeldItemQuantityAfterExternalMove(
+                remainingQuantity
+            );
         }
 
         storageContainer.NotifyChanged();
 
         return true;
+    }
+
+    private void QuickTransferContainerItemToPlayer(
+        Vector2Int coordinate)
+    {
+        if (storageContainer == null ||
+            storageContainer.Grid == null ||
+            playerInventory == null ||
+            playerInventory.IsHoldingItem)
+        {
+            return;
+        }
+
+        PlacedInventoryItem pickedItem =
+            storageContainer.PickUpItemAt(
+                coordinate.x,
+                coordinate.y
+            );
+
+        if (pickedItem == null ||
+            pickedItem.ItemData == null)
+        {
+            return;
+        }
+
+        bool fullyAddedToPlayer =
+            playerInventory.TryAddItemToFirstAvailableSpace(
+                pickedItem.ItemData,
+                pickedItem.RotationSteps,
+                pickedItem.Quantity,
+                out int remainingQuantity
+            );
+
+        if (remainingQuantity > 0)
+        {
+            storageContainer.PlaceItem(
+                pickedItem.ItemData,
+                pickedItem.Position.x,
+                pickedItem.Position.y,
+                pickedItem.RotationSteps,
+                remainingQuantity
+            );
+        }
+
+        Refresh();
     }
 
     private void OnCellPointerEntered(Vector2Int coordinate)

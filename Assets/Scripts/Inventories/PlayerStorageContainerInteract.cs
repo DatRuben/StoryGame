@@ -5,18 +5,32 @@ public class PlayerStorageContainerInteract : MonoBehaviour
 {
     [Header("Interaction")]
     [SerializeField] private float interactRange = 3f;
+    [SerializeField] private float lookInteractRange = 5f;
+    [SerializeField] private float autoCloseRange = 4f;
     [SerializeField] private LayerMask containerLayerMask = ~0;
+
+    [Header("Camera Look Targeting")]
+    [SerializeField] private Transform cameraTransform;
+    [SerializeField] private bool useLookTargeting = true;
 
     [Header("UI References")]
     [SerializeField] private StorageContainerGridUI containerGridUI;
     [SerializeField] private GameObject containerPanel;
 
+    [SerializeField] private InventoryContextPanelController contextPanelController;
+
     private PlayerInputActions inputActions;
     private StorageContainer currentOpenContainer;
+
+    public bool HasOpenContainer => currentOpenContainer != null;
+    public StorageContainer CurrentOpenContainer => currentOpenContainer;
 
     private void Awake()
     {
         inputActions = new PlayerInputActions();
+
+        if (cameraTransform == null && Camera.main != null)
+            cameraTransform = Camera.main.transform;
     }
 
     private void OnEnable()
@@ -35,19 +49,75 @@ public class PlayerStorageContainerInteract : MonoBehaviour
         inputActions.Disable();
     }
 
-    private void OnInteractPerformed(InputAction.CallbackContext context)
+    private void Update()
     {
-        StorageContainer nearestContainer = FindNearestContainer();
-
-        if (nearestContainer == null)
+        if (currentOpenContainer == null)
             return;
 
-        OpenContainer(nearestContainer);
+        float distance =
+            Vector3.Distance(
+                transform.position,
+                currentOpenContainer.transform.position
+            );
+
+        if (distance > autoCloseRange)
+            CloseContainer();
+    }
+
+    private void OnInteractPerformed(InputAction.CallbackContext context)
+    {
+        StorageContainer targetContainer = null;
+
+        if (useLookTargeting)
+            targetContainer = FindLookedAtContainer();
+
+        if (targetContainer == null)
+            targetContainer = FindNearestContainer();
+
+        if (targetContainer == null)
+        {
+            CloseContainer();
+            return;
+        }
+
+        OpenContainer(targetContainer);
     }
 
     private void OnClosePerformed(InputAction.CallbackContext context)
     {
         CloseContainer();
+    }
+
+    private StorageContainer FindLookedAtContainer()
+    {
+        if (cameraTransform == null)
+            return null;
+
+        Ray ray =
+            new Ray(
+                cameraTransform.position,
+                cameraTransform.forward
+            );
+
+        bool hitSomething =
+            Physics.Raycast(
+                ray,
+                out RaycastHit hit,
+                lookInteractRange,
+                containerLayerMask,
+                QueryTriggerInteraction.Collide
+            );
+
+        if (!hitSomething)
+            return null;
+
+        StorageContainerInteract interact =
+            hit.collider.GetComponentInParent<StorageContainerInteract>();
+
+        if (interact == null)
+            return null;
+
+        return interact.StorageContainer;
     }
 
     private StorageContainer FindNearestContainer()
@@ -56,7 +126,8 @@ public class PlayerStorageContainerInteract : MonoBehaviour
             Physics.OverlapSphere(
                 transform.position,
                 interactRange,
-                containerLayerMask
+                containerLayerMask,
+                QueryTriggerInteraction.Collide
             );
 
         StorageContainer nearestContainer = null;
@@ -105,18 +176,106 @@ public class PlayerStorageContainerInteract : MonoBehaviour
 
         currentOpenContainer = storageContainer;
 
-        containerPanel.SetActive(true);
-        containerGridUI.SetStorageContainer(storageContainer);
+        if (contextPanelController != null)
+        {
+            contextPanelController.ShowStorageContainer(storageContainer);
+        }
+        else
+        {
+            containerPanel.SetActive(true);
+            containerGridUI.SetStorageContainer(storageContainer);
+        }
+    }
+
+    public bool TryQuickTransferPlayerItemToOpenContainer(
+        PlayerInventory playerInventory,
+        Vector2Int coordinate)
+    {
+        if (currentOpenContainer == null ||
+            playerInventory == null ||
+            playerInventory.Grid == null ||
+            playerInventory.IsHoldingItem)
+        {
+            return false;
+        }
+
+        PlacedInventoryItem itemAtCell =
+            playerInventory.Grid.GetPlacedItem(
+                coordinate.x,
+                coordinate.y
+            );
+
+        if (itemAtCell == null ||
+            itemAtCell.ItemData == null)
+        {
+            return false;
+        }
+
+        Vector2Int originalPosition =
+            itemAtCell.Position;
+
+        PlacedInventoryItem pickedItem =
+            playerInventory.TryPickUpItemAt(
+                coordinate.x,
+                coordinate.y,
+                false
+            );
+
+        if (pickedItem == null ||
+            pickedItem.ItemData == null)
+        {
+            return false;
+        }
+
+        currentOpenContainer.TryAddItem(
+            pickedItem.ItemData,
+            pickedItem.RotationSteps,
+            pickedItem.Quantity,
+            out int remainingQuantity
+        );
+
+        if (remainingQuantity <= 0)
+        {
+            playerInventory.ClearHeldItemAfterExternalMove();
+            return true;
+        }
+
+        playerInventory.SetHeldItemQuantityAfterExternalMove(
+            remainingQuantity
+        );
+
+        bool returned =
+            playerInventory.TryPlaceHeldItem(
+                originalPosition.x,
+                originalPosition.y
+            );
+
+        if (!returned)
+        {
+            Debug.LogWarning(
+                "Could not return remaining quick-transfer item quantity to the player inventory.",
+                this
+            );
+        }
+
+        return true;
     }
 
     private void CloseContainer()
     {
         currentOpenContainer = null;
 
-        if (containerPanel != null)
-            containerPanel.SetActive(false);
+        if (contextPanelController != null)
+        {
+            contextPanelController.HideStorageContainer();
+        }
+        else
+        {
+            if (containerPanel != null)
+                containerPanel.SetActive(false);
 
-        if (containerGridUI != null)
-            containerGridUI.SetStorageContainer(null);
+            if (containerGridUI != null)
+                containerGridUI.SetStorageContainer(null);
+        }
     }
 }

@@ -13,7 +13,7 @@ public class StartingInventoryItem
     public int x;
     public int y;
 
-    [Tooltip("0 = 0°, 1 = 90°, 2 = 180°, 3 = 270°")]
+    [Tooltip("0 = 0 degrees, 1 = 90 degrees, 2 = 180 degrees, 3 = 270 degrees")]
     [Range(0, 3)]
     public int rotationSteps;
 }
@@ -46,7 +46,6 @@ public class PlayerInventory : MonoBehaviour
     public bool HasWeaponInSlot => weaponSlotItem != null;
 
     public bool CenterHeldItemOnCursorRequested { get; private set; }
-
     public bool MouseHeldItemCountsAsHeld { get; private set; }
 
     public int HeldItemRotationSteps
@@ -77,6 +76,13 @@ public class PlayerInventory : MonoBehaviour
         ClampStartingItemQuantities();
     }
 
+    private void Start()
+    {
+        ValidateWeaponSlot();
+        ClampStartingItemQuantities();
+        PlaceStartingItems();
+    }
+
     private void ClampStartingItemQuantities()
     {
         if (startingItems == null)
@@ -91,19 +97,18 @@ public class PlayerInventory : MonoBehaviour
                 continue;
 
             startingItem.quantity =
-                GetSafeQuantityForItem(
+                GetSafePlacedQuantityForItem(
                     startingItem.item,
                     startingItem.quantity
                 );
         }
     }
 
-    private int GetSafeQuantityForItem(
+    private int GetSafePlacedQuantityForItem(
         ItemData item,
         int quantity)
     {
-        quantity =
-            Mathf.Max(1, quantity);
+        quantity = Mathf.Max(1, quantity);
 
         if (item == null)
             return quantity;
@@ -118,11 +123,19 @@ public class PlayerInventory : MonoBehaviour
         );
     }
 
-    private void Start()
+    private int GetSafeTransferQuantityForItem(
+        ItemData item,
+        int quantity)
     {
-        ValidateWeaponSlot();
-        ClampStartingItemQuantities();
-        PlaceStartingItems();
+        quantity = Mathf.Max(1, quantity);
+
+        if (item == null)
+            return quantity;
+
+        if (!item.isStackable)
+            return 1;
+
+        return quantity;
     }
 
     private void ValidateWeaponSlot()
@@ -218,7 +231,7 @@ public class PlayerInventory : MonoBehaviour
             return false;
 
         int safeQuantity =
-            GetSafeQuantityForItem(
+            GetSafePlacedQuantityForItem(
                 item,
                 quantity
             );
@@ -238,7 +251,9 @@ public class PlayerInventory : MonoBehaviour
         return placed;
     }
 
-    public bool TryMergeHeldItemIntoStackAt(int x, int y)
+    public bool TryMergeHeldItemIntoStackAt(
+        int x,
+        int y)
     {
         if (Grid == null)
             return false;
@@ -305,6 +320,22 @@ public class PlayerInventory : MonoBehaviour
         int rotationSteps = 0,
         int quantity = 1)
     {
+        return TryAddItemToFirstAvailableSpace(
+            item,
+            rotationSteps,
+            quantity,
+            out int remainingQuantity
+        );
+    }
+
+    public bool TryAddItemToFirstAvailableSpace(
+        ItemData item,
+        int rotationSteps,
+        int quantity,
+        out int remainingQuantity)
+    {
+        remainingQuantity = quantity;
+
         if (Grid == null ||
             item == null ||
             quantity <= 0)
@@ -312,21 +343,24 @@ public class PlayerInventory : MonoBehaviour
             return false;
         }
 
-        quantity =
-            GetSafeQuantityForItem(
-            item,
-            quantity
+        int safeQuantity =
+            GetSafeTransferQuantityForItem(
+                item,
+                quantity
             );
 
         bool fullyAdded =
             Grid.TryAddItemTopLeft(
                 item,
                 rotationSteps,
-                quantity,
-                out int remainingQuantity
+                safeQuantity,
+                out remainingQuantity
             );
 
-        if (remainingQuantity < quantity)
+        int addedQuantity =
+            safeQuantity - remainingQuantity;
+
+        if (addedQuantity > 0)
             OnInventoryChanged?.Invoke();
 
         return fullyAdded;
@@ -390,7 +424,9 @@ public class PlayerInventory : MonoBehaviour
         return HeldItem;
     }
 
-    public bool CanPlaceHeldItem(int x, int y)
+    public bool CanPlaceHeldItem(
+        int x,
+        int y)
     {
         if (Grid == null)
             return false;
@@ -409,7 +445,9 @@ public class PlayerInventory : MonoBehaviour
         );
     }
 
-    public bool TryPlaceHeldItem(int x, int y)
+    public bool TryPlaceHeldItem(
+        int x,
+        int y)
     {
         if (Grid == null)
             return false;
@@ -477,10 +515,32 @@ public class PlayerInventory : MonoBehaviour
         OnHeldItemChanged?.Invoke();
     }
 
+    public void SetHeldItemQuantityAfterExternalMove(
+        int quantity)
+    {
+        if (HeldItem == null ||
+            HeldItem.ItemData == null)
+        {
+            return;
+        }
+
+        int safeQuantity =
+            GetSafePlacedQuantityForItem(
+                HeldItem.ItemData,
+                quantity
+            );
+
+        HeldItem.SetQuantity(safeQuantity);
+        CenterHeldItemOnCursorRequested = true;
+
+        OnHeldItemChanged?.Invoke();
+    }
+
     public void SetMouseHeldItemFromExternal(
         ItemData item,
         int rotationSteps = 0,
-        bool countsAsHeld = true)
+        bool countsAsHeld = true,
+        int quantity = 1)
     {
         if (item == null)
         {
@@ -492,11 +552,18 @@ public class PlayerInventory : MonoBehaviour
             return;
         }
 
+        int safeQuantity =
+            GetSafePlacedQuantityForItem(
+                item,
+                quantity
+            );
+
         HeldItem =
             new PlacedInventoryItem(
                 item,
                 Vector2Int.zero,
-                rotationSteps
+                rotationSteps,
+                safeQuantity
             );
 
         MouseHeldItemCountsAsHeld = countsAsHeld;
@@ -689,7 +756,8 @@ public class PlayerInventory : MonoBehaviour
         return true;
     }
 
-    public bool TryEquipWeaponToSlot(ItemData weaponItem)
+    public bool TryEquipWeaponToSlot(
+        ItemData weaponItem)
     {
         if (!IsWeapon(weaponItem))
             return false;
@@ -751,7 +819,8 @@ public class PlayerInventory : MonoBehaviour
         return DrawWeapon();
     }
 
-    public bool IsWeapon(ItemData item)
+    public bool IsWeapon(
+        ItemData item)
     {
         return item != null &&
                item.itemCategory == ItemCategory.Weapon;
