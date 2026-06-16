@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class PlacedInventoryItem
@@ -61,6 +62,9 @@ public class PlacedInventoryItem
     {
         get
         {
+            if (ItemData == null)
+                return 1;
+
             return ItemData.GetWidth(RotationSteps);
         }
     }
@@ -69,6 +73,9 @@ public class PlacedInventoryItem
     {
         get
         {
+            if (ItemData == null)
+                return 1;
+
             return ItemData.GetHeight(RotationSteps);
         }
     }
@@ -138,5 +145,50 @@ public class PlacedInventoryItem
             rotationSteps += 4;
 
         return rotationSteps;
+    }
+
+    public List<Vector2Int> GetOccupiedCellsAt(
+        Vector2Int origin)
+    {
+        List<Vector2Int> occupiedCells =
+            new List<Vector2Int>();
+
+        if (ItemData == null)
+            return occupiedCells;
+
+        IReadOnlyList<Vector2Int> rotatedCells =
+            ItemData.GetOccupiedCells(
+                RotationSteps
+            );
+
+        for (int i = 0; i < rotatedCells.Count; i++)
+        {
+            occupiedCells.Add(
+                origin + rotatedCells[i]
+            );
+        }
+
+        return occupiedCells;
+    }
+
+    public bool OccupiesCellAt(
+        Vector2Int cellCoordinate,
+        Vector2Int origin)
+    {
+        if (ItemData == null)
+            return false;
+
+        IReadOnlyList<Vector2Int> rotatedCells =
+            ItemData.GetOccupiedCells(
+                RotationSteps
+            );
+
+        for (int i = 0; i < rotatedCells.Count; i++)
+        {
+            if (origin + rotatedCells[i] == cellCoordinate)
+                return true;
+        }
+
+        return false;
     }
 }

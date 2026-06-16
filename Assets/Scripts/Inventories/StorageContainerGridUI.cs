@@ -11,6 +11,7 @@ public class StorageContainerGridUI : MonoBehaviour
     [SerializeField] private InventoryGridUI playerInventoryGridUI;
     [SerializeField] private Transform cellParent;
     [SerializeField] private GameObject cellPrefab;
+    [SerializeField] private RectTransform itemOutline;
 
     [Header("Drag")]
     [SerializeField] private bool allowDragToPlayerInventory = true;
@@ -19,6 +20,15 @@ public class StorageContainerGridUI : MonoBehaviour
     [Header("Colors")]
     [SerializeField] private Color emptyColor = new Color(0f, 0f, 0f, 0.35f);
     [SerializeField] private Color occupiedColor = new Color(1f, 1f, 1f, 0.85f);
+    [SerializeField] private Color validPlacementColor = new Color(0.2f, 1f, 0.2f, 0.65f);
+    [SerializeField] private Color invalidPlacementColor = new Color(1f, 0.2f, 0.2f, 0.65f);
+    [SerializeField] private Color dragOriginalGhostColor = new Color(0.45f, 0.45f, 0.45f, 0.35f);
+
+    [Header("Item Outlines")]
+    [SerializeField] private Color itemOutlineColor = new Color(1f, 1f, 1f, 0.95f);
+    [SerializeField] private Color dragOriginalOutlineColor = new Color(0.15f, 0.15f, 0.15f, 0.9f);
+    [SerializeField] private float itemOutlineThickness = 3f;
+    [SerializeField] private bool fillPaddingBetweenCells = true;
 
     private GridLayoutGroup gridLayoutGroup;
     private Canvas rootCanvas;
@@ -30,17 +40,15 @@ public class StorageContainerGridUI : MonoBehaviour
     private Vector2 pointerDownScreenPosition;
     private Vector2Int pointerDownCoordinate;
 
-    private static StorageContainerGridUI pendingStorageDragUI;
-    private static StorageContainer pendingSourceContainer;
-    private static Vector2Int pendingSourcePosition;
-    private static int pendingSourceRotationSteps;
-    private static ItemData pendingSourceItemData;
-    private static int pendingSourceQuantity;
+    private ItemData dragOriginalItemData;
+    private Vector2Int dragOriginalPosition;
+    private int dragOriginalRotationSteps;
+    private int dragOriginalQuantity;
+
+    private static StorageContainerGridUI activeStorageDragUI;
 
     public static bool HasPendingStorageDrag =>
-        pendingStorageDragUI != null &&
-        pendingSourceContainer != null &&
-        pendingSourceItemData != null;
+        activeStorageDragUI != null;
 
     private readonly List<InventoryCellUI> cells =
         new List<InventoryCellUI>();
@@ -82,8 +90,8 @@ public class StorageContainerGridUI : MonoBehaviour
         if (storageContainer != null)
             storageContainer.OnContainerChanged -= Refresh;
 
-        if (pendingStorageDragUI == this)
-            ClearPendingStorageDragSourceOnly();
+        if (activeStorageDragUI == this)
+            CancelActiveStorageDrag();
 
         pointerIsDown = false;
         pendingStorageDragPickup = false;
@@ -102,6 +110,9 @@ public class StorageContainerGridUI : MonoBehaviour
         if (storageContainer != null)
             storageContainer.OnContainerChanged -= Refresh;
 
+        if (activeStorageDragUI == this)
+            CancelActiveStorageDrag();
+
         storageContainer = newStorageContainer;
 
         if (storageContainer != null)
@@ -113,70 +124,27 @@ public class StorageContainerGridUI : MonoBehaviour
 
     public static void CommitPendingStorageDrag()
     {
-        if (!HasPendingStorageDrag)
+        if (activeStorageDragUI == null)
             return;
 
-        StorageContainerGridUI sourceUI =
-            pendingStorageDragUI;
-
-        StorageContainer sourceContainer =
-            pendingSourceContainer;
-
-        Vector2Int sourcePosition =
-            pendingSourcePosition;
-
-        PlacedInventoryItem removedSource =
-            sourceContainer.PickUpItemAt(
-                sourcePosition.x,
-                sourcePosition.y
-            );
-
-        if (removedSource == null)
-        {
-            Debug.LogWarning(
-                "Could not remove pending storage drag source. It may have already moved."
-            );
-        }
-
-        ClearPendingStorageDragSourceOnly();
-
-        if (sourceUI != null)
-            sourceUI.Refresh();
+        activeStorageDragUI.ClearActiveStorageDragStateOnly();
     }
 
     public static void CancelPendingStorageDrag(
         PlayerInventory playerInventory)
     {
-        if (playerInventory != null &&
-            playerInventory.IsHoldingItem)
+        if (activeStorageDragUI == null)
         {
-            playerInventory.ClearHeldItemAfterExternalMove();
+            if (playerInventory != null &&
+                playerInventory.IsHoldingItem)
+            {
+                playerInventory.ClearHeldItemAfterExternalMove();
+            }
+
+            return;
         }
 
-        StorageContainerGridUI sourceUI =
-            pendingStorageDragUI;
-
-        ClearPendingStorageDragSourceOnly();
-
-        if (sourceUI != null)
-            sourceUI.Refresh();
-    }
-
-    private static void ClearPendingStorageDragSourceOnly()
-    {
-        pendingStorageDragUI = null;
-        pendingSourceContainer = null;
-        pendingSourcePosition = Vector2Int.zero;
-        pendingSourceRotationSteps = 0;
-        pendingSourceItemData = null;
-        pendingSourceQuantity = 0;
-    }
-
-    private bool IsPendingStorageDragFromThisContainer()
-    {
-        return HasPendingStorageDrag &&
-               pendingStorageDragUI == this &&
-               pendingSourceContainer == storageContainer;
+        activeStorageDragUI.CancelActiveStorageDrag();
     }
 
     private void BuildGrid()
@@ -266,6 +234,52 @@ public class StorageContainerGridUI : MonoBehaviour
         InventoryGrid grid =
             storageContainer.Grid;
 
+        bool showHeldPreview =
+            playerInventory != null &&
+            playerInventory.IsHoldingItem &&
+            Mouse.current != null;
+
+        Vector2Int previewCenter =
+            new Vector2Int(-999, -999);
+
+        Vector2Int previewOrigin =
+            new Vector2Int(-999, -999);
+
+        bool previewHasGridCoordinate = false;
+        bool previewCanPlace = false;
+
+        if (showHeldPreview)
+        {
+            previewHasGridCoordinate =
+                TryGetGridCoordinateFromScreenPoint(
+                    Mouse.current.position.ReadValue(),
+                    out previewCenter
+                );
+
+            if (previewHasGridCoordinate)
+            {
+                previewOrigin =
+                    GetHeldPlacementOrigin(
+                        previewCenter
+                    );
+
+                PlacedInventoryItem heldItem =
+                    playerInventory.HeldItem;
+
+                if (heldItem != null &&
+                    heldItem.ItemData != null)
+                {
+                    previewCanPlace =
+                        grid.CanPlaceItem(
+                            heldItem.ItemData,
+                            previewOrigin.x,
+                            previewOrigin.y,
+                            heldItem.RotationSteps
+                        );
+                }
+            }
+        }
+
         for (int i = 0; i < cells.Count; i++)
         {
             InventoryCellUI cell =
@@ -276,6 +290,33 @@ public class StorageContainerGridUI : MonoBehaviour
 
             Vector2Int coordinate =
                 cellCoordinates[i];
+
+            bool isPreviewCell =
+                previewHasGridCoordinate &&
+                IsHeldItemPreviewCell(
+                    coordinate,
+                    previewOrigin
+                );
+
+            if (isPreviewCell)
+            {
+                cell.SetColor(
+                    previewCanPlace
+                        ? validPlacementColor
+                        : invalidPlacementColor
+                );
+
+                cell.SetQuantityText("");
+                continue;
+            }
+
+            if (isDraggingStorageItem &&
+                IsOriginalFootprint(coordinate))
+            {
+                cell.SetColor(dragOriginalGhostColor);
+                cell.SetQuantityText("");
+                continue;
+            }
 
             PlacedInventoryItem placedItem =
                 grid.GetPlacedItem(
@@ -301,6 +342,8 @@ public class StorageContainerGridUI : MonoBehaviour
                 )
             );
         }
+
+        BuildItemOutlines();
     }
 
     private string GetQuantityTextForCell(
@@ -368,7 +411,7 @@ public class StorageContainerGridUI : MonoBehaviour
             return;
         }
 
-        BeginPendingStorageDragFromCell(
+        PickUpContainerItem(
             coordinate
         );
     }
@@ -377,28 +420,24 @@ public class StorageContainerGridUI : MonoBehaviour
     {
         if (storageContainer == null ||
             storageContainer.Grid == null ||
-            playerInventory == null)
+            playerInventory == null ||
+            Mouse.current == null)
         {
             return;
         }
 
-        if (Mouse.current == null)
-            return;
-
         pointerIsDown = true;
         pendingStorageDragPickup = false;
         isDraggingStorageItem = false;
-
+        pointerDownCoordinate = coordinate;
         pointerDownScreenPosition =
             Mouse.current.position.ReadValue();
 
-        pointerDownCoordinate = coordinate;
-
-        if (playerInventory.IsHoldingItem)
+        if (playerInventory.IsHoldingItem ||
+            IsQuickTransferHeld())
+        {
             return;
-
-        if (IsQuickTransferHeld())
-            return;
+        }
 
         PlacedInventoryItem sourceItem =
             storageContainer.Grid.GetPlacedItem(
@@ -407,7 +446,8 @@ public class StorageContainerGridUI : MonoBehaviour
             );
 
         pendingStorageDragPickup =
-            sourceItem != null;
+            sourceItem != null &&
+            sourceItem.ItemData != null;
     }
 
     private void OnCellPointerUp(Vector2Int coordinate)
@@ -452,7 +492,7 @@ public class StorageContainerGridUI : MonoBehaviour
             return;
 
         bool beganDrag =
-            BeginPendingStorageDragFromCell(
+            BeginStorageDragFromCell(
                 pointerDownCoordinate
             );
 
@@ -470,16 +510,57 @@ public class StorageContainerGridUI : MonoBehaviour
 
     private void HandleStorageDragRelease()
     {
-        if (!isDraggingStorageItem)
+        if (!isDraggingStorageItem ||
+            Mouse.current == null)
+        {
             return;
-
-        if (Mouse.current == null)
-            return;
+        }
 
         if (!Mouse.current.leftButton.wasReleasedThisFrame)
             return;
 
         CompleteStorageDragRelease();
+    }
+
+    private bool BeginStorageDragFromCell(Vector2Int coordinate)
+    {
+        if (storageContainer == null ||
+            storageContainer.Grid == null ||
+            playerInventory == null)
+        {
+            return false;
+        }
+
+        if (activeStorageDragUI != null)
+            activeStorageDragUI.CancelActiveStorageDrag();
+
+        PlacedInventoryItem sourceItem =
+            storageContainer.PickUpItemAt(
+                coordinate.x,
+                coordinate.y
+            );
+
+        if (sourceItem == null ||
+            sourceItem.ItemData == null)
+        {
+            return false;
+        }
+
+        activeStorageDragUI = this;
+        dragOriginalItemData = sourceItem.ItemData;
+        dragOriginalPosition = sourceItem.Position;
+        dragOriginalRotationSteps = sourceItem.RotationSteps;
+        dragOriginalQuantity = sourceItem.Quantity;
+
+        playerInventory.SetMouseHeldItemFromExternal(
+            sourceItem.ItemData,
+            sourceItem.RotationSteps,
+            false,
+            sourceItem.Quantity
+        );
+
+        Refresh();
+        return true;
     }
 
     private void CompleteStorageDragRelease()
@@ -489,19 +570,29 @@ public class StorageContainerGridUI : MonoBehaviour
         pendingStorageDragPickup = false;
         suppressNextContainerClick = true;
 
-        if (!playerInventory.IsHoldingItem ||
-            !IsPendingStorageDragFromThisContainer())
+        if (activeStorageDragUI != this ||
+            playerInventory == null ||
+            !playerInventory.IsHoldingItem)
         {
             return;
         }
 
-        if (IsMouseOverStorageGrid(out Vector2Int storageCoordinate))
+        if (Mouse.current != null &&
+            TryGetGridCoordinateFromScreenPoint(
+                Mouse.current.position.ReadValue(),
+                out Vector2Int storageCoordinate))
         {
-            TryPlaceOrMergeHeldItemIntoContainer(
-                storageCoordinate
-            );
+            bool droppedIntoStorage =
+                TryPlaceOrMergeHeldItemIntoContainer(
+                    storageCoordinate
+                );
 
-            return;
+            if (droppedIntoStorage)
+            {
+                ClearActiveStorageDragStateOnly();
+                Refresh();
+                return;
+            }
         }
 
         if (allowDragToPlayerInventory &&
@@ -515,69 +606,49 @@ public class StorageContainerGridUI : MonoBehaviour
 
             if (droppedIntoPlayerInventory)
             {
+                ClearActiveStorageDragStateOnly();
                 Refresh();
                 return;
             }
         }
 
-        CancelPendingStorageDrag(playerInventory);
+        CancelActiveStorageDrag();
     }
 
-    private bool BeginPendingStorageDragFromCell(
-        Vector2Int coordinate)
+    private void PickUpContainerItem(Vector2Int coordinate)
     {
-        PlacedInventoryItem sourceItem =
-            storageContainer.Grid.GetPlacedItem(
+        if (storageContainer == null ||
+            storageContainer.Grid == null ||
+            playerInventory == null ||
+            playerInventory.IsHoldingItem)
+        {
+            return;
+        }
+
+        PlacedInventoryItem pickedItem =
+            storageContainer.PickUpItemAt(
                 coordinate.x,
                 coordinate.y
             );
 
-        if (sourceItem == null ||
-            sourceItem.ItemData == null)
+        if (pickedItem == null ||
+            pickedItem.ItemData == null)
         {
-            return false;
+            return;
         }
 
-        if (HasPendingStorageDrag)
-            CancelPendingStorageDrag(playerInventory);
-
-        pendingStorageDragUI = this;
-        pendingSourceContainer = storageContainer;
-        pendingSourcePosition = sourceItem.Position;
-        pendingSourceRotationSteps = sourceItem.RotationSteps;
-        pendingSourceItemData = sourceItem.ItemData;
-        pendingSourceQuantity = sourceItem.Quantity;
-
         playerInventory.SetMouseHeldItemFromExternal(
-            sourceItem.ItemData,
-            sourceItem.RotationSteps,
-            false,
-            sourceItem.Quantity
+            pickedItem.ItemData,
+            pickedItem.RotationSteps,
+            true,
+            pickedItem.Quantity
         );
 
         Refresh();
-
-        return true;
     }
 
-    private void PickUpContainerItem(
-        Vector2Int coordinate)
+    private bool TryPlaceOrMergeHeldItemIntoContainer(Vector2Int coordinate)
     {
-        BeginPendingStorageDragFromCell(
-            coordinate
-        );
-    }
-
-    private bool TryPlaceOrMergeHeldItemIntoContainer(
-        Vector2Int coordinate)
-    {
-        if (IsPendingStorageDragFromThisContainer())
-        {
-            return TryPlaceOrMergePendingStorageDragIntoThisContainer(
-                coordinate
-            );
-        }
-
         bool merged =
             TryMergeHeldItemIntoContainerStackAt(
                 coordinate.x,
@@ -600,7 +671,7 @@ public class StorageContainerGridUI : MonoBehaviour
         }
 
         Vector2Int placementOrigin =
-            GetCenteredHeldPlacementOrigin(
+            GetHeldPlacementOrigin(
                 coordinate
             );
 
@@ -618,121 +689,7 @@ public class StorageContainerGridUI : MonoBehaviour
 
         playerInventory.ClearHeldItemAfterExternalMove();
         Refresh();
-
         return true;
-    }
-
-    private bool TryPlaceOrMergePendingStorageDragIntoThisContainer(
-        Vector2Int coordinate)
-    {
-        if (!IsPendingStorageDragFromThisContainer() ||
-            playerInventory == null ||
-            !playerInventory.IsHoldingItem ||
-            playerInventory.HeldItem == null)
-        {
-            return false;
-        }
-
-        PlacedInventoryItem heldItem =
-            playerInventory.HeldItem;
-
-        PlacedInventoryItem removedSource =
-            storageContainer.PickUpItemAt(
-                pendingSourcePosition.x,
-                pendingSourcePosition.y
-            );
-
-        if (removedSource == null)
-        {
-            CancelPendingStorageDrag(playerInventory);
-            return false;
-        }
-
-        bool completedDrop = false;
-
-        PlacedInventoryItem targetStack =
-            storageContainer.Grid.GetPlacedItem(
-                coordinate.x,
-                coordinate.y
-            );
-
-        if (targetStack != null &&
-            targetStack.ItemData == heldItem.ItemData &&
-            targetStack.ItemData != null &&
-            targetStack.ItemData.isStackable)
-        {
-            int addedQuantity =
-                targetStack.AddQuantity(
-                    heldItem.Quantity
-                );
-
-            if (addedQuantity > 0)
-            {
-                int remainingQuantity =
-                    heldItem.Quantity - addedQuantity;
-
-                if (remainingQuantity <= 0)
-                    playerInventory.ClearHeldItemAfterExternalMove();
-                else
-                    playerInventory.SetHeldItemQuantityAfterExternalMove(
-                        remainingQuantity
-                    );
-
-                completedDrop = true;
-            }
-        }
-
-        if (!completedDrop &&
-            playerInventory.IsHoldingItem &&
-            playerInventory.HeldItem != null)
-        {
-            Vector2Int placementOrigin =
-                GetCenteredHeldPlacementOrigin(
-                    coordinate
-                );
-
-            completedDrop =
-                storageContainer.PlaceItem(
-                    heldItem.ItemData,
-                    placementOrigin.x,
-                    placementOrigin.y,
-                    heldItem.RotationSteps,
-                    heldItem.Quantity
-                );
-
-            if (completedDrop)
-            {
-                playerInventory.ClearHeldItemAfterExternalMove();
-            }
-        }
-
-        if (completedDrop)
-        {
-            ClearPendingStorageDragSourceOnly();
-            storageContainer.NotifyChanged();
-            Refresh();
-            return true;
-        }
-
-        bool restored =
-            storageContainer.PlaceItem(
-                removedSource.ItemData,
-                removedSource.Position.x,
-                removedSource.Position.y,
-                removedSource.RotationSteps,
-                removedSource.Quantity
-            );
-
-        if (!restored)
-        {
-            Debug.LogError(
-                "Could not restore storage item after failed storage drag."
-            );
-        }
-
-        CancelPendingStorageDrag(playerInventory);
-        Refresh();
-        return false;
     }
 
     private bool TryMergeHeldItemIntoContainerStackAt(
@@ -795,12 +752,10 @@ public class StorageContainerGridUI : MonoBehaviour
         }
 
         storageContainer.NotifyChanged();
-
         return true;
     }
 
-    private void QuickTransferContainerItemToPlayer(
-        Vector2Int coordinate)
+    private void QuickTransferContainerItemToPlayer(Vector2Int coordinate)
     {
         if (storageContainer == null ||
             storageContainer.Grid == null ||
@@ -822,13 +777,12 @@ public class StorageContainerGridUI : MonoBehaviour
             return;
         }
 
-        bool fullyAddedToPlayer =
-            playerInventory.TryAddItemToFirstAvailableSpace(
-                pickedItem.ItemData,
-                pickedItem.RotationSteps,
-                pickedItem.Quantity,
-                out int remainingQuantity
-            );
+        playerInventory.TryAddItemToFirstAvailableSpace(
+            pickedItem.ItemData,
+            pickedItem.RotationSteps,
+            pickedItem.Quantity,
+            out int remainingQuantity
+        );
 
         if (remainingQuantity > 0)
         {
@@ -844,47 +798,88 @@ public class StorageContainerGridUI : MonoBehaviour
         Refresh();
     }
 
-    private Vector2Int GetCenteredHeldPlacementOrigin(
-        Vector2Int clickedCoordinate)
+    private void CancelActiveStorageDrag()
     {
-        if (playerInventory == null ||
-            playerInventory.HeldItem == null)
+        if (activeStorageDragUI != this)
+            return;
+
+        if (storageContainer != null &&
+            dragOriginalItemData != null)
         {
-            return clickedCoordinate;
+            bool restored =
+                storageContainer.PlaceItem(
+                    dragOriginalItemData,
+                    dragOriginalPosition.x,
+                    dragOriginalPosition.y,
+                    dragOriginalRotationSteps,
+                    dragOriginalQuantity
+                );
+
+            if (!restored)
+            {
+                Debug.LogError(
+                    "Could not restore storage item after failed drag.",
+                    this
+                );
+            }
         }
 
-        PlacedInventoryItem heldItem =
-            playerInventory.HeldItem;
+        if (playerInventory != null &&
+            playerInventory.IsHoldingItem)
+        {
+            playerInventory.ClearHeldItemAfterExternalMove();
+        }
 
-        int offsetX =
+        ClearActiveStorageDragStateOnly();
+        Refresh();
+    }
+
+    private void ClearActiveStorageDragStateOnly()
+    {
+        if (activeStorageDragUI == this)
+            activeStorageDragUI = null;
+
+        dragOriginalItemData = null;
+        dragOriginalPosition = Vector2Int.zero;
+        dragOriginalRotationSteps = 0;
+        dragOriginalQuantity = 0;
+    }
+
+    private Vector2Int GetHeldPlacementOrigin(
+        Vector2Int hoveredCell)
+    {
+        PlacedInventoryItem heldItem =
+            playerInventory != null
+                ? playerInventory.HeldItem
+                : null;
+
+        if (heldItem == null)
+            return hoveredCell;
+
+        return hoveredCell - GetHeldGrabOffset(heldItem);
+    }
+
+    private Vector2Int GetHeldGrabOffset(
+        PlacedInventoryItem heldItem)
+    {
+        if (heldItem == null)
+            return Vector2Int.zero;
+
+        int centerX =
             Mathf.Max(
                 0,
                 heldItem.Width / 2
             );
 
-        int offsetY =
+        int centerY =
             Mathf.Max(
                 0,
                 heldItem.Height / 2
             );
 
         return new Vector2Int(
-            clickedCoordinate.x - offsetX,
-            clickedCoordinate.y - offsetY
-        );
-    }
-
-    private bool IsMouseOverStorageGrid(
-        out Vector2Int coordinate)
-    {
-        coordinate = new Vector2Int(-1, -1);
-
-        if (Mouse.current == null)
-            return false;
-
-        return TryGetGridCoordinateFromScreenPoint(
-            Mouse.current.position.ReadValue(),
-            out coordinate
+            centerX,
+            centerY
         );
     }
 
@@ -908,16 +903,8 @@ public class StorageContainerGridUI : MonoBehaviour
         if (cellParentRect == null)
             return false;
 
-        Canvas rootCanvas =
-            GetComponentInParent<Canvas>();
-
-        if (rootCanvas == null)
-            return false;
-
         Camera canvasCamera =
-            rootCanvas.renderMode == RenderMode.ScreenSpaceOverlay
-                ? null
-                : rootCanvas.worldCamera;
+            GetEventCamera();
 
         bool hasPoint =
             RectTransformUtility.ScreenPointToLocalPointInRectangle(
@@ -967,24 +954,80 @@ public class StorageContainerGridUI : MonoBehaviour
         }
 
         int x =
-            Mathf.FloorToInt(xFromLeft / pitchX);
+            GetNearestGridIndex(
+                xFromLeft,
+                cellSize.x,
+                spacing.x,
+                pitchX,
+                storageContainer.Grid.Width
+            );
 
         int rowFromTop =
-            Mathf.FloorToInt(yFromTop / pitchY);
-
-        int y =
-            storageContainer.Grid.Height - 1 - rowFromTop;
+            GetNearestGridIndex(
+                yFromTop,
+                cellSize.y,
+                spacing.y,
+                pitchY,
+                storageContainer.Grid.Height
+            );
 
         if (x < 0 ||
-            y < 0 ||
-            x >= storageContainer.Grid.Width ||
-            y >= storageContainer.Grid.Height)
+            rowFromTop < 0)
         {
             return false;
         }
 
-        coordinate = new Vector2Int(x, y);
-        return true;
+        int y =
+            storageContainer.Grid.Height - 1 - rowFromTop;
+
+        coordinate =
+            new Vector2Int(x, y);
+
+        return coordinate.x >= 0 &&
+               coordinate.y >= 0 &&
+               coordinate.x < storageContainer.Grid.Width &&
+               coordinate.y < storageContainer.Grid.Height;
+    }
+
+    private int GetNearestGridIndex(
+        float distance,
+        float cellSize,
+        float spacing,
+        float pitch,
+        int count)
+    {
+        if (count <= 0)
+            return -1;
+
+        int index =
+            Mathf.FloorToInt(distance / pitch);
+
+        if (index < 0 ||
+            index >= count)
+        {
+            return -1;
+        }
+
+        float insidePitch =
+            distance - index * pitch;
+
+        if (insidePitch > cellSize &&
+            spacing > 0f)
+        {
+            float gapPosition =
+                insidePitch - cellSize;
+
+            if (gapPosition > spacing * 0.5f)
+                index++;
+        }
+
+        if (index < 0 ||
+            index >= count)
+        {
+            return -1;
+        }
+
+        return index;
     }
 
     public bool TryPlaceHeldItemAtScreenPosition(Vector2 screenPosition)
@@ -997,7 +1040,7 @@ public class StorageContainerGridUI : MonoBehaviour
             return false;
         }
 
-        if (!TryGetCellCoordinateFromScreenPosition(
+        if (!TryGetGridCoordinateFromScreenPoint(
                 screenPosition,
                 out Vector2Int coordinate))
         {
@@ -1007,46 +1050,6 @@ public class StorageContainerGridUI : MonoBehaviour
         return TryPlaceOrMergeHeldItemIntoContainer(
             coordinate
         );
-    }
-
-    private bool TryGetCellCoordinateFromScreenPosition(
-        Vector2 screenPosition,
-        out Vector2Int coordinate)
-    {
-        coordinate = new Vector2Int(-1, -1);
-
-        Camera eventCamera =
-            GetEventCamera();
-
-        for (int i = 0; i < cells.Count; i++)
-        {
-            InventoryCellUI cell =
-                cells[i];
-
-            if (cell == null)
-                continue;
-
-            RectTransform rectTransform =
-                cell.GetComponent<RectTransform>();
-
-            if (rectTransform == null)
-                continue;
-
-            bool containsPoint =
-                RectTransformUtility.RectangleContainsScreenPoint(
-                    rectTransform,
-                    screenPosition,
-                    eventCamera
-                );
-
-            if (!containsPoint)
-                continue;
-
-            coordinate = cellCoordinates[i];
-            return true;
-        }
-
-        return false;
     }
 
     private Camera GetEventCamera()
@@ -1060,11 +1063,679 @@ public class StorageContainerGridUI : MonoBehaviour
         return rootCanvas.worldCamera;
     }
 
+    private bool IsHeldItemPreviewCell(
+        Vector2Int cellCoordinate,
+        Vector2Int placementOrigin)
+    {
+        if (playerInventory == null ||
+            playerInventory.HeldItem == null)
+        {
+            return false;
+        }
+
+        return playerInventory.HeldItem.OccupiesCellAt(
+            cellCoordinate,
+            placementOrigin
+        );
+    }
+
+    private bool IsOriginalFootprint(
+        Vector2Int coordinate)
+    {
+        if (!isDraggingStorageItem ||
+            dragOriginalItemData == null)
+        {
+            return false;
+        }
+
+        int localX =
+            coordinate.x - dragOriginalPosition.x;
+
+        int localY =
+            coordinate.y - dragOriginalPosition.y;
+
+        int width =
+            dragOriginalItemData.GetWidth(
+                dragOriginalRotationSteps
+            );
+
+        int height =
+            dragOriginalItemData.GetHeight(
+                dragOriginalRotationSteps
+            );
+
+        if (localX < 0 ||
+            localY < 0 ||
+            localX >= width ||
+            localY >= height)
+        {
+            return false;
+        }
+
+        return dragOriginalItemData.IsCellOccupied(
+            localX,
+            localY,
+            dragOriginalRotationSteps
+        );
+    }
+
+    private void BuildItemOutlines()
+    {
+        if (itemOutline == null ||
+            gridLayoutGroup == null ||
+            storageContainer == null ||
+            storageContainer.Grid == null)
+        {
+            return;
+        }
+
+        for (int i = itemOutline.childCount - 1; i >= 0; i--)
+        {
+            Destroy(itemOutline.GetChild(i).gameObject);
+        }
+
+        HashSet<PlacedInventoryItem> outlinedItems =
+            new HashSet<PlacedInventoryItem>();
+
+        InventoryGrid grid =
+            storageContainer.Grid;
+
+        for (int y = 0; y < grid.Height; y++)
+        {
+            for (int x = 0; x < grid.Width; x++)
+            {
+                PlacedInventoryItem placedItem =
+                    grid.GetPlacedItem(x, y);
+
+                if (placedItem == null)
+                    continue;
+
+                if (outlinedItems.Contains(placedItem))
+                    continue;
+
+                outlinedItems.Add(placedItem);
+
+                DrawItemOutline(
+                    placedItem.ItemData,
+                    placedItem.Position,
+                    placedItem.RotationSteps,
+                    itemOutlineColor
+                );
+            }
+        }
+
+        if (isDraggingStorageItem &&
+            dragOriginalItemData != null)
+        {
+            DrawItemOutline(
+                dragOriginalItemData,
+                dragOriginalPosition,
+                dragOriginalRotationSteps,
+                dragOriginalOutlineColor
+            );
+        }
+    }
+
+    private void DrawItemOutline(
+        ItemData itemData,
+        Vector2Int origin,
+        int rotationSteps,
+        Color color)
+    {
+        if (itemData == null)
+            return;
+
+        int width =
+            itemData.GetWidth(rotationSteps);
+
+        int height =
+            itemData.GetHeight(rotationSteps);
+
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                if (!itemData.IsCellOccupied(x, y, rotationSteps))
+                    continue;
+
+                bool topOpen =
+                    !IsOccupiedInShape(itemData, x, y + 1, rotationSteps);
+
+                bool bottomOpen =
+                    !IsOccupiedInShape(itemData, x, y - 1, rotationSteps);
+
+                bool leftOpen =
+                    !IsOccupiedInShape(itemData, x - 1, y, rotationSteps);
+
+                bool rightOpen =
+                    !IsOccupiedInShape(itemData, x + 1, y, rotationSteps);
+
+                if (topOpen)
+                    DrawOutlineEdge(origin.x + x, origin.y + y, OutlineSide.Top, color);
+
+                if (bottomOpen)
+                    DrawOutlineEdge(origin.x + x, origin.y + y, OutlineSide.Bottom, color);
+
+                if (leftOpen)
+                    DrawOutlineEdge(origin.x + x, origin.y + y, OutlineSide.Left, color);
+
+                if (rightOpen)
+                    DrawOutlineEdge(origin.x + x, origin.y + y, OutlineSide.Right, color);
+
+                if (fillPaddingBetweenCells)
+                {
+                    bool rightFilled =
+                        IsOccupiedInShape(itemData, x + 1, y, rotationSteps);
+
+                    bool downFilled =
+                        IsOccupiedInShape(itemData, x, y - 1, rotationSteps);
+
+                    if (topOpen &&
+                        rightFilled &&
+                        !IsOccupiedInShape(itemData, x + 1, y + 1, rotationSteps))
+                    {
+                        DrawBridge(origin.x + x, origin.y + y, OutlineSide.Top, color);
+                    }
+
+                    if (bottomOpen &&
+                        rightFilled &&
+                        !IsOccupiedInShape(itemData, x + 1, y - 1, rotationSteps))
+                    {
+                        DrawBridge(origin.x + x, origin.y + y, OutlineSide.Bottom, color);
+                    }
+
+                    if (leftOpen &&
+                        downFilled &&
+                        !IsOccupiedInShape(itemData, x - 1, y - 1, rotationSteps))
+                    {
+                        DrawBridge(origin.x + x, origin.y + y, OutlineSide.Left, color);
+                    }
+
+                    if (rightOpen &&
+                        downFilled &&
+                        !IsOccupiedInShape(itemData, x + 1, y - 1, rotationSteps))
+                    {
+                        DrawBridge(origin.x + x, origin.y + y, OutlineSide.Right, color);
+                    }
+                }
+
+                if (topOpen && leftOpen)
+                    DrawCorner(origin.x + x, origin.y + y, OutlineCorner.TopLeft, color);
+
+                if (topOpen && rightOpen)
+                    DrawCorner(origin.x + x, origin.y + y, OutlineCorner.TopRight, color);
+
+                if (bottomOpen && leftOpen)
+                    DrawCorner(origin.x + x, origin.y + y, OutlineCorner.BottomLeft, color);
+
+                if (bottomOpen && rightOpen)
+                    DrawCorner(origin.x + x, origin.y + y, OutlineCorner.BottomRight, color);
+            }
+        }
+
+        if (fillPaddingBetweenCells)
+        {
+            DrawInnerCorners(
+                itemData,
+                origin,
+                rotationSteps,
+                color
+            );
+        }
+    }
+
+    private bool IsOccupiedInShape(
+        ItemData itemData,
+        int x,
+        int y,
+        int rotationSteps)
+    {
+        int width =
+            itemData.GetWidth(rotationSteps);
+
+        int height =
+            itemData.GetHeight(rotationSteps);
+
+        if (x < 0 ||
+            y < 0 ||
+            x >= width ||
+            y >= height)
+        {
+            return false;
+        }
+
+        return itemData.IsCellOccupied(x, y, rotationSteps);
+    }
+
+    private enum OutlineSide
+    {
+        Top,
+        Bottom,
+        Left,
+        Right
+    }
+
+    private enum OutlineCorner
+    {
+        TopLeft,
+        TopRight,
+        BottomLeft,
+        BottomRight
+    }
+
+    private void DrawOutlineEdge(
+        int gridX,
+        int gridY,
+        OutlineSide side,
+        Color color)
+    {
+        Vector2 cellSize = gridLayoutGroup.cellSize;
+        Vector2 spacing = gridLayoutGroup.spacing;
+        RectOffset padding = gridLayoutGroup.padding;
+
+        float halfSpacingX = fillPaddingBetweenCells ? spacing.x * 0.5f : 0f;
+        float halfSpacingY = fillPaddingBetweenCells ? spacing.y * 0.5f : 0f;
+
+        int rowFromTop =
+            storageContainer.Grid.Height - 1 - gridY;
+
+        float cellLeft =
+            padding.left +
+            gridX * (cellSize.x + spacing.x);
+
+        float cellTop =
+            -padding.top -
+            rowFromTop * (cellSize.y + spacing.y);
+
+        Vector2 position;
+        Vector2 size;
+
+        switch (side)
+        {
+            case OutlineSide.Top:
+                position = new Vector2(
+                    cellLeft + cellSize.x * 0.5f,
+                    cellTop + halfSpacingY
+                );
+
+                size = new Vector2(
+                    cellSize.x,
+                    itemOutlineThickness
+                );
+                break;
+
+            case OutlineSide.Bottom:
+                position = new Vector2(
+                    cellLeft + cellSize.x * 0.5f,
+                    cellTop - cellSize.y - halfSpacingY
+                );
+
+                size = new Vector2(
+                    cellSize.x,
+                    itemOutlineThickness
+                );
+                break;
+
+            case OutlineSide.Left:
+                position = new Vector2(
+                    cellLeft - halfSpacingX,
+                    cellTop - cellSize.y * 0.5f
+                );
+
+                size = new Vector2(
+                    itemOutlineThickness,
+                    cellSize.y
+                );
+                break;
+
+            default:
+                position = new Vector2(
+                    cellLeft + cellSize.x + halfSpacingX,
+                    cellTop - cellSize.y * 0.5f
+                );
+
+                size = new Vector2(
+                    itemOutlineThickness,
+                    cellSize.y
+                );
+                break;
+        }
+
+        CreateOutlineRect(position, size, color);
+    }
+
+    private void DrawBridge(
+        int gridX,
+        int gridY,
+        OutlineSide side,
+        Color color)
+    {
+        Vector2 cellSize = gridLayoutGroup.cellSize;
+        Vector2 spacing = gridLayoutGroup.spacing;
+        RectOffset padding = gridLayoutGroup.padding;
+
+        if (!fillPaddingBetweenCells)
+            return;
+
+        int rowFromTop =
+            storageContainer.Grid.Height - 1 - gridY;
+
+        float cellLeft =
+            padding.left +
+            gridX * (cellSize.x + spacing.x);
+
+        float cellTop =
+            -padding.top -
+            rowFromTop * (cellSize.y + spacing.y);
+
+        Vector2 position;
+        Vector2 size;
+
+        switch (side)
+        {
+            case OutlineSide.Top:
+                if (spacing.x <= 0f)
+                    return;
+
+                position = new Vector2(
+                    cellLeft + cellSize.x + spacing.x * 0.5f,
+                    cellTop + spacing.y * 0.5f
+                );
+
+                size = new Vector2(
+                    spacing.x,
+                    itemOutlineThickness
+                );
+                break;
+
+            case OutlineSide.Bottom:
+                if (spacing.x <= 0f)
+                    return;
+
+                position = new Vector2(
+                    cellLeft + cellSize.x + spacing.x * 0.5f,
+                    cellTop - cellSize.y - spacing.y * 0.5f
+                );
+
+                size = new Vector2(
+                    spacing.x,
+                    itemOutlineThickness
+                );
+                break;
+
+            case OutlineSide.Left:
+                if (spacing.y <= 0f)
+                    return;
+
+                position = new Vector2(
+                    cellLeft - spacing.x * 0.5f,
+                    cellTop - cellSize.y - spacing.y * 0.5f
+                );
+
+                size = new Vector2(
+                    itemOutlineThickness,
+                    spacing.y
+                );
+                break;
+
+            default:
+                if (spacing.y <= 0f)
+                    return;
+
+                position = new Vector2(
+                    cellLeft + cellSize.x + spacing.x * 0.5f,
+                    cellTop - cellSize.y - spacing.y * 0.5f
+                );
+
+                size = new Vector2(
+                    itemOutlineThickness,
+                    spacing.y
+                );
+                break;
+        }
+
+        CreateOutlineRect(position, size, color);
+    }
+
+    private void DrawCorner(
+        int gridX,
+        int gridY,
+        OutlineCorner corner,
+        Color color)
+    {
+        Vector2 cellSize = gridLayoutGroup.cellSize;
+        Vector2 spacing = gridLayoutGroup.spacing;
+        RectOffset padding = gridLayoutGroup.padding;
+
+        float halfSpacingX = fillPaddingBetweenCells ? spacing.x * 0.5f : 0f;
+        float halfSpacingY = fillPaddingBetweenCells ? spacing.y * 0.5f : 0f;
+
+        int rowFromTop =
+            storageContainer.Grid.Height - 1 - gridY;
+
+        float cellLeft =
+            padding.left +
+            gridX * (cellSize.x + spacing.x);
+
+        float cellTop =
+            -padding.top -
+            rowFromTop * (cellSize.y + spacing.y);
+
+        Vector2 position;
+
+        switch (corner)
+        {
+            case OutlineCorner.TopLeft:
+                position = new Vector2(
+                    cellLeft - halfSpacingX,
+                    cellTop + halfSpacingY
+                );
+                break;
+
+            case OutlineCorner.TopRight:
+                position = new Vector2(
+                    cellLeft + cellSize.x + halfSpacingX,
+                    cellTop + halfSpacingY
+                );
+                break;
+
+            case OutlineCorner.BottomLeft:
+                position = new Vector2(
+                    cellLeft - halfSpacingX,
+                    cellTop - cellSize.y - halfSpacingY
+                );
+                break;
+
+            default:
+                position = new Vector2(
+                    cellLeft + cellSize.x + halfSpacingX,
+                    cellTop - cellSize.y - halfSpacingY
+                );
+                break;
+        }
+
+        CreateOutlineRect(
+            position,
+            new Vector2(itemOutlineThickness, itemOutlineThickness),
+            color
+        );
+    }
+
+    private void DrawInnerCorners(
+        ItemData itemData,
+        Vector2Int origin,
+        int rotationSteps,
+        Color color)
+    {
+        if (itemData == null)
+            return;
+
+        int width =
+            itemData.GetWidth(rotationSteps);
+
+        int height =
+            itemData.GetHeight(rotationSteps);
+
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                if (IsOccupiedInShape(itemData, x, y, rotationSteps))
+                    continue;
+
+                bool leftFilled =
+                    IsOccupiedInShape(itemData, x - 1, y, rotationSteps);
+
+                bool rightFilled =
+                    IsOccupiedInShape(itemData, x + 1, y, rotationSteps);
+
+                bool upFilled =
+                    IsOccupiedInShape(itemData, x, y + 1, rotationSteps);
+
+                bool downFilled =
+                    IsOccupiedInShape(itemData, x, y - 1, rotationSteps);
+
+                if (rightFilled && downFilled)
+                {
+                    DrawGapCorner(
+                        origin.x + x,
+                        origin.y + y,
+                        OutlineCorner.BottomRight,
+                        color
+                    );
+                }
+
+                if (leftFilled && downFilled)
+                {
+                    DrawGapCorner(
+                        origin.x + x,
+                        origin.y + y,
+                        OutlineCorner.BottomLeft,
+                        color
+                    );
+                }
+
+                if (rightFilled && upFilled)
+                {
+                    DrawGapCorner(
+                        origin.x + x,
+                        origin.y + y,
+                        OutlineCorner.TopRight,
+                        color
+                    );
+                }
+
+                if (leftFilled && upFilled)
+                {
+                    DrawGapCorner(
+                        origin.x + x,
+                        origin.y + y,
+                        OutlineCorner.TopLeft,
+                        color
+                    );
+                }
+            }
+        }
+    }
+
+    private void DrawGapCorner(
+        int gridX,
+        int gridY,
+        OutlineCorner corner,
+        Color color)
+    {
+        Vector2 cellSize = gridLayoutGroup.cellSize;
+        Vector2 spacing = gridLayoutGroup.spacing;
+        RectOffset padding = gridLayoutGroup.padding;
+
+        int rowFromTop =
+            storageContainer.Grid.Height - 1 - gridY;
+
+        float cellLeft =
+            padding.left +
+            gridX * (cellSize.x + spacing.x);
+
+        float cellTop =
+            -padding.top -
+            rowFromTop * (cellSize.y + spacing.y);
+
+        Vector2 position;
+
+        switch (corner)
+        {
+            case OutlineCorner.TopLeft:
+                position = new Vector2(
+                    cellLeft - spacing.x * 0.5f,
+                    cellTop + spacing.y * 0.5f
+                );
+                break;
+
+            case OutlineCorner.TopRight:
+                position = new Vector2(
+                    cellLeft + cellSize.x + spacing.x * 0.5f,
+                    cellTop + spacing.y * 0.5f
+                );
+                break;
+
+            case OutlineCorner.BottomLeft:
+                position = new Vector2(
+                    cellLeft - spacing.x * 0.5f,
+                    cellTop - cellSize.y - spacing.y * 0.5f
+                );
+                break;
+
+            default:
+                position = new Vector2(
+                    cellLeft + cellSize.x + spacing.x * 0.5f,
+                    cellTop - cellSize.y - spacing.y * 0.5f
+                );
+                break;
+        }
+
+        CreateOutlineRect(
+            position,
+            new Vector2(itemOutlineThickness, itemOutlineThickness),
+            color
+        );
+    }
+
+    private void CreateOutlineRect(
+        Vector2 position,
+        Vector2 size,
+        Color color)
+    {
+        GameObject edgeObject =
+            new GameObject(
+                "StorageItemOutlinePiece",
+                typeof(RectTransform),
+                typeof(Image)
+            );
+
+        edgeObject.transform.SetParent(itemOutline, false);
+
+        RectTransform rect =
+            edgeObject.GetComponent<RectTransform>();
+
+        rect.anchorMin = new Vector2(0f, 1f);
+        rect.anchorMax = new Vector2(0f, 1f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = position;
+        rect.sizeDelta = size;
+
+        Image image =
+            edgeObject.GetComponent<Image>();
+
+        image.color = color;
+        image.raycastTarget = false;
+    }
+
     private void OnCellPointerEntered(Vector2Int coordinate)
     {
+        Refresh();
     }
 
     private void OnCellPointerExited(Vector2Int coordinate)
     {
+        Refresh();
     }
 }

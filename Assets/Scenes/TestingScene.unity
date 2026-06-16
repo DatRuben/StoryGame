@@ -1144,7 +1144,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::InventoryContextPanelController
   defaultPanel: {fileID: 2040107389}
   storagePanel: {fileID: 173529711}
-  storageContainerGridUI: {fileID: 472123728}
+  storageContainerGridUI: {fileID: 173529715}
 --- !u!1 &82854752
 GameObject:
   m_ObjectHideFlags: 0
@@ -1765,6 +1765,41 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!1 &172466174
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 172466175}
+  m_Layer: 5
+  m_Name: ContainerOutline
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &172466175
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 172466174}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 173529712}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: -20, y: -20}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &173529711
 GameObject:
   m_ObjectHideFlags: 0
@@ -1776,6 +1811,7 @@ GameObject:
   - component: {fileID: 173529712}
   - component: {fileID: 173529714}
   - component: {fileID: 173529713}
+  - component: {fileID: 173529715}
   m_Layer: 5
   m_Name: ContainerPanel
   m_TagString: Untagged
@@ -1796,6 +1832,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 472123727}
+  - {fileID: 172466175}
   m_Father: {fileID: 72305740}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -1841,6 +1878,35 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 173529711}
   m_CullTransparentMesh: 1
+--- !u!114 &173529715
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 173529711}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a30cfeb53f0ece46abbea714b865807, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StorageContainerGridUI
+  storageContainer: {fileID: 0}
+  playerInventory: {fileID: 2123556395}
+  playerInventoryGridUI: {fileID: 1711152530}
+  cellParent: {fileID: 472123727}
+  cellPrefab: {fileID: 8116548169804476811, guid: 66689b1e950ee7349b173f27e743a4d1, type: 3}
+  itemOutline: {fileID: 172466175}
+  allowDragToPlayerInventory: 1
+  dragStartDistance: 12
+  emptyColor: {r: 0, g: 0, b: 0, a: 0.35}
+  occupiedColor: {r: 1, g: 1, b: 1, a: 0.85}
+  validPlacementColor: {r: 0.2, g: 1, b: 0.2, a: 0.65}
+  invalidPlacementColor: {r: 1, g: 0.2, b: 0.2, a: 0.65}
+  dragOriginalGhostColor: {r: 0.39215687, g: 0.39215687, b: 0.39215687, a: 0.78431374}
+  itemOutlineColor: {r: 0, g: 0, b: 0, a: 0.88235295}
+  dragOriginalOutlineColor: {r: 0, g: 0, b: 0, a: 0.88235295}
+  itemOutlineThickness: 3
+  fillPaddingBetweenCells: 1
 --- !u!1 &188267555
 GameObject:
   m_ObjectHideFlags: 0
@@ -3659,7 +3725,6 @@ GameObject:
   m_Component:
   - component: {fileID: 472123727}
   - component: {fileID: 472123729}
-  - component: {fileID: 472123728}
   m_Layer: 5
   m_Name: ContainerGrid
   m_TagString: Untagged
@@ -3686,27 +3751,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: -20, y: -20}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &472123728
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 472123726}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4a30cfeb53f0ece46abbea714b865807, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::StorageContainerGridUI
-  storageContainer: {fileID: 0}
-  playerInventory: {fileID: 2123556395}
-  playerInventoryGridUI: {fileID: 1711152530}
-  cellParent: {fileID: 472123727}
-  cellPrefab: {fileID: 8116548169804476811, guid: 66689b1e950ee7349b173f27e743a4d1, type: 3}
-  allowDragToPlayerInventory: 1
-  dragStartDistance: 12
-  emptyColor: {r: 0, g: 0, b: 0, a: 0.35}
-  occupiedColor: {r: 1, g: 1, b: 1, a: 0.85}
 --- !u!114 &472123729
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7266,7 +7310,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: -20, y: -20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &876604290
 GameObject:
@@ -13681,8 +13725,8 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 2002706984}
   - {fileID: 873361717}
+  - {fileID: 2002706984}
   m_Father: {fileID: 579740481}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -16193,7 +16237,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: -20, y: -20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2002706985
 MonoBehaviour:
@@ -18223,7 +18267,7 @@ MonoBehaviour:
     m_Bits: 64
   cameraTransform: {fileID: 330585546}
   useLookTargeting: 1
-  containerGridUI: {fileID: 472123728}
+  containerGridUI: {fileID: 173529715}
   containerPanel: {fileID: 173529711}
   contextPanelController: {fileID: 72305741}
 --- !u!1 &2129206564

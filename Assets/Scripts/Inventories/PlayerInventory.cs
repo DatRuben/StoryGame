@@ -552,6 +552,32 @@ public class PlayerInventory : MonoBehaviour
             return;
         }
 
+        if (countsAsHeld)
+        {
+            if (playerWeaponSlots != null &&
+                playerWeaponSlots.WeaponsDrawn)
+            {
+                bool canKeepWeaponsDrawn =
+                    playerWeaponSlots.ActiveSetCanCoexistWithHeldItem(
+                        item
+                    );
+
+                if (!canKeepWeaponsDrawn)
+                    playerWeaponSlots.SheatheWeapons();
+            }
+
+            if (weaponDrawn)
+            {
+                bool oldWeaponCanStayDrawn =
+                    weaponSlotItem != null &&
+                    weaponSlotItem.handUsage == ItemHandUsage.OneHanded &&
+                    item.handUsage == ItemHandUsage.OneHanded;
+
+                if (!oldWeaponCanStayDrawn)
+                    SheatheWeapon();
+            }
+        }
+
         int safeQuantity =
             GetSafePlacedQuantityForItem(
                 item,

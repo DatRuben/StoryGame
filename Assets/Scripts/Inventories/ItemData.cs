@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public enum ItemCategory
@@ -83,7 +84,11 @@ public class ItemData : ScriptableObject
 
     private void OnValidate()
     {
-        int requiredSize = Mathf.Max(1, shapeWidth * shapeHeight);
+        int requiredSize =
+            Mathf.Max(
+                1,
+                shapeWidth * shapeHeight
+            );
 
         if (!isStackable)
         {
@@ -91,18 +96,26 @@ public class ItemData : ScriptableObject
         }
         else
         {
-            maxStackSize = Mathf.Max(2, maxStackSize);
+            maxStackSize =
+                Mathf.Max(
+                    2,
+                    maxStackSize
+                );
         }
 
         if (occupiedCells == null ||
             occupiedCells.Length != requiredSize)
         {
-            bool[] newCells = new bool[requiredSize];
+            bool[] newCells =
+                new bool[requiredSize];
 
             if (occupiedCells != null)
             {
                 int copyLength =
-                    Mathf.Min(occupiedCells.Length, newCells.Length);
+                    Mathf.Min(
+                        occupiedCells.Length,
+                        newCells.Length
+                    );
 
                 for (int i = 0; i < copyLength; i++)
                     newCells[i] = occupiedCells[i];
@@ -110,6 +123,9 @@ public class ItemData : ScriptableObject
 
             occupiedCells = newCells;
         }
+
+        if (!HasAnyOccupiedCell())
+            occupiedCells[0] = true;
 
         if (itemCategory != ItemCategory.Weapon)
         {
@@ -124,9 +140,26 @@ public class ItemData : ScriptableObject
         }
     }
 
+    private bool HasAnyOccupiedCell()
+    {
+        if (occupiedCells == null)
+            return false;
+
+        for (int i = 0; i < occupiedCells.Length; i++)
+        {
+            if (occupiedCells[i])
+                return true;
+        }
+
+        return false;
+    }
+
     public int GetWidth(int rotationSteps)
     {
-        rotationSteps = NormalizeRotationSteps(rotationSteps);
+        rotationSteps =
+            NormalizeRotationSteps(
+                rotationSteps
+            );
 
         bool swapsWidthAndHeight =
             rotationSteps == 1 ||
@@ -139,7 +172,10 @@ public class ItemData : ScriptableObject
 
     public int GetHeight(int rotationSteps)
     {
-        rotationSteps = NormalizeRotationSteps(rotationSteps);
+        rotationSteps =
+            NormalizeRotationSteps(
+                rotationSteps
+            );
 
         bool swapsWidthAndHeight =
             rotationSteps == 1 ||
@@ -155,7 +191,10 @@ public class ItemData : ScriptableObject
         int y,
         int rotationSteps)
     {
-        rotationSteps = NormalizeRotationSteps(rotationSteps);
+        rotationSteps =
+            NormalizeRotationSteps(
+                rotationSteps
+            );
 
         int originalX;
         int originalY;
@@ -204,7 +243,39 @@ public class ItemData : ScriptableObject
         return occupiedCells[index];
     }
 
-    public static int NormalizeRotationSteps(int rotationSteps)
+    public IReadOnlyList<Vector2Int> GetOccupiedCells(
+        int rotationSteps)
+    {
+        List<Vector2Int> result =
+            new List<Vector2Int>();
+
+        int rotatedWidth =
+            GetWidth(rotationSteps);
+
+        int rotatedHeight =
+            GetHeight(rotationSteps);
+
+        for (int y = 0; y < rotatedHeight; y++)
+        {
+            for (int x = 0; x < rotatedWidth; x++)
+            {
+                if (!IsCellOccupied(x, y, rotationSteps))
+                    continue;
+
+                result.Add(
+                    new Vector2Int(x, y)
+                );
+            }
+        }
+
+        if (result.Count == 0)
+            result.Add(Vector2Int.zero);
+
+        return result;
+    }
+
+    public static int NormalizeRotationSteps(
+        int rotationSteps)
     {
         rotationSteps %= 4;
 
