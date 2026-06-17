@@ -957,6 +957,9 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
 
     private void OnCellPointerDown(Vector2Int coordinate)
     {
+        if (suppressNextClick)
+            suppressNextClick = false;
+
         if (!InventoryMenuController.IsInventoryOpen)
             return;
 

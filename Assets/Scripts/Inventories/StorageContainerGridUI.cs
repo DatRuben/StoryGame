@@ -418,6 +418,9 @@ public class StorageContainerGridUI : MonoBehaviour
 
     private void OnCellPointerDown(Vector2Int coordinate)
     {
+        if (suppressNextContainerClick)
+            suppressNextContainerClick = false;
+
         if (storageContainer == null ||
             storageContainer.Grid == null ||
             playerInventory == null ||
