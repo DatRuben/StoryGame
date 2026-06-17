@@ -2,8 +2,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
+using UnityEngine.EventSystems;
 
-public class StorageContainerGridUI : MonoBehaviour
+public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPointerDownHandler
 {
     [Header("References")]
     [SerializeField] private StorageContainer storageContainer;
@@ -39,6 +40,8 @@ public class StorageContainerGridUI : MonoBehaviour
     private bool isDraggingStorageItem;
     private Vector2 pointerDownScreenPosition;
     private Vector2Int pointerDownCoordinate;
+    private bool wasShowingHeldPreview;
+    private Vector2 lastHeldPreviewMousePosition;
 
     private ItemData dragOriginalItemData;
     private Vector2Int dragOriginalPosition;
@@ -74,6 +77,52 @@ public class StorageContainerGridUI : MonoBehaviour
     {
         HandleStorageDragDetection();
         HandleStorageDragRelease();
+        RefreshHeldPreviewIfNeeded();
+    }
+
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        if (eventData.button != PointerEventData.InputButton.Left)
+            return;
+
+        if (suppressNextContainerClick)
+            suppressNextContainerClick = false;
+
+        Refresh();
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if (eventData.button != PointerEventData.InputButton.Left)
+            return;
+
+        if (storageContainer == null ||
+            storageContainer.Grid == null ||
+            playerInventory == null)
+        {
+            return;
+        }
+
+        if (!InventoryMenuController.IsInventoryOpen)
+            return;
+
+        if (!playerInventory.IsHoldingItem)
+            return;
+
+        if (suppressNextContainerClick)
+        {
+            suppressNextContainerClick = false;
+            return;
+        }
+
+        if (!TryGetGridCoordinateFromScreenPoint(
+                eventData.position,
+                out Vector2Int coordinate))
+        {
+            return;
+        }
+
+        OnCellClicked(coordinate);
     }
 
     private void OnEnable()
@@ -923,14 +972,22 @@ public class StorageContainerGridUI : MonoBehaviour
         Rect rect =
             cellParentRect.rect;
 
+        Vector2 contentOffset =
+            GetGridContentAlignmentOffset();
+
         float xFromLeft =
             localPoint.x - rect.xMin;
 
         float yFromTop =
             rect.yMax - localPoint.y;
 
-        xFromLeft -= gridLayoutGroup.padding.left;
-        yFromTop -= gridLayoutGroup.padding.top;
+        xFromLeft -=
+            gridLayoutGroup.padding.left +
+            contentOffset.x;
+
+        yFromTop -=
+            gridLayoutGroup.padding.top +
+            contentOffset.y;
 
         if (xFromLeft < 0f ||
             yFromTop < 0f)
@@ -990,6 +1047,109 @@ public class StorageContainerGridUI : MonoBehaviour
                coordinate.y >= 0 &&
                coordinate.x < storageContainer.Grid.Width &&
                coordinate.y < storageContainer.Grid.Height;
+    }
+
+
+    private Vector2 GetGridContentAlignmentOffset()
+    {
+        if (storageContainer == null ||
+            storageContainer.Grid == null ||
+            cellParent == null ||
+            gridLayoutGroup == null)
+        {
+            return Vector2.zero;
+        }
+
+        RectTransform cellParentRect =
+            cellParent as RectTransform;
+
+        if (cellParentRect == null)
+            return Vector2.zero;
+
+        Rect rect =
+            cellParentRect.rect;
+
+        RectOffset padding =
+            gridLayoutGroup.padding;
+
+        Vector2 cellSize =
+            gridLayoutGroup.cellSize;
+
+        Vector2 spacing =
+            gridLayoutGroup.spacing;
+
+        int gridWidth =
+            storageContainer.Grid.Width;
+
+        int gridHeight =
+            storageContainer.Grid.Height;
+
+        float contentWidth =
+            gridWidth * cellSize.x +
+            Mathf.Max(0, gridWidth - 1) * spacing.x;
+
+        float contentHeight =
+            gridHeight * cellSize.y +
+            Mathf.Max(0, gridHeight - 1) * spacing.y;
+
+        float innerWidth =
+            rect.width -
+            padding.left -
+            padding.right;
+
+        float innerHeight =
+            rect.height -
+            padding.top -
+            padding.bottom;
+
+        float freeX =
+            Mathf.Max(0f, innerWidth - contentWidth);
+
+        float freeY =
+            Mathf.Max(0f, innerHeight - contentHeight);
+
+        return new Vector2(
+            GetHorizontalAlignmentOffset(freeX),
+            GetVerticalAlignmentOffset(freeY)
+        );
+    }
+
+    private float GetHorizontalAlignmentOffset(float freeSpace)
+    {
+        switch (gridLayoutGroup.childAlignment)
+        {
+            case TextAnchor.UpperCenter:
+            case TextAnchor.MiddleCenter:
+            case TextAnchor.LowerCenter:
+                return freeSpace * 0.5f;
+
+            case TextAnchor.UpperRight:
+            case TextAnchor.MiddleRight:
+            case TextAnchor.LowerRight:
+                return freeSpace;
+
+            default:
+                return 0f;
+        }
+    }
+
+    private float GetVerticalAlignmentOffset(float freeSpace)
+    {
+        switch (gridLayoutGroup.childAlignment)
+        {
+            case TextAnchor.MiddleLeft:
+            case TextAnchor.MiddleCenter:
+            case TextAnchor.MiddleRight:
+                return freeSpace * 0.5f;
+
+            case TextAnchor.LowerLeft:
+            case TextAnchor.LowerCenter:
+            case TextAnchor.LowerRight:
+                return freeSpace;
+
+            default:
+                return 0f;
+        }
     }
 
     private int GetNearestGridIndex(
@@ -1177,6 +1337,29 @@ public class StorageContainerGridUI : MonoBehaviour
                 dragOriginalOutlineColor
             );
         }
+
+        PlacedInventoryItem heldItem =
+            playerInventory != null
+            ? playerInventory.HeldItem
+            : null;
+
+        if (heldItem != null &&
+            heldItem.ItemData != null &&
+            Mouse.current != null &&
+            TryGetGridCoordinateFromScreenPoint(
+                Mouse.current.position.ReadValue(),
+                out Vector2Int previewCoordinate))
+        {
+            Vector2Int previewOrigin =
+                GetHeldPlacementOrigin(previewCoordinate);
+
+            DrawItemOutline(
+                heldItem.ItemData,
+                previewOrigin,
+                heldItem.RotationSteps,
+                itemOutlineColor
+            );
+        }
     }
 
     private void DrawItemOutline(
@@ -1342,12 +1525,17 @@ public class StorageContainerGridUI : MonoBehaviour
         int rowFromTop =
             storageContainer.Grid.Height - 1 - gridY;
 
+        Vector2 contentOffset =
+            GetGridContentAlignmentOffset();
+
         float cellLeft =
             padding.left +
+            contentOffset.x +
             gridX * (cellSize.x + spacing.x);
 
         float cellTop =
             -padding.top -
+            contentOffset.y -
             rowFromTop * (cellSize.y + spacing.y);
 
         Vector2 position;
@@ -1423,12 +1611,17 @@ public class StorageContainerGridUI : MonoBehaviour
         int rowFromTop =
             storageContainer.Grid.Height - 1 - gridY;
 
+        Vector2 contentOffset =
+            GetGridContentAlignmentOffset();
+
         float cellLeft =
             padding.left +
+            contentOffset.x +
             gridX * (cellSize.x + spacing.x);
 
         float cellTop =
             -padding.top -
+            contentOffset.y -
             rowFromTop * (cellSize.y + spacing.y);
 
         Vector2 position;
@@ -1516,12 +1709,17 @@ public class StorageContainerGridUI : MonoBehaviour
         int rowFromTop =
             storageContainer.Grid.Height - 1 - gridY;
 
+        Vector2 contentOffset =
+            GetGridContentAlignmentOffset();
+
         float cellLeft =
             padding.left +
+            contentOffset.x +
             gridX * (cellSize.x + spacing.x);
 
         float cellTop =
             -padding.top -
+            contentOffset.y -
             rowFromTop * (cellSize.y + spacing.y);
 
         Vector2 position;
@@ -1654,12 +1852,17 @@ public class StorageContainerGridUI : MonoBehaviour
         int rowFromTop =
             storageContainer.Grid.Height - 1 - gridY;
 
+        Vector2 contentOffset =
+            GetGridContentAlignmentOffset();
+
         float cellLeft =
             padding.left +
+            contentOffset.x +
             gridX * (cellSize.x + spacing.x);
 
         float cellTop =
             -padding.top -
+            contentOffset.y -
             rowFromTop * (cellSize.y + spacing.y);
 
         Vector2 position;
@@ -1730,6 +1933,36 @@ public class StorageContainerGridUI : MonoBehaviour
 
         image.color = color;
         image.raycastTarget = false;
+    }
+
+    private void RefreshHeldPreviewIfNeeded()
+    {
+        bool isShowingHeldPreview =
+            playerInventory != null &&
+            playerInventory.IsHoldingItem &&
+            InventoryMenuController.IsInventoryOpen;
+
+        if (isShowingHeldPreview != wasShowingHeldPreview)
+        {
+            wasShowingHeldPreview = isShowingHeldPreview;
+            Refresh();
+            return;
+        }
+
+        if (!isShowingHeldPreview ||
+            Mouse.current == null)
+        {
+            return;
+        }
+
+        Vector2 mousePosition =
+            Mouse.current.position.ReadValue();
+
+        if ((mousePosition - lastHeldPreviewMousePosition).sqrMagnitude < 0.01f)
+            return;
+
+        lastHeldPreviewMousePosition = mousePosition;
+        Refresh();
     }
 
     private void OnCellPointerEntered(Vector2Int coordinate)

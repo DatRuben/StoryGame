@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
-public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
+public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDownHandler
 {
     [Header("References")]
     [SerializeField] private PlayerInventory playerInventory;
@@ -42,6 +42,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
     private RectTransform heldPreviewRoot;
     private GridLayoutGroup heldPreviewLayoutGroup;
     private CanvasGroup heldPreviewCanvasGroup;
+    private RectTransform heldPreviewOutlineRoot;
 
     private readonly List<InventoryCellUI> cells = new List<InventoryCellUI>();
     private readonly List<Vector2Int> cellCoordinates = new List<Vector2Int>();
@@ -54,6 +55,8 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
     private bool pendingDragPickup;
     private bool isDraggingItem;
     private bool suppressNextClick;
+    private bool wasShowingHeldPreview;
+    private Vector2 lastHeldPreviewMousePosition;
 
     private Vector2 pointerDownScreenPosition;
     private Vector2Int pointerDownCoordinate;
@@ -127,6 +130,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
     {
         HandleDragDetection();
         HandleDragRelease();
+        RefreshHeldPreviewIfNeeded();
         UpdateHeldPreviewVisibility();
         UpdateHeldPreviewPosition();
     }
@@ -753,6 +757,15 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
         return true;
     }
 
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        if (eventData.button != PointerEventData.InputButton.Left)
+            return;
+
+        if (suppressNextClick)
+            suppressNextClick = false;
+    }
+
     public void OnPointerClick(PointerEventData eventData)
     {
         if (eventData.button != PointerEventData.InputButton.Left)
@@ -957,9 +970,6 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
 
     private void OnCellPointerDown(Vector2Int coordinate)
     {
-        if (suppressNextClick)
-            suppressNextClick = false;
-
         if (!InventoryMenuController.IsInventoryOpen)
             return;
 
@@ -1042,13 +1052,25 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
 
     private void OnCellPointerExited(Vector2Int coordinate)
     {
-        if (hoveredCoordinate == coordinate)
-        {
-            hoveredCoordinate =
-                new Vector2Int(-1, -1);
+        if (hoveredCoordinate != coordinate)
+            return;
 
+        if (playerInventory != null &&
+            playerInventory.IsHoldingItem &&
+            Mouse.current != null &&
+            TryGetGridCoordinateFromScreenPoint(
+                Mouse.current.position.ReadValue(),
+                out Vector2Int mouseCoordinate))
+        {
+            hoveredCoordinate = mouseCoordinate;
             Refresh();
+            return;
         }
+
+        hoveredCoordinate =
+            new Vector2Int(-1, -1);
+
+        Refresh();
     }
 
     private bool TryGetGridCoordinateFromScreenPoint(
@@ -1409,6 +1431,31 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
                 new Vector2(2f, 2f);
         }
 
+        GameObject outlineObject =
+            new GameObject(
+                "InventoryMouseHeldItemPreviewOutline",
+                typeof(RectTransform)
+            );
+
+        outlineObject.transform.SetParent(
+            rootCanvas.transform,
+            false
+        );
+
+        heldPreviewOutlineRoot =
+            outlineObject.GetComponent<RectTransform>();
+
+        heldPreviewOutlineRoot.anchorMin =
+            new Vector2(0.5f, 0.5f);
+
+        heldPreviewOutlineRoot.anchorMax =
+            new Vector2(0.5f, 0.5f);
+
+        heldPreviewOutlineRoot.pivot =
+            new Vector2(0f, 1f);
+
+        outlineObject.SetActive(false);
+
         previewObject.SetActive(false);
     }
 
@@ -1432,6 +1479,10 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
             heldItem.ItemData == null)
         {
             heldPreviewRoot.gameObject.SetActive(false);
+
+            if (heldPreviewOutlineRoot != null)
+                heldPreviewOutlineRoot.gameObject.SetActive(false);
+
             centerHeldPreviewOnMouse = false;
             return;
         }
@@ -1510,8 +1561,72 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
             }
         }
 
+        BuildHeldPreviewOutline();
         UpdateHeldPreviewVisibility();
         UpdateHeldPreviewPosition();
+    }
+
+    private void RefreshHeldPreviewIfNeeded()
+    {
+        bool shouldTrackHeldPreview =
+            InventoryMenuController.IsInventoryOpen &&
+            playerInventory != null &&
+            playerInventory.Grid != null &&
+            playerInventory.IsHoldingItem &&
+            Mouse.current != null;
+
+        if (shouldTrackHeldPreview != wasShowingHeldPreview)
+        {
+            wasShowingHeldPreview = shouldTrackHeldPreview;
+
+            if (shouldTrackHeldPreview)
+            {
+                lastHeldPreviewMousePosition =
+                    Mouse.current.position.ReadValue();
+
+                UpdateHoveredCoordinateFromMouse();
+            }
+            else
+            {
+                hoveredCoordinate =
+                    new Vector2Int(-1, -1);
+            }
+
+            Refresh();
+            return;
+        }
+
+        if (!shouldTrackHeldPreview)
+            return;
+
+        Vector2 mousePosition =
+            Mouse.current.position.ReadValue();
+
+        if ((mousePosition - lastHeldPreviewMousePosition).sqrMagnitude < 0.01f)
+            return;
+
+        lastHeldPreviewMousePosition =
+            mousePosition;
+
+        UpdateHoveredCoordinateFromMouse();
+        Refresh();
+    }
+
+    private void UpdateHoveredCoordinateFromMouse()
+    {
+        if (Mouse.current == null)
+            return;
+
+        if (TryGetGridCoordinateFromScreenPoint(
+                Mouse.current.position.ReadValue(),
+                out Vector2Int coordinate))
+        {
+            hoveredCoordinate = coordinate;
+            return;
+        }
+
+        hoveredCoordinate =
+            new Vector2Int(-1, -1);
     }
 
     private void UpdateHeldPreviewVisibility()
@@ -1526,6 +1641,12 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
         if (heldPreviewRoot.gameObject.activeSelf != shouldShow)
         {
             heldPreviewRoot.gameObject.SetActive(shouldShow);
+        }
+
+        if (heldPreviewOutlineRoot != null &&
+            heldPreviewOutlineRoot.gameObject.activeSelf != shouldShow)
+        {
+            heldPreviewOutlineRoot.gameObject.SetActive(shouldShow);
         }
     }
 
@@ -1561,10 +1682,19 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
         if (!hasPoint)
             return;
 
-        heldPreviewRoot.anchoredPosition =
+        Vector2 previewPosition =
             localPoint -
             GetHeldPreviewGrabPoint() +
             heldPreviewOffset;
+
+        heldPreviewRoot.anchoredPosition =
+            previewPosition;
+
+        if (heldPreviewOutlineRoot != null)
+        {
+            heldPreviewOutlineRoot.anchoredPosition =
+                previewPosition;
+        }
     }
 
     private Vector2 GetHeldPreviewGrabPoint()
@@ -1612,6 +1742,731 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler
             cellSize.y * 0.5f;
 
         return new Vector2(x, y);
+    }
+
+    private void BuildHeldPreviewOutline()
+    {
+        if (heldPreviewOutlineRoot == null)
+            return;
+
+        for (int i = heldPreviewOutlineRoot.childCount - 1; i >= 0; i--)
+        {
+            Destroy(heldPreviewOutlineRoot.GetChild(i).gameObject);
+        }
+
+        PlacedInventoryItem heldItem =
+            HeldItem;
+
+        if (heldItem == null ||
+            heldItem.ItemData == null ||
+            heldPreviewLayoutGroup == null)
+        {
+            return;
+        }
+
+        ItemData itemData =
+            heldItem.ItemData;
+
+        int width =
+            heldItem.Width;
+
+        int height =
+            heldItem.Height;
+
+        int rotationSteps =
+            heldItem.RotationSteps;
+
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                if (!itemData.IsCellOccupied(
+                        x,
+                        y,
+                        rotationSteps))
+                {
+                    continue;
+                }
+
+                bool topOpen =
+                    !IsOccupiedInHeldPreviewShape(
+                        itemData,
+                        x,
+                        y + 1,
+                        rotationSteps,
+                        width,
+                        height
+                    );
+
+                bool bottomOpen =
+                    !IsOccupiedInHeldPreviewShape(
+                        itemData,
+                        x,
+                        y - 1,
+                        rotationSteps,
+                        width,
+                        height
+                    );
+
+                bool leftOpen =
+                    !IsOccupiedInHeldPreviewShape(
+                        itemData,
+                        x - 1,
+                        y,
+                        rotationSteps,
+                        width,
+                        height
+                    );
+
+                bool rightOpen =
+                    !IsOccupiedInHeldPreviewShape(
+                        itemData,
+                        x + 1,
+                        y,
+                        rotationSteps,
+                        width,
+                        height
+                    );
+
+                if (topOpen)
+                    DrawHeldPreviewOutlineEdge(x, y, OutlineSide.Top);
+
+                if (bottomOpen)
+                    DrawHeldPreviewOutlineEdge(x, y, OutlineSide.Bottom);
+
+                if (leftOpen)
+                    DrawHeldPreviewOutlineEdge(x, y, OutlineSide.Left);
+
+                if (rightOpen)
+                    DrawHeldPreviewOutlineEdge(x, y, OutlineSide.Right);
+
+                if (fillPaddingBetweenCells)
+                {
+                    bool rightFilled =
+                        IsOccupiedInHeldPreviewShape(
+                            itemData,
+                            x + 1,
+                            y,
+                            rotationSteps,
+                            width,
+                            height
+                        );
+
+                    bool downFilled =
+                        IsOccupiedInHeldPreviewShape(
+                            itemData,
+                            x,
+                            y - 1,
+                            rotationSteps,
+                            width,
+                            height
+                        );
+
+                    if (topOpen &&
+                        rightFilled &&
+                        !IsOccupiedInHeldPreviewShape(
+                            itemData,
+                            x + 1,
+                            y + 1,
+                            rotationSteps,
+                            width,
+                            height))
+                    {
+                        DrawHeldPreviewBridge(x, y, OutlineSide.Top);
+                    }
+
+                    if (bottomOpen &&
+                        rightFilled &&
+                        !IsOccupiedInHeldPreviewShape(
+                            itemData,
+                            x + 1,
+                            y - 1,
+                            rotationSteps,
+                            width,
+                            height))
+                    {
+                        DrawHeldPreviewBridge(x, y, OutlineSide.Bottom);
+                    }
+
+                    if (leftOpen &&
+                        downFilled &&
+                        !IsOccupiedInHeldPreviewShape(
+                            itemData,
+                            x - 1,
+                            y - 1,
+                            rotationSteps,
+                            width,
+                            height))
+                    {
+                        DrawHeldPreviewBridge(x, y, OutlineSide.Left);
+                    }
+
+                    if (rightOpen &&
+                        downFilled &&
+                        !IsOccupiedInHeldPreviewShape(
+                            itemData,
+                            x + 1,
+                            y - 1,
+                            rotationSteps,
+                            width,
+                            height))
+                    {
+                        DrawHeldPreviewBridge(x, y, OutlineSide.Right);
+                    }
+                }
+
+                if (topOpen && leftOpen)
+                    DrawHeldPreviewCorner(x, y, OutlineCorner.TopLeft);
+
+                if (topOpen && rightOpen)
+                    DrawHeldPreviewCorner(x, y, OutlineCorner.TopRight);
+
+                if (bottomOpen && leftOpen)
+                    DrawHeldPreviewCorner(x, y, OutlineCorner.BottomLeft);
+
+                if (bottomOpen && rightOpen)
+                    DrawHeldPreviewCorner(x, y, OutlineCorner.BottomRight);
+            }
+        }
+
+        if (fillPaddingBetweenCells)
+        {
+            DrawHeldPreviewInnerCorners(
+                itemData,
+                rotationSteps,
+                width,
+                height
+            );
+        }
+    }
+
+    private bool IsOccupiedInHeldPreviewShape(
+        ItemData itemData,
+        int x,
+        int y,
+        int rotationSteps,
+        int width,
+        int height)
+    {
+        if (itemData == null)
+            return false;
+
+        if (x < 0 ||
+            y < 0 ||
+            x >= width ||
+            y >= height)
+        {
+            return false;
+        }
+
+        return itemData.IsCellOccupied(
+            x,
+            y,
+            rotationSteps
+        );
+    }
+
+    private void DrawHeldPreviewOutlineEdge(
+        int localX,
+        int localY,
+        OutlineSide side)
+    {
+        if (heldPreviewLayoutGroup == null)
+            return;
+
+        Vector2 cellSize =
+            heldPreviewLayoutGroup.cellSize;
+
+        Vector2 spacing =
+            heldPreviewLayoutGroup.spacing;
+
+        PlacedInventoryItem heldItem =
+            HeldItem;
+
+        if (heldItem == null)
+            return;
+
+        int rowFromTop =
+            heldItem.Height - 1 - localY;
+
+        float cellLeft =
+            localX * (cellSize.x + spacing.x);
+
+        float cellTop =
+            -rowFromTop * (cellSize.y + spacing.y);
+
+        float halfSpacingX =
+            fillPaddingBetweenCells ? spacing.x * 0.5f : 0f;
+
+        float halfSpacingY =
+            fillPaddingBetweenCells ? spacing.y * 0.5f : 0f;
+
+        Vector2 position;
+        Vector2 size;
+
+        switch (side)
+        {
+            case OutlineSide.Top:
+                position =
+                    new Vector2(
+                        cellLeft + cellSize.x * 0.5f,
+                        cellTop + halfSpacingY
+                    );
+
+                size =
+                    new Vector2(
+                        cellSize.x,
+                        itemOutlineThickness
+                    );
+                break;
+
+            case OutlineSide.Bottom:
+                position =
+                    new Vector2(
+                        cellLeft + cellSize.x * 0.5f,
+                        cellTop - cellSize.y - halfSpacingY
+                    );
+
+                size =
+                    new Vector2(
+                        cellSize.x,
+                        itemOutlineThickness
+                    );
+                break;
+
+            case OutlineSide.Left:
+                position =
+                    new Vector2(
+                        cellLeft - halfSpacingX,
+                        cellTop - cellSize.y * 0.5f
+                    );
+
+                size =
+                    new Vector2(
+                        itemOutlineThickness,
+                        cellSize.y
+                    );
+                break;
+
+            default:
+                position =
+                    new Vector2(
+                        cellLeft + cellSize.x + halfSpacingX,
+                        cellTop - cellSize.y * 0.5f
+                    );
+
+                size =
+                    new Vector2(
+                        itemOutlineThickness,
+                        cellSize.y
+                    );
+                break;
+        }
+
+        CreateHeldPreviewOutlineRect(position, size);
+    }
+
+    private void DrawHeldPreviewBridge(
+        int localX,
+        int localY,
+        OutlineSide side)
+    {
+        if (heldPreviewLayoutGroup == null ||
+            !fillPaddingBetweenCells)
+        {
+            return;
+        }
+
+        Vector2 cellSize =
+            heldPreviewLayoutGroup.cellSize;
+
+        Vector2 spacing =
+            heldPreviewLayoutGroup.spacing;
+
+        PlacedInventoryItem heldItem =
+            HeldItem;
+
+        if (heldItem == null)
+            return;
+
+        int rowFromTop =
+            heldItem.Height - 1 - localY;
+
+        float cellLeft =
+            localX * (cellSize.x + spacing.x);
+
+        float cellTop =
+            -rowFromTop * (cellSize.y + spacing.y);
+
+        Vector2 position;
+        Vector2 size;
+
+        switch (side)
+        {
+            case OutlineSide.Top:
+                if (spacing.x <= 0f)
+                    return;
+
+                position =
+                    new Vector2(
+                        cellLeft + cellSize.x + spacing.x * 0.5f,
+                        cellTop + spacing.y * 0.5f
+                    );
+
+                size =
+                    new Vector2(
+                        spacing.x,
+                        itemOutlineThickness
+                    );
+                break;
+
+            case OutlineSide.Bottom:
+                if (spacing.x <= 0f)
+                    return;
+
+                position =
+                    new Vector2(
+                        cellLeft + cellSize.x + spacing.x * 0.5f,
+                        cellTop - cellSize.y - spacing.y * 0.5f
+                    );
+
+                size =
+                    new Vector2(
+                        spacing.x,
+                        itemOutlineThickness
+                    );
+                break;
+
+            case OutlineSide.Left:
+                if (spacing.y <= 0f)
+                    return;
+
+                position =
+                    new Vector2(
+                        cellLeft - spacing.x * 0.5f,
+                        cellTop - cellSize.y - spacing.y * 0.5f
+                    );
+
+                size =
+                    new Vector2(
+                        itemOutlineThickness,
+                        spacing.y
+                    );
+                break;
+
+            default:
+                if (spacing.y <= 0f)
+                    return;
+
+                position =
+                    new Vector2(
+                        cellLeft + cellSize.x + spacing.x * 0.5f,
+                        cellTop - cellSize.y - spacing.y * 0.5f
+                    );
+
+                size =
+                    new Vector2(
+                        itemOutlineThickness,
+                        spacing.y
+                    );
+                break;
+        }
+
+        CreateHeldPreviewOutlineRect(position, size);
+    }
+
+    private void DrawHeldPreviewCorner(
+        int localX,
+        int localY,
+        OutlineCorner corner)
+    {
+        if (heldPreviewLayoutGroup == null)
+            return;
+
+        Vector2 cellSize =
+            heldPreviewLayoutGroup.cellSize;
+
+        Vector2 spacing =
+            heldPreviewLayoutGroup.spacing;
+
+        PlacedInventoryItem heldItem =
+            HeldItem;
+
+        if (heldItem == null)
+            return;
+
+        int rowFromTop =
+            heldItem.Height - 1 - localY;
+
+        float cellLeft =
+            localX * (cellSize.x + spacing.x);
+
+        float cellTop =
+            -rowFromTop * (cellSize.y + spacing.y);
+
+        float halfSpacingX =
+            fillPaddingBetweenCells ? spacing.x * 0.5f : 0f;
+
+        float halfSpacingY =
+            fillPaddingBetweenCells ? spacing.y * 0.5f : 0f;
+
+        Vector2 position;
+
+        switch (corner)
+        {
+            case OutlineCorner.TopLeft:
+                position =
+                    new Vector2(
+                        cellLeft - halfSpacingX,
+                        cellTop + halfSpacingY
+                    );
+                break;
+
+            case OutlineCorner.TopRight:
+                position =
+                    new Vector2(
+                        cellLeft + cellSize.x + halfSpacingX,
+                        cellTop + halfSpacingY
+                    );
+                break;
+
+            case OutlineCorner.BottomLeft:
+                position =
+                    new Vector2(
+                        cellLeft - halfSpacingX,
+                        cellTop - cellSize.y - halfSpacingY
+                    );
+                break;
+
+            default:
+                position =
+                    new Vector2(
+                        cellLeft + cellSize.x + halfSpacingX,
+                        cellTop - cellSize.y - halfSpacingY
+                    );
+                break;
+        }
+
+        CreateHeldPreviewOutlineRect(
+            position,
+            new Vector2(
+                itemOutlineThickness,
+                itemOutlineThickness
+            )
+        );
+    }
+
+    private void DrawHeldPreviewInnerCorners(
+        ItemData itemData,
+        int rotationSteps,
+        int width,
+        int height)
+    {
+        if (itemData == null)
+            return;
+
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                if (IsOccupiedInHeldPreviewShape(
+                        itemData,
+                        x,
+                        y,
+                        rotationSteps,
+                        width,
+                        height))
+                {
+                    continue;
+                }
+
+                bool leftFilled =
+                    IsOccupiedInHeldPreviewShape(
+                        itemData,
+                        x - 1,
+                        y,
+                        rotationSteps,
+                        width,
+                        height
+                    );
+
+                bool rightFilled =
+                    IsOccupiedInHeldPreviewShape(
+                        itemData,
+                        x + 1,
+                        y,
+                        rotationSteps,
+                        width,
+                        height
+                    );
+
+                bool upFilled =
+                    IsOccupiedInHeldPreviewShape(
+                        itemData,
+                        x,
+                        y + 1,
+                        rotationSteps,
+                        width,
+                        height
+                    );
+
+                bool downFilled =
+                    IsOccupiedInHeldPreviewShape(
+                        itemData,
+                        x,
+                        y - 1,
+                        rotationSteps,
+                        width,
+                        height
+                    );
+
+                if (rightFilled && downFilled)
+                {
+                    DrawHeldPreviewGapCorner(
+                        x,
+                        y,
+                        OutlineCorner.BottomRight
+                    );
+                }
+
+                if (leftFilled && downFilled)
+                {
+                    DrawHeldPreviewGapCorner(
+                        x,
+                        y,
+                        OutlineCorner.BottomLeft
+                    );
+                }
+
+                if (rightFilled && upFilled)
+                {
+                    DrawHeldPreviewGapCorner(
+                        x,
+                        y,
+                        OutlineCorner.TopRight
+                    );
+                }
+
+                if (leftFilled && upFilled)
+                {
+                    DrawHeldPreviewGapCorner(
+                        x,
+                        y,
+                        OutlineCorner.TopLeft
+                    );
+                }
+            }
+        }
+    }
+
+    private void DrawHeldPreviewGapCorner(
+        int localX,
+        int localY,
+        OutlineCorner corner)
+    {
+        if (heldPreviewLayoutGroup == null)
+            return;
+
+        Vector2 cellSize =
+            heldPreviewLayoutGroup.cellSize;
+
+        Vector2 spacing =
+            heldPreviewLayoutGroup.spacing;
+
+        PlacedInventoryItem heldItem =
+            HeldItem;
+
+        if (heldItem == null)
+            return;
+
+        int rowFromTop =
+            heldItem.Height - 1 - localY;
+
+        float cellLeft =
+            localX * (cellSize.x + spacing.x);
+
+        float cellTop =
+            -rowFromTop * (cellSize.y + spacing.y);
+
+        Vector2 position;
+
+        switch (corner)
+        {
+            case OutlineCorner.TopLeft:
+                position =
+                    new Vector2(
+                        cellLeft - spacing.x * 0.5f,
+                        cellTop + spacing.y * 0.5f
+                    );
+                break;
+
+            case OutlineCorner.TopRight:
+                position =
+                    new Vector2(
+                        cellLeft + cellSize.x + spacing.x * 0.5f,
+                        cellTop + spacing.y * 0.5f
+                    );
+                break;
+
+            case OutlineCorner.BottomLeft:
+                position =
+                    new Vector2(
+                        cellLeft - spacing.x * 0.5f,
+                        cellTop - cellSize.y - spacing.y * 0.5f
+                    );
+                break;
+
+            default:
+                position =
+                    new Vector2(
+                        cellLeft + cellSize.x + spacing.x * 0.5f,
+                        cellTop - cellSize.y - spacing.y * 0.5f
+                    );
+                break;
+        }
+
+        CreateHeldPreviewOutlineRect(
+            position,
+            new Vector2(
+                itemOutlineThickness,
+                itemOutlineThickness
+            )
+        );
+    }
+
+    private void CreateHeldPreviewOutlineRect(
+        Vector2 position,
+        Vector2 size)
+    {
+        if (heldPreviewOutlineRoot == null)
+            return;
+
+        GameObject edgeObject =
+            new GameObject(
+                "HeldPreviewOutlinePiece",
+                typeof(RectTransform),
+                typeof(Image)
+            );
+
+        edgeObject.transform.SetParent(
+            heldPreviewOutlineRoot,
+            false
+        );
+
+        RectTransform rect =
+            edgeObject.GetComponent<RectTransform>();
+
+        rect.anchorMin = new Vector2(0f, 1f);
+        rect.anchorMax = new Vector2(0f, 1f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = position;
+        rect.sizeDelta = size;
+
+        Image image =
+            edgeObject.GetComponent<Image>();
+
+        image.color = itemOutlineColor;
+        image.raycastTarget = false;
     }
 
     private void BuildItemOutlines()
