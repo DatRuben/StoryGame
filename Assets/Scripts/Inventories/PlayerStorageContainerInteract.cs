@@ -25,16 +25,27 @@ public class PlayerStorageContainerInteract : MonoBehaviour
     public bool HasOpenContainer => currentOpenContainer != null;
     public StorageContainer CurrentOpenContainer => currentOpenContainer;
 
+    private void Reset()
+    {
+        ValidateReferences(true, false);
+    }
+
+    private void OnValidate()
+    {
+        ValidateReferences(true, false);
+    }
+
     private void Awake()
     {
         inputActions = new PlayerInputActions();
-
-        if (cameraTransform == null && Camera.main != null)
-            cameraTransform = Camera.main.transform;
+        ValidateReferences(true, true);
     }
 
     private void OnEnable()
     {
+        if (inputActions == null)
+            inputActions = new PlayerInputActions();
+
         inputActions.Enable();
 
         inputActions.Player.TestKey1.performed += OnInteractPerformed;
@@ -43,6 +54,9 @@ public class PlayerStorageContainerInteract : MonoBehaviour
 
     private void OnDisable()
     {
+        if (inputActions == null)
+            return;
+
         inputActions.Player.TestKey1.performed -= OnInteractPerformed;
         inputActions.Player.TestKey2.performed -= OnClosePerformed;
 
@@ -62,6 +76,127 @@ public class PlayerStorageContainerInteract : MonoBehaviour
 
         if (distance > autoCloseRange)
             CloseContainer();
+    }
+
+    private void ValidateReferences(
+        bool logAutoFilled,
+        bool logMissing)
+    {
+        if (cameraTransform == null &&
+            Camera.main != null)
+        {
+            cameraTransform = Camera.main.transform;
+
+            if (logAutoFilled)
+            {
+                Debug.Log(
+                    "PlayerStorageContainerInteract auto-filled Camera Transform from Camera.main.",
+                    this
+                );
+            }
+        }
+
+        if (contextPanelController == null)
+        {
+            contextPanelController =
+                FindSceneComponent<InventoryContextPanelController>();
+
+            if (contextPanelController != null &&
+                logAutoFilled)
+            {
+                Debug.Log(
+                    "PlayerStorageContainerInteract auto-filled InventoryContextPanelController.",
+                    this
+                );
+            }
+        }
+
+        if (containerGridUI == null)
+        {
+            containerGridUI =
+                FindSceneComponent<StorageContainerGridUI>();
+
+            if (containerGridUI != null &&
+                logAutoFilled)
+            {
+                Debug.Log(
+                    "PlayerStorageContainerInteract auto-filled StorageContainerGridUI.",
+                    this
+                );
+            }
+        }
+
+        if (containerPanel == null &&
+            containerGridUI != null)
+        {
+            containerPanel =
+                containerGridUI.gameObject;
+
+            if (logAutoFilled)
+            {
+                Debug.Log(
+                    "PlayerStorageContainerInteract auto-filled ContainerPanel from StorageContainerGridUI.",
+                    this
+                );
+            }
+        }
+
+        if (!logMissing)
+            return;
+
+        if (cameraTransform == null &&
+            useLookTargeting)
+        {
+            Debug.LogWarning(
+                "PlayerStorageContainerInteract is missing Camera Transform while look targeting is enabled.",
+                this
+            );
+        }
+
+        if (containerGridUI == null)
+        {
+            Debug.LogWarning(
+                "PlayerStorageContainerInteract is missing Container Grid UI.",
+                this
+            );
+        }
+
+        if (containerPanel == null)
+        {
+            Debug.LogWarning(
+                "PlayerStorageContainerInteract is missing Container Panel.",
+                this
+            );
+        }
+
+        if (contextPanelController == null)
+        {
+            Debug.LogWarning(
+                "PlayerStorageContainerInteract is missing InventoryContextPanelController. It can still use ContainerPanel fallback if assigned.",
+                this
+            );
+        }
+    }
+
+    private T FindSceneComponent<T>() where T : Component
+    {
+        T[] matches =
+            Resources.FindObjectsOfTypeAll<T>();
+
+        for (int i = 0; i < matches.Length; i++)
+        {
+            T match = matches[i];
+
+            if (match == null ||
+                !match.gameObject.scene.IsValid())
+            {
+                continue;
+            }
+
+            return match;
+        }
+
+        return null;
     }
 
     private void OnInteractPerformed(InputAction.CallbackContext context)
@@ -162,12 +297,14 @@ public class PlayerStorageContainerInteract : MonoBehaviour
 
     private void OpenContainer(StorageContainer storageContainer)
     {
+        ValidateReferences(false, true);
+
         if (storageContainer == null ||
             containerGridUI == null ||
             containerPanel == null)
         {
             Debug.LogWarning(
-                "PlayerStorageContainerInteract is missing a reference.",
+                "PlayerStorageContainerInteract cannot open storage because a reference is missing.",
                 this
             );
 
@@ -262,7 +399,7 @@ public class PlayerStorageContainerInteract : MonoBehaviour
     }
 
     public bool TryPlaceHeldPlayerItemInOpenContainerAtScreenPosition(
-    Vector2 screenPosition)
+        Vector2 screenPosition)
     {
         if (currentOpenContainer == null ||
             containerGridUI == null)

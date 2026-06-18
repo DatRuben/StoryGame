@@ -59,8 +59,20 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
     private readonly List<Vector2Int> cellCoordinates =
         new List<Vector2Int>();
 
+    private void Reset()
+    {
+        ValidateReferences(true, false);
+    }
+
+    private void OnValidate()
+    {
+        ValidateReferences(true, false);
+    }
+
     private void Awake()
     {
+        ValidateReferences(true, true);
+
         if (cellParent != null)
             gridLayoutGroup = cellParent.GetComponent<GridLayoutGroup>();
 
@@ -71,6 +83,179 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
             playerInventoryGridUI = FindFirstObjectByType<InventoryGridUI>();
 
         rootCanvas = GetComponentInParent<Canvas>();
+    }
+
+    private void ValidateReferences(
+        bool logAutoFilled,
+        bool logMissing)
+    {
+        if (playerInventory == null)
+        {
+            playerInventory =
+                FindSceneComponent<PlayerInventory>();
+
+            if (playerInventory != null &&
+                logAutoFilled)
+            {
+                Debug.Log(
+                    "StorageContainerGridUI auto-filled PlayerInventory.",
+                    this
+                );
+            }
+        }
+
+        if (playerInventoryGridUI == null)
+        {
+            playerInventoryGridUI =
+                FindSceneComponent<InventoryGridUI>();
+
+            if (playerInventoryGridUI != null &&
+                logAutoFilled)
+            {
+                Debug.Log(
+                    "StorageContainerGridUI auto-filled PlayerInventoryGridUI.",
+                    this
+                );
+            }
+        }
+
+        if (cellParent == null)
+        {
+            GridLayoutGroup ownGridLayout =
+                GetComponent<GridLayoutGroup>();
+
+            if (ownGridLayout != null)
+            {
+                cellParent = transform;
+            }
+            else
+            {
+                GridLayoutGroup childGridLayout =
+                    GetComponentInChildren<GridLayoutGroup>(true);
+
+                if (childGridLayout != null)
+                    cellParent = childGridLayout.transform;
+            }
+
+            if (cellParent != null &&
+                logAutoFilled)
+            {
+                Debug.Log(
+                    "StorageContainerGridUI auto-filled Cell Parent from GridLayoutGroup.",
+                    this
+                );
+            }
+        }
+
+        if (itemOutline == null &&
+            cellParent != null)
+        {
+            itemOutline =
+                FindRectTransformInChildren(cellParent, "StorageItemOutline");
+
+            if (itemOutline == null)
+                itemOutline = FindRectTransformInChildren(cellParent, "ContainerOutline");
+
+            if (itemOutline == null)
+                itemOutline = FindRectTransformInChildren(cellParent, "ItemOutline");
+
+            if (itemOutline != null &&
+                logAutoFilled)
+            {
+                Debug.Log(
+                    "StorageContainerGridUI auto-filled Item Outline.",
+                    this
+                );
+            }
+        }
+
+        if (!logMissing)
+            return;
+
+        if (playerInventory == null)
+        {
+            Debug.LogWarning(
+                "StorageContainerGridUI is missing PlayerInventory.",
+                this
+            );
+        }
+
+        if (playerInventoryGridUI == null)
+        {
+            Debug.LogWarning(
+                "StorageContainerGridUI is missing PlayerInventoryGridUI.",
+                this
+            );
+        }
+
+        if (cellParent == null)
+        {
+            Debug.LogWarning(
+                "StorageContainerGridUI is missing Cell Parent.",
+                this
+            );
+        }
+
+        if (cellPrefab == null)
+        {
+            Debug.LogWarning(
+                "StorageContainerGridUI is missing Cell Prefab.",
+                this
+            );
+        }
+
+        if (itemOutline == null)
+        {
+            Debug.LogWarning(
+                "StorageContainerGridUI is missing Item Outline. Storage still works, but item outlines will not draw.",
+                this
+            );
+        }
+    }
+
+    private RectTransform FindRectTransformInChildren(
+        Transform parent,
+        string childName)
+    {
+        if (parent == null)
+            return null;
+
+        RectTransform[] rectTransforms =
+            parent.GetComponentsInChildren<RectTransform>(true);
+
+        for (int i = 0; i < rectTransforms.Length; i++)
+        {
+            RectTransform rectTransform = rectTransforms[i];
+
+            if (rectTransform != null &&
+                rectTransform.name == childName)
+            {
+                return rectTransform;
+            }
+        }
+
+        return null;
+    }
+
+    private T FindSceneComponent<T>() where T : Component
+    {
+        T[] matches =
+            Resources.FindObjectsOfTypeAll<T>();
+
+        for (int i = 0; i < matches.Length; i++)
+        {
+            T match = matches[i];
+
+            if (match == null ||
+                !match.gameObject.scene.IsValid())
+            {
+                continue;
+            }
+
+            return match;
+        }
+
+        return null;
     }
 
     private void Update()
@@ -156,6 +341,8 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
 
     public void SetStorageContainer(StorageContainer newStorageContainer)
     {
+        ValidateReferences(false, true);
+
         if (storageContainer != null)
             storageContainer.OnContainerChanged -= Refresh;
 
