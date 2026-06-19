@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 
 public class InventoryContextPanelController : MonoBehaviour
@@ -9,6 +10,12 @@ public class InventoryContextPanelController : MonoBehaviour
     [Header("Storage UI")]
     [SerializeField] private StorageContainerGridUI storageContainerGridUI;
 
+    [Header("Storage Title")]
+    [SerializeField] private TextMeshProUGUI storageTitleText;
+    [SerializeField] private string defaultStorageTitle = "Storage";
+    [SerializeField] private bool hideTitleWhenNoStorageOpen = true;
+    [SerializeField] private bool warnIfStorageTitleTextMissing = true;
+
     private void Reset()
     {
         ValidateReferences(true, false);
@@ -17,6 +24,7 @@ public class InventoryContextPanelController : MonoBehaviour
     private void OnValidate()
     {
         ValidateReferences(true, false);
+        UpdateStorageTitle(null);
     }
 
     private void Awake()
@@ -91,6 +99,25 @@ public class InventoryContextPanelController : MonoBehaviour
             }
         }
 
+        if (storageTitleText == null)
+        {
+            TextMeshProUGUI foundTitleText =
+                FindStorageTitleText();
+
+            if (foundTitleText != null)
+            {
+                storageTitleText = foundTitleText;
+
+                if (logAutoFilled)
+                {
+                    Debug.Log(
+                        "InventoryContextPanelController auto-filled Storage Title Text.",
+                        this
+                    );
+                }
+            }
+        }
+
         if (!logMissing)
             return;
 
@@ -117,6 +144,15 @@ public class InventoryContextPanelController : MonoBehaviour
                 this
             );
         }
+
+        if (warnIfStorageTitleTextMissing &&
+            storageTitleText == null)
+        {
+            Debug.LogWarning(
+                "InventoryContextPanelController is missing Storage Title Text. Container names will not be shown.",
+                this
+            );
+        }
     }
 
     private GameObject FindDirectChildByName(string childName)
@@ -133,6 +169,42 @@ public class InventoryContextPanelController : MonoBehaviour
         }
 
         return null;
+    }
+
+    private TextMeshProUGUI FindStorageTitleText()
+    {
+        if (storagePanel == null)
+            return null;
+
+        TextMeshProUGUI[] texts =
+            storagePanel.GetComponentsInChildren<TextMeshProUGUI>(true);
+
+        if (texts == null ||
+            texts.Length == 0)
+        {
+            return null;
+        }
+
+        for (int i = 0; i < texts.Length; i++)
+        {
+            TextMeshProUGUI text =
+                texts[i];
+
+            if (text == null)
+                continue;
+
+            string lowerName =
+                text.gameObject.name.ToLowerInvariant();
+
+            if (lowerName.Contains("title") ||
+                lowerName.Contains("name") ||
+                lowerName.Contains("header"))
+            {
+                return text;
+            }
+        }
+
+        return texts[0];
     }
 
     private T FindSceneComponent<T>() where T : Component
@@ -168,6 +240,8 @@ public class InventoryContextPanelController : MonoBehaviour
 
         if (storageContainerGridUI != null)
             storageContainerGridUI.SetStorageContainer(null);
+
+        UpdateStorageTitle(null);
     }
 
     public void ShowStorageContainer(StorageContainer storageContainer)
@@ -197,10 +271,56 @@ public class InventoryContextPanelController : MonoBehaviour
                 this
             );
         }
+
+        UpdateStorageTitle(storageContainer);
     }
 
     public void HideStorageContainer()
     {
         ShowDefaultPanel();
+    }
+
+    private void UpdateStorageTitle(StorageContainer storageContainer)
+    {
+        if (storageTitleText == null)
+            return;
+
+        if (storageContainer == null)
+        {
+            storageTitleText.text =
+                defaultStorageTitle;
+
+            storageTitleText.gameObject.SetActive(
+                !hideTitleWhenNoStorageOpen
+            );
+
+            return;
+        }
+
+        storageTitleText.gameObject.SetActive(true);
+
+        storageTitleText.text =
+            GetStorageContainerTitle(storageContainer);
+    }
+
+    private string GetStorageContainerTitle(
+        StorageContainer storageContainer)
+    {
+        if (storageContainer == null)
+            return defaultStorageTitle;
+
+        StorageContainerInteract interact =
+            storageContainer.GetComponent<StorageContainerInteract>();
+
+        if (interact != null &&
+            !string.IsNullOrWhiteSpace(interact.DisplayName))
+        {
+            return interact.DisplayName;
+        }
+
+        if (!string.IsNullOrWhiteSpace(storageContainer.gameObject.name))
+            return storageContainer.gameObject.name;
+
+        return defaultStorageTitle;
     }
 }
