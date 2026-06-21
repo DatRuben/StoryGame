@@ -1716,10 +1716,9 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
         if (heldPreviewOutlineRoot == null)
             return;
 
-        for (int i = heldPreviewOutlineRoot.childCount - 1; i >= 0; i--)
-        {
-            Destroy(heldPreviewOutlineRoot.GetChild(i).gameObject);
-        }
+        InventoryOutlineUtility.ClearChildren(
+            heldPreviewOutlineRoot
+        );
 
         PlacedInventoryItem heldItem =
             HeldItem;
@@ -2446,10 +2445,9 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
             return;
         }
 
-        for (int i = itemOutline.childCount - 1; i >= 0; i--)
-        {
-            Destroy(itemOutline.GetChild(i).gameObject);
-        }
+        InventoryOutlineUtility.ClearChildren(
+            itemOutline
+        );
 
         HashSet<PlacedInventoryItem> outlinedItems =
             new HashSet<PlacedInventoryItem>();

@@ -1674,10 +1674,9 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
             return;
         }
 
-        for (int i = itemOutline.childCount - 1; i >= 0; i--)
-        {
-            Destroy(itemOutline.GetChild(i).gameObject);
-        }
+        InventoryOutlineUtility.ClearChildren(
+            itemOutline
+        );
 
         HashSet<PlacedInventoryItem> outlinedItems =
             new HashSet<PlacedInventoryItem>();
