@@ -1310,32 +1310,10 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
             return false;
         }
 
-        ItemData itemData =
-            heldItem.ItemData;
-
-        int localX =
-            coordinate.x - dragOriginalPosition.x;
-
-        int localY =
-            coordinate.y - dragOriginalPosition.y;
-
-        int originalWidth =
-            itemData.GetWidth(dragOriginalRotationSteps);
-
-        int originalHeight =
-            itemData.GetHeight(dragOriginalRotationSteps);
-
-        if (localX < 0 ||
-            localY < 0 ||
-            localX >= originalWidth ||
-            localY >= originalHeight)
-        {
-            return false;
-        }
-
-        return itemData.IsCellOccupied(
-            localX,
-            localY,
+        return InventoryShapeUtility.IsOccupiedInShape(
+            heldItem.ItemData,
+            coordinate.x - dragOriginalPosition.x,
+            coordinate.y - dragOriginalPosition.y,
             dragOriginalRotationSteps
         );
     }

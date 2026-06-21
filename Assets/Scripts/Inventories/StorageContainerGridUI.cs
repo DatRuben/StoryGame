@@ -1656,33 +1656,10 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
             return false;
         }
 
-        int localX =
-            coordinate.x - dragOriginalPosition.x;
-
-        int localY =
-            coordinate.y - dragOriginalPosition.y;
-
-        int width =
-            dragOriginalItemData.GetWidth(
-                dragOriginalRotationSteps
-            );
-
-        int height =
-            dragOriginalItemData.GetHeight(
-                dragOriginalRotationSteps
-            );
-
-        if (localX < 0 ||
-            localY < 0 ||
-            localX >= width ||
-            localY >= height)
-        {
-            return false;
-        }
-
-        return dragOriginalItemData.IsCellOccupied(
-            localX,
-            localY,
+        return InventoryShapeUtility.IsOccupiedInShape(
+            dragOriginalItemData,
+            coordinate.x - dragOriginalPosition.x,
+            coordinate.y - dragOriginalPosition.y,
             dragOriginalRotationSteps
         );
     }
