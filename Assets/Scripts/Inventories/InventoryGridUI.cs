@@ -695,67 +695,19 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
         PlacedInventoryItem heldItem =
             HeldItem;
 
-        if (heldItem == null ||
-            heldItem.ItemData == null ||
-            !heldItem.ItemData.isStackable)
-        {
-            return false;
-        }
-
         if (!IsValidGridCoordinate(hoveredCoordinate))
             return false;
 
-        PlacedInventoryItem targetStack =
-            playerInventory.Grid.GetPlacedItem(
-                hoveredCoordinate.x,
-                hoveredCoordinate.y
-            );
-
-        if (targetStack == null ||
-            targetStack.ItemData == null)
-        {
-            return false;
-        }
-
-        if (targetStack.ItemData != heldItem.ItemData)
-            return false;
-
-        if (!targetStack.ItemData.isStackable)
-            return false;
-
-        // Only color the cells belonging to the target stack.
-        PlacedInventoryItem cellStack =
-            playerInventory.Grid.GetPlacedItem(
-                coordinate.x,
-                coordinate.y
-            );
-
-        if (cellStack != targetStack)
-            return false;
-
-        int maxStackSize =
-            Mathf.Max(
-                1,
-                targetStack.ItemData.maxStackSize
-            );
-
-        int roomLeft =
-            maxStackSize - targetStack.Quantity;
-
-        if (roomLeft <= 0)
-        {
-            previewColor = invalidPlacementColor;
-            return true;
-        }
-
-        if (roomLeft >= heldItem.Quantity)
-        {
-            previewColor = validPlacementColor;
-            return true;
-        }
-
-        previewColor = partialStackPlacementColor;
-        return true;
+        return InventoryStackPreviewUtility.TryGetPreviewColor(
+            playerInventory.Grid,
+            heldItem,
+            hoveredCoordinate,
+            coordinate,
+            validPlacementColor,
+            partialStackPlacementColor,
+            invalidPlacementColor,
+            out previewColor
+        );
     }
 
     public void OnPointerDown(PointerEventData eventData)

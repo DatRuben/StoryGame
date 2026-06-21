@@ -680,9 +680,9 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
     }
 
     private bool TryGetStackPreviewColor(
-    Vector2Int coordinate,
-    Vector2Int previewCenter,
-    out Color previewColor)
+        Vector2Int coordinate,
+        Vector2Int previewCenter,
+        out Color previewColor)
     {
         previewColor = invalidPlacementColor;
 
@@ -693,66 +693,16 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
             return false;
         }
 
-        PlacedInventoryItem heldItem =
-            playerInventory.HeldItem;
-
-        if (heldItem == null ||
-            heldItem.ItemData == null ||
-            !heldItem.ItemData.isStackable)
-        {
-            return false;
-        }
-
-        PlacedInventoryItem targetStack =
-            storageContainer.Grid.GetPlacedItem(
-                previewCenter.x,
-                previewCenter.y
-            );
-
-        if (targetStack == null ||
-            targetStack.ItemData == null)
-        {
-            return false;
-        }
-
-        if (targetStack.ItemData != heldItem.ItemData)
-            return false;
-
-        if (!targetStack.ItemData.isStackable)
-            return false;
-
-        PlacedInventoryItem cellStack =
-            storageContainer.Grid.GetPlacedItem(
-                coordinate.x,
-                coordinate.y
-            );
-
-        if (cellStack != targetStack)
-            return false;
-
-        int maxStackSize =
-            Mathf.Max(
-                1,
-                targetStack.ItemData.maxStackSize
-            );
-
-        int roomLeft =
-            maxStackSize - targetStack.Quantity;
-
-        if (roomLeft <= 0)
-        {
-            previewColor = invalidPlacementColor;
-            return true;
-        }
-
-        if (roomLeft >= heldItem.Quantity)
-        {
-            previewColor = validPlacementColor;
-            return true;
-        }
-
-        previewColor = partialStackPlacementColor;
-        return true;
+        return InventoryStackPreviewUtility.TryGetPreviewColor(
+            storageContainer.Grid,
+            playerInventory.HeldItem,
+            previewCenter,
+            coordinate,
+            validPlacementColor,
+            partialStackPlacementColor,
+            invalidPlacementColor,
+            out previewColor
+        );
     }
 
     private void OnCellRightClicked(Vector2Int coordinate)
