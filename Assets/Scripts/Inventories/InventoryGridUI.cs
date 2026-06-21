@@ -661,23 +661,10 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
         PlacedInventoryItem placedItem,
         Vector2Int coordinate)
     {
-        if (placedItem == null ||
-            placedItem.ItemData == null)
-        {
-            return "";
-        }
-
-        if (!placedItem.ItemData.isStackable)
-            return "";
-
-        if (placedItem.Quantity <= 1)
-            return "";
-
-        // Only show the number once, not on every occupied cell.
-        if (placedItem.Position != coordinate)
-            return "";
-
-        return placedItem.Quantity.ToString();
+        return InventoryQuantityTextUtility.GetTextForCell(
+            placedItem,
+            coordinate
+        );
     }
 
     private bool TryGetStackPreviewColor(
