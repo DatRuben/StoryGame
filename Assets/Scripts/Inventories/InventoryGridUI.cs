@@ -521,7 +521,8 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
                     OnCellPointerEntered,
                     OnCellPointerExited,
                     OnCellPointerDown,
-                    OnCellPointerUp
+                    OnCellPointerUp,
+                    OnCellRightClicked
                 );
 
                 cells.Add(cellUI);
@@ -966,6 +967,55 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
         }
 
         TryPickUpItem(coordinate);
+    }
+
+    private void OnCellRightClicked(Vector2Int coordinate)
+    {
+        if (!InventoryMenuController.IsInventoryOpen)
+            return;
+
+        if (playerInventory == null ||
+            playerInventory.Grid == null)
+        {
+            return;
+        }
+
+        if (playerInventory.IsHoldingItem)
+        {
+            bool placedOne =
+                playerInventory.TryPlaceOneHeldItem(
+                    coordinate.x,
+                    coordinate.y
+                );
+
+            if (!placedOne)
+                return;
+
+            if (!playerInventory.IsHoldingItem)
+            {
+                heldGrabOffset = Vector2Int.zero;
+                centerHeldPreviewOnMouse = false;
+            }
+            else
+            {
+                CenterHeldItemOnMouse();
+            }
+
+            Refresh();
+            return;
+        }
+
+        bool split =
+            playerInventory.TrySplitStackAt(
+                coordinate.x,
+                coordinate.y
+            );
+
+        if (!split)
+            return;
+
+        CenterHeldItemOnMouse();
+        Refresh();
     }
 
     private void OnCellPointerDown(Vector2Int coordinate)

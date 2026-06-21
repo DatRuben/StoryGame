@@ -424,6 +424,92 @@ public class PlayerInventory : MonoBehaviour
         return HeldItem;
     }
 
+    public bool TrySplitStackAt(
+    int x,
+    int y,
+    bool countsAsHeld = true)
+    {
+        if (Grid == null)
+            return false;
+
+        if (HeldItem != null)
+            return false;
+
+        PlacedInventoryItem sourceStack =
+            Grid.GetPlacedItem(x, y);
+
+        if (sourceStack == null ||
+            sourceStack.ItemData == null)
+        {
+            return false;
+        }
+
+        ItemData itemData =
+            sourceStack.ItemData;
+
+        if (!itemData.isStackable)
+            return false;
+
+        int sourceQuantity =
+            Mathf.Max(1, sourceStack.Quantity);
+
+        if (sourceQuantity <= 1)
+            return false;
+
+        int splitQuantity =
+            Mathf.CeilToInt(sourceQuantity * 0.5f);
+
+        int remainingQuantity =
+            sourceQuantity - splitQuantity;
+
+        if (remainingQuantity <= 0)
+            return false;
+
+        if (countsAsHeld)
+        {
+            if (playerWeaponSlots != null &&
+                playerWeaponSlots.WeaponsDrawn)
+            {
+                bool canKeepWeaponsDrawn =
+                    playerWeaponSlots.ActiveSetCanCoexistWithHeldItem(
+                        itemData
+                    );
+
+                if (!canKeepWeaponsDrawn)
+                    playerWeaponSlots.SheatheWeapons();
+            }
+
+            if (weaponDrawn)
+            {
+                bool oldWeaponCanStayDrawn =
+                    weaponSlotItem != null &&
+                    weaponSlotItem.handUsage == ItemHandUsage.OneHanded &&
+                    itemData.handUsage == ItemHandUsage.OneHanded;
+
+                if (!oldWeaponCanStayDrawn)
+                    SheatheWeapon();
+            }
+        }
+
+        sourceStack.SetQuantity(remainingQuantity);
+
+        HeldItem =
+            new PlacedInventoryItem(
+                itemData,
+                Vector2Int.zero,
+                sourceStack.RotationSteps,
+                splitQuantity
+            );
+
+        MouseHeldItemCountsAsHeld = countsAsHeld;
+        CenterHeldItemOnCursorRequested = true;
+
+        OnInventoryChanged?.Invoke();
+        OnHeldItemChanged?.Invoke();
+
+        return true;
+    }
+
     public bool CanPlaceHeldItem(
         int x,
         int y)
@@ -486,6 +572,102 @@ public class PlayerInventory : MonoBehaviour
         OnHeldItemChanged?.Invoke();
 
         return true;
+    }
+
+    public bool TryPlaceOneHeldItem(
+    int x,
+    int y)
+    {
+        if (Grid == null)
+            return false;
+
+        if (HeldItem == null ||
+            HeldItem.ItemData == null)
+        {
+            return false;
+        }
+
+        ItemData itemData =
+            HeldItem.ItemData;
+
+        if (!itemData.isStackable)
+            return false;
+
+        int heldQuantity =
+            Mathf.Max(1, HeldItem.Quantity);
+
+        if (heldQuantity <= 0)
+            return false;
+
+        PlacedInventoryItem targetStack =
+            Grid.GetPlacedItem(x, y);
+
+        if (targetStack != null)
+        {
+            if (targetStack.ItemData != itemData)
+                return false;
+
+            if (!targetStack.ItemData.isStackable)
+                return false;
+
+            if (!targetStack.HasRoomInStack)
+                return false;
+
+            int addedQuantity =
+                targetStack.AddQuantity(1);
+
+            if (addedQuantity <= 0)
+                return false;
+
+            ReduceHeldStackAfterPlacingOne();
+
+            OnInventoryChanged?.Invoke();
+            OnHeldItemChanged?.Invoke();
+
+            return true;
+        }
+
+        bool placed =
+            Grid.PlaceItem(
+                itemData,
+                x,
+                y,
+                HeldItem.RotationSteps,
+                1
+            );
+
+        if (!placed)
+            return false;
+
+        ReduceHeldStackAfterPlacingOne();
+
+        OnInventoryChanged?.Invoke();
+        OnHeldItemChanged?.Invoke();
+
+        return true;
+    }
+
+    private void ReduceHeldStackAfterPlacingOne()
+    {
+        if (HeldItem == null)
+            return;
+
+        int heldQuantity =
+            Mathf.Max(1, HeldItem.Quantity);
+
+        int remainingQuantity =
+            heldQuantity - 1;
+
+        if (remainingQuantity <= 0)
+        {
+            HeldItem = null;
+            MouseHeldItemCountsAsHeld = false;
+            CenterHeldItemOnCursorRequested = false;
+            return;
+        }
+
+        HeldItem.SetQuantity(remainingQuantity);
+        CenterHeldItemOnCursorRequested = true;
     }
 
     public bool RotateHeldItemCounterClockwise()
