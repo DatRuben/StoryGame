@@ -22,6 +22,7 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
     [SerializeField] private Color emptyColor = new Color(0f, 0f, 0f, 0.35f);
     [SerializeField] private Color occupiedColor = new Color(1f, 1f, 1f, 0.85f);
     [SerializeField] private Color validPlacementColor = new Color(0.2f, 1f, 0.2f, 0.65f);
+    [SerializeField] private Color partialStackPlacementColor = new Color(1f, 0.85f, 0.15f, 0.65f);
     [SerializeField] private Color invalidPlacementColor = new Color(1f, 0.2f, 0.2f, 0.65f);
     [SerializeField] private Color dragOriginalGhostColor = new Color(0.45f, 0.45f, 0.45f, 0.35f);
 
@@ -528,6 +529,31 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
             Vector2Int coordinate =
                 cellCoordinates[i];
 
+            if (showHeldPreview &&
+                previewHasGridCoordinate &&
+                TryGetStackPreviewColor(
+                    coordinate,
+                    previewCenter,
+                    out Color stackPreviewColor))
+            {
+                cell.SetColor(stackPreviewColor);
+
+                PlacedInventoryItem placedItemForQuantity =
+                    grid.GetPlacedItem(
+                        coordinate.x,
+                        coordinate.y
+                    );
+
+                cell.SetQuantityText(
+                    GetQuantityTextForCell(
+                        placedItemForQuantity,
+                        coordinate
+                    )
+                );
+
+                continue;
+            }
+
             bool isPreviewCell =
                 previewHasGridCoordinate &&
                 IsHeldItemPreviewCell(
@@ -651,6 +677,82 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
         PickUpContainerItem(
             coordinate
         );
+    }
+
+    private bool TryGetStackPreviewColor(
+    Vector2Int coordinate,
+    Vector2Int previewCenter,
+    out Color previewColor)
+    {
+        previewColor = invalidPlacementColor;
+
+        if (storageContainer == null ||
+            storageContainer.Grid == null ||
+            playerInventory == null)
+        {
+            return false;
+        }
+
+        PlacedInventoryItem heldItem =
+            playerInventory.HeldItem;
+
+        if (heldItem == null ||
+            heldItem.ItemData == null ||
+            !heldItem.ItemData.isStackable)
+        {
+            return false;
+        }
+
+        PlacedInventoryItem targetStack =
+            storageContainer.Grid.GetPlacedItem(
+                previewCenter.x,
+                previewCenter.y
+            );
+
+        if (targetStack == null ||
+            targetStack.ItemData == null)
+        {
+            return false;
+        }
+
+        if (targetStack.ItemData != heldItem.ItemData)
+            return false;
+
+        if (!targetStack.ItemData.isStackable)
+            return false;
+
+        PlacedInventoryItem cellStack =
+            storageContainer.Grid.GetPlacedItem(
+                coordinate.x,
+                coordinate.y
+            );
+
+        if (cellStack != targetStack)
+            return false;
+
+        int maxStackSize =
+            Mathf.Max(
+                1,
+                targetStack.ItemData.maxStackSize
+            );
+
+        int roomLeft =
+            maxStackSize - targetStack.Quantity;
+
+        if (roomLeft <= 0)
+        {
+            previewColor = invalidPlacementColor;
+            return true;
+        }
+
+        if (roomLeft >= heldItem.Quantity)
+        {
+            previewColor = validPlacementColor;
+            return true;
+        }
+
+        previewColor = partialStackPlacementColor;
+        return true;
     }
 
     private void OnCellRightClicked(Vector2Int coordinate)
