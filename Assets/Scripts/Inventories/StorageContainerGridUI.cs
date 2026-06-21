@@ -1802,16 +1802,16 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
                     !InventoryShapeUtility.IsOccupiedInShape(itemData, x + 1, y, rotationSteps);
 
                 if (topOpen)
-                    DrawOutlineEdge(origin.x + x, origin.y + y, OutlineSide.Top, color);
+                    DrawOutlineEdge(origin.x + x, origin.y + y, InventoryOutlineSide.Top, color);
 
                 if (bottomOpen)
-                    DrawOutlineEdge(origin.x + x, origin.y + y, OutlineSide.Bottom, color);
+                    DrawOutlineEdge(origin.x + x, origin.y + y, InventoryOutlineSide.Bottom, color);
 
                 if (leftOpen)
-                    DrawOutlineEdge(origin.x + x, origin.y + y, OutlineSide.Left, color);
+                    DrawOutlineEdge(origin.x + x, origin.y + y, InventoryOutlineSide.Left, color);
 
                 if (rightOpen)
-                    DrawOutlineEdge(origin.x + x, origin.y + y, OutlineSide.Right, color);
+                    DrawOutlineEdge(origin.x + x, origin.y + y, InventoryOutlineSide.Right, color);
 
                 if (fillPaddingBetweenCells)
                 {
@@ -1825,42 +1825,42 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
                         rightFilled &&
                         !InventoryShapeUtility.IsOccupiedInShape(itemData, x + 1, y + 1, rotationSteps))
                     {
-                        DrawBridge(origin.x + x, origin.y + y, OutlineSide.Top, color);
+                        DrawBridge(origin.x + x, origin.y + y, InventoryOutlineSide.Top, color);
                     }
 
                     if (bottomOpen &&
                         rightFilled &&
                         !InventoryShapeUtility.IsOccupiedInShape(itemData, x + 1, y - 1, rotationSteps))
                     {
-                        DrawBridge(origin.x + x, origin.y + y, OutlineSide.Bottom, color);
+                        DrawBridge(origin.x + x, origin.y + y, InventoryOutlineSide.Bottom, color);
                     }
 
                     if (leftOpen &&
                         downFilled &&
                         !InventoryShapeUtility.IsOccupiedInShape(itemData, x - 1, y - 1, rotationSteps))
                     {
-                        DrawBridge(origin.x + x, origin.y + y, OutlineSide.Left, color);
+                        DrawBridge(origin.x + x, origin.y + y, InventoryOutlineSide.Left, color);
                     }
 
                     if (rightOpen &&
                         downFilled &&
                         !InventoryShapeUtility.IsOccupiedInShape(itemData, x + 1, y - 1, rotationSteps))
                     {
-                        DrawBridge(origin.x + x, origin.y + y, OutlineSide.Right, color);
+                        DrawBridge(origin.x + x, origin.y + y, InventoryOutlineSide.Right, color);
                     }
                 }
 
                 if (topOpen && leftOpen)
-                    DrawCorner(origin.x + x, origin.y + y, OutlineCorner.TopLeft, color);
+                    DrawCorner(origin.x + x, origin.y + y, InventoryOutlineCorner.TopLeft, color);
 
                 if (topOpen && rightOpen)
-                    DrawCorner(origin.x + x, origin.y + y, OutlineCorner.TopRight, color);
+                    DrawCorner(origin.x + x, origin.y + y, InventoryOutlineCorner.TopRight, color);
 
                 if (bottomOpen && leftOpen)
-                    DrawCorner(origin.x + x, origin.y + y, OutlineCorner.BottomLeft, color);
+                    DrawCorner(origin.x + x, origin.y + y, InventoryOutlineCorner.BottomLeft, color);
 
                 if (bottomOpen && rightOpen)
-                    DrawCorner(origin.x + x, origin.y + y, OutlineCorner.BottomRight, color);
+                    DrawCorner(origin.x + x, origin.y + y, InventoryOutlineCorner.BottomRight, color);
             }
         }
 
@@ -1875,26 +1875,10 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
         }
     }
 
-    private enum OutlineSide
-    {
-        Top,
-        Bottom,
-        Left,
-        Right
-    }
-
-    private enum OutlineCorner
-    {
-        TopLeft,
-        TopRight,
-        BottomLeft,
-        BottomRight
-    }
-
     private void DrawOutlineEdge(
         int gridX,
         int gridY,
-        OutlineSide side,
+        InventoryOutlineSide side,
         Color color)
     {
         Vector2 cellSize = gridLayoutGroup.cellSize;
@@ -1925,7 +1909,7 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
 
         switch (side)
         {
-            case OutlineSide.Top:
+            case InventoryOutlineSide.Top:
                 position = new Vector2(
                     cellLeft + cellSize.x * 0.5f,
                     cellTop + halfSpacingY
@@ -1937,7 +1921,7 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
                 );
                 break;
 
-            case OutlineSide.Bottom:
+            case InventoryOutlineSide.Bottom:
                 position = new Vector2(
                     cellLeft + cellSize.x * 0.5f,
                     cellTop - cellSize.y - halfSpacingY
@@ -1949,7 +1933,7 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
                 );
                 break;
 
-            case OutlineSide.Left:
+            case InventoryOutlineSide.Left:
                 position = new Vector2(
                     cellLeft - halfSpacingX,
                     cellTop - cellSize.y * 0.5f
@@ -1980,7 +1964,7 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
     private void DrawBridge(
         int gridX,
         int gridY,
-        OutlineSide side,
+        InventoryOutlineSide side,
         Color color)
     {
         Vector2 cellSize = gridLayoutGroup.cellSize;
@@ -2011,7 +1995,7 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
 
         switch (side)
         {
-            case OutlineSide.Top:
+            case InventoryOutlineSide.Top:
                 if (spacing.x <= 0f)
                     return;
 
@@ -2026,7 +2010,7 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
                 );
                 break;
 
-            case OutlineSide.Bottom:
+            case InventoryOutlineSide.Bottom:
                 if (spacing.x <= 0f)
                     return;
 
@@ -2041,7 +2025,7 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
                 );
                 break;
 
-            case OutlineSide.Left:
+            case InventoryOutlineSide.Left:
                 if (spacing.y <= 0f)
                     return;
 
@@ -2078,7 +2062,7 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
     private void DrawCorner(
         int gridX,
         int gridY,
-        OutlineCorner corner,
+        InventoryOutlineCorner corner,
         Color color)
     {
         Vector2 cellSize = gridLayoutGroup.cellSize;
@@ -2108,21 +2092,21 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
 
         switch (corner)
         {
-            case OutlineCorner.TopLeft:
+            case InventoryOutlineCorner.TopLeft:
                 position = new Vector2(
                     cellLeft - halfSpacingX,
                     cellTop + halfSpacingY
                 );
                 break;
 
-            case OutlineCorner.TopRight:
+            case InventoryOutlineCorner.TopRight:
                 position = new Vector2(
                     cellLeft + cellSize.x + halfSpacingX,
                     cellTop + halfSpacingY
                 );
                 break;
 
-            case OutlineCorner.BottomLeft:
+            case InventoryOutlineCorner.BottomLeft:
                 position = new Vector2(
                     cellLeft - halfSpacingX,
                     cellTop - cellSize.y - halfSpacingY
@@ -2183,7 +2167,7 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
                     DrawGapCorner(
                         origin.x + x,
                         origin.y + y,
-                        OutlineCorner.BottomRight,
+                        InventoryOutlineCorner.BottomRight,
                         color
                     );
                 }
@@ -2193,7 +2177,7 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
                     DrawGapCorner(
                         origin.x + x,
                         origin.y + y,
-                        OutlineCorner.BottomLeft,
+                        InventoryOutlineCorner.BottomLeft,
                         color
                     );
                 }
@@ -2203,7 +2187,7 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
                     DrawGapCorner(
                         origin.x + x,
                         origin.y + y,
-                        OutlineCorner.TopRight,
+                        InventoryOutlineCorner.TopRight,
                         color
                     );
                 }
@@ -2213,7 +2197,7 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
                     DrawGapCorner(
                         origin.x + x,
                         origin.y + y,
-                        OutlineCorner.TopLeft,
+                        InventoryOutlineCorner.TopLeft,
                         color
                     );
                 }
@@ -2224,7 +2208,7 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
     private void DrawGapCorner(
         int gridX,
         int gridY,
-        OutlineCorner corner,
+        InventoryOutlineCorner corner,
         Color color)
     {
         Vector2 cellSize = gridLayoutGroup.cellSize;
@@ -2251,21 +2235,21 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
 
         switch (corner)
         {
-            case OutlineCorner.TopLeft:
+            case InventoryOutlineCorner.TopLeft:
                 position = new Vector2(
                     cellLeft - spacing.x * 0.5f,
                     cellTop + spacing.y * 0.5f
                 );
                 break;
 
-            case OutlineCorner.TopRight:
+            case InventoryOutlineCorner.TopRight:
                 position = new Vector2(
                     cellLeft + cellSize.x + spacing.x * 0.5f,
                     cellTop + spacing.y * 0.5f
                 );
                 break;
 
-            case OutlineCorner.BottomLeft:
+            case InventoryOutlineCorner.BottomLeft:
                 position = new Vector2(
                     cellLeft - spacing.x * 0.5f,
                     cellTop - cellSize.y - spacing.y * 0.5f
