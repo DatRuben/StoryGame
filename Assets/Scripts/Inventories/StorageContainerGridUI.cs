@@ -1790,16 +1790,16 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
                     continue;
 
                 bool topOpen =
-                    !IsOccupiedInShape(itemData, x, y + 1, rotationSteps);
+                    !InventoryShapeUtility.IsOccupiedInShape(itemData, x, y + 1, rotationSteps);
 
                 bool bottomOpen =
-                    !IsOccupiedInShape(itemData, x, y - 1, rotationSteps);
+                    !InventoryShapeUtility.IsOccupiedInShape(itemData, x, y - 1, rotationSteps);
 
                 bool leftOpen =
-                    !IsOccupiedInShape(itemData, x - 1, y, rotationSteps);
+                    !InventoryShapeUtility.IsOccupiedInShape(itemData, x - 1, y, rotationSteps);
 
                 bool rightOpen =
-                    !IsOccupiedInShape(itemData, x + 1, y, rotationSteps);
+                    !InventoryShapeUtility.IsOccupiedInShape(itemData, x + 1, y, rotationSteps);
 
                 if (topOpen)
                     DrawOutlineEdge(origin.x + x, origin.y + y, OutlineSide.Top, color);
@@ -1816,35 +1816,35 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
                 if (fillPaddingBetweenCells)
                 {
                     bool rightFilled =
-                        IsOccupiedInShape(itemData, x + 1, y, rotationSteps);
+                        InventoryShapeUtility.IsOccupiedInShape(itemData, x + 1, y, rotationSteps);
 
                     bool downFilled =
-                        IsOccupiedInShape(itemData, x, y - 1, rotationSteps);
+                        InventoryShapeUtility.IsOccupiedInShape(itemData, x, y - 1, rotationSteps);
 
                     if (topOpen &&
                         rightFilled &&
-                        !IsOccupiedInShape(itemData, x + 1, y + 1, rotationSteps))
+                        !InventoryShapeUtility.IsOccupiedInShape(itemData, x + 1, y + 1, rotationSteps))
                     {
                         DrawBridge(origin.x + x, origin.y + y, OutlineSide.Top, color);
                     }
 
                     if (bottomOpen &&
                         rightFilled &&
-                        !IsOccupiedInShape(itemData, x + 1, y - 1, rotationSteps))
+                        !InventoryShapeUtility.IsOccupiedInShape(itemData, x + 1, y - 1, rotationSteps))
                     {
                         DrawBridge(origin.x + x, origin.y + y, OutlineSide.Bottom, color);
                     }
 
                     if (leftOpen &&
                         downFilled &&
-                        !IsOccupiedInShape(itemData, x - 1, y - 1, rotationSteps))
+                        !InventoryShapeUtility.IsOccupiedInShape(itemData, x - 1, y - 1, rotationSteps))
                     {
                         DrawBridge(origin.x + x, origin.y + y, OutlineSide.Left, color);
                     }
 
                     if (rightOpen &&
                         downFilled &&
-                        !IsOccupiedInShape(itemData, x + 1, y - 1, rotationSteps))
+                        !InventoryShapeUtility.IsOccupiedInShape(itemData, x + 1, y - 1, rotationSteps))
                     {
                         DrawBridge(origin.x + x, origin.y + y, OutlineSide.Right, color);
                     }
@@ -1873,29 +1873,6 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
                 color
             );
         }
-    }
-
-    private bool IsOccupiedInShape(
-        ItemData itemData,
-        int x,
-        int y,
-        int rotationSteps)
-    {
-        int width =
-            itemData.GetWidth(rotationSteps);
-
-        int height =
-            itemData.GetHeight(rotationSteps);
-
-        if (x < 0 ||
-            y < 0 ||
-            x >= width ||
-            y >= height)
-        {
-            return false;
-        }
-
-        return itemData.IsCellOccupied(x, y, rotationSteps);
     }
 
     private enum OutlineSide
@@ -2186,20 +2163,20 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
         {
             for (int x = 0; x < width; x++)
             {
-                if (IsOccupiedInShape(itemData, x, y, rotationSteps))
+                if (InventoryShapeUtility.IsOccupiedInShape(itemData, x, y, rotationSteps))
                     continue;
 
                 bool leftFilled =
-                    IsOccupiedInShape(itemData, x - 1, y, rotationSteps);
+                    InventoryShapeUtility.IsOccupiedInShape(itemData, x - 1, y, rotationSteps);
 
                 bool rightFilled =
-                    IsOccupiedInShape(itemData, x + 1, y, rotationSteps);
+                    InventoryShapeUtility.IsOccupiedInShape(itemData, x + 1, y, rotationSteps);
 
                 bool upFilled =
-                    IsOccupiedInShape(itemData, x, y + 1, rotationSteps);
+                    InventoryShapeUtility.IsOccupiedInShape(itemData, x, y + 1, rotationSteps);
 
                 bool downFilled =
-                    IsOccupiedInShape(itemData, x, y - 1, rotationSteps);
+                    InventoryShapeUtility.IsOccupiedInShape(itemData, x, y - 1, rotationSteps);
 
                 if (rightFilled && downFilled)
                 {
