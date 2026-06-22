@@ -2490,6 +2490,25 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
                 dragOriginalOutlineColor
             );
         }
+
+        PlacedInventoryItem heldItem =
+            HeldItem;
+
+        if (heldItem != null &&
+            heldItem.ItemData != null &&
+            InventoryMenuController.IsInventoryOpen &&
+            IsValidGridCoordinate(hoveredCoordinate))
+        {
+            Vector2Int previewOrigin =
+                GetHeldPlacementOrigin(hoveredCoordinate);
+
+            DrawItemOutline(
+                heldItem.ItemData,
+                previewOrigin,
+                heldItem.RotationSteps,
+                itemOutlineColor
+            );
+        }
     }
 
     private void DrawItemOutline(
