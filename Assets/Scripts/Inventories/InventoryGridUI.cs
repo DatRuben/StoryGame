@@ -965,6 +965,9 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
         if (Mouse.current == null)
             return;
 
+        if (suppressNextClick)
+            suppressNextClick = false;
+
         pointerIsDown = true;
         pendingDragPickup = false;
         isDraggingItem = false;
