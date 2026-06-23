@@ -43,6 +43,7 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
     private Vector2Int pointerDownCoordinate;
     private bool wasShowingHeldPreview;
     private Vector2 lastHeldPreviewMousePosition;
+    private int lastHeldPreviewRotationSteps = -1;
 
     private ItemData dragOriginalItemData;
     private Vector2Int dragOriginalPosition;
@@ -2271,14 +2272,24 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
 
     private void RefreshHeldPreviewIfNeeded()
     {
+        PlacedInventoryItem heldItem =
+            playerInventory != null
+                ? playerInventory.HeldItem
+                : null;
+
         bool isShowingHeldPreview =
-            playerInventory != null &&
-            playerInventory.IsHoldingItem &&
+            heldItem != null &&
             InventoryMenuController.IsInventoryOpen;
+
+        int heldRotationSteps =
+            heldItem != null
+                ? heldItem.RotationSteps
+                : -1;
 
         if (isShowingHeldPreview != wasShowingHeldPreview)
         {
             wasShowingHeldPreview = isShowingHeldPreview;
+            lastHeldPreviewRotationSteps = heldRotationSteps;
             Refresh();
             return;
         }
@@ -2286,6 +2297,14 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
         if (!isShowingHeldPreview ||
             Mouse.current == null)
         {
+            lastHeldPreviewRotationSteps = -1;
+            return;
+        }
+
+        if (heldRotationSteps != lastHeldPreviewRotationSteps)
+        {
+            lastHeldPreviewRotationSteps = heldRotationSteps;
+            Refresh();
             return;
         }
 
