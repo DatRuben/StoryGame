@@ -53,4 +53,32 @@ public static class InventoryUIUtility
         image.color = color;
         image.raycastTarget = false;
     }
+
+    public static Vector2 GetCornerSize(float thickness)
+    {
+        return new Vector2(
+            thickness,
+            thickness
+        );
+    }
+
+    public static Vector2 GetHorizontalBridgeSize(
+        float spacingX,
+        float thickness)
+    {
+        return new Vector2(
+            spacingX,
+            thickness
+        );
+    }
+
+    public static Vector2 GetVerticalBridgeSize(
+        float thickness,
+        float spacingY)
+    {
+        return new Vector2(
+            thickness,
+            spacingY
+        );
+    }
 }

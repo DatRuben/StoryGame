@@ -2037,7 +2037,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
                     );
 
                 size =
-                    new Vector2(
+                    InventoryUIUtility.GetHorizontalBridgeSize(
                         spacing.x,
                         itemOutlineThickness
                     );
@@ -2054,7 +2054,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
                     );
 
                 size =
-                    new Vector2(
+                    InventoryUIUtility.GetHorizontalBridgeSize(
                         spacing.x,
                         itemOutlineThickness
                     );
@@ -2071,7 +2071,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
                     );
 
                 size =
-                    new Vector2(
+                    InventoryUIUtility.GetVerticalBridgeSize(
                         itemOutlineThickness,
                         spacing.y
                     );
@@ -2088,7 +2088,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
                     );
 
                 size =
-                    new Vector2(
+                    InventoryUIUtility.GetVerticalBridgeSize(
                         itemOutlineThickness,
                         spacing.y
                     );
@@ -2172,8 +2172,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
 
         CreateHeldPreviewOutlineRect(
             position,
-            new Vector2(
-                itemOutlineThickness,
+            InventoryUIUtility.GetCornerSize(
                 itemOutlineThickness
             )
         );
@@ -2340,8 +2339,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
 
         CreateHeldPreviewOutlineRect(
             position,
-            new Vector2(
-                itemOutlineThickness,
+            InventoryUIUtility.GetCornerSize(
                 itemOutlineThickness
             )
         );
@@ -2663,10 +2661,11 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
                     cellTop + spacing.y * 0.5f
                 );
 
-                size = new Vector2(
-                    spacing.x,
-                    itemOutlineThickness
-                );
+                size =
+                    InventoryUIUtility.GetHorizontalBridgeSize(
+                        spacing.x,
+                        itemOutlineThickness
+                    );
                 break;
 
             case InventoryOutlineSide.Bottom:
@@ -2678,10 +2677,11 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
                     cellTop - cellSize.y - spacing.y * 0.5f
                 );
 
-                size = new Vector2(
-                    spacing.x,
-                    itemOutlineThickness
-                );
+                size =
+                    InventoryUIUtility.GetHorizontalBridgeSize(
+                        spacing.x,
+                        itemOutlineThickness
+                    );
                 break;
 
             case InventoryOutlineSide.Left:
@@ -2693,10 +2693,11 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
                     cellTop - cellSize.y - spacing.y * 0.5f
                 );
 
-                size = new Vector2(
-                    itemOutlineThickness,
-                    spacing.y
-                );
+                size =
+                    InventoryUIUtility.GetVerticalBridgeSize(
+                        itemOutlineThickness,
+                        spacing.y
+                    );
                 break;
 
             default:
@@ -2708,10 +2709,11 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
                     cellTop - cellSize.y - spacing.y * 0.5f
                 );
 
-                size = new Vector2(
-                    itemOutlineThickness,
-                    spacing.y
-                );
+                size =
+                    InventoryUIUtility.GetVerticalBridgeSize(
+                        itemOutlineThickness,
+                        spacing.y
+                    );
                 break;
         }
 
@@ -2777,7 +2779,9 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
 
         CreateOutlineRect(
             position,
-            new Vector2(itemOutlineThickness, itemOutlineThickness),
+            InventoryUIUtility.GetCornerSize(
+                itemOutlineThickness
+            ),
             color
         );
     }
@@ -2915,7 +2919,9 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
 
         CreateOutlineRect(
             position,
-            new Vector2(itemOutlineThickness, itemOutlineThickness),
+            InventoryUIUtility.GetCornerSize(
+                itemOutlineThickness
+            ),
             color
         );
     }
