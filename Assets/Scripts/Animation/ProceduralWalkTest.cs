@@ -10,26 +10,34 @@ public class ProceduralWalkTest : MonoBehaviour
     public Transform visualRoot;
     public float bobHeight = 0.05f;
 
-    [Header("Bones")]
-    public Transform leftUpperLeg;
-    public Transform rightUpperLeg;
+    [Header("Upper Body Bones")]
     public Transform leftUpperArm;
     public Transform rightUpperArm;
     public Transform spine;
 
+    [Header("Leg Bones")]
+    public Transform leftUpperLeg;
+    public Transform rightUpperLeg;
+    public Transform leftLowerLeg;
+    public Transform rightLowerLeg;
+
     [Header("Swing")]
     public float walkSpeed = 3f;
-    public float legSwingAngle = 25f;
-    public float armSwingAngle = 20f;
-    public float spineTwistAngle = 5f;
+    public float legSwingAngle = 20f;
+    public float kneeBendAngle = 35f;
+    public float armSwingAngle = 15f;
+    public float spineTwistAngle = 0f;
 
     [Header("Axes")]
     public Vector3 legSwingAxis = Vector3.right;
+    public Vector3 kneeBendAxis = Vector3.right;
     public Vector3 armSwingAxis = Vector3.right;
     public Vector3 spineTwistAxis = Vector3.up;
 
-    Quaternion leftLegStart;
-    Quaternion rightLegStart;
+    Quaternion leftUpperLegStart;
+    Quaternion rightUpperLegStart;
+    Quaternion leftLowerLegStart;
+    Quaternion rightLowerLegStart;
     Quaternion leftArmStart;
     Quaternion rightArmStart;
     Quaternion spineStart;
@@ -37,19 +45,28 @@ public class ProceduralWalkTest : MonoBehaviour
 
     void Start()
     {
-        if (leftUpperLeg) leftLegStart = leftUpperLeg.localRotation;
-        if (rightUpperLeg) rightLegStart = rightUpperLeg.localRotation;
+        if (leftUpperLeg) leftUpperLegStart = leftUpperLeg.localRotation;
+        if (rightUpperLeg) rightUpperLegStart = rightUpperLeg.localRotation;
+        if (leftLowerLeg) leftLowerLegStart = leftLowerLeg.localRotation;
+        if (rightLowerLeg) rightLowerLegStart = rightLowerLeg.localRotation;
+
         if (leftUpperArm) leftArmStart = leftUpperArm.localRotation;
         if (rightUpperArm) rightArmStart = rightUpperArm.localRotation;
         if (spine) spineStart = spine.localRotation;
+
         if (visualRoot) visualRootStart = visualRoot.localPosition;
     }
 
     void Update()
     {
         float t = Time.time * walkSpeed;
-        float swing = Mathf.Sin(t);
-        float oppositeSwing = Mathf.Sin(t + Mathf.PI);
+
+        float leftSwing = Mathf.Sin(t);
+        float rightSwing = Mathf.Sin(t + Mathf.PI);
+
+        float leftKneeBend = Mathf.Clamp01(leftSwing) * kneeBendAngle;
+        float rightKneeBend = Mathf.Clamp01(rightSwing) * kneeBendAngle;
+
         float bob = Mathf.Abs(Mathf.Sin(t)) * bobHeight;
 
         if (moveForward)
@@ -64,27 +81,44 @@ public class ProceduralWalkTest : MonoBehaviour
 
         if (leftUpperLeg)
         {
-            leftUpperLeg.localRotation = leftLegStart * Quaternion.AngleAxis(swing * legSwingAngle, legSwingAxis);
+            leftUpperLeg.localRotation =
+                leftUpperLegStart * Quaternion.AngleAxis(leftSwing * legSwingAngle, legSwingAxis);
         }
 
         if (rightUpperLeg)
         {
-            rightUpperLeg.localRotation = rightLegStart * Quaternion.AngleAxis(oppositeSwing * legSwingAngle, legSwingAxis);
+            rightUpperLeg.localRotation =
+                rightUpperLegStart * Quaternion.AngleAxis(rightSwing * legSwingAngle, legSwingAxis);
+        }
+
+        if (leftLowerLeg)
+        {
+            leftLowerLeg.localRotation =
+                leftLowerLegStart * Quaternion.AngleAxis(leftKneeBend, kneeBendAxis);
+        }
+
+        if (rightLowerLeg)
+        {
+            rightLowerLeg.localRotation =
+                rightLowerLegStart * Quaternion.AngleAxis(rightKneeBend, kneeBendAxis);
         }
 
         if (leftUpperArm)
         {
-            leftUpperArm.localRotation = leftArmStart * Quaternion.AngleAxis(oppositeSwing * armSwingAngle, armSwingAxis);
+            leftUpperArm.localRotation =
+                leftArmStart * Quaternion.AngleAxis(rightSwing * armSwingAngle, armSwingAxis);
         }
 
         if (rightUpperArm)
         {
-            rightUpperArm.localRotation = rightArmStart * Quaternion.AngleAxis(swing * armSwingAngle, armSwingAxis);
+            rightUpperArm.localRotation =
+                rightArmStart * Quaternion.AngleAxis(leftSwing * armSwingAngle, armSwingAxis);
         }
 
         if (spine)
         {
-            spine.localRotation = spineStart * Quaternion.AngleAxis(swing * spineTwistAngle, spineTwistAxis);
+            spine.localRotation =
+                spineStart * Quaternion.AngleAxis(leftSwing * spineTwistAngle, spineTwistAxis);
         }
     }
 }

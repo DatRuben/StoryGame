@@ -231,6 +231,11 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &713577032 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7876122459140356275, guid: 18fd2733a27218247b91177d977e4dc7, type: 3}
+  m_PrefabInstance: {fileID: 1207500437}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &769204858
 GameObject:
   m_ObjectHideFlags: 0
@@ -343,6 +348,11 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &1008423347 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5519722510425405039, guid: 18fd2733a27218247b91177d977e4dc7, type: 3}
+  m_PrefabInstance: {fileID: 1207500437}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1100062137
 GameObject:
   m_ObjectHideFlags: 0
@@ -429,13 +439,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1100062137}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.022354165, y: -0.032184202, z: 0.001726596, w: 0.99923044}
-  m_LocalPosition: {x: -0.05, y: 11.93, z: -9.51}
+  m_LocalRotation: {x: 0.040853385, y: -0.1521803, z: 0.086535275, w: 0.9837093}
+  m_LocalPosition: {x: -3.76, y: 6.85, z: -2.37}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 2.567, y: -3.687, z: 0.115}
+  m_LocalEulerAnglesHint: {x: 6.126, y: -17.098, z: 9.133}
 --- !u!114 &1100062141
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -597,16 +607,20 @@ MonoBehaviour:
   moveSpeed: 1.5
   visualRoot: {fileID: 0}
   bobHeight: 0.05
-  leftUpperLeg: {fileID: 1207500444}
-  rightUpperLeg: {fileID: 1207500443}
   leftUpperArm: {fileID: 1207500442}
   rightUpperArm: {fileID: 1207500441}
   spine: {fileID: 1207500440}
+  leftUpperLeg: {fileID: 1207500444}
+  rightUpperLeg: {fileID: 1207500443}
+  leftLowerLeg: {fileID: 1008423347}
+  rightLowerLeg: {fileID: 713577032}
   walkSpeed: 3
-  legSwingAngle: 25
-  armSwingAngle: 20
+  legSwingAngle: 10
+  kneeBendAngle: 50
+  armSwingAngle: 10
   spineTwistAngle: 5
-  legSwingAxis: {x: 1, y: 0, z: 0}
+  legSwingAxis: {x: 1, y: 0.5, z: 0}
+  kneeBendAxis: {x: 1, y: 0, z: 0}
   armSwingAxis: {x: 1, y: 0, z: 0}
   spineTwistAxis: {x: 0, y: 1, z: 0}
 --- !u!4 &1207500440 stripped
