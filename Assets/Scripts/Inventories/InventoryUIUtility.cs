@@ -103,8 +103,8 @@ public static class InventoryUIUtility
     }
 
     public static float GetHalfSpacing(
-    float spacing,
-    bool fillPaddingBetweenCells)
+        float spacing,
+        bool fillPaddingBetweenCells)
     {
         return fillPaddingBetweenCells
             ? spacing * 0.5f

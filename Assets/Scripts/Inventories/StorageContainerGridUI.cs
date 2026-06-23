@@ -1980,6 +1980,18 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
             contentOffset.y -
             rowFromTop * (cellSize.y + spacing.y);
 
+        float halfSpacingX =
+            InventoryUIUtility.GetHalfSpacing(
+                spacing.x,
+                fillPaddingBetweenCells
+            );
+
+        float halfSpacingY =
+            InventoryUIUtility.GetHalfSpacing(
+                spacing.y,
+                fillPaddingBetweenCells
+            );
+
         Vector2 position;
         Vector2 size;
 
@@ -1990,8 +2002,8 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
                     return;
 
                 position = new Vector2(
-                    cellLeft + cellSize.x + spacing.x * 0.5f,
-                    cellTop + spacing.y * 0.5f
+                    cellLeft + cellSize.x + halfSpacingX,
+                    cellTop + halfSpacingY
                 );
 
                 size =
@@ -2006,8 +2018,8 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
                     return;
 
                 position = new Vector2(
-                    cellLeft + cellSize.x + spacing.x * 0.5f,
-                    cellTop - cellSize.y - spacing.y * 0.5f
+                    cellLeft + cellSize.x + halfSpacingX,
+                    cellTop - cellSize.y - halfSpacingY
                 );
 
                 size =
@@ -2022,8 +2034,8 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
                     return;
 
                 position = new Vector2(
-                    cellLeft - spacing.x * 0.5f,
-                    cellTop - cellSize.y - spacing.y * 0.5f
+                    cellLeft - halfSpacingX,
+                    cellTop - cellSize.y - halfSpacingY
                 );
 
                 size =
@@ -2038,8 +2050,8 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
                     return;
 
                 position = new Vector2(
-                    cellLeft + cellSize.x + spacing.x * 0.5f,
-                    cellTop - cellSize.y - spacing.y * 0.5f
+                    cellLeft + cellSize.x + halfSpacingX,
+                    cellTop - cellSize.y - halfSpacingY
                 );
 
                 size =
@@ -2236,35 +2248,47 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
             contentOffset.y -
             rowFromTop * (cellSize.y + spacing.y);
 
+        float halfSpacingX =
+            InventoryUIUtility.GetHalfSpacing(
+                spacing.x,
+                fillPaddingBetweenCells
+            );
+
+        float halfSpacingY =
+            InventoryUIUtility.GetHalfSpacing(
+                spacing.y,
+                fillPaddingBetweenCells
+            );
+
         Vector2 position;
 
         switch (corner)
         {
             case InventoryOutlineCorner.TopLeft:
                 position = new Vector2(
-                    cellLeft - spacing.x * 0.5f,
-                    cellTop + spacing.y * 0.5f
+                    cellLeft - halfSpacingX,
+                    cellTop + halfSpacingY
                 );
                 break;
 
             case InventoryOutlineCorner.TopRight:
                 position = new Vector2(
-                    cellLeft + cellSize.x + spacing.x * 0.5f,
-                    cellTop + spacing.y * 0.5f
+                    cellLeft + cellSize.x + halfSpacingX,
+                    cellTop + halfSpacingY
                 );
                 break;
 
             case InventoryOutlineCorner.BottomLeft:
                 position = new Vector2(
-                    cellLeft - spacing.x * 0.5f,
-                    cellTop - cellSize.y - spacing.y * 0.5f
+                    cellLeft - halfSpacingX,
+                    cellTop - cellSize.y - halfSpacingY
                 );
                 break;
 
             default:
                 position = new Vector2(
-                    cellLeft + cellSize.x + spacing.x * 0.5f,
-                    cellTop - cellSize.y - spacing.y * 0.5f
+                    cellLeft + cellSize.x + halfSpacingX,
+                    cellTop - cellSize.y - halfSpacingY
                 );
                 break;
         }
