@@ -83,8 +83,8 @@ public static class InventoryUIUtility
     }
 
     public static Vector2 GetHorizontalEdgeSize(
-    float cellWidth,
-    float thickness)
+        float cellWidth,
+        float thickness)
     {
         return new Vector2(
             cellWidth,
@@ -100,5 +100,14 @@ public static class InventoryUIUtility
             thickness,
             cellHeight
         );
+    }
+
+    public static float GetHalfSpacing(
+    float spacing,
+    bool fillPaddingBetweenCells)
+    {
+        return fillPaddingBetweenCells
+            ? spacing * 0.5f
+            : 0f;
     }
 }

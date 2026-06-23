@@ -1862,8 +1862,17 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
         Vector2 spacing = gridLayoutGroup.spacing;
         RectOffset padding = gridLayoutGroup.padding;
 
-        float halfSpacingX = fillPaddingBetweenCells ? spacing.x * 0.5f : 0f;
-        float halfSpacingY = fillPaddingBetweenCells ? spacing.y * 0.5f : 0f;
+        float halfSpacingX =
+            InventoryUIUtility.GetHalfSpacing(
+                spacing.x,
+                fillPaddingBetweenCells
+            );
+
+        float halfSpacingY =
+            InventoryUIUtility.GetHalfSpacing(
+                spacing.y,
+                fillPaddingBetweenCells
+            );
 
         int rowFromTop =
             storageContainer.Grid.Height - 1 - gridY;
@@ -2054,8 +2063,17 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
         Vector2 spacing = gridLayoutGroup.spacing;
         RectOffset padding = gridLayoutGroup.padding;
 
-        float halfSpacingX = fillPaddingBetweenCells ? spacing.x * 0.5f : 0f;
-        float halfSpacingY = fillPaddingBetweenCells ? spacing.y * 0.5f : 0f;
+        float halfSpacingX =
+            InventoryUIUtility.GetHalfSpacing(
+                spacing.x,
+                fillPaddingBetweenCells
+            );
+
+        float halfSpacingY =
+            InventoryUIUtility.GetHalfSpacing(
+                spacing.y,
+                fillPaddingBetweenCells
+            );
 
         int rowFromTop =
             storageContainer.Grid.Height - 1 - gridY;

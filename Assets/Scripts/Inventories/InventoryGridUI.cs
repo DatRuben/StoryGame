@@ -1919,10 +1919,16 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
             -rowFromTop * (cellSize.y + spacing.y);
 
         float halfSpacingX =
-            fillPaddingBetweenCells ? spacing.x * 0.5f : 0f;
+            InventoryUIUtility.GetHalfSpacing(
+                spacing.x,
+                fillPaddingBetweenCells
+            );
 
         float halfSpacingY =
-            fillPaddingBetweenCells ? spacing.y * 0.5f : 0f;
+            InventoryUIUtility.GetHalfSpacing(
+                spacing.y,
+                fillPaddingBetweenCells
+            );
 
         Vector2 position;
         Vector2 size;
@@ -2128,10 +2134,16 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
             -rowFromTop * (cellSize.y + spacing.y);
 
         float halfSpacingX =
-            fillPaddingBetweenCells ? spacing.x * 0.5f : 0f;
+            InventoryUIUtility.GetHalfSpacing(
+                spacing.x,
+                fillPaddingBetweenCells
+            );
 
         float halfSpacingY =
-            fillPaddingBetweenCells ? spacing.y * 0.5f : 0f;
+            InventoryUIUtility.GetHalfSpacing(
+                spacing.y,
+                fillPaddingBetweenCells
+            );
 
         Vector2 position;
 
@@ -2552,8 +2564,17 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
         Vector2 spacing = gridLayoutGroup.spacing;
         RectOffset padding = gridLayoutGroup.padding;
 
-        float halfSpacingX = fillPaddingBetweenCells ? spacing.x * 0.5f : 0f;
-        float halfSpacingY = fillPaddingBetweenCells ? spacing.y * 0.5f : 0f;
+        float halfSpacingX =
+            InventoryUIUtility.GetHalfSpacing(
+                spacing.x,
+                fillPaddingBetweenCells
+            );
+
+        float halfSpacingY =
+            InventoryUIUtility.GetHalfSpacing(
+                spacing.y,
+                fillPaddingBetweenCells
+            );
 
         int rowFromTop =
             playerInventory.Grid.Height - 1 - gridY;
@@ -2734,8 +2755,17 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
         Vector2 spacing = gridLayoutGroup.spacing;
         RectOffset padding = gridLayoutGroup.padding;
 
-        float halfSpacingX = fillPaddingBetweenCells ? spacing.x * 0.5f : 0f;
-        float halfSpacingY = fillPaddingBetweenCells ? spacing.y * 0.5f : 0f;
+        float halfSpacingX =
+            InventoryUIUtility.GetHalfSpacing(
+                spacing.x,
+                fillPaddingBetweenCells
+            );
+
+        float halfSpacingY =
+            InventoryUIUtility.GetHalfSpacing(
+                spacing.y,
+                fillPaddingBetweenCells
+            );
 
         int rowFromTop =
             playerInventory.Grid.Height - 1 - gridY;
