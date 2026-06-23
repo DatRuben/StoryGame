@@ -2252,29 +2252,13 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
         Vector2 size,
         Color color)
     {
-        GameObject edgeObject =
-            new GameObject(
-                "StorageItemOutlinePiece",
-                typeof(RectTransform),
-                typeof(Image)
-            );
-
-        edgeObject.transform.SetParent(itemOutline, false);
-
-        RectTransform rect =
-            edgeObject.GetComponent<RectTransform>();
-
-        rect.anchorMin = new Vector2(0f, 1f);
-        rect.anchorMax = new Vector2(0f, 1f);
-        rect.pivot = new Vector2(0.5f, 0.5f);
-        rect.anchoredPosition = position;
-        rect.sizeDelta = size;
-
-        Image image =
-            edgeObject.GetComponent<Image>();
-
-        image.color = color;
-        image.raycastTarget = false;
+        InventoryUIUtility.CreateImageRect(
+            itemOutline,
+            "StorageItemOutlinePiece",
+            position,
+            size,
+            color
+        );
     }
 
     private void RefreshHeldPreviewIfNeeded()

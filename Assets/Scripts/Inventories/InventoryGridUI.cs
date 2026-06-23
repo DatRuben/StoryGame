@@ -2351,35 +2351,13 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
         Vector2 position,
         Vector2 size)
     {
-        if (heldPreviewOutlineRoot == null)
-            return;
-
-        GameObject edgeObject =
-            new GameObject(
-                "HeldPreviewOutlinePiece",
-                typeof(RectTransform),
-                typeof(Image)
-            );
-
-        edgeObject.transform.SetParent(
+        InventoryUIUtility.CreateImageRect(
             heldPreviewOutlineRoot,
-            false
+            "HeldPreviewOutlinePiece",
+            position,
+            size,
+            itemOutlineColor
         );
-
-        RectTransform rect =
-            edgeObject.GetComponent<RectTransform>();
-
-        rect.anchorMin = new Vector2(0f, 1f);
-        rect.anchorMax = new Vector2(0f, 1f);
-        rect.pivot = new Vector2(0.5f, 0.5f);
-        rect.anchoredPosition = position;
-        rect.sizeDelta = size;
-
-        Image image =
-            edgeObject.GetComponent<Image>();
-
-        image.color = itemOutlineColor;
-        image.raycastTarget = false;
     }
 
     private void BuildItemOutlines()
@@ -2947,28 +2925,12 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
         Vector2 size,
         Color color)
     {
-        GameObject edgeObject =
-            new GameObject(
-                "ItemOutlinePiece",
-                typeof(RectTransform),
-                typeof(Image)
-            );
-
-        edgeObject.transform.SetParent(itemOutline, false);
-
-        RectTransform rect =
-            edgeObject.GetComponent<RectTransform>();
-
-        rect.anchorMin = new Vector2(0f, 1f);
-        rect.anchorMax = new Vector2(0f, 1f);
-        rect.pivot = new Vector2(0.5f, 0.5f);
-        rect.anchoredPosition = position;
-        rect.sizeDelta = size;
-
-        Image image =
-            edgeObject.GetComponent<Image>();
-
-        image.color = color;
-        image.raycastTarget = false;
+        InventoryUIUtility.CreateImageRect(
+            itemOutline,
+            "ItemOutlinePiece",
+            position,
+            size,
+            color
+        );
     }
 }
