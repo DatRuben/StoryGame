@@ -18504,42 +18504,7 @@ MonoBehaviour:
   playerWeaponSlots: {fileID: 2123556403}
   gridWidth: 12
   gridHeight: 8
-  startingItems:
-  - item: {fileID: 11400000, guid: 3b972127d5278944d9888d995cb842c2, type: 2}
-    quantity: 1
-    x: 2
-    y: 0
-    rotationSteps: 0
-  - item: {fileID: 11400000, guid: 32bd2806bcd662b438e86ac184b3181e, type: 2}
-    quantity: 1
-    x: 0
-    y: 0
-    rotationSteps: 0
-  - item: {fileID: 11400000, guid: b50a35d9086d53b48ac4a5a7520b184e, type: 2}
-    quantity: 1
-    x: 0
-    y: 5
-    rotationSteps: 3
-  - item: {fileID: 11400000, guid: 0f044c448178dfd46b389b72b4e163fc, type: 2}
-    quantity: 1
-    x: 0
-    y: 2
-    rotationSteps: 3
-  - item: {fileID: 11400000, guid: e9ed5f24771b067409d07614c77793e8, type: 2}
-    quantity: 1
-    x: 5
-    y: 5
-    rotationSteps: 0
-  - item: {fileID: 11400000, guid: 48d9c9da68f5a08438adc60ddacdd474, type: 2}
-    quantity: 75
-    x: 6
-    y: 7
-    rotationSteps: 0
-  - item: {fileID: 11400000, guid: 48d9c9da68f5a08438adc60ddacdd474, type: 2}
-    quantity: 50
-    x: 7
-    y: 7
-    rotationSteps: 0
+  startingItems: []
   weaponSlotItem: {fileID: 0}
   weaponDrawn: 0
 --- !u!114 &2123556396
@@ -18724,16 +18689,16 @@ MonoBehaviour:
   playerInventory: {fileID: 2123556395}
   playerHolding: {fileID: 2123556401}
   weaponSet1:
-    mode: 2
+    mode: 0
     leftHandWeapon: {fileID: 0}
     rightHandWeapon: {fileID: 0}
-    twoHandedWeapon: {fileID: 11400000, guid: 00840a1482c71db4d9ff7c9360be1132, type: 2}
+    twoHandedWeapon: {fileID: 0}
     mouthWeapon: {fileID: 0}
     saddleSourceEquipment: {fileID: 0}
   weaponSet2:
-    mode: 1
-    leftHandWeapon: {fileID: 11400000, guid: 831bda00be51f13498b164482fa7d507, type: 2}
-    rightHandWeapon: {fileID: 11400000, guid: 831bda00be51f13498b164482fa7d507, type: 2}
+    mode: 0
+    leftHandWeapon: {fileID: 0}
+    rightHandWeapon: {fileID: 0}
     twoHandedWeapon: {fileID: 0}
     mouthWeapon: {fileID: 0}
     saddleSourceEquipment: {fileID: 0}
