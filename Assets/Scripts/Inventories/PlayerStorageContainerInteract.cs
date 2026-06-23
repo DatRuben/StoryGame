@@ -27,12 +27,13 @@ public class PlayerStorageContainerInteract : MonoBehaviour
 
     private void Reset()
     {
-        ValidateReferences(true, false);
     }
 
     private void OnValidate()
     {
-        ValidateReferences(true, false);
+        interactRange = Mathf.Max(0f, interactRange);
+        lookInteractRange = Mathf.Max(0f, lookInteractRange);
+        autoCloseRange = Mathf.Max(0f, autoCloseRange);
     }
 
     private void Awake()
