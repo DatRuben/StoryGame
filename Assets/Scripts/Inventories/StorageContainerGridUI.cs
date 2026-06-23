@@ -1892,10 +1892,11 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
                     cellTop + halfSpacingY
                 );
 
-                size = new Vector2(
-                    cellSize.x,
-                    itemOutlineThickness
-                );
+                size =
+                    InventoryUIUtility.GetHorizontalEdgeSize(
+                        cellSize.x,
+                        itemOutlineThickness
+                    );
                 break;
 
             case InventoryOutlineSide.Bottom:
@@ -1904,10 +1905,11 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
                     cellTop - cellSize.y - halfSpacingY
                 );
 
-                size = new Vector2(
-                    cellSize.x,
-                    itemOutlineThickness
-                );
+                size =
+                    InventoryUIUtility.GetHorizontalEdgeSize(
+                        cellSize.x,
+                        itemOutlineThickness
+                    );
                 break;
 
             case InventoryOutlineSide.Left:
@@ -1916,10 +1918,11 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
                     cellTop - cellSize.y * 0.5f
                 );
 
-                size = new Vector2(
-                    itemOutlineThickness,
-                    cellSize.y
-                );
+                size =
+                    InventoryUIUtility.GetVerticalEdgeSize(
+                        itemOutlineThickness,
+                        cellSize.y
+                    );
                 break;
 
             default:
@@ -1928,10 +1931,11 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
                     cellTop - cellSize.y * 0.5f
                 );
 
-                size = new Vector2(
-                    itemOutlineThickness,
-                    cellSize.y
-                );
+                size =
+                    InventoryUIUtility.GetVerticalEdgeSize(
+                        itemOutlineThickness,
+                        cellSize.y
+                    );
                 break;
         }
 

@@ -81,4 +81,24 @@ public static class InventoryUIUtility
             spacingY
         );
     }
+
+    public static Vector2 GetHorizontalEdgeSize(
+    float cellWidth,
+    float thickness)
+    {
+        return new Vector2(
+            cellWidth,
+            thickness
+        );
+    }
+
+    public static Vector2 GetVerticalEdgeSize(
+        float thickness,
+        float cellHeight)
+    {
+        return new Vector2(
+            thickness,
+            cellHeight
+        );
+    }
 }
