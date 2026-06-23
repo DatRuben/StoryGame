@@ -1674,7 +1674,7 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
             return;
         }
 
-        InventoryOutlineUtility.ClearChildren(
+        InventoryUIUtility.ClearChildren(
             itemOutline
         );
 

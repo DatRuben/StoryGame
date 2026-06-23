@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public static class InventoryOutlineUtility
+public static class InventoryUIUtility
 {
     public static void ClearChildren(RectTransform root)
     {
