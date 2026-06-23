@@ -53,5 +53,19 @@ public class CharacterGameBootstrap : MonoBehaviour
             playerProfile = spawnedPlayer.AddComponent<PlayerCharacterProfile>();
 
         playerProfile.Initialize(SelectedCharacterProfile.Profile);
+
+        PlayerInput playerInput =
+            spawnedPlayer.GetComponent<PlayerInput>();
+
+        if (playerInput != null)
+        {
+            Camera mainCamera =
+                Camera.main;
+
+            playerInput.SetRuntimeCameraReferences(
+                mainCamera,
+                mainCamera != null ? mainCamera.transform : null
+            );
+        }
     }
 }

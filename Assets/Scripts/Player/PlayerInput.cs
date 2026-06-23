@@ -131,6 +131,28 @@ public class PlayerInput : MonoBehaviour
         playerInput.Player.Disable();
     }
 
+    public void SetRuntimeCameraReferences(
+    Camera camera,
+    Transform cameraTransformOverride = null,
+    TextMeshProUGUI speedTextOverride = null)
+    {
+        if (playerCamera == null)
+            playerCamera = camera;
+
+        if (cameraTransform == null)
+        {
+            cameraTransform =
+                cameraTransformOverride != null
+                    ? cameraTransformOverride
+                    : camera != null
+                        ? camera.transform
+                        : null;
+        }
+
+        if (speedText == null)
+            speedText = speedTextOverride;
+    }
+
     private void FixedUpdate()
     {
         bool canUseGround =
