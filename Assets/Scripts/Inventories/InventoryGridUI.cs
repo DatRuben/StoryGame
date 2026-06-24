@@ -3008,6 +3008,39 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
         );
     }
 
+    public void BindPlayer(
+    PlayerInventory newPlayerInventory,
+    PlayerStorageContainerInteract newStorageInteract)
+    {
+        if (playerInventory != null)
+        {
+            playerInventory.OnInventoryChanged -= Refresh;
+            playerInventory.OnHeldItemChanged -= HandleHeldItemChanged;
+        }
+
+        playerInventory = newPlayerInventory;
+
+        playerStorageContainerInteract =
+            newStorageInteract != null
+                ? newStorageInteract
+                : playerInventory != null
+                    ? playerInventory.GetComponent<PlayerStorageContainerInteract>()
+                    : null;
+
+        if (playerInventory != null)
+        {
+            playerInventory.OnInventoryChanged += Refresh;
+            playerInventory.OnHeldItemChanged += HandleHeldItemChanged;
+        }
+
+        if (heldPreviewRoot == null)
+            CreateHeldPreviewRoot();
+
+        BuildGrid();
+        HandleHeldItemChanged();
+        Refresh();
+    }
+
     private void CreateOutlineRect(
         Vector2 position,
         Vector2 size,

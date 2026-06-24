@@ -7,6 +7,8 @@ public class CharacterGameBootstrap : MonoBehaviour
 
     private GameObject spawnedPlayer;
 
+    public static GameObject CurrentPlayer { get; private set; }
+
     private void Start()
     {
         SpawnSelectedCharacter();
@@ -45,6 +47,8 @@ public class CharacterGameBootstrap : MonoBehaviour
                 spawnPosition,
                 spawnRotation
             );
+
+        CurrentPlayer = spawnedPlayer;
 
         PlayerCharacterProfile playerProfile =
             spawnedPlayer.GetComponent<PlayerCharacterProfile>();

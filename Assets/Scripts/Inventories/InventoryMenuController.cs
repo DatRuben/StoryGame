@@ -45,6 +45,13 @@ public class InventoryMenuController : MonoBehaviour
         SetInventoryOpen(!isOpen);
     }
 
+    public void SetComponentsDisabledWhileOpen(
+    Behaviour[] components)
+    {
+        componentsDisabledWhileOpen = components;
+        SetInventoryOpen(isOpen);
+    }
+
     private void SetInventoryOpen(bool open)
     {
         isOpen = open;

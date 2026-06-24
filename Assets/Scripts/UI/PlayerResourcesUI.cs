@@ -212,6 +212,19 @@ public class PlayerResourcesUI : MonoBehaviour
         );
     }
 
+    public void BindPlayer(PlayerResources newPlayerResources)
+    {
+        if (playerResources != null)
+            playerResources.OnResourcesChanged -= Refresh;
+
+        playerResources = newPlayerResources;
+
+        if (playerResources != null)
+            playerResources.OnResourcesChanged += Refresh;
+
+        Refresh();
+    }
+
     private void CreateBorderPiece(
         RectTransform parent,
         string name,

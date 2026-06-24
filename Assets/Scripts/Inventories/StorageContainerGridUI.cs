@@ -2316,6 +2316,17 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
         );
     }
 
+    public void BindPlayer(
+    PlayerInventory newPlayerInventory,
+    InventoryGridUI newPlayerInventoryGridUI)
+    {
+        playerInventory = newPlayerInventory;
+        playerInventoryGridUI = newPlayerInventoryGridUI;
+
+        BuildGrid();
+        Refresh();
+    }
+
     private void RefreshHeldPreviewIfNeeded()
     {
         PlacedInventoryItem heldItem =
