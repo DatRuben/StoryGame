@@ -8594,6 +8594,9 @@ MonoBehaviour:
   playerResourcesUI: {fileID: 1093962943}
   inventoryMenuController: {fileID: 579740482}
   speedText: {fileID: 872080309}
+  cinemachineCamera: {fileID: 636625052}
+  cameraTargetOverride: {fileID: 0}
+  cameraPivotName: CameraPivot
 --- !u!1 &973344196
 GameObject:
   m_ObjectHideFlags: 0

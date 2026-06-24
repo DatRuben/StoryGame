@@ -1,6 +1,7 @@
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using Unity.Cinemachine;
 
 public class CharacterRuntimeBinder : MonoBehaviour
 {
@@ -11,6 +12,9 @@ public class CharacterRuntimeBinder : MonoBehaviour
     [SerializeField] private PlayerResourcesUI playerResourcesUI;
     [SerializeField] private InventoryMenuController inventoryMenuController;
     [SerializeField] private TextMeshProUGUI speedText;
+    [SerializeField] private CinemachineCamera cinemachineCamera;
+    [SerializeField] private Transform cameraTargetOverride;
+    [SerializeField] private string cameraPivotName = "CameraPivot";
 
     private IEnumerator Start()
     {
@@ -60,6 +64,44 @@ public class CharacterRuntimeBinder : MonoBehaviour
                 mainCamera,
                 mainCamera != null ? mainCamera.transform : null,
                 speedText
+            );
+        }
+
+        if (cinemachineCamera == null)
+            cinemachineCamera = FindSceneComponent<CinemachineCamera>();
+
+        Transform cameraTarget =
+            cameraTargetOverride != null
+                ? cameraTargetOverride
+                : FindChildRecursive(player.transform, cameraPivotName);
+
+        if (cameraTarget == null)
+        {
+            Debug.LogWarning(
+                $"CharacterRuntimeBinder could not find camera pivot named '{cameraPivotName}'. Falling back to player root.",
+                this
+            );
+
+            cameraTarget = player.transform;
+        }
+
+        if (cameraTarget == null)
+            cameraTarget = player.transform;
+
+        if (cinemachineCamera != null)
+        {
+            cinemachineCamera.Follow = cameraTarget;
+
+            Debug.Log(
+                $"Camera bound to target: {cameraTarget.name}",
+                cameraTarget
+            );
+        }
+        else
+        {
+            Debug.LogWarning(
+                "CharacterRuntimeBinder could not find a CinemachineCamera to bind.",
+                this
             );
         }
 
@@ -128,6 +170,34 @@ public class CharacterRuntimeBinder : MonoBehaviour
             }
 
             return match;
+        }
+
+        return null;
+    }
+
+    private Transform FindChildRecursive(
+    Transform parent,
+    string childName)
+    {
+        if (parent == null ||
+            string.IsNullOrWhiteSpace(childName))
+        {
+            return null;
+        }
+
+        for (int i = 0; i < parent.childCount; i++)
+        {
+            Transform child =
+                parent.GetChild(i);
+
+            if (child.name == childName)
+                return child;
+
+            Transform match =
+                FindChildRecursive(child, childName);
+
+            if (match != null)
+                return match;
         }
 
         return null;

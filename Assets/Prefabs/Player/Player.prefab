@@ -268,7 +268,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 56a66fdedba50ee429bfff2a1d72e0e7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RaceProfileApplier
-  raceProfile: {fileID: 0}
+  raceProfile: {fileID: 11400000, guid: b129ca34dc2505b4bb75de6a89cfaaba, type: 2}
   capsuleCollider: {fileID: 3813683606675395284}
   groundCheck: {fileID: 3929204665239071809}
   cameraPivot: {fileID: 3435356018134033480}
@@ -337,8 +337,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInventory
   playerWeaponSlots: {fileID: 7061591094718048246}
-  gridWidth: 12
-  gridHeight: 8
+  gridWidth: 5
+  gridHeight: 5
   startingItems: []
   weaponSlotItem: {fileID: 0}
   weaponDrawn: 0
