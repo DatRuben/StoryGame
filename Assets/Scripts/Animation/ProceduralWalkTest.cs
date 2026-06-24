@@ -28,6 +28,10 @@ public class ProceduralWalkTest : MonoBehaviour
     public float armSwingAngle = 15f;
     public float spineTwistAngle = 0f;
 
+    [Header("Separate Leg Axes")]
+    public Vector3 leftLegSwingAxis = Vector3.right;
+    public Vector3 rightLegSwingAxis = Vector3.right;
+
     [Header("Axes")]
     public Vector3 legSwingAxis = Vector3.right;
     public Vector3 kneeBendAxis = Vector3.right;
@@ -82,13 +86,13 @@ public class ProceduralWalkTest : MonoBehaviour
         if (leftUpperLeg)
         {
             leftUpperLeg.localRotation =
-                leftUpperLegStart * Quaternion.AngleAxis(leftSwing * legSwingAngle, legSwingAxis);
+                Quaternion.AngleAxis(leftSwing * legSwingAngle, leftLegSwingAxis) * leftUpperLegStart;
         }
 
         if (rightUpperLeg)
         {
             rightUpperLeg.localRotation =
-                rightUpperLegStart * Quaternion.AngleAxis(rightSwing * legSwingAngle, legSwingAxis);
+                Quaternion.AngleAxis(rightSwing * legSwingAngle, rightLegSwingAxis) * rightUpperLegStart;
         }
 
         if (leftLowerLeg)
@@ -106,13 +110,13 @@ public class ProceduralWalkTest : MonoBehaviour
         if (leftUpperArm)
         {
             leftUpperArm.localRotation =
-                leftArmStart * Quaternion.AngleAxis(rightSwing * armSwingAngle, armSwingAxis);
+               Quaternion.AngleAxis(rightSwing * armSwingAngle, armSwingAxis) * leftArmStart;
         }
 
         if (rightUpperArm)
         {
             rightUpperArm.localRotation =
-                rightArmStart * Quaternion.AngleAxis(leftSwing * armSwingAngle, armSwingAxis);
+               Quaternion.AngleAxis(leftSwing * armSwingAngle, armSwingAxis) * rightArmStart;
         }
 
         if (spine)

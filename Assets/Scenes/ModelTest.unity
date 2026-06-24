@@ -440,7 +440,7 @@ Transform:
   m_GameObject: {fileID: 1100062137}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0.7071068, z: -0, w: -0.7071068}
-  m_LocalPosition: {x: 15.35, y: 9.96, z: 8.27}
+  m_LocalPosition: {x: 20.45, y: 9.96, z: 11.73}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -628,11 +628,13 @@ MonoBehaviour:
   rightLowerLeg: {fileID: 713577032}
   walkSpeed: 3
   legSwingAngle: 10
-  kneeBendAngle: 50
+  kneeBendAngle: 0
   armSwingAngle: 10
   spineTwistAngle: 5
-  legSwingAxis: {x: 0.25, y: -0.25, z: 0}
-  kneeBendAxis: {x: 1, y: 0, z: 0}
+  leftLegSwingAxis: {x: 1, y: 0, z: 0}
+  rightLegSwingAxis: {x: 1, y: 0, z: 0}
+  legSwingAxis: {x: 1, y: 0, z: 0}
+  kneeBendAxis: {x: 0, y: 0, z: 0}
   armSwingAxis: {x: 1, y: 0, z: 0}
   spineTwistAxis: {x: 0, y: 1, z: 0}
 --- !u!4 &1207500440 stripped
