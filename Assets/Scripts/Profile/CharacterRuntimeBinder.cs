@@ -15,6 +15,8 @@ public class CharacterRuntimeBinder : MonoBehaviour
     [SerializeField] private CinemachineCamera cinemachineCamera;
     [SerializeField] private Transform cameraTargetOverride;
     [SerializeField] private string cameraPivotName = "CameraPivot";
+    [SerializeField] private InventoryContextPanelController contextPanelController;
+    [SerializeField] private GameObject storageContainerPanel;
 
     private IEnumerator Start()
     {
@@ -85,9 +87,6 @@ public class CharacterRuntimeBinder : MonoBehaviour
             cameraTarget = player.transform;
         }
 
-        if (cameraTarget == null)
-            cameraTarget = player.transform;
-
         if (cinemachineCamera != null)
         {
             cinemachineCamera.Follow = cameraTarget;
@@ -111,6 +110,15 @@ public class CharacterRuntimeBinder : MonoBehaviour
         if (storageContainerGridUI == null)
             storageContainerGridUI = FindSceneComponent<StorageContainerGridUI>();
 
+        if (contextPanelController == null)
+            contextPanelController = FindSceneComponent<InventoryContextPanelController>();
+
+        if (storageContainerPanel == null &&
+            storageContainerGridUI != null)
+        {
+            storageContainerPanel = storageContainerGridUI.gameObject;
+        }
+
         if (heldItemUI == null)
             heldItemUI = FindSceneComponent<HeldItemUI>();
 
@@ -119,6 +127,16 @@ public class CharacterRuntimeBinder : MonoBehaviour
 
         if (inventoryMenuController == null)
             inventoryMenuController = FindSceneComponent<InventoryMenuController>();
+
+        if (storageInteract != null)
+        {
+            storageInteract.BindSceneReferences(
+                mainCamera != null ? mainCamera.transform : null,
+                storageContainerGridUI,
+                storageContainerPanel,
+                contextPanelController
+            );
+        }
 
         if (inventoryGridUI != null)
         {

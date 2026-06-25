@@ -39,7 +39,7 @@ public class PlayerStorageContainerInteract : MonoBehaviour
     private void Awake()
     {
         inputActions = new PlayerInputActions();
-        ValidateReferences(true, true);
+        ValidateReferences(false, false);
     }
 
     private void OnEnable()
@@ -429,5 +429,17 @@ public class PlayerStorageContainerInteract : MonoBehaviour
             if (containerGridUI != null)
                 containerGridUI.SetStorageContainer(null);
         }
+    }
+
+    public void BindSceneReferences(
+    Transform newCameraTransform,
+    StorageContainerGridUI newContainerGridUI,
+    GameObject newContainerPanel,
+    InventoryContextPanelController newContextPanelController)
+    {
+        cameraTransform = newCameraTransform;
+        containerGridUI = newContainerGridUI;
+        containerPanel = newContainerPanel;
+        contextPanelController = newContextPanelController;
     }
 }
