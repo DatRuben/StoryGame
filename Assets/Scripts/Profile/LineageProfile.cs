@@ -6,6 +6,9 @@ public class LineageProfile : ScriptableObject
     [Header("Identity")]
     public string LineageName;
 
+    [Header("Attribute Bonuses")]
+    public CharacterAttributes attributeBonuses = CharacterAttributes.CreateDefault(0);
+
     [TextArea]
     public string description;
 

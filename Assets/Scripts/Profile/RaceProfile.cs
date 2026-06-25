@@ -15,10 +15,13 @@ public enum RaceSize
 {
     Size1,
     Size2,
+    TallerSize2,
     Size3,
     Size1Feral,
     Size2Feral,
-    Size3Feral
+    Size3Feral,
+    Dragon,
+    BigDragon
 }
 
 public enum BodyType
@@ -47,6 +50,12 @@ public class RaceProfile : ScriptableObject
 
     [TextArea]
     public string description;
+
+    [Header("Starting Attributes")]
+    public CharacterAttributes baseAttributes = CharacterAttributes.CreateDefault(5);
+
+    [Header("Body Profile")]
+    public RaceBodyProfile bodyProfile = new RaceBodyProfile();
 
     [Header("Body / Collider")]
     public float capsuleRadius = 0.5f;

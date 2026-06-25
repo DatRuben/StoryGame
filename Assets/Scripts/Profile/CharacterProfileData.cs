@@ -15,7 +15,8 @@ public class CharacterProfileData
 
     public int level = 1;
 
-    public CharacterAttributes attributes = new();
+    public CharacterAttributes allocatedAttributes = CharacterAttributes.CreateDefault(0);
+    public int unspentAttributePoints;
 
     public List<CharacterSkillLevel> skillLevels = new();
 
@@ -35,39 +36,8 @@ public class CharacterProfileData
             level = 1,
             createdUtc = now,
             lastSavedUtc = now,
-            attributes = CharacterAttributes.CreateDefault()
-        };
-    }
-}
-
-[Serializable]
-public class CharacterAttributes
-{
-    public int strength;
-    public int dexterity;
-    public int agility;
-    public int vitality;
-    public int endurance;
-    public int intelligence;
-    public int willpower;
-    public int spirit;
-    public int perception;
-    public int technique;
-
-    public static CharacterAttributes CreateDefault()
-    {
-        return new CharacterAttributes
-        {
-            strength = 5,
-            dexterity = 5,
-            agility = 5,
-            vitality = 5,
-            endurance = 5,
-            intelligence = 5,
-            willpower = 5,
-            spirit = 5,
-            perception = 5,
-            technique = 5
+            allocatedAttributes = CharacterAttributes.CreateDefault(0),
+            unspentAttributePoints = 5
         };
     }
 }
