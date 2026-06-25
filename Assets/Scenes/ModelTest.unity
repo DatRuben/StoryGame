@@ -627,14 +627,14 @@ MonoBehaviour:
   leftLowerLeg: {fileID: 1008423347}
   rightLowerLeg: {fileID: 713577032}
   walkSpeed: 3
-  legSwingAngle: 10
-  kneeBendAngle: 0
+  legSwingAngle: 20
+  kneeBendAngle: 20
   armSwingAngle: 10
   spineTwistAngle: 5
   leftLegSwingAxis: {x: 1, y: 0, z: 0}
   rightLegSwingAxis: {x: 1, y: 0, z: 0}
   legSwingAxis: {x: 1, y: 0, z: 0}
-  kneeBendAxis: {x: 0, y: 0, z: 0}
+  kneeBendAxis: {x: 1, y: 0, z: 0}
   armSwingAxis: {x: 1, y: 0, z: 0}
   spineTwistAxis: {x: 0, y: 1, z: 0}
 --- !u!4 &1207500440 stripped

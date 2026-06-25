@@ -98,13 +98,13 @@ public class ProceduralWalkTest : MonoBehaviour
         if (leftLowerLeg)
         {
             leftLowerLeg.localRotation =
-                leftLowerLegStart * Quaternion.AngleAxis(leftKneeBend, kneeBendAxis);
+                Quaternion.AngleAxis(leftKneeBend, legSwingAxis) * leftLowerLegStart;
         }
 
         if (rightLowerLeg)
         {
             rightLowerLeg.localRotation =
-                rightLowerLegStart * Quaternion.AngleAxis(rightKneeBend, kneeBendAxis);
+                Quaternion.AngleAxis(rightKneeBend, legSwingAxis) * rightLowerLegStart;
         }
 
         if (leftUpperArm)
