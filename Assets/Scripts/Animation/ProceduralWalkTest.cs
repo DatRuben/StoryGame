@@ -9,6 +9,7 @@ public class ProceduralWalkTest : MonoBehaviour
 
     [Header("Movement")]
     public bool moveForward = false;
+    public Transform moveRoot;
     public float moveSpeed = 1.5f;
 
     [Header("Body Bob")]
@@ -30,6 +31,7 @@ public class ProceduralWalkTest : MonoBehaviour
 
     [Header("Swing")]
     public float walkSpeed = 3f;
+    public float animationSpeedMultiplier = 1f;
     public float legSwingAngle = 20f;
     public float kneeBendAngle = 35f;
     public float armSwingAngle = 15f;
@@ -86,7 +88,7 @@ public class ProceduralWalkTest : MonoBehaviour
 
     void Update()
     {
-        float t = Time.time * walkSpeed;
+        float t = Time.time * walkSpeed * animationSpeedMultiplier;
 
         float leftSwing = Mathf.Sin(t);
         float rightSwing = Mathf.Sin(t + Mathf.PI);
@@ -102,7 +104,8 @@ public class ProceduralWalkTest : MonoBehaviour
 
         if (moveForward)
         {
-            transform.position += transform.forward * moveSpeed * Time.deltaTime;
+            Transform root = moveRoot ? moveRoot : transform;
+            root.position += root.forward * moveSpeed * Time.deltaTime;
         }
 
         if (visualRoot)

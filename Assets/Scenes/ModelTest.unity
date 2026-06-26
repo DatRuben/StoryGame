@@ -761,7 +761,8 @@ MonoBehaviour:
   leftArmDownAxis: {x: 1, y: 0, z: 0}
   rightArmDownAxis: {x: 1, y: 0, z: 0}
   moveForward: 0
-  moveSpeed: 1.5
+  moveRoot: {fileID: 0}
+  moveSpeed: 0
   visualRoot: {fileID: 1416441819}
   bobHeight: 0.03
   leftUpperArm: {fileID: 1207500442}
@@ -774,6 +775,7 @@ MonoBehaviour:
   leftLowerLeg: {fileID: 1008423347}
   rightLowerLeg: {fileID: 713577032}
   walkSpeed: 3
+  animationSpeedMultiplier: 1
   legSwingAngle: 20
   kneeBendAngle: 30
   armSwingAngle: 15
