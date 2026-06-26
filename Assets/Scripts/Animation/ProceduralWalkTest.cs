@@ -67,9 +67,10 @@ public class ProceduralWalkTest : MonoBehaviour
 
         float leftSwing = Mathf.Sin(t);
         float rightSwing = Mathf.Sin(t + Mathf.PI);
-
-        float leftKneeBend = Mathf.Clamp01(leftSwing) * kneeBendAngle;
-        float rightKneeBend = Mathf.Clamp01(rightSwing) * kneeBendAngle;
+        
+        float kneeTimingOffset = 0.6f;
+        float leftKneeBend = Mathf.Clamp01(Mathf.Sin(t + kneeTimingOffset)) * kneeBendAngle;
+        float rightKneeBend = Mathf.Clamp01(Mathf.Sin(t + Mathf.PI + kneeTimingOffset)) * kneeBendAngle;
 
         float bob = Mathf.Abs(Mathf.Sin(t)) * bobHeight;
 
