@@ -54,8 +54,24 @@ public class RaceProfile : ScriptableObject
     [Header("Starting Attributes")]
     public CharacterAttributes baseAttributes = CharacterAttributes.CreateDefault(5);
 
-    [Header("Body Profile")]
-    public RaceBodyProfile bodyProfile = new RaceBodyProfile();
+    [Header("Final Stat Baselines")]
+    public float baseHealth = 100f;
+    public float baseStamina = 100f;
+    public float baseMana = 50f;
+    public float baseMass = 1f;
+    public float basePoise = 100f;
+
+    [Header("Cost Multipliers")]
+    public float movementCostMultiplier = 1f;
+    public float dodgeCostMultiplier = 1f;
+    public float equipmentWeightMultiplier = 1f;
+
+    [Header("Attribute Scaling")]
+    public float vitalityToHealth = 10f;
+    public float enduranceToStamina = 10f;
+    public float spiritToMana = 10f;
+    public float vitalityToPoise = 4f;
+    public float strengthToPoise = 3f;
 
     [Header("Body / Collider")]
     public float capsuleRadius = 0.5f;

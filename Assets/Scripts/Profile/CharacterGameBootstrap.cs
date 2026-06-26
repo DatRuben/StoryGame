@@ -4,6 +4,8 @@ public class CharacterGameBootstrap : MonoBehaviour
 {
     [SerializeField] private GameObject playerPrefab;
     [SerializeField] private Transform spawnPoint;
+    [SerializeField] private RaceProfile debugRaceProfile;
+    [SerializeField] private LineageProfile[] debugLineageProfiles;
 
     private GameObject spawnedPlayer;
 
@@ -56,7 +58,11 @@ public class CharacterGameBootstrap : MonoBehaviour
         if (playerProfile == null)
             playerProfile = spawnedPlayer.AddComponent<PlayerCharacterProfile>();
 
-        playerProfile.Initialize(SelectedCharacterProfile.Profile);
+        playerProfile.Initialize(
+            SelectedCharacterProfile.Profile,
+            debugRaceProfile,
+            debugLineageProfiles
+        );
 
         PlayerInput playerInput =
             spawnedPlayer.GetComponent<PlayerInput>();

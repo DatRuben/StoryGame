@@ -36,9 +36,9 @@ public static class CharacterStatsResolver
                     continue;
 
                 finalAttributes =
-                    CharacterAttributes.Add(
+                    CharacterAttributes.AddModifiers(
                         finalAttributes,
-                        lineageProfile.attributeBonuses
+                        lineageProfile.attributeModifiers
                     );
             }
         }
@@ -58,6 +58,55 @@ public static class CharacterStatsResolver
             );
         }
 
-        return finalAttributes;
+        return CharacterAttributes.ClampMinimum(finalAttributes, 1);
+    }
+
+    public static FinalCharacterStats ResolveFinalStats(
+        RaceProfile raceProfile,
+        CharacterAttributes attributes)
+    {
+        if (raceProfile == null)
+        {
+            Debug.LogWarning(
+                "CharacterStatsResolver could not resolve final stats because RaceProfile is missing."
+            );
+
+            raceProfile = ScriptableObject.CreateInstance<RaceProfile>();
+        }
+
+        attributes =
+            CharacterAttributes.ClampMinimum(attributes, 1);
+
+        return new FinalCharacterStats
+        {
+            maxHealth =
+                raceProfile.baseHealth +
+                attributes.vitality * raceProfile.vitalityToHealth,
+
+            maxStamina =
+                raceProfile.baseStamina +
+                attributes.endurance * raceProfile.enduranceToStamina,
+
+            maxMana =
+                raceProfile.baseMana +
+                attributes.spirit * raceProfile.spiritToMana,
+
+            mass =
+                raceProfile.baseMass,
+
+            poise =
+                raceProfile.basePoise +
+                attributes.vitality * raceProfile.vitalityToPoise +
+                attributes.strength * raceProfile.strengthToPoise,
+
+            movementCostMultiplier =
+                raceProfile.movementCostMultiplier,
+
+            dodgeCostMultiplier =
+                raceProfile.dodgeCostMultiplier,
+
+            equipmentWeightMultiplier =
+                raceProfile.equipmentWeightMultiplier
+        };
     }
 }

@@ -4,19 +4,26 @@ public class PlayerCharacterProfile : MonoBehaviour
 {
     public CharacterProfileData ProfileData { get; private set; }
     public CharacterAttributes FinalAttributes { get; private set; }
+    public FinalCharacterStats FinalStats { get; private set; }
 
-    public void Initialize(CharacterProfileData profileData)
+    public void Initialize(
+        CharacterProfileData profileData,
+        RaceProfile raceProfile,
+        LineageProfile[] lineageProfiles)
     {
         ProfileData = profileData;
-
-        RaceProfile raceProfile = null;
-        LineageProfile[] lineageProfiles = null;
 
         FinalAttributes =
             CharacterStatsResolver.ResolveAttributes(
                 raceProfile,
                 ProfileData,
                 lineageProfiles
+            );
+
+        FinalStats =
+            CharacterStatsResolver.ResolveFinalStats(
+                raceProfile,
+                FinalAttributes
             );
 
         Debug.Log(
@@ -31,6 +38,15 @@ public class PlayerCharacterProfile : MonoBehaviour
             $"SPI {FinalAttributes.spirit}, " +
             $"PER {FinalAttributes.perception}, " +
             $"TEC {FinalAttributes.technique}",
+            this
+        );
+
+        Debug.Log(
+            $"Derived stats for {ProfileData.characterName}: " +
+            $"HP {FinalStats.maxHealth}, " +
+            $"STA {FinalStats.maxStamina}, " +
+            $"MANA {FinalStats.maxMana}, " +
+            $"POISE {FinalStats.poise}",
             this
         );
     }

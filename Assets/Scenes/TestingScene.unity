@@ -8597,6 +8597,8 @@ MonoBehaviour:
   cinemachineCamera: {fileID: 636625052}
   cameraTargetOverride: {fileID: 0}
   cameraPivotName: CameraPivot
+  contextPanelController: {fileID: 0}
+  storageContainerPanel: {fileID: 0}
 --- !u!1 &973344196
 GameObject:
   m_ObjectHideFlags: 0
@@ -16955,6 +16957,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CharacterGameBootstrap
   playerPrefab: {fileID: 3981885625536899075, guid: 64e47ba75c61b5c45a6fa6429e61fd5f, type: 3}
   spawnPoint: {fileID: 104995733}
+  debugRaceProfile: {fileID: 11400000, guid: b129ca34dc2505b4bb75de6a89cfaaba, type: 2}
+  debugLineageProfiles:
+  - {fileID: 11400000, guid: a847b282eaa85e1459cc193c4b8f8a82, type: 2}
 --- !u!1 &2044314361
 GameObject:
   m_ObjectHideFlags: 0

@@ -18,6 +18,35 @@ MonoBehaviour:
   size: 1
   bodyType: 0
   description: Standard Human
+  baseAttributes:
+    strength: 8
+    dexterity: 8
+    agility: 8
+    vitality: 8
+    endurance: 8
+    intelligence: 8
+    willpower: 8
+    spirit: 8
+    perception: 8
+    technique: 8
+  bodyProfile:
+    bodyFamily: 0
+    raceSize: 1
+    bodyScale: 1
+    baseHealth: 100
+    baseStamina: 100
+    baseMana: 50
+    baseMass: 1
+    basePoise: 1
+    hitboxRisk: 1
+    movementCostMultiplier: 1
+    dodgeCostMultiplier: 1
+    equipmentWeightMultiplier: 1
+    vitalityToHealth: 10
+    enduranceToStamina: 10
+    spiritToMana: 10
+    vitalityToPoise: 0.05
+    strengthToPoise: 0.05
   capsuleRadius: 0.5
   capsuleHeight: 2
   capsuleCenter: {x: 0, y: 2, z: 0}
@@ -45,12 +74,16 @@ MonoBehaviour:
   usesSize1FeralWeapons: 0
   usesSize2FeralWeapons: 0
   usesSize3FeralWeapons: 0
+  canHoldItemInMouth: 0
+  canUseMouthWeapons: 0
+  canEquipSaddles: 0
   naturalCatalyst: 0
   racialSkillTreeName: 
   racialSkillTreeTheme: 
   usesLineageProfiles: 1
   allowedLineage:
   - {fileID: 11400000, guid: 4d45a399ff6ce6e499b99aa38b5672e2, type: 2}
+  - {fileID: 11400000, guid: a847b282eaa85e1459cc193c4b8f8a82, type: 2}
   maxLineageCount: 1
   canShapeshift: 0
   shapeshiftForms: []

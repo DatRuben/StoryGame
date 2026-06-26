@@ -15,7 +15,7 @@ public class CharacterAttributes
     [Min(0)] public int perception;
     [Min(0)] public int technique;
 
-    public static CharacterAttributes CreateDefault(int value = 5)
+    public static CharacterAttributes CreateDefault(int value)
     {
         return new CharacterAttributes
         {
@@ -29,6 +29,28 @@ public class CharacterAttributes
             spirit = value,
             perception = value,
             technique = value
+        };
+    }
+
+    public static CharacterAttributes ClampMinimum(
+    CharacterAttributes attributes,
+    int minimumValue = 1)
+    {
+        if (attributes == null)
+            return CreateDefault(minimumValue);
+
+        return new CharacterAttributes
+        {
+            strength = Mathf.Max(minimumValue, attributes.strength),
+            dexterity = Mathf.Max(minimumValue, attributes.dexterity),
+            agility = Mathf.Max(minimumValue, attributes.agility),
+            vitality = Mathf.Max(minimumValue, attributes.vitality),
+            endurance = Mathf.Max(minimumValue, attributes.endurance),
+            intelligence = Mathf.Max(minimumValue, attributes.intelligence),
+            willpower = Mathf.Max(minimumValue, attributes.willpower),
+            spirit = Mathf.Max(minimumValue, attributes.spirit),
+            perception = Mathf.Max(minimumValue, attributes.perception),
+            technique = Mathf.Max(minimumValue, attributes.technique)
         };
     }
 
@@ -77,6 +99,31 @@ public class CharacterAttributes
             spirit = source.spirit,
             perception = source.perception,
             technique = source.technique
+        };
+    }
+
+    public static CharacterAttributes AddModifiers(
+    CharacterAttributes attributes,
+    CharacterAttributeModifiers modifiers)
+    {
+        if (attributes == null)
+            attributes = CreateDefault(0);
+
+        if (modifiers == null)
+            return Copy(attributes);
+
+        return new CharacterAttributes
+        {
+            strength = attributes.strength + modifiers.strength,
+            dexterity = attributes.dexterity + modifiers.dexterity,
+            agility = attributes.agility + modifiers.agility,
+            vitality = attributes.vitality + modifiers.vitality,
+            endurance = attributes.endurance + modifiers.endurance,
+            intelligence = attributes.intelligence + modifiers.intelligence,
+            willpower = attributes.willpower + modifiers.willpower,
+            spirit = attributes.spirit + modifiers.spirit,
+            perception = attributes.perception + modifiers.perception,
+            technique = attributes.technique + modifiers.technique
         };
     }
 }
