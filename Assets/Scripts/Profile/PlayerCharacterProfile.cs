@@ -38,7 +38,10 @@ public class PlayerCharacterProfile : MonoBehaviour
         if (bodySetup == null)
             bodySetup = gameObject.AddComponent<PlayerBodySetup>();
 
-        bodySetup.ApplyRaceBody(raceProfile);
+        bodySetup.ApplyRaceBody(
+            raceProfile,
+            FinalStats
+        );
 
         PlayerInput playerInput =
             GetComponent<PlayerInput>();

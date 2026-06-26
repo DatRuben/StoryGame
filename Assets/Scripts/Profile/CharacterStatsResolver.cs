@@ -83,8 +83,8 @@ public static class CharacterStatsResolver
     }
 
     public static FinalMovementStats ResolveMovementStats(
-    RaceProfile raceProfile,
-    MovementBaseType movementBaseType)
+        RaceProfile raceProfile,
+        MovementBaseType movementBaseType)
     {
         if (raceProfile == null)
         {
@@ -144,7 +144,7 @@ public static class CharacterStatsResolver
     }
 
     private static MovementBaseType ResolveMovementBaseType(
-    RaceProfile raceProfile)
+        RaceProfile raceProfile)
     {
         if (raceProfile == null)
             return MovementBaseType.Size2Humanoid;

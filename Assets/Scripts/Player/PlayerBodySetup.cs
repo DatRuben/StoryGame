@@ -19,7 +19,9 @@ public class PlayerBodySetup : MonoBehaviour
             cameraPivot = FindChildRecursive(transform, "CameraPivot");
     }
 
-    public void ApplyRaceBody(RaceProfile raceProfile)
+    public void ApplyRaceBody(
+        RaceProfile raceProfile,
+        FinalCharacterStats finalStats)
     {
         if (raceProfile == null)
         {
@@ -34,6 +36,7 @@ public class PlayerBodySetup : MonoBehaviour
         ApplyCapsule(raceProfile);
         ApplyGroundCheck(raceProfile);
         ApplyCameraPivot(raceProfile);
+        ApplyRigidbody(finalStats);
     }
 
     private void ApplyCapsule(RaceProfile raceProfile)
@@ -52,6 +55,34 @@ public class PlayerBodySetup : MonoBehaviour
         capsuleCollider.height = raceProfile.capsuleHeight;
         capsuleCollider.center = raceProfile.capsuleCenter;
         capsuleCollider.direction = (int)raceProfile.capsuleDirection;
+    }
+
+    private void ApplyRigidbody(FinalCharacterStats finalStats)
+    {
+        if (finalStats == null)
+        {
+            Debug.LogWarning(
+                "PlayerBodySetup could not apply Rigidbody settings because FinalCharacterStats is missing.",
+                this
+            );
+
+            return;
+        }
+
+        Rigidbody rb =
+            GetComponent<Rigidbody>();
+
+        if (rb == null)
+        {
+            Debug.LogWarning(
+                "PlayerBodySetup could not apply mass because Rigidbody is missing.",
+                this
+            );
+
+            return;
+        }
+
+        rb.mass = Mathf.Max(0.01f, finalStats.mass);
     }
 
     private void ApplyGroundCheck(RaceProfile raceProfile)
