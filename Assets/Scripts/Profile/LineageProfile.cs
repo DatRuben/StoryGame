@@ -6,7 +6,7 @@ public class LineageProfile : ScriptableObject
     [Header("Identity")]
     public string LineageName;
 
-    [Header("Attribute Bonuses")]
+    [Header("Attribute Modifiers")]
     public CharacterAttributeModifiers attributeModifiers =
     CharacterAttributeModifiers.CreateZero();
 
