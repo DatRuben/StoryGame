@@ -652,26 +652,6 @@ public class PlayerInput : MonoBehaviour
                wallNormal.sqrMagnitude > 0.001f;
     }
 
-    public void ApplyRaceMovement(RaceProfile raceProfile)
-    {
-        if (raceProfile == null)
-        {
-            Debug.LogWarning(
-                "PlayerInput could not apply race movement because RaceProfile is missing.",
-                this
-            );
-
-            return;
-        }
-
-        walkSpeed = raceProfile.walkSpeed;
-        sprintSpeed = raceProfile.sprintSpeed;
-        groundAcceleration = raceProfile.groundAcceleration;
-        airAcceleration = raceProfile.airAcceleration;
-        deceleration = raceProfile.deceleration;
-        jumpForce = raceProfile.jumpForce;
-    }
-
     private void ToggleWeaponSheathe(InputAction.CallbackContext context)
     {
         if (playerWeaponSlots == null)

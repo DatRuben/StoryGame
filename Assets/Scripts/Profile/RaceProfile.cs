@@ -92,13 +92,6 @@ public class RaceProfile : ScriptableObject
     [Header("Movement Base")]
     public MovementBaseType movementBaseType = MovementBaseType.Size2Humanoid;
 
-    public float walkSpeed = 10f;
-    public float sprintSpeed = 15f;
-    public float groundAcceleration = 8f;
-    public float airAcceleration = 2f;
-    public float deceleration = 16f;
-    public float jumpForce = 7f;
-
     [Header("Size / Stamina Modifiers")]
     public float staminaMultiplier = 1f;
     public float dodgeDistanceMultiplier = 1f;
