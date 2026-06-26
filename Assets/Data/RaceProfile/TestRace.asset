@@ -48,12 +48,7 @@ MonoBehaviour:
   capsuleDirection: 1
   groundCheckLocalPosition: {x: 0, y: -0.9, z: 0}
   cameraPivotLocalPosition: {x: 0, y: 0.9, z: 0}
-  walkSpeed: 10
-  sprintSpeed: 15
-  groundAcceleration: 8
-  airAcceleration: 2
-  deceleration: 16
-  jumpForce: 7
+  movementBaseType: 0
   staminaMultiplier: 1
   dodgeDistanceMultiplier: 1
   dodgeSpeedMultiplier: 1
