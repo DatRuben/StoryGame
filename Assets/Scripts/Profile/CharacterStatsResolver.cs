@@ -61,6 +61,127 @@ public static class CharacterStatsResolver
         return CharacterAttributes.ClampMinimum(finalAttributes, 1);
     }
 
+    public static FinalMovementStats ResolveMovementStats(
+    RaceProfile raceProfile)
+    {
+        if (raceProfile == null)
+        {
+            Debug.LogWarning(
+                "CharacterStatsResolver could not resolve movement stats because RaceProfile is missing."
+            );
+
+            return CreateSize2HumanoidMovement();
+        }
+
+        FinalMovementStats movementStats;
+
+        switch (raceProfile.movementBaseType)
+        {
+            case MovementBaseType.Size2Feral:
+                movementStats = CreateSize2FeralMovement();
+                break;
+
+            case MovementBaseType.Size2Humanoid:
+            default:
+                movementStats = CreateSize2HumanoidMovement();
+                break;
+        }
+
+        ApplySizeMovementModifiers(
+            movementStats,
+            raceProfile.size
+        );
+
+        return movementStats;
+    }
+
+    private static FinalMovementStats CreateSize2HumanoidMovement()
+    {
+        return new FinalMovementStats
+        {
+            walkSpeed = 10f,
+            sprintSpeed = 15f,
+            groundAcceleration = 8f,
+            airAcceleration = 2f,
+            deceleration = 16f,
+            jumpForce = 7f
+        };
+    }
+
+    private static FinalMovementStats CreateSize2FeralMovement()
+    {
+        return new FinalMovementStats
+        {
+            walkSpeed = 12f,
+            sprintSpeed = 18f,
+            groundAcceleration = 10f,
+            airAcceleration = 2.5f,
+            deceleration = 12f,
+            jumpForce = 6.5f
+        };
+    }
+
+    private static void ApplySizeMovementModifiers(
+        FinalMovementStats movementStats,
+        RaceSize raceSize)
+    {
+        if (movementStats == null)
+            return;
+
+        switch (raceSize)
+        {
+            case RaceSize.Size1:
+                movementStats.walkSpeed *= 1.08f;
+                movementStats.sprintSpeed *= 1.08f;
+                movementStats.groundAcceleration *= 1.12f;
+                movementStats.jumpForce *= 0.95f;
+                break;
+
+            case RaceSize.TallerSize2:
+                movementStats.walkSpeed *= 1.02f;
+                movementStats.sprintSpeed *= 1.02f;
+                break;
+
+            case RaceSize.Size3:
+                movementStats.walkSpeed *= 0.92f;
+                movementStats.sprintSpeed *= 0.92f;
+                movementStats.groundAcceleration *= 0.9f;
+                movementStats.jumpForce *= 0.9f;
+                break;
+
+            case RaceSize.Size1Feral:
+                movementStats.walkSpeed *= 1.12f;
+                movementStats.sprintSpeed *= 1.1f;
+                movementStats.groundAcceleration *= 1.15f;
+                movementStats.deceleration *= 0.85f;
+                movementStats.jumpForce *= 0.9f;
+                break;
+
+            case RaceSize.Size3Feral:
+                movementStats.walkSpeed *= 0.95f;
+                movementStats.sprintSpeed *= 0.95f;
+                movementStats.groundAcceleration *= 0.9f;
+                movementStats.deceleration *= 0.85f;
+                break;
+
+            case RaceSize.Dragon:
+                movementStats.walkSpeed *= 0.9f;
+                movementStats.sprintSpeed *= 1.05f;
+                movementStats.groundAcceleration *= 0.75f;
+                movementStats.deceleration *= 0.75f;
+                movementStats.jumpForce *= 0.8f;
+                break;
+
+            case RaceSize.BigDragon:
+                movementStats.walkSpeed *= 0.8f;
+                movementStats.sprintSpeed *= 0.95f;
+                movementStats.groundAcceleration *= 0.6f;
+                movementStats.deceleration *= 0.6f;
+                movementStats.jumpForce *= 0.7f;
+                break;
+        }
+    }
+
     public static FinalCharacterStats ResolveFinalStats(
         RaceProfile raceProfile,
         CharacterAttributes attributes)

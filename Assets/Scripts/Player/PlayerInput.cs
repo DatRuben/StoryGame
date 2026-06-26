@@ -131,6 +131,26 @@ public class PlayerInput : MonoBehaviour
         playerInput.Player.Disable();
     }
 
+    public void ApplyMovementStats(FinalMovementStats movementStats)
+    {
+        if (movementStats == null)
+        {
+            Debug.LogWarning(
+                "PlayerInput could not apply movement stats because FinalMovementStats is missing.",
+                this
+            );
+
+            return;
+        }
+
+        walkSpeed = movementStats.walkSpeed;
+        sprintSpeed = movementStats.sprintSpeed;
+        groundAcceleration = movementStats.groundAcceleration;
+        airAcceleration = movementStats.airAcceleration;
+        deceleration = movementStats.deceleration;
+        jumpForce = movementStats.jumpForce;
+    }
+
     public void SetRuntimeCameraReferences(
     Camera camera,
     Transform cameraTransformOverride = null,
@@ -635,7 +655,14 @@ public class PlayerInput : MonoBehaviour
     public void ApplyRaceMovement(RaceProfile raceProfile)
     {
         if (raceProfile == null)
+        {
+            Debug.LogWarning(
+                "PlayerInput could not apply race movement because RaceProfile is missing.",
+                this
+            );
+
             return;
+        }
 
         walkSpeed = raceProfile.walkSpeed;
         sprintSpeed = raceProfile.sprintSpeed;

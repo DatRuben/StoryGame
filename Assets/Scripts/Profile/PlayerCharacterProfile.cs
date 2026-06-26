@@ -5,6 +5,7 @@ public class PlayerCharacterProfile : MonoBehaviour
     public CharacterProfileData ProfileData { get; private set; }
     public CharacterAttributes FinalAttributes { get; private set; }
     public FinalCharacterStats FinalStats { get; private set; }
+    public FinalMovementStats FinalMovementStats { get; private set; }
 
     public void Initialize(
         CharacterProfileData profileData,
@@ -26,17 +27,22 @@ public class PlayerCharacterProfile : MonoBehaviour
                 FinalAttributes
             );
 
-        PlayerResources playerResources =
-            GetComponent<PlayerResources>();
+        FinalMovementStats =
+            CharacterStatsResolver.ResolveMovementStats(
+                raceProfile
+            );
 
-        if (playerResources != null)
+        PlayerInput playerInput =
+            GetComponent<PlayerInput>();
+
+        if (playerInput != null)
         {
-            playerResources.ApplyFinalStats(FinalStats, true);
+            playerInput.ApplyMovementStats(FinalMovementStats);
         }
         else
         {
             Debug.LogWarning(
-                "PlayerCharacterProfile could not apply final stats because PlayerResources is missing.",
+                "PlayerCharacterProfile could not apply movement stats because PlayerInput is missing.",
                 this
             );
         }
@@ -57,11 +63,22 @@ public class PlayerCharacterProfile : MonoBehaviour
         );
 
         Debug.Log(
-            $"Derived stats for {ProfileData.characterName}: " +
+            $"Final stats for {ProfileData.characterName}: " +
             $"HP {FinalStats.maxHealth}, " +
             $"STA {FinalStats.maxStamina}, " +
             $"MANA {FinalStats.maxMana}, " +
             $"POISE {FinalStats.poise}",
+            this
+        );
+
+        Debug.Log(
+            $"Final movement for {ProfileData.characterName}: " +
+            $"WALK {FinalMovementStats.walkSpeed}, " +
+            $"SPRINT {FinalMovementStats.sprintSpeed}, " +
+            $"GROUND ACCEL {FinalMovementStats.groundAcceleration}, " +
+            $"AIR ACCEL {FinalMovementStats.airAcceleration}, " +
+            $"DECEL {FinalMovementStats.deceleration}, " +
+            $"JUMP {FinalMovementStats.jumpForce}",
             this
         );
     }

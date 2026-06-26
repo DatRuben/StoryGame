@@ -38,6 +38,12 @@ public enum CapsuleDirection
     ZAxis = 2
 }
 
+public enum MovementBaseType
+{
+    Size2Humanoid,
+    Size2Feral
+}
+
 [CreateAssetMenu(menuName = "Game/Race Profile")]
 public class RaceProfile : ScriptableObject
 {
@@ -83,7 +89,9 @@ public class RaceProfile : ScriptableObject
     public Vector3 groundCheckLocalPosition = new Vector3(0f, -0.9f, 0f);
     public Vector3 cameraPivotLocalPosition = new Vector3(0f, 0.9f, 0f);
 
-    [Header("Movement")]
+    [Header("Movement Base")]
+    public MovementBaseType movementBaseType = MovementBaseType.Size2Humanoid;
+
     public float walkSpeed = 10f;
     public float sprintSpeed = 15f;
     public float groundAcceleration = 8f;
