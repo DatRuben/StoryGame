@@ -29,24 +29,19 @@ MonoBehaviour:
     spirit: 8
     perception: 8
     technique: 8
-  bodyProfile:
-    bodyFamily: 0
-    raceSize: 1
-    bodyScale: 1
-    baseHealth: 100
-    baseStamina: 100
-    baseMana: 50
-    baseMass: 1
-    basePoise: 1
-    hitboxRisk: 1
-    movementCostMultiplier: 1
-    dodgeCostMultiplier: 1
-    equipmentWeightMultiplier: 1
-    vitalityToHealth: 10
-    enduranceToStamina: 10
-    spiritToMana: 10
-    vitalityToPoise: 0.05
-    strengthToPoise: 0.05
+  baseHealth: 100
+  baseStamina: 100
+  baseMana: 50
+  baseMass: 1
+  basePoise: 100
+  movementCostMultiplier: 1
+  dodgeCostMultiplier: 1
+  equipmentWeightMultiplier: 1
+  vitalityToHealth: 10
+  enduranceToStamina: 10
+  spiritToMana: 10
+  vitalityToPoise: 4
+  strengthToPoise: 3
   capsuleRadius: 0.5
   capsuleHeight: 2
   capsuleCenter: {x: 0, y: 2, z: 0}
