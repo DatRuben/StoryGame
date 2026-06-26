@@ -66,7 +66,7 @@ public class RaceProfile : ScriptableObject
     public float dodgeCostMultiplier = 1f;
     public float equipmentWeightMultiplier = 1f;
 
-    [Header("Attribute Scaling")]
+    [Header("Attribute Modifiers")]
     public float vitalityToHealth = 10f;
     public float enduranceToStamina = 10f;
     public float spiritToMana = 10f;
