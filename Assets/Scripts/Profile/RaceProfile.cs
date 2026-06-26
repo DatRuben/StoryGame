@@ -89,9 +89,6 @@ public class RaceProfile : ScriptableObject
     public Vector3 groundCheckLocalPosition = new Vector3(0f, -0.9f, 0f);
     public Vector3 cameraPivotLocalPosition = new Vector3(0f, 0.9f, 0f);
 
-    [Header("Movement Base")]
-    public MovementBaseType movementBaseType = MovementBaseType.Size2Humanoid;
-
     [Header("Size / Stamina Modifiers")]
     public float staminaMultiplier = 1f;
     public float dodgeDistanceMultiplier = 1f;

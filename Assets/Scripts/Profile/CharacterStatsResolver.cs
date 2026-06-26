@@ -62,7 +62,29 @@ public static class CharacterStatsResolver
     }
 
     public static FinalMovementStats ResolveMovementStats(
-    RaceProfile raceProfile)
+        RaceProfile raceProfile)
+    {
+        if (raceProfile == null)
+        {
+            Debug.LogWarning(
+                "CharacterStatsResolver could not resolve movement stats because RaceProfile is missing."
+            );
+
+            return CreateSize2HumanoidMovement();
+        }
+
+        MovementBaseType movementBaseType =
+            ResolveMovementBaseType(raceProfile);
+
+        return ResolveMovementStats(
+            raceProfile,
+            movementBaseType
+        );
+    }
+
+    public static FinalMovementStats ResolveMovementStats(
+    RaceProfile raceProfile,
+    MovementBaseType movementBaseType)
     {
         if (raceProfile == null)
         {
@@ -75,7 +97,7 @@ public static class CharacterStatsResolver
 
         FinalMovementStats movementStats;
 
-        switch (raceProfile.movementBaseType)
+        switch (movementBaseType)
         {
             case MovementBaseType.Size2Feral:
                 movementStats = CreateSize2FeralMovement();
@@ -119,6 +141,57 @@ public static class CharacterStatsResolver
             deceleration = 12f,
             jumpForce = 6.5f
         };
+    }
+
+    private static MovementBaseType ResolveMovementBaseType(
+    RaceProfile raceProfile)
+    {
+        if (raceProfile == null)
+            return MovementBaseType.Size2Humanoid;
+
+        switch (raceProfile.size)
+        {
+            case RaceSize.Size1Feral:
+            case RaceSize.Size2Feral:
+            case RaceSize.Size3Feral:
+                return MovementBaseType.Size2Feral;
+        }
+
+        switch (raceProfile.baseRace)
+        {
+            case BaseRace.Human:
+            case BaseRace.Animali:
+            case BaseRace.Canispar:
+            case BaseRace.Drakken:
+            case BaseRace.Eastern:
+                return MovementBaseType.Size2Humanoid;
+
+            case BaseRace.Griffin:
+            case BaseRace.WesternDragon:
+                return ResolveCreatureMovementBaseType(raceProfile);
+        }
+
+        return raceProfile.bodyType == BodyType.Quadruped
+            ? MovementBaseType.Size2Feral
+            : MovementBaseType.Size2Humanoid;
+    }
+
+    private static MovementBaseType ResolveCreatureMovementBaseType(
+    RaceProfile raceProfile)
+    {
+        if (raceProfile == null)
+            return MovementBaseType.Size2Humanoid;
+
+        switch (raceProfile.bodyType)
+        {
+            case BodyType.Humanoid:
+                return MovementBaseType.Size2Humanoid;
+
+            case BodyType.Quadruped:
+            case BodyType.StanceSwitching:
+            default:
+                return MovementBaseType.Size2Feral;
+        }
     }
 
     private static void ApplySizeMovementModifiers(
