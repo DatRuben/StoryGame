@@ -26,6 +26,21 @@ public class PlayerCharacterProfile : MonoBehaviour
                 FinalAttributes
             );
 
+        PlayerResources playerResources =
+            GetComponent<PlayerResources>();
+
+        if (playerResources != null)
+        {
+            playerResources.ApplyFinalStats(FinalStats, true);
+        }
+        else
+        {
+            Debug.LogWarning(
+                "PlayerCharacterProfile could not apply final stats because PlayerResources is missing.",
+                this
+            );
+        }
+
         Debug.Log(
             $"Resolved attributes for {ProfileData.characterName}: " +
             $"STR {FinalAttributes.strength}, " +

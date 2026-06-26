@@ -40,6 +40,40 @@ public class PlayerResources : MonoBehaviour
         currentMana = Mathf.Clamp(currentMana, 0f, maxMana);
     }
 
+    public void ApplyFinalStats(
+    FinalCharacterStats finalStats,
+    bool refillResources = true)
+    {
+        if (finalStats == null)
+        {
+            Debug.LogWarning(
+                "PlayerResources could not apply final stats because FinalCharacterStats is missing.",
+                this
+            );
+
+            return;
+        }
+
+        maxHealth = Mathf.Max(1f, finalStats.maxHealth);
+        maxStamina = Mathf.Max(1f, finalStats.maxStamina);
+        maxMana = Mathf.Max(1f, finalStats.maxMana);
+
+        if (refillResources)
+        {
+            currentHealth = maxHealth;
+            currentStamina = maxStamina;
+            currentMana = maxMana;
+        }
+        else
+        {
+            currentHealth = Mathf.Clamp(currentHealth, 0f, maxHealth);
+            currentStamina = Mathf.Clamp(currentStamina, 0f, maxStamina);
+            currentMana = Mathf.Clamp(currentMana, 0f, maxMana);
+        }
+
+        OnResourcesChanged?.Invoke();
+    }
+
     public void SetHealth(float value)
     {
         currentHealth = Mathf.Clamp(value, 0f, maxHealth);
