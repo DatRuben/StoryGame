@@ -659,6 +659,11 @@ Transform:
   - {fileID: 1852249634}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &1184839127 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -700029363859958133, guid: 18fd2733a27218247b91177d977e4dc7, type: 3}
+  m_PrefabInstance: {fileID: 1207500437}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1207500437
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -752,12 +757,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f6262c24121d6f74585045acd3433876, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProceduralWalkTest
+  armDownAngle: 25
+  leftArmDownAxis: {x: 1, y: 0, z: 0}
+  rightArmDownAxis: {x: 1, y: 0, z: 0}
   moveForward: 0
   moveSpeed: 1.5
-  visualRoot: {fileID: 0}
-  bobHeight: 0.05
+  visualRoot: {fileID: 1416441819}
+  bobHeight: 0.03
   leftUpperArm: {fileID: 1207500442}
   rightUpperArm: {fileID: 1207500441}
+  leftLowerArm: {fileID: 1184839127}
+  rightLowerArm: {fileID: 1577641167}
   spine: {fileID: 1207500440}
   leftUpperLeg: {fileID: 1207500444}
   rightUpperLeg: {fileID: 1207500443}
@@ -765,8 +775,8 @@ MonoBehaviour:
   rightLowerLeg: {fileID: 713577032}
   walkSpeed: 3
   legSwingAngle: 20
-  kneeBendAngle: 20
-  armSwingAngle: 10
+  kneeBendAngle: 30
+  armSwingAngle: 15
   spineTwistAngle: 5
   leftLegSwingAxis: {x: 1, y: 0, z: 0}
   rightLegSwingAxis: {x: 1, y: 0, z: 0}
@@ -774,6 +784,11 @@ MonoBehaviour:
   kneeBendAxis: {x: 1, y: 0, z: 0}
   armSwingAxis: {x: 1, y: 0, z: 0}
   spineTwistAxis: {x: 0, y: 1, z: 0}
+  leftArmSwingAxis: {x: 0, y: 1, z: 0}
+  rightArmSwingAxis: {x: 0, y: 1, z: 0}
+  elbowBendAngle: 30
+  leftElbowAxis: {x: 1, y: 1, z: 0}
+  rightElbowAxis: {x: 1, y: 1, z: 0}
 --- !u!4 &1207500440 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1632759751195861815, guid: 18fd2733a27218247b91177d977e4dc7, type: 3}
@@ -797,6 +812,11 @@ Transform:
 --- !u!4 &1207500444 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -9127072559893113593, guid: 18fd2733a27218247b91177d977e4dc7, type: 3}
+  m_PrefabInstance: {fileID: 1207500437}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1416441819 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 18fd2733a27218247b91177d977e4dc7, type: 3}
   m_PrefabInstance: {fileID: 1207500437}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &1464174450
@@ -936,6 +956,11 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &1577641167 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8476774781526831030, guid: 18fd2733a27218247b91177d977e4dc7, type: 3}
+  m_PrefabInstance: {fileID: 1207500437}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1598385721
 GameObject:
   m_ObjectHideFlags: 0

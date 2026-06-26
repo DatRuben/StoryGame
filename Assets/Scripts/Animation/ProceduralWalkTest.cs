@@ -2,17 +2,24 @@ using UnityEngine;
 
 public class ProceduralWalkTest : MonoBehaviour
 {
+    [Header("Arm Rest Pose Fix")]
+    public float armDownAngle = 25f;
+    public Vector3 leftArmDownAxis = Vector3.forward;
+    public Vector3 rightArmDownAxis = Vector3.back;
+
     [Header("Movement")]
     public bool moveForward = false;
     public float moveSpeed = 1.5f;
 
     [Header("Body Bob")]
     public Transform visualRoot;
-    public float bobHeight = 0.05f;
+    public float bobHeight = 0.02f;
 
     [Header("Upper Body Bones")]
     public Transform leftUpperArm;
     public Transform rightUpperArm;
+    public Transform leftLowerArm;
+    public Transform rightLowerArm;
     public Transform spine;
 
     [Header("Leg Bones")]
@@ -38,12 +45,25 @@ public class ProceduralWalkTest : MonoBehaviour
     public Vector3 armSwingAxis = Vector3.right;
     public Vector3 spineTwistAxis = Vector3.up;
 
+    [Header("Arm Swing Axes")]
+    public Vector3 leftArmSwingAxis = Vector3.right;
+    public Vector3 rightArmSwingAxis = Vector3.right;
+
+    [Header("Elbows")]
+    public float elbowBendAngle = 15f;
+    public Vector3 leftElbowAxis = Vector3.right;
+    public Vector3 rightElbowAxis = Vector3.right;
+
     Quaternion leftUpperLegStart;
     Quaternion rightUpperLegStart;
     Quaternion leftLowerLegStart;
     Quaternion rightLowerLegStart;
+
     Quaternion leftArmStart;
     Quaternion rightArmStart;
+    Quaternion leftLowerArmStart;
+    Quaternion rightLowerArmStart;
+
     Quaternion spineStart;
     Vector3 visualRootStart;
 
@@ -56,6 +76,9 @@ public class ProceduralWalkTest : MonoBehaviour
 
         if (leftUpperArm) leftArmStart = leftUpperArm.localRotation;
         if (rightUpperArm) rightArmStart = rightUpperArm.localRotation;
+        if (leftLowerArm) leftLowerArmStart = leftLowerArm.localRotation;
+        if (rightLowerArm) rightLowerArmStart = rightLowerArm.localRotation;
+
         if (spine) spineStart = spine.localRotation;
 
         if (visualRoot) visualRootStart = visualRoot.localPosition;
@@ -67,10 +90,13 @@ public class ProceduralWalkTest : MonoBehaviour
 
         float leftSwing = Mathf.Sin(t);
         float rightSwing = Mathf.Sin(t + Mathf.PI);
-        
+
         float kneeTimingOffset = 0.6f;
         float leftKneeBend = Mathf.Clamp01(Mathf.Sin(t + kneeTimingOffset)) * kneeBendAngle;
         float rightKneeBend = Mathf.Clamp01(Mathf.Sin(t + Mathf.PI + kneeTimingOffset)) * kneeBendAngle;
+
+        float leftElbowBend = Mathf.Clamp01(Mathf.Sin(t + Mathf.PI + 0.4f)) * elbowBendAngle;
+        float rightElbowBend = Mathf.Clamp01(Mathf.Sin(t + 0.4f)) * elbowBendAngle;
 
         float bob = Mathf.Abs(Mathf.Sin(t)) * bobHeight;
 
@@ -110,14 +136,32 @@ public class ProceduralWalkTest : MonoBehaviour
 
         if (leftUpperArm)
         {
+            Quaternion armDown = Quaternion.AngleAxis(armDownAngle, leftArmDownAxis);
+            Quaternion armSwing = Quaternion.AngleAxis(rightSwing * armSwingAngle, leftArmSwingAxis);
+
             leftUpperArm.localRotation =
-               Quaternion.AngleAxis(rightSwing * armSwingAngle, armSwingAxis) * leftArmStart;
+                armSwing * armDown * leftArmStart;
         }
 
         if (rightUpperArm)
         {
+            Quaternion armDown = Quaternion.AngleAxis(armDownAngle, rightArmDownAxis);
+            Quaternion armSwing = Quaternion.AngleAxis(-leftSwing * armSwingAngle, rightArmSwingAxis);
+
             rightUpperArm.localRotation =
-               Quaternion.AngleAxis(leftSwing * armSwingAngle, armSwingAxis) * rightArmStart;
+                armSwing * armDown * rightArmStart;
+        }
+
+        if (leftLowerArm)
+        {
+            leftLowerArm.localRotation =
+                Quaternion.AngleAxis(leftElbowBend, leftElbowAxis) * leftLowerArmStart;
+        }
+
+        if (rightLowerArm)
+        {
+            rightLowerArm.localRotation =
+                Quaternion.AngleAxis(rightElbowBend, rightElbowAxis) * rightLowerArmStart;
         }
 
         if (spine)
