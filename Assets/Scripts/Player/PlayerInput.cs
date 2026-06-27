@@ -20,6 +20,8 @@ public class PlayerInput : MonoBehaviour
     [SerializeField] private float sprintSpeed = 15f;
     [SerializeField] private float walkSpeed = 10f;
 
+    [SerializeField] private float sprintStaminaCostPerSecond = 10f;
+
     private float movementCostMultiplier = 1f;
     private float dodgeCostMultiplier = 1f;
 
@@ -66,6 +68,8 @@ public class PlayerInput : MonoBehaviour
     [SerializeField] private PlayerInventory playerInventory;
     [SerializeField] private PlayerWeaponSlots playerWeaponSlots;
 
+    [SerializeField] private PlayerResources playerResources;
+
     private Animator animator;
 
     private Vector3 groundNormal = Vector3.up;
@@ -92,6 +96,8 @@ public class PlayerInput : MonoBehaviour
             playerInventory = GetComponent<PlayerInventory>();
         if (playerWeaponSlots == null)
             playerWeaponSlots = GetComponent<PlayerWeaponSlots>();
+        if (playerResources == null)
+            playerResources = GetComponent<PlayerResources>();
     }
 
     private void OnEnable()
@@ -222,8 +228,21 @@ public class PlayerInput : MonoBehaviour
 
         HandleWallMovement(ref movement);
 
+        bool hasMovementDirection =
+            movement.sqrMagnitude > 0.01f;
+
+        bool canSprint =
+            isSprinting &&
+            hasMovementDirection &&
+            playerResources != null &&
+            playerResources.SpendStamina(
+                sprintStaminaCostPerSecond *
+                movementCostMultiplier *
+                Time.fixedDeltaTime
+            );
+
         float currentSpeed =
-            isSprinting ? sprintSpeed : walkSpeed;
+            canSprint ? sprintSpeed : walkSpeed;
 
         Vector3 targetVelocity =
             movement * currentSpeed;
@@ -235,9 +254,6 @@ public class PlayerInput : MonoBehaviour
 
         Vector3 velocityChange =
             targetVelocity - currentHorizontalVelocity;
-
-        bool hasMovementDirection =
-            movement.sqrMagnitude > 0.01f;
 
         float acceleration;
 
