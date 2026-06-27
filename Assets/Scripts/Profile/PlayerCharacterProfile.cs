@@ -95,7 +95,7 @@ public class PlayerCharacterProfile : MonoBehaviour
             $"Final stats for {ProfileData.characterName}: " +
             $"HP {FinalStats.maxHealth}, " +
             $"STA {FinalStats.maxStamina}, " +
-            $"MANA {FinalStats.maxMana}, " +
+            $"Aether {FinalStats.maxAether}, " +
             $"POISE {FinalStats.poise}",
             this
         );

@@ -5,7 +5,7 @@ public class FinalCharacterStats
 {
     public float maxHealth;
     public float maxStamina;
-    public float maxMana;
+    public float maxAether;
 
     public float mass;
     public float poise;

@@ -14,7 +14,7 @@ public class PlayerResourcesUI : MonoBehaviour
     [Header("Colors")]
     [SerializeField] private Color healthColor = Color.red;
     [SerializeField] private Color staminaColor = Color.green;
-    [SerializeField] private Color manaColor = Color.cyan;
+    [SerializeField] private Color AetherColor = Color.cyan;
     [SerializeField] private Color barBackgroundColor = new Color(0f, 0f, 0f, 0.55f);
     [SerializeField] private Color borderColor = Color.black;
 
@@ -25,7 +25,7 @@ public class PlayerResourcesUI : MonoBehaviour
 
     private RectTransform healthFill;
     private RectTransform staminaFill;
-    private RectTransform manaFill;
+    private RectTransform AetherFill;
 
     private void Awake()
     {
@@ -77,7 +77,7 @@ public class PlayerResourcesUI : MonoBehaviour
 
         y -= barSize.y + barSpacing;
 
-        manaFill = CreateBar("ManaBar", y, manaColor);
+        AetherFill = CreateBar("AetherBar", y, AetherColor);
     }
 
     private RectTransform CreateBar(
@@ -144,13 +144,13 @@ public class PlayerResourcesUI : MonoBehaviour
         {
             SetFillPercent(healthFill, 1f);
             SetFillPercent(staminaFill, 1f);
-            SetFillPercent(manaFill, 1f);
+            SetFillPercent(AetherFill, 1f);
             return;
         }
 
         SetFillPercent(healthFill, playerResources.HealthPercent);
         SetFillPercent(staminaFill, playerResources.StaminaPercent);
-        SetFillPercent(manaFill, playerResources.ManaPercent);
+        SetFillPercent(AetherFill, playerResources.AetherPercent);
     }
 
     private void SetFillPercent(

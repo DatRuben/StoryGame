@@ -12,9 +12,9 @@ public class PlayerResources : MonoBehaviour
     private float maxStamina;
     private float currentStamina;
 
-    [Header("Mana")]
-    private float maxMana;
-    private float currentMana;
+    [Header("Aether")]
+    private float maxAether;
+    private float currentAether;
 
     public float MaxHealth => maxHealth;
     public float CurrentHealth => currentHealth;
@@ -24,9 +24,9 @@ public class PlayerResources : MonoBehaviour
     public float CurrentStamina => currentStamina;
     public float StaminaPercent => GetPercent(currentStamina, maxStamina);
 
-    public float MaxMana => maxMana;
-    public float CurrentMana => currentMana;
-    public float ManaPercent => GetPercent(currentMana, maxMana);
+    public float MaxAether => maxAether;
+    public float CurrentAether => currentAether;
+    public float AetherPercent => GetPercent(currentAether, maxAether);
 
     public bool IsInitialized { get; private set; }
 
@@ -48,19 +48,19 @@ public class PlayerResources : MonoBehaviour
 
         maxHealth = Mathf.Max(1f, finalStats.maxHealth);
         maxStamina = Mathf.Max(1f, finalStats.maxStamina);
-        maxMana = Mathf.Max(1f, finalStats.maxMana);
+        maxAether = Mathf.Max(1f, finalStats.maxAether);
 
         if (refillResources)
         {
             currentHealth = maxHealth;
             currentStamina = maxStamina;
-            currentMana = maxMana;
+            currentAether = maxAether;
         }
         else
         {
             currentHealth = Mathf.Clamp(currentHealth, 0f, maxHealth);
             currentStamina = Mathf.Clamp(currentStamina, 0f, maxStamina);
-            currentMana = Mathf.Clamp(currentMana, 0f, maxMana);
+            currentAether = Mathf.Clamp(currentAether, 0f, maxAether);
         }
 
         IsInitialized = true;
@@ -99,9 +99,9 @@ public class PlayerResources : MonoBehaviour
         OnResourcesChanged?.Invoke();
     }
 
-    public void SetMana(float value)
+    public void SetAether(float value)
     {
-        currentMana = Mathf.Clamp(value, 0f, maxMana);
+        currentAether = Mathf.Clamp(value, 0f, maxAether);
         OnResourcesChanged?.Invoke();
     }
 
@@ -115,9 +115,9 @@ public class PlayerResources : MonoBehaviour
         SetStamina(currentStamina + amount);
     }
 
-    public void AddMana(float amount)
+    public void AddAether(float amount)
     {
-        SetMana(currentMana + amount);
+        SetAether(currentAether + amount);
     }
 
     private float GetPercent(float current, float max)

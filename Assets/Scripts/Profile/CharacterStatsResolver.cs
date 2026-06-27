@@ -283,9 +283,9 @@ public static class CharacterStatsResolver
                     attributes.endurance * raceProfile.enduranceToStamina
                 ) * raceProfile.staminaMultiplier,
 
-            maxMana =
-                raceProfile.baseMana +
-                attributes.spirit * raceProfile.spiritToMana,
+            maxAether =
+                raceProfile.baseAether +
+                attributes.spirit * raceProfile.spiritToAether,
 
             mass =
                 raceProfile.baseMass,

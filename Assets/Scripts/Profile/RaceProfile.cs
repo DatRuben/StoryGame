@@ -63,7 +63,7 @@ public class RaceProfile : ScriptableObject
     [Header("Final Stat Baselines")]
     public float baseHealth = 100f;
     public float baseStamina = 100f;
-    public float baseMana = 50f;
+    public float baseAether = 50f;
     public float baseMass = 1f;
     public float basePoise = 100f;
 
@@ -75,7 +75,7 @@ public class RaceProfile : ScriptableObject
     [Header("Attribute Modifiers")]
     public float vitalityToHealth = 10f;
     public float enduranceToStamina = 10f;
-    public float spiritToMana = 10f;
+    public float spiritToAether = 10f;
     public float vitalityToPoise = 4f;
     public float strengthToPoise = 3f;
 
