@@ -20,6 +20,9 @@ public class PlayerInput : MonoBehaviour
     [SerializeField] private float sprintSpeed = 15f;
     [SerializeField] private float walkSpeed = 10f;
 
+    private float movementCostMultiplier = 1f;
+    private float dodgeCostMultiplier = 1f;
+
     [Header("Ground Check")]
     [SerializeField] private Transform groundCheck;
     [SerializeField] private float groundCheckRadius = 0.25f;
@@ -171,6 +174,22 @@ public class PlayerInput : MonoBehaviour
 
         if (speedText == null)
             speedText = speedTextOverride;
+    }
+
+    public void ApplyFinalStats(FinalCharacterStats finalStats)
+    {
+        if (finalStats == null)
+        {
+            Debug.LogWarning(
+                "PlayerInput could not apply final stats because FinalCharacterStats is missing.",
+                this
+            );
+
+            return;
+        }
+
+        movementCostMultiplier = finalStats.movementCostMultiplier;
+        dodgeCostMultiplier = finalStats.dodgeCostMultiplier;
     }
 
     private void FixedUpdate()

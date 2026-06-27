@@ -67,11 +67,12 @@ public class PlayerCharacterProfile : MonoBehaviour
         if (playerInput != null)
         {
             playerInput.ApplyMovementStats(FinalMovementStats);
+            playerInput.ApplyFinalStats(FinalStats);
         }
         else
         {
             Debug.LogWarning(
-                "PlayerCharacterProfile could not apply movement stats because PlayerInput is missing.",
+                "PlayerCharacterProfile could not apply movement/final stats because PlayerInput is missing.",
                 this
             );
         }
