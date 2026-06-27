@@ -13,6 +13,7 @@ public class CharacterRuntimeBinder : MonoBehaviour
     [SerializeField] private InventoryMenuController inventoryMenuController;
     [SerializeField] private TextMeshProUGUI speedText;
     [SerializeField] private CinemachineCamera cinemachineCamera;
+    [SerializeField] private CameraCollision cameraCollision;
     [SerializeField] private Transform cameraTargetOverride;
     [SerializeField] private string cameraPivotName = "CameraPivot";
     [SerializeField] private InventoryContextPanelController contextPanelController;
@@ -100,6 +101,27 @@ public class CharacterRuntimeBinder : MonoBehaviour
         {
             Debug.LogWarning(
                 "CharacterRuntimeBinder could not find a CinemachineCamera to bind.",
+                this
+            );
+        }
+
+        if (cameraCollision == null &&
+            mainCamera != null)
+        {
+            cameraCollision = mainCamera.GetComponent<CameraCollision>();
+        }
+
+        if (cameraCollision == null)
+            cameraCollision = FindSceneComponent<CameraCollision>();
+
+        if (cameraCollision != null)
+        {
+            cameraCollision.SetCameraPivot(cameraTarget);
+        }
+        else
+        {
+            Debug.LogWarning(
+                "CharacterRuntimeBinder could not find CameraCollision to bind.",
                 this
             );
         }

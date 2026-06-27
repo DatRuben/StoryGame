@@ -21,6 +21,8 @@ public class PlayerInput : MonoBehaviour
     [SerializeField] private float walkSpeed = 10f;
 
     [SerializeField] private float sprintStaminaCostPerSecond = 10f;
+    [SerializeField] private float staminaRegenPerSecond = 20f;
+    [SerializeField] private float staminaRegenDelayAfterSprint = 1f;
 
     private float movementCostMultiplier = 1f;
     private float dodgeCostMultiplier = 1f;
@@ -79,6 +81,7 @@ public class PlayerInput : MonoBehaviour
     private float lastJumpTime = -999f;
     private float lastGroundedTime = -999f;
     private float forcedAirUntil = -999f;
+    private float lastStaminaSpendTime = -999f;
 
     private bool cameraLocked = false;
     public bool CameraLocked => cameraLocked;
@@ -241,6 +244,11 @@ public class PlayerInput : MonoBehaviour
                 Time.fixedDeltaTime
             );
 
+        if (canSprint)
+        {
+            lastStaminaSpendTime = Time.time;
+        }
+
         float currentSpeed =
             canSprint ? sprintSpeed : walkSpeed;
 
@@ -282,8 +290,26 @@ public class PlayerInput : MonoBehaviour
         PreventDefaultMovementLaunch(grounded);
         ApplyExtraGravity(grounded);
         ClampHorizontalSpeed(currentSpeed);
+        RegenerateStamina(hasMovementDirection);
         UpdateSpeedText(grounded);
         LookAt();
+    }
+
+    private void RegenerateStamina(bool hasMovementDirection)
+    {
+        if (playerResources == null)
+            return;
+
+        if (isSprinting && hasMovementDirection)
+            return;
+
+        if (Time.time - lastStaminaSpendTime < staminaRegenDelayAfterSprint)
+            return;
+
+        playerResources.AddStamina(
+            staminaRegenPerSecond *
+            Time.fixedDeltaTime
+        );
     }
 
     private void HandleWallMovement(ref Vector3 movement)

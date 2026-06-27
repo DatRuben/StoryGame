@@ -19,6 +19,12 @@ public class CameraCollision : MonoBehaviour
     private Vector3 currentPosition;
     private bool hasPosition;
 
+    public void SetCameraPivot(Transform pivot)
+    {
+        cameraPivot = pivot;
+        hasPosition = false;
+    }
+
     private void LateUpdate()
     {
         if (cameraPivot == null)
