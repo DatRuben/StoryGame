@@ -32,6 +32,24 @@ public class PlayerCharacterProfile : MonoBehaviour
                 raceProfile
             );
 
+        PlayerResources playerResources =
+            GetComponent<PlayerResources>();
+
+        if (playerResources != null)
+        {
+            playerResources.ApplyFinalStats(
+                FinalStats,
+                true
+            );
+        }
+        else
+        {
+            Debug.LogWarning(
+                "PlayerCharacterProfile could not apply final stats because PlayerResources is missing.",
+                this
+            );
+        }
+
         PlayerBodySetup bodySetup =
             GetComponent<PlayerBodySetup>();
 
