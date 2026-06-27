@@ -4,16 +4,17 @@ using UnityEngine;
 public class PlayerResources : MonoBehaviour
 {
     [Header("Health")]
-    [SerializeField] private float maxHealth = 100f;
-    [SerializeField] private float currentHealth = 100f;
+    private float maxHealth;
+    private float currentHealth;
+
 
     [Header("Stamina")]
-    [SerializeField] private float maxStamina = 100f;
-    [SerializeField] private float currentStamina = 100f;
+    private float maxStamina;
+    private float currentStamina;
 
     [Header("Mana")]
-    [SerializeField] private float maxMana = 100f;
-    [SerializeField] private float currentMana = 100f;
+    private float maxMana;
+    private float currentMana;
 
     public float MaxHealth => maxHealth;
     public float CurrentHealth => currentHealth;
@@ -27,18 +28,9 @@ public class PlayerResources : MonoBehaviour
     public float CurrentMana => currentMana;
     public float ManaPercent => GetPercent(currentMana, maxMana);
 
+    public bool IsInitialized { get; private set; }
+
     public event Action OnResourcesChanged;
-
-    private void OnValidate()
-    {
-        maxHealth = Mathf.Max(1f, maxHealth);
-        maxStamina = Mathf.Max(1f, maxStamina);
-        maxMana = Mathf.Max(1f, maxMana);
-
-        currentHealth = Mathf.Clamp(currentHealth, 0f, maxHealth);
-        currentStamina = Mathf.Clamp(currentStamina, 0f, maxStamina);
-        currentMana = Mathf.Clamp(currentMana, 0f, maxMana);
-    }
 
     public void ApplyFinalStats(
     FinalCharacterStats finalStats,
@@ -71,6 +63,7 @@ public class PlayerResources : MonoBehaviour
             currentMana = Mathf.Clamp(currentMana, 0f, maxMana);
         }
 
+        IsInitialized = true;
         OnResourcesChanged?.Invoke();
     }
 
@@ -78,6 +71,26 @@ public class PlayerResources : MonoBehaviour
     {
         currentHealth = Mathf.Clamp(value, 0f, maxHealth);
         OnResourcesChanged?.Invoke();
+    }
+
+    public bool CanSpendStamina(float amount)
+    {
+        if (amount <= 0f)
+            return true;
+
+        return currentStamina >= amount;
+    }
+
+    public bool SpendStamina(float amount)
+    {
+        if (amount <= 0f)
+            return true;
+
+        if (!CanSpendStamina(amount))
+            return false;
+
+        SetStamina(currentStamina - amount);
+        return true;
     }
 
     public void SetStamina(float value)
