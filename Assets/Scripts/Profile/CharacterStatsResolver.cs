@@ -278,8 +278,10 @@ public static class CharacterStatsResolver
                 attributes.vitality * raceProfile.vitalityToHealth,
 
             maxStamina =
-                raceProfile.baseStamina +
-                attributes.endurance * raceProfile.enduranceToStamina,
+                (
+                    raceProfile.baseStamina +
+                    attributes.endurance * raceProfile.enduranceToStamina
+                ) * raceProfile.staminaMultiplier,
 
             maxMana =
                 raceProfile.baseMana +
