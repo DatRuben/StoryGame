@@ -9490,7 +9490,7 @@ MonoBehaviour:
   barSpacing: 8
   healthColor: {r: 1, g: 0, b: 0, a: 1}
   staminaColor: {r: 0, g: 1, b: 0, a: 1}
-  manaColor: {r: 0, g: 1, b: 1, a: 1}
+  aetherColor: {r: 0, g: 1, b: 1, a: 1}
   barBackgroundColor: {r: 0, g: 0, b: 0, a: 0.55}
   borderColor: {r: 0, g: 0, b: 0, a: 1}
   borderThickness: 4
