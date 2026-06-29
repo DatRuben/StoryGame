@@ -135,11 +135,6 @@ public static class CharacterStatsResolver
                 jumpForce = 7f
             };
 
-        ApplyDodgeProfile(
-            movementStats,
-            DodgeType.MediumDash
-        );
-
         return movementStats;
     }
 
@@ -155,11 +150,6 @@ public static class CharacterStatsResolver
                 deceleration = 12f,
                 jumpForce = 6.5f
             };
-
-        ApplyDodgeProfile(
-            movementStats,
-            DodgeType.LightBurst
-        );
 
         return movementStats;
     }
