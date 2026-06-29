@@ -60,12 +60,14 @@ public class RaceProfile : ScriptableObject
     [Header("Starting Attributes")]
     public CharacterAttributes baseAttributes = CharacterAttributes.CreateDefault(5);
 
-    [Header("Final Stat Baselines")]
+    [Header("Base Stats")]
     public float baseHealth = 100f;
+    public float baseSoulBarrier = 50f;
     public float baseStamina = 100f;
-    public float baseAether = 50f;
-    public float baseMass = 1f;
-    public float basePoise = 100f;
+    public float baseAether = 100f;
+
+    public float baseMass = 70f;
+    public float basePoise = 10f;
 
     [Header("Cost Multipliers")]
     public float movementCostMultiplier = 1f;

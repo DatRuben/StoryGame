@@ -348,6 +348,11 @@ public static class CharacterStatsResolver
                 raceProfile.baseHealth +
                 attributes.vitality * raceProfile.vitalityToHealth,
 
+            maxSoulBarrier =
+                raceProfile.baseSoulBarrier +
+                attributes.spirit * 4f +
+                attributes.willpower * 8f,
+
             maxStamina =
                 (
                     raceProfile.baseStamina +

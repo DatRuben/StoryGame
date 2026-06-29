@@ -7,6 +7,9 @@ public class PlayerResources : MonoBehaviour
     private float maxHealth;
     private float currentHealth;
 
+    [Header("SoulBarrier")]
+    private float maxSoulBarrier;
+    private float currentSoulBarrier;
 
     [Header("Stamina")]
     private float maxStamina;
@@ -27,6 +30,13 @@ public class PlayerResources : MonoBehaviour
     public float MaxAether => maxAether;
     public float CurrentAether => currentAether;
     public float AetherPercent => GetPercent(currentAether, maxAether);
+    public float MaxSoulBarrier => maxSoulBarrier;
+    public float CurrentSoulBarrier => currentSoulBarrier;
+
+    public float SoulBarrierPercent =>
+        maxSoulBarrier > 0f
+            ? currentSoulBarrier / maxSoulBarrier
+            : 0f;
 
     public bool IsInitialized { get; private set; }
 
@@ -47,18 +57,21 @@ public class PlayerResources : MonoBehaviour
         }
 
         maxHealth = Mathf.Max(1f, finalStats.maxHealth);
+        maxSoulBarrier = Mathf.Max(1f, finalStats.maxSoulBarrier);
         maxStamina = Mathf.Max(1f, finalStats.maxStamina);
         maxAether = Mathf.Max(1f, finalStats.maxAether);
 
         if (refillResources)
         {
             currentHealth = maxHealth;
+            currentSoulBarrier = maxSoulBarrier;
             currentStamina = maxStamina;
             currentAether = maxAether;
         }
         else
         {
             currentHealth = Mathf.Clamp(currentHealth, 0f, maxHealth);
+            currentSoulBarrier = Mathf.Clamp(currentSoulBarrier, 0f, maxSoulBarrier);
             currentStamina = Mathf.Clamp(currentStamina, 0f, maxStamina);
             currentAether = Mathf.Clamp(currentAether, 0f, maxAether);
         }

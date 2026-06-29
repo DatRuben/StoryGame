@@ -95,6 +95,7 @@ public class PlayerCharacterProfile : MonoBehaviour
         Debug.Log(
             $"Final stats for {ProfileData.characterName}: " +
             $"HP {FinalStats.maxHealth}, " +
+            $"SOUL BARRIER {FinalStats.maxSoulBarrier}, " +
             $"STA {FinalStats.maxStamina}, " +
             $"Aether {FinalStats.maxAether}, " +
             $"POISE {FinalStats.poise}",

@@ -4,6 +4,7 @@ using System;
 public class FinalCharacterStats
 {
     public float maxHealth;
+    public float maxSoulBarrier;
     public float maxStamina;
     public float maxAether;
 
