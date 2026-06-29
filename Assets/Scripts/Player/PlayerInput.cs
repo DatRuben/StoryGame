@@ -24,6 +24,15 @@ public class PlayerInput : MonoBehaviour
     [SerializeField] private float staminaRegenPerSecond = 20f;
     [SerializeField] private float staminaRegenDelayAfterSprint = 1f;
 
+    [SerializeField] private float dodgeVelocityChange = 12f;
+    [SerializeField] private float dodgeDistance = 4f;
+    [SerializeField] private float dodgeDuration = 0.40f;
+    [SerializeField] private float dodgeCooldown = 0.60f;
+    [SerializeField] private float dodgeStaminaCost = 25f;
+
+    private bool isDodging;
+    private Vector3 dodgeDirection;
+
     private float movementCostMultiplier = 1f;
     private float dodgeCostMultiplier = 1f;
 
@@ -77,11 +86,14 @@ public class PlayerInput : MonoBehaviour
     private Vector3 groundNormal = Vector3.up;
     private Vector3 wallNormal = Vector3.zero;
 
+    private float dodgeEndTime = -999f;
+    private float lastDodgeTime = -999f;
     private float lastWallContactTime = -999f;
     private float lastJumpTime = -999f;
     private float lastGroundedTime = -999f;
     private float forcedAirUntil = -999f;
     private float lastStaminaSpendTime = -999f;
+    private float dodgeSpeedLimitUntil = -999f;
 
     private bool cameraLocked = false;
     public bool CameraLocked => cameraLocked;
@@ -117,6 +129,8 @@ public class PlayerInput : MonoBehaviour
         playerInput.Player.Sprint.started += StartSprint;
         playerInput.Player.Sprint.canceled += StopSprint;
 
+        playerInput.Player.Dodge.started += DoDodge;
+
         playerInput.Player.SheatheUnsheathe.started += ToggleWeaponSheathe;
 
         playerInput.Player.SwitchWeapon.started += SwitchWeaponSet;
@@ -135,6 +149,8 @@ public class PlayerInput : MonoBehaviour
 
         playerInput.Player.Sprint.started -= StartSprint;
         playerInput.Player.Sprint.canceled -= StopSprint;
+
+        playerInput.Player.Dodge.started -= DoDodge;
 
         playerInput.Player.SheatheUnsheathe.started -= ToggleWeaponSheathe;
 
@@ -218,6 +234,23 @@ public class PlayerInput : MonoBehaviour
         Vector2 input =
             move.ReadValue<Vector2>();
 
+        if (isDodging)
+        {
+            rb.linearVelocity =
+                new Vector3(
+                    dodgeDirection.x * (dodgeDistance / dodgeDuration),
+                    rb.linearVelocity.y,
+                    dodgeDirection.z * (dodgeDistance / dodgeDuration)
+                );
+
+            if (Time.time >= dodgeEndTime)
+            {
+                isDodging = false;
+            }
+
+            return;
+        }
+
         Vector3 movement =
             input.x * GetCameraRight(playerCamera) +
             input.y * GetCameraForward(playerCamera);
@@ -289,7 +322,8 @@ public class PlayerInput : MonoBehaviour
         RemoveWallVelocity();
         PreventDefaultMovementLaunch(grounded);
         ApplyExtraGravity(grounded);
-        ClampHorizontalSpeed(currentSpeed);
+        if (Time.time > dodgeSpeedLimitUntil)
+            ClampHorizontalSpeed(currentSpeed);
         RegenerateStamina(hasMovementDirection);
         UpdateSpeedText(grounded);
         LookAt();
@@ -564,6 +598,40 @@ public class PlayerInput : MonoBehaviour
             return transform.right;
 
         return right.normalized;
+    }
+
+    private void DoDodge(InputAction.CallbackContext obj)
+    {
+        if (Time.time - lastDodgeTime < dodgeCooldown)
+            return;
+
+        if (playerResources == null)
+            return;
+
+        float finalDodgeCost =
+            dodgeStaminaCost * dodgeCostMultiplier;
+
+        if (!playerResources.SpendStamina(finalDodgeCost))
+            return;
+
+        Vector2 input =
+            move.ReadValue<Vector2>();
+
+        dodgeDirection =
+            input.x * GetCameraRight(playerCamera) +
+            input.y * GetCameraForward(playerCamera);
+
+        dodgeDirection.y = 0f;
+
+        if (dodgeDirection.sqrMagnitude < 0.01f)
+            dodgeDirection = transform.forward;
+        else
+            dodgeDirection.Normalize();
+
+        isDodging = true;
+        dodgeEndTime = Time.time + dodgeDuration;
+        lastDodgeTime = Time.time;
+        lastStaminaSpendTime = Time.time;
     }
 
     private void DoJump(InputAction.CallbackContext obj)

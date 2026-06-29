@@ -360,6 +360,14 @@ MonoBehaviour:
   jumpForce: 7
   sprintSpeed: 15
   walkSpeed: 10
+  sprintStaminaCostPerSecond: 10
+  staminaRegenPerSecond: 20
+  staminaRegenDelayAfterSprint: 1
+  dodgeVelocityChange: 12
+  dodgeDistance: 4
+  dodgeDuration: 0.4
+  dodgeCooldown: 0.6
+  dodgeStaminaCost: 25
   groundCheck: {fileID: 3929204665239071809}
   groundCheckRadius: 0.25
   groundCheckDistance: 0.75
@@ -387,6 +395,7 @@ MonoBehaviour:
   speedText: {fileID: 0}
   playerInventory: {fileID: 6784262885347828411}
   playerWeaponSlots: {fileID: 7061591094718048246}
+  playerResources: {fileID: 0}
 --- !u!114 &5991753881997761642
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -399,12 +408,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d365944a07b11364291657856e54f39a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerResources
-  maxHealth: 100
-  currentHealth: 100
-  maxStamina: 100
-  currentStamina: 100
-  maxMana: 100
-  currentMana: 100
 --- !u!114 &833084290276173504
 MonoBehaviour:
   m_ObjectHideFlags: 0
