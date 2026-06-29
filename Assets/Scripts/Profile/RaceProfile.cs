@@ -80,6 +80,8 @@ public class RaceProfile : ScriptableObject
     public float spiritToAether = 10f;
     public float vitalityToPoise = 4f;
     public float strengthToPoise = 3f;
+    public float spiritToSoulBarrier = 4f;
+    public float willpowerToSoulBarrier = 8f;
 
     [Header("Body / Collider")]
     public float capsuleRadius = 0.5f;

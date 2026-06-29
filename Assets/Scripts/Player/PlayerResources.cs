@@ -7,7 +7,7 @@ public class PlayerResources : MonoBehaviour
     private float maxHealth;
     private float currentHealth;
 
-    [Header("SoulBarrier")]
+    [Header("Soul Barrier")]
     private float maxSoulBarrier;
     private float currentSoulBarrier;
 

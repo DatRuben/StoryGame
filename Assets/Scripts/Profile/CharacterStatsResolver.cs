@@ -350,8 +350,8 @@ public static class CharacterStatsResolver
 
             maxSoulBarrier =
                 raceProfile.baseSoulBarrier +
-                attributes.spirit * 4f +
-                attributes.willpower * 8f,
+                attributes.spirit * raceProfile.spiritToSoulBarrier +
+                attributes.willpower * raceProfile.willpowerToSoulBarrier,
 
             maxStamina =
                 (
