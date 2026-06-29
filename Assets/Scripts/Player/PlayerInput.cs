@@ -17,14 +17,15 @@ public class PlayerInput : MonoBehaviour
     [SerializeField] private float airAcceleration = 2f;
     [SerializeField] private float deceleration = 16f;
     [SerializeField] private float jumpForce = 7f;
-    [SerializeField] private float sprintSpeed = 15f;
     [SerializeField] private float walkSpeed = 10f;
 
+    [Header("Sprinting")]
+    [SerializeField] private float sprintSpeed = 15f;
     [SerializeField] private float sprintStaminaCostPerSecond = 10f;
     [SerializeField] private float staminaRegenPerSecond = 20f;
     [SerializeField] private float staminaRegenDelayAfterSprint = 1f;
 
-    [SerializeField] private float dodgeVelocityChange = 12f;
+    [Header("Dodge")]
     [SerializeField] private float dodgeDistance = 4f;
     [SerializeField] private float dodgeDuration = 0.40f;
     [SerializeField] private float dodgeCooldown = 0.60f;
@@ -32,7 +33,6 @@ public class PlayerInput : MonoBehaviour
 
     private bool isDodging;
     private Vector3 dodgeDirection;
-
     private float movementCostMultiplier = 1f;
     private float dodgeCostMultiplier = 1f;
 
@@ -93,7 +93,6 @@ public class PlayerInput : MonoBehaviour
     private float lastGroundedTime = -999f;
     private float forcedAirUntil = -999f;
     private float lastStaminaSpendTime = -999f;
-    private float dodgeSpeedLimitUntil = -999f;
 
     private bool cameraLocked = false;
     public bool CameraLocked => cameraLocked;
@@ -322,8 +321,7 @@ public class PlayerInput : MonoBehaviour
         RemoveWallVelocity();
         PreventDefaultMovementLaunch(grounded);
         ApplyExtraGravity(grounded);
-        if (Time.time > dodgeSpeedLimitUntil)
-            ClampHorizontalSpeed(currentSpeed);
+        ClampHorizontalSpeed(currentSpeed);
         RegenerateStamina(hasMovementDirection);
         UpdateSpeedText(grounded);
         LookAt();

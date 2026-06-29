@@ -358,12 +358,11 @@ MonoBehaviour:
   airAcceleration: 2
   deceleration: 16
   jumpForce: 7
-  sprintSpeed: 15
   walkSpeed: 10
+  sprintSpeed: 15
   sprintStaminaCostPerSecond: 10
   staminaRegenPerSecond: 20
   staminaRegenDelayAfterSprint: 1
-  dodgeVelocityChange: 12
   dodgeDistance: 4
   dodgeDuration: 0.4
   dodgeCooldown: 0.6
