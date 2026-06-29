@@ -11,6 +11,9 @@ public class PlayerResources : MonoBehaviour
     private float maxSoulBarrier;
     private float currentSoulBarrier;
 
+    [Header("Damage Tuning")]
+    [SerializeField] private float maxAetherBodyDamageReduction = 0.6f;
+
     [Header("Stamina")]
     private float maxStamina;
     private float currentStamina;
@@ -86,6 +89,24 @@ public class PlayerResources : MonoBehaviour
         OnResourcesChanged?.Invoke();
     }
 
+    public void TakeDamage(float amount, DamageType damageType)
+    {
+        amount = Mathf.Max(0f, amount);
+
+        switch (damageType)
+        {
+            case DamageType.Physical:
+                DamageHealth(amount);
+                break;
+
+            case DamageType.Aether:
+                DamageAether(amount);
+                break;
+        }
+
+        OnResourcesChanged?.Invoke();
+    }
+
     public bool CanSpendStamina(float amount)
     {
         if (amount <= 0f)
@@ -139,5 +160,50 @@ public class PlayerResources : MonoBehaviour
             return 0f;
 
         return Mathf.Clamp01(current / max);
+    }
+
+    private void DamageHealth(float amount)
+    {
+        currentHealth =
+            Mathf.Clamp(
+                currentHealth - amount,
+                0f,
+                maxHealth
+            );
+    }
+
+    private void DamageAether(float amount)
+    {
+        float barrierPercent =
+            GetPercent(
+                currentSoulBarrier,
+                maxSoulBarrier
+            );
+
+        float bodyDamageReduction =
+            Mathf.Lerp(
+                0f,
+                maxAetherBodyDamageReduction,
+                barrierPercent
+            );
+
+        float bodyDamage =
+            amount * (1f - bodyDamageReduction);
+
+        float barrierDamage = amount;
+
+        currentSoulBarrier =
+            Mathf.Clamp(
+                currentSoulBarrier - barrierDamage,
+                0f,
+                maxSoulBarrier
+            );
+
+        currentHealth =
+            Mathf.Clamp(
+                currentHealth - bodyDamage,
+                0f,
+                maxHealth
+            );
     }
 }
