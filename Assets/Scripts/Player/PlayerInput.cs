@@ -111,7 +111,7 @@ public class PlayerInput : MonoBehaviour
         playerInput.Player.Jump.started += StartJumpHold;
         playerInput.Player.Jump.canceled += StopJumpHold;
 
-        playerInput.Player.Attack.started += DoAttack;
+        playerInput.Player.PrimaryAttack.started += DoAttack;
         playerInput.Player.CameraLock.started += ToggleCameraLock;
 
         playerInput.Player.Sprint.started += StartSprint;
@@ -130,7 +130,7 @@ public class PlayerInput : MonoBehaviour
         playerInput.Player.Jump.started -= StartJumpHold;
         playerInput.Player.Jump.canceled -= StopJumpHold;
 
-        playerInput.Player.Attack.started -= DoAttack;
+        playerInput.Player.PrimaryAttack.started -= DoAttack;
         playerInput.Player.CameraLock.started -= ToggleCameraLock;
 
         playerInput.Player.Sprint.started -= StartSprint;

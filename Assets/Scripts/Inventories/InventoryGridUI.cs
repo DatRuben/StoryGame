@@ -99,7 +99,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
         if (playerInput == null)
             playerInput = new PlayerInputActions();
 
-        playerInput.Player.RotateItem.started += OnRotateItem;
+        playerInput.Player.ReloadRotateItem.started += OnRotateItem;
         playerInput.Player.Enable();
     }
 
@@ -107,7 +107,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
     {
         if (playerInput != null)
         {
-            playerInput.Player.RotateItem.started -= OnRotateItem;
+            playerInput.Player.ReloadRotateItem.started -= OnRotateItem;
             playerInput.Player.Disable();
         }
     }
