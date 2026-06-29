@@ -176,6 +176,10 @@ public class PlayerInput : MonoBehaviour
         airAcceleration = movementStats.airAcceleration;
         deceleration = movementStats.deceleration;
         jumpForce = movementStats.jumpForce;
+        dodgeDistance = movementStats.dodgeDistance;
+        dodgeDuration = movementStats.dodgeDuration;
+        dodgeCooldown = movementStats.dodgeCooldown;
+        dodgeStaminaCost = movementStats.dodgeStaminaCost;
     }
 
     public void SetRuntimeCameraReferences(

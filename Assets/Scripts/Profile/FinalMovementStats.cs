@@ -9,4 +9,12 @@ public class FinalMovementStats
     public float airAcceleration;
     public float deceleration;
     public float jumpForce;
+
+    public DodgeType dodgeType;
+
+    public float dodgeDistance;
+    public float dodgeDuration;
+    public float dodgeCooldown;
+    public float dodgeStaminaCost;
+    public float dodgeControl;
 }
