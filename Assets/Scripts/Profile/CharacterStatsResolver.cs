@@ -114,6 +114,11 @@ public static class CharacterStatsResolver
             raceProfile.size
         );
 
+        ApplyDodgeProfile(
+            movementStats,
+            ResolveDodgeType(raceProfile)
+        );
+
         return movementStats;
     }
 
@@ -239,9 +244,9 @@ public static class CharacterStatsResolver
 
             case DodgeType.MediumDash:
             default:
-                movementStats.dodgeDistance = 4f;
-                movementStats.dodgeDuration = 0.25f; // use your tuned value here
-                movementStats.dodgeCooldown = 0.60f;
+                movementStats.dodgeDistance = 5f;
+                movementStats.dodgeDuration = 0.3f; // use your tuned value here
+                movementStats.dodgeCooldown = 0.7f;
                 movementStats.dodgeStaminaCost = 25f;
                 movementStats.dodgeControl = 0.15f;
                 break;
@@ -306,6 +311,28 @@ public static class CharacterStatsResolver
                 movementStats.deceleration *= 0.6f;
                 movementStats.jumpForce *= 0.7f;
                 break;
+        }
+    }
+
+    private static DodgeType ResolveDodgeType(RaceProfile raceProfile)
+    {
+        if (raceProfile == null)
+            return DodgeType.MediumDash;
+
+        switch (raceProfile.size)
+        {
+            case RaceSize.Size1:
+            case RaceSize.Size1Feral:
+                return DodgeType.LightBurst;
+
+            case RaceSize.Size3:
+            case RaceSize.Size3Feral:
+            case RaceSize.Dragon:
+            case RaceSize.BigDragon:
+                return DodgeType.HeavyStep;
+
+            default:
+                return DodgeType.MediumDash;
         }
     }
 
