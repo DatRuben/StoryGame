@@ -121,12 +121,19 @@ public static class CharacterStatsResolver
     {
         return new FinalMovementStats
         {
-            walkSpeed = 10f,
-            sprintSpeed = 15f,
+            walkSpeed = 8f,
+            sprintSpeed = 12f,
             groundAcceleration = 8f,
             airAcceleration = 2f,
             deceleration = 16f,
-            jumpForce = 7f
+            jumpForce = 7f,
+
+            dodgeType = DodgeType.MediumDash,
+            dodgeDistance = 5f,
+            dodgeDuration = 0.30f,
+            dodgeCooldown = 0.70f,
+            dodgeStaminaCost = 20f,
+            dodgeControl = 0.15f
         };
     }
 
@@ -139,7 +146,14 @@ public static class CharacterStatsResolver
             groundAcceleration = 10f,
             airAcceleration = 2.5f,
             deceleration = 12f,
-            jumpForce = 6.5f
+            jumpForce = 6.5f,
+
+            dodgeType = DodgeType.LightBurst,
+            dodgeDistance = 4.75f,
+            dodgeDuration = 0.28f,
+            dodgeCooldown = 0.45f,
+            dodgeStaminaCost = 30f,
+            dodgeControl = 0.5f
         };
     }
 
