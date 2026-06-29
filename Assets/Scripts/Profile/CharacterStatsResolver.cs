@@ -119,42 +119,44 @@ public static class CharacterStatsResolver
 
     private static FinalMovementStats CreateSize2HumanoidMovement()
     {
-        return new FinalMovementStats
-        {
-            walkSpeed = 8f,
-            sprintSpeed = 12f,
-            groundAcceleration = 8f,
-            airAcceleration = 2f,
-            deceleration = 16f,
-            jumpForce = 7f,
+        FinalMovementStats movementStats =
+            new FinalMovementStats
+            {
+                walkSpeed = 8f,
+                sprintSpeed = 12f,
+                groundAcceleration = 8f,
+                airAcceleration = 2f,
+                deceleration = 16f,
+                jumpForce = 7f
+            };
 
-            dodgeType = DodgeType.MediumDash,
-            dodgeDistance = 5f,
-            dodgeDuration = 0.30f,
-            dodgeCooldown = 0.70f,
-            dodgeStaminaCost = 20f,
-            dodgeControl = 0.15f
-        };
+        ApplyDodgeProfile(
+            movementStats,
+            DodgeType.MediumDash
+        );
+
+        return movementStats;
     }
 
     private static FinalMovementStats CreateSize2FeralMovement()
     {
-        return new FinalMovementStats
-        {
-            walkSpeed = 12f,
-            sprintSpeed = 18f,
-            groundAcceleration = 10f,
-            airAcceleration = 2.5f,
-            deceleration = 12f,
-            jumpForce = 6.5f,
+        FinalMovementStats movementStats =
+            new FinalMovementStats
+            {
+                walkSpeed = 12f,
+                sprintSpeed = 18f,
+                groundAcceleration = 10f,
+                airAcceleration = 2.5f,
+                deceleration = 12f,
+                jumpForce = 6.5f
+            };
 
-            dodgeType = DodgeType.LightBurst,
-            dodgeDistance = 4.75f,
-            dodgeDuration = 0.28f,
-            dodgeCooldown = 0.45f,
-            dodgeStaminaCost = 30f,
-            dodgeControl = 0.5f
-        };
+        ApplyDodgeProfile(
+            movementStats,
+            DodgeType.LightBurst
+        );
+
+        return movementStats;
     }
 
     private static MovementBaseType ResolveMovementBaseType(
@@ -205,6 +207,44 @@ public static class CharacterStatsResolver
             case BodyType.StanceSwitching:
             default:
                 return MovementBaseType.Size2Feral;
+        }
+    }
+
+    private static void ApplyDodgeProfile(
+    FinalMovementStats movementStats,
+    DodgeType dodgeType)
+    {
+        if (movementStats == null)
+            return;
+
+        movementStats.dodgeType = dodgeType;
+
+        switch (dodgeType)
+        {
+            case DodgeType.HeavyStep:
+                movementStats.dodgeDistance = 2.5f;
+                movementStats.dodgeDuration = 0.22f;
+                movementStats.dodgeCooldown = 0.75f;
+                movementStats.dodgeStaminaCost = 20f;
+                movementStats.dodgeControl = 0f;
+                break;
+
+            case DodgeType.LightBurst:
+                movementStats.dodgeDistance = 4.75f;
+                movementStats.dodgeDuration = 0.22f;
+                movementStats.dodgeCooldown = 0.45f;
+                movementStats.dodgeStaminaCost = 30f;
+                movementStats.dodgeControl = 0.5f;
+                break;
+
+            case DodgeType.MediumDash:
+            default:
+                movementStats.dodgeDistance = 4f;
+                movementStats.dodgeDuration = 0.25f; // use your tuned value here
+                movementStats.dodgeCooldown = 0.60f;
+                movementStats.dodgeStaminaCost = 25f;
+                movementStats.dodgeControl = 0.15f;
+                break;
         }
     }
 
