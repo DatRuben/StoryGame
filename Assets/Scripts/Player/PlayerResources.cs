@@ -12,7 +12,7 @@ public class PlayerResources : MonoBehaviour
     private float currentSoulBarrier;
 
     [Header("Damage Tuning")]
-    [SerializeField] private float maxAetherBodyDamageReduction = 0.6f;
+    [SerializeField] private float maxAetherBodyDamageReduction = 0.5f;
 
     [Header("Stamina")]
     private float maxStamina;
