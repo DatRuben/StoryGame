@@ -150,11 +150,6 @@ public class RaceProfile : ScriptableObject
 
     public List<string> allowedLineageIds = new();
 
-    [Header("Lineage")]
-    public bool usesLineageProfiles = true;
-    public LineageProfile[] allowedLineage;
-    public int maxLineageCount = 1;
-
     [Header("Shapeshifting")]
     public bool canShapeshift = false;
     public ShapeshiftProfile[] shapeshiftForms;
