@@ -8,6 +8,7 @@ public enum BaseRace
     Eastern,
     Griffin,
     Human,
+    SoulChip,
     WesternDragon
 }
 
@@ -151,4 +152,21 @@ public class RaceProfile : ScriptableObject
 
     [TextArea]
     public string notes;
+
+    private void OnValidate()
+    {
+        if (baseAttributes == null)
+            return;
+
+        int total =
+            baseAttributes.BasePoints();
+
+        if (total != 80)
+        {
+            Debug.LogWarning(
+                $"{name} base attributes total {total}, expected 80.",
+                this
+            );
+        }
+    }
 }
