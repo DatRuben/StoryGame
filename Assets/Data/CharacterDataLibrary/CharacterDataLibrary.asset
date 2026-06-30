@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5a26c643f9cb50e449363dce13f16020, type: 3}
-  m_Name: Race Profile Library
+  m_Name: CharacterDataLibrary
   m_EditorClassIdentifier: Assembly-CSharp::RaceProfileLibrary
   raceProfiles:
   - {fileID: 11400000, guid: b129ca34dc2505b4bb75de6a89cfaaba, type: 2}

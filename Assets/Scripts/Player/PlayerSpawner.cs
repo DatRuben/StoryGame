@@ -73,10 +73,15 @@ public class PlayerSpawner : MonoBehaviour
         if (playerCharacterProfile == null)
             playerCharacterProfile = spawnedPlayer.AddComponent<PlayerCharacterProfile>();
 
+        LineageProfile[] lineageProfiles =
+            characterDataLibrary
+                .GetLineageProfiles(profile.lineageIds)
+                .ToArray();
+
         playerCharacterProfile.Initialize(
             profile,
             raceProfile,
-            new LineageProfile[0]
+            lineageProfiles
         );
 
         return true;

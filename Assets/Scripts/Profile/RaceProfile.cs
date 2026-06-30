@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public enum BaseRace
@@ -30,6 +31,13 @@ public enum BodyType
     Humanoid,
     Quadruped,
     StanceSwitching
+}
+
+public enum LineageSelectionRule
+{
+    Disabled,
+    Optional,
+    Required
 }
 
 public enum CapsuleDirection
@@ -130,6 +138,17 @@ public class RaceProfile : ScriptableObject
 
     [TextArea]
     public string racialSkillTreeTheme;
+
+    [Header("Lineage Selection")]
+    public LineageSelectionRule lineageSelectionRule = LineageSelectionRule.Optional;
+
+    [Min(0)]
+    public int minLineages = 0;
+
+    [Min(0)]
+    public int maxLineages = 0;
+
+    public List<string> allowedLineageIds = new();
 
     [Header("Lineage")]
     public bool usesLineageProfiles = true;
