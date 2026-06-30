@@ -1,0 +1,16 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a26c643f9cb50e449363dce13f16020, type: 3}
+  m_Name: Race Profile Library
+  m_EditorClassIdentifier: Assembly-CSharp::RaceProfileLibrary
+  raceProfiles:
+  - {fileID: 11400000, guid: b129ca34dc2505b4bb75de6a89cfaaba, type: 2}

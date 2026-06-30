@@ -8595,6 +8595,7 @@ MonoBehaviour:
   inventoryMenuController: {fileID: 579740482}
   speedText: {fileID: 872080309}
   cinemachineCamera: {fileID: 636625052}
+  cameraCollision: {fileID: 0}
   cameraTargetOverride: {fileID: 0}
   cameraPivotName: CameraPivot
   contextPanelController: {fileID: 0}
@@ -9489,6 +9490,7 @@ MonoBehaviour:
   barSize: {x: 360, y: 24}
   barSpacing: 8
   healthColor: {r: 1, g: 0, b: 0, a: 1}
+  soulBarrierColor: {r: 0, g: 0, b: 1, a: 1}
   staminaColor: {r: 0, g: 1, b: 0, a: 1}
   aetherColor: {r: 0, g: 1, b: 1, a: 1}
   barBackgroundColor: {r: 0, g: 0, b: 0, a: 0.55}
@@ -10430,6 +10432,55 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1268955939}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1297872239
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1297872240}
+  - component: {fileID: 1297872241}
+  m_Layer: 0
+  m_Name: PlayerSpawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1297872240
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1297872239}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1707305231}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1297872241
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1297872239}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f552e0dd36b6bb0459e997e669aca1ae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerSpawner
+  playerPrefab: {fileID: 3981885625536899075, guid: 64e47ba75c61b5c45a6fa6429e61fd5f, type: 3}
+  spawnPoint: {fileID: 104995733}
+  raceProfileLibrary: {fileID: 11400000, guid: c1acf6bd8c47e7e46a8bb26e72e63560, type: 2}
+  createDefaultProfileIfNone: 1
+  defaultCharacterName: New Character
 --- !u!1 &1336051496
 GameObject:
   m_ObjectHideFlags: 0
@@ -14010,6 +14061,7 @@ Transform:
   - {fileID: 2042686023}
   - {fileID: 222297735}
   - {fileID: 967172424}
+  - {fileID: 1297872240}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1711152525
