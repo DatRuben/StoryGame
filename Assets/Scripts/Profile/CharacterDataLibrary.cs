@@ -101,7 +101,7 @@ public class CharacterDataLibrary : ScriptableObject
 
 #if UNITY_EDITOR
     [ContextMenu("Rebuild Library From Project Assets")]
-    private void RebuildLibrary()
+    public void RebuildLibrary()
     {
         RebuildRaceProfiles();
         RebuildLineageProfiles();
@@ -156,3 +156,108 @@ public class CharacterDataLibrary : ScriptableObject
     }
 #endif
 }
+
+#if UNITY_EDITOR
+public class CharacterDataLibraryAutoRebuilder : AssetPostprocessor
+{
+    private static bool rebuildQueued;
+
+    private static void OnPostprocessAllAssets(
+        string[] importedAssets,
+        string[] deletedAssets,
+        string[] movedAssets,
+        string[] movedFromAssetPaths)
+    {
+        if (!ShouldQueueRebuild(
+            importedAssets,
+            deletedAssets,
+            movedAssets,
+            movedFromAssetPaths))
+        {
+            return;
+        }
+
+        if (rebuildQueued)
+            return;
+
+        rebuildQueued = true;
+        EditorApplication.delayCall += RebuildAllLibraries;
+    }
+
+    private static bool ShouldQueueRebuild(
+        string[] importedAssets,
+        string[] deletedAssets,
+        string[] movedAssets,
+        string[] movedFromAssetPaths)
+    {
+        return HasRelevantImportedAsset(importedAssets) ||
+               HasRelevantImportedAsset(movedAssets) ||
+               HasPossibleDeletedDefinitionAsset(deletedAssets) ||
+               HasPossibleDeletedDefinitionAsset(movedFromAssetPaths);
+    }
+
+    private static bool HasRelevantImportedAsset(string[] paths)
+    {
+        if (paths == null)
+            return false;
+
+        foreach (string path in paths)
+        {
+            if (!path.EndsWith(".asset"))
+                continue;
+
+            Object asset =
+                AssetDatabase.LoadMainAssetAtPath(path);
+
+            if (asset is RaceProfile ||
+                asset is LineageProfile)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool HasPossibleDeletedDefinitionAsset(string[] paths)
+    {
+        if (paths == null)
+            return false;
+
+        foreach (string path in paths)
+        {
+            if (path.EndsWith(".asset"))
+                return true;
+        }
+
+        return false;
+    }
+
+    private static void RebuildAllLibraries()
+    {
+        rebuildQueued = false;
+
+        string[] guids =
+            AssetDatabase.FindAssets("t:CharacterDataLibrary");
+
+        foreach (string guid in guids)
+        {
+            string path =
+                AssetDatabase.GUIDToAssetPath(guid);
+
+            CharacterDataLibrary library =
+                AssetDatabase.LoadAssetAtPath<CharacterDataLibrary>(path);
+
+            if (library == null)
+                continue;
+
+            library.RebuildLibrary();
+
+            Debug.Log(
+                $"Auto-rebuilt CharacterDataLibrary: {path}",
+                library
+            );
+        }
+    }
+}
+#endif
