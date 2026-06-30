@@ -18,14 +18,13 @@ public static class CharacterSelection
 
     public static CharacterProfileData CreateCharacter(
         string characterName,
-        string raceId = "Human",
-        string subraceId = "Human")
+        string raceProfileId = "Human_Default")
     {
         CharacterProfileData profile =
-            CharacterProfileData.CreateNew(characterName);
-
-        profile.raceId = raceId;
-        profile.subraceId = subraceId;
+            CharacterProfileData.CreateNew(
+                characterName,
+                raceProfileId
+            );
 
         CharacterSaveSystem.SaveProfile(profile);
         SelectProfile(profile.profileId);

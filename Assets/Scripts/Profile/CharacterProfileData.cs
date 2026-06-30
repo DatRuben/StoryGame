@@ -8,8 +8,7 @@ public class CharacterProfileData
     public string profileId;
     public string characterName;
 
-    public string raceId;
-    public string subraceId;
+    public string raceProfileId;
 
     public List<string> lineageIds = new();
 
@@ -23,7 +22,9 @@ public class CharacterProfileData
     public string createdUtc;
     public string lastSavedUtc;
 
-    public static CharacterProfileData CreateNew(string characterName)
+    public static CharacterProfileData CreateNew(
+        string characterName,
+        string raceProfileId = "Human_Default")
     {
         string now = DateTime.UtcNow.ToString("O");
 
@@ -31,8 +32,7 @@ public class CharacterProfileData
         {
             profileId = Guid.NewGuid().ToString("N"),
             characterName = characterName,
-            raceId = "Human",
-            subraceId = "Human",
+            raceProfileId = raceProfileId,
             level = 1,
             createdUtc = now,
             lastSavedUtc = now,

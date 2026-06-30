@@ -55,6 +55,9 @@ public class RaceProfile : ScriptableObject
     public RaceSize size;
     public BodyType bodyType;
 
+    [Header("Save Identity")]
+    public string profileId;
+
     [TextArea]
     public string description;
 
