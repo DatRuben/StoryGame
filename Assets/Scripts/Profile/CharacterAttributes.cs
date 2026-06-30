@@ -126,4 +126,18 @@ public class CharacterAttributes
             technique = attributes.technique + modifiers.technique
         };
     }
+
+    public int BasePoints()
+    {
+        return strength +
+               dexterity +
+               agility +
+               vitality +
+               endurance +
+               intelligence +
+               willpower +
+               spirit +
+               perception +
+               technique;
+    }
 }
