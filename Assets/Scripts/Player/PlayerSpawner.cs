@@ -4,7 +4,7 @@ public class PlayerSpawner : MonoBehaviour
 {
     [SerializeField] private GameObject playerPrefab;
     [SerializeField] private Transform spawnPoint;
-    [SerializeField] private RaceProfileLibrary raceProfileLibrary;
+    [SerializeField] private CharacterDataLibrary characterDataLibrary;
 
     [Header("Fallback")]
     [SerializeField] private bool createDefaultProfileIfNone = true;
@@ -31,10 +31,10 @@ public class PlayerSpawner : MonoBehaviour
             return false;
         }
 
-        if (raceProfileLibrary == null)
+        if (characterDataLibrary == null)
         {
             Debug.LogWarning(
-                "PlayerSpawner could not spawn because RaceProfileLibrary is missing.",
+                "PlayerSpawner could not spawn because CharacterDataLibrary is missing.",
                 this
             );
 
@@ -99,12 +99,12 @@ public class PlayerSpawner : MonoBehaviour
         }
 
         RaceProfile defaultRaceProfile =
-            raceProfileLibrary.GetDefaultRaceProfile();
+            characterDataLibrary.GetDefaultRaceProfile();
 
         if (defaultRaceProfile == null)
         {
             Debug.LogWarning(
-                "PlayerSpawner could not create a default character because the RaceProfileLibrary has no race profiles.",
+                "PlayerSpawner could not create a default character because the CharacterDataLibrary has no race profiles.",
                 this
             );
 
@@ -136,7 +136,7 @@ public class PlayerSpawner : MonoBehaviour
         if (profile == null)
             return null;
 
-        if (raceProfileLibrary.TryGetRaceProfile(
+        if (characterDataLibrary.TryGetRaceProfile(
             profile.raceProfileId,
             out RaceProfile raceProfile))
         {
@@ -144,7 +144,7 @@ public class PlayerSpawner : MonoBehaviour
         }
 
         RaceProfile fallbackRaceProfile =
-            raceProfileLibrary.GetDefaultRaceProfile();
+            characterDataLibrary.GetDefaultRaceProfile();
 
         if (fallbackRaceProfile == null)
         {
