@@ -89,6 +89,18 @@ public class PlayerResources : MonoBehaviour
         OnResourcesChanged?.Invoke();
     }
 
+    public void SetSoulBarrier(float value)
+    {
+        currentSoulBarrier =
+            Mathf.Clamp(
+                value,
+                0f,
+                maxSoulBarrier
+            );
+
+        OnResourcesChanged?.Invoke();
+    }
+
     public void TakeDamage(float amount, DamageType damageType)
     {
         amount = Mathf.Max(0f, amount);
@@ -103,6 +115,20 @@ public class PlayerResources : MonoBehaviour
                 DamageAether(amount);
                 break;
         }
+
+        OnResourcesChanged?.Invoke();
+    }
+
+    public void HealHealth(float amount)
+    {
+        amount = Mathf.Max(0f, amount);
+
+        currentHealth =
+            Mathf.Clamp(
+                currentHealth + amount,
+                0f,
+                maxHealth
+            );
 
         OnResourcesChanged?.Invoke();
     }
@@ -142,6 +168,11 @@ public class PlayerResources : MonoBehaviour
     public void AddHealth(float amount)
     {
         SetHealth(currentHealth + amount);
+    }
+
+    public void AddSoulBarrier(float amount)
+    {
+        SetSoulBarrier(currentSoulBarrier + amount);
     }
 
     public void AddStamina(float amount)

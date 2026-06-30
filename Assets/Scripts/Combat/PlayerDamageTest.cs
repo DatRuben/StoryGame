@@ -8,6 +8,8 @@ public class PlayerDamageTest : MonoBehaviour
     [Header("Test Damage")]
     [SerializeField] private float physicalDamage = 25f;
     [SerializeField] private float aetherDamage = 25f;
+    [SerializeField] private float healAmount = 25f;
+    [SerializeField] private float barrierRestoreAmount = 25f;
 
     private void Awake()
     {
@@ -30,6 +32,18 @@ public class PlayerDamageTest : MonoBehaviour
         {
             resources.TakeDamage(aetherDamage, DamageType.Aether);
             PrintResources("Aether damage");
+        }
+
+        if (Keyboard.current.digit3Key.wasPressedThisFrame)
+        {
+            resources.HealHealth(healAmount);
+            PrintResources("Heal health");
+        }
+
+        if (Keyboard.current.digit4Key.wasPressedThisFrame)
+        {
+            resources.AddSoulBarrier(barrierRestoreAmount);
+            PrintResources("Restore Soul Barrier");
         }
     }
 
