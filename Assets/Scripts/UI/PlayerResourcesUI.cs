@@ -13,6 +13,7 @@ public class PlayerResourcesUI : MonoBehaviour
 
     [Header("Colors")]
     [SerializeField] private Color healthColor = Color.red;
+    [SerializeField] private Color soulBarrierColor = Color.blue;
     [SerializeField] private Color staminaColor = Color.green;
     [SerializeField] private Color aetherColor = Color.cyan;
     [SerializeField] private Color barBackgroundColor = new Color(0f, 0f, 0f, 0.55f);
@@ -24,6 +25,7 @@ public class PlayerResourcesUI : MonoBehaviour
     private RectTransform root;
 
     private RectTransform healthFill;
+    private RectTransform soulBarrierFill;
     private RectTransform staminaFill;
     private RectTransform aetherFill;
 
@@ -70,6 +72,10 @@ public class PlayerResourcesUI : MonoBehaviour
         float y = 0f;
 
         healthFill = CreateBar("HealthBar", y, healthColor);
+
+        y -= barSize.y + barSpacing;
+
+        soulBarrierFill = CreateBar("SoulBarrierBar", y, soulBarrierColor);
 
         y -= barSize.y + barSpacing;
 
@@ -143,12 +149,14 @@ public class PlayerResourcesUI : MonoBehaviour
         if (playerResources == null)
         {
             SetFillPercent(healthFill, 1f);
+            SetFillPercent(soulBarrierFill, 1f);
             SetFillPercent(staminaFill, 1f);
             SetFillPercent(aetherFill, 1f);
             return;
         }
 
         SetFillPercent(healthFill, playerResources.HealthPercent);
+        SetFillPercent(soulBarrierFill, playerResources.SoulBarrierPercent);
         SetFillPercent(staminaFill, playerResources.StaminaPercent);
         SetFillPercent(aetherFill, playerResources.AetherPercent);
     }

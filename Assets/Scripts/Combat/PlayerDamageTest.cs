@@ -37,8 +37,8 @@ public class PlayerDamageTest : MonoBehaviour
     {
         Debug.Log(
             $"{label}: " +
-            $"HP {resources.CurrentHealth}/{resources.MaxHealth}, " +
-            $"Soul Barrier {resources.CurrentSoulBarrier}/{resources.MaxSoulBarrier}",
+            $"HP {Mathf.CeilToInt(resources.CurrentHealth)}/{Mathf.CeilToInt(resources.MaxHealth)}, " +
+            $"Soul Barrier {Mathf.CeilToInt(resources.CurrentSoulBarrier)}/{Mathf.CeilToInt(resources.MaxSoulBarrier)}",
             this
         );
     }
