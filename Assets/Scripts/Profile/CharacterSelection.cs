@@ -18,12 +18,14 @@ public static class CharacterSelection
 
     public static CharacterProfileData CreateCharacter(
         string characterName,
-        string raceProfileId = "Human_Default")
+        string raceProfileId = "Human_Default",
+        List<string> lineageIds = null)
     {
         CharacterProfileData profile =
             CharacterProfileData.CreateNew(
                 characterName,
-                raceProfileId
+                raceProfileId,
+                lineageIds
             );
 
         CharacterSaveSystem.SaveProfile(profile);
@@ -74,5 +76,47 @@ public static class CharacterSelection
     {
         PlayerPrefs.DeleteKey(SelectedProfileIdKey);
         PlayerPrefs.Save();
+    }
+
+    public static bool TryCreateCharacter(
+    string characterName,
+    RaceProfile raceProfile,
+    List<string> lineageIds,
+    out CharacterProfileData profile,
+    out string errorMessage)
+    {
+        profile = null;
+        errorMessage = "";
+
+        if (raceProfile == null)
+        {
+            errorMessage = "Race profile is missing.";
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(raceProfile.profileId))
+        {
+            errorMessage = "Race profile has no profileId.";
+            return false;
+        }
+
+        if (!raceProfile.AreLineagesValid(
+            lineageIds,
+            out errorMessage))
+        {
+            return false;
+        }
+
+        profile =
+            CharacterProfileData.CreateNew(
+                characterName,
+                raceProfile.profileId,
+                lineageIds
+            );
+
+        CharacterSaveSystem.SaveProfile(profile);
+        SelectProfile(profile.profileId);
+
+        return true;
     }
 }

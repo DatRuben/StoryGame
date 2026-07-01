@@ -24,7 +24,8 @@ public class CharacterProfileData
 
     public static CharacterProfileData CreateNew(
         string characterName,
-        string raceProfileId = "Human_Default")
+        string raceProfileId = "Human_Default",
+        List<string> lineageIds = null)
     {
         string now = DateTime.UtcNow.ToString("O");
 
@@ -33,6 +34,9 @@ public class CharacterProfileData
             profileId = Guid.NewGuid().ToString("N"),
             characterName = characterName,
             raceProfileId = raceProfileId,
+            lineageIds = lineageIds != null
+                ? new List<string>(lineageIds)
+                : new List<string>(),
             level = 1,
             createdUtc = now,
             lastSavedUtc = now,

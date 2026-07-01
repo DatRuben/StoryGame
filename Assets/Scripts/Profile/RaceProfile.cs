@@ -170,6 +170,105 @@ public class RaceProfile : ScriptableObject
     [TextArea]
     public string notes;
 
+    public bool CanUseLineages()
+    {
+        return lineageSelectionRule != LineageSelectionRule.Disabled &&
+               maxLineages > 0;
+    }
+
+    public bool IsLineageAllowed(string lineageId)
+    {
+        if (string.IsNullOrWhiteSpace(lineageId))
+            return false;
+
+        if (!CanUseLineages())
+            return false;
+
+        if (allowedLineageIds == null ||
+            allowedLineageIds.Count == 0)
+        {
+            return false;
+        }
+
+        return allowedLineageIds.Contains(lineageId);
+    }
+
+    public bool AreLineagesValid(
+        List<string> lineageIds,
+        out string errorMessage)
+    {
+        errorMessage = "";
+
+        int count =
+            lineageIds == null
+                ? 0
+                : lineageIds.Count;
+
+        if (lineageSelectionRule == LineageSelectionRule.Disabled)
+        {
+            if (count > 0)
+            {
+                errorMessage =
+                    $"{displayName} cannot use lineages.";
+
+                return false;
+            }
+
+            return true;
+        }
+
+        if (lineageSelectionRule == LineageSelectionRule.Required &&
+            count < minLineages)
+        {
+            errorMessage =
+                $"{displayName} requires at least {minLineages} lineage.";
+
+            return false;
+        }
+
+        if (count > maxLineages)
+        {
+            errorMessage =
+                $"{displayName} can only use up to {maxLineages} lineages.";
+
+            return false;
+        }
+
+        if (lineageIds == null)
+            return true;
+
+        HashSet<string> usedLineageIds = new();
+
+        foreach (string lineageId in lineageIds)
+        {
+            if (string.IsNullOrWhiteSpace(lineageId))
+            {
+                errorMessage =
+                    "Empty lineage IDs are not allowed.";
+
+                return false;
+            }
+
+            if (!usedLineageIds.Add(lineageId))
+            {
+                errorMessage =
+                    $"Lineage '{lineageId}' was selected more than once.";
+
+                return false;
+            }
+
+            if (!IsLineageAllowed(lineageId))
+            {
+                errorMessage =
+                    $"{displayName} cannot use lineage '{lineageId}'.";
+
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private void OnValidate()
     {
         if (baseAttributes == null)
