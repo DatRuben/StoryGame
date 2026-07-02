@@ -7,8 +7,8 @@ public class PlayerSpawner : MonoBehaviour
     [SerializeField] private CharacterDataLibrary characterDataLibrary;
 
     [Header("Fallback")]
-    [SerializeField] private bool spawnOnStart = true;
-    [SerializeField] private bool createDefaultProfileIfNone = true;
+    [SerializeField] private bool spawnOnStart = false;
+    [SerializeField] private bool createDefaultProfileIfNone = false;
     [SerializeField] private string defaultCharacterName = "New Character";
 
     private GameObject spawnedPlayer;

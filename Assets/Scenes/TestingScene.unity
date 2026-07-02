@@ -11084,8 +11084,8 @@ MonoBehaviour:
   playerPrefab: {fileID: 3981885625536899075, guid: 64e47ba75c61b5c45a6fa6429e61fd5f, type: 3}
   spawnPoint: {fileID: 104995733}
   characterDataLibrary: {fileID: 11400000, guid: c1acf6bd8c47e7e46a8bb26e72e63560, type: 2}
-  spawnOnStart: 1
-  createDefaultProfileIfNone: 1
+  spawnOnStart: 0
+  createDefaultProfileIfNone: 0
   defaultCharacterName: New Character
 --- !u!1 &1336051496
 GameObject:
