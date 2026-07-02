@@ -23,6 +23,11 @@ public class PlayerSpawner : MonoBehaviour
 
     public bool SpawnSelectedCharacter()
     {
+        Debug.LogWarning(
+            "SpawnSelectedCharacter was called.",
+            this
+        );
+
         if (playerPrefab == null)
         {
             Debug.LogWarning(
