@@ -1,4 +1,3 @@
-using System.Collections;
 using TMPro;
 using UnityEngine;
 using Unity.Cinemachine;
@@ -18,15 +17,6 @@ public class CharacterRuntimeBinder : MonoBehaviour
     [SerializeField] private string cameraPivotName = "CameraPivot";
     [SerializeField] private InventoryContextPanelController contextPanelController;
     [SerializeField] private GameObject storageContainerPanel;
-
-    private IEnumerator Start()
-    {
-        // Wait one frame so CharacterGameBootstrap and UI Start methods
-        // have a chance to run first.
-        yield return null;
-
-        Bind(CharacterGameBootstrap.CurrentPlayer);
-    }
 
     public void Bind(GameObject player)
     {
