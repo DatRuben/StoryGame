@@ -1,7 +1,7 @@
 using TMPro;
 using UnityEngine;
 
-public class MainMenu : MonoBehaviour
+public class Menus : MonoBehaviour
 {
     [Header("Panels")]
     [SerializeField] private GameObject startMenuPanel;
