@@ -73,7 +73,7 @@ public class CharacterSlotButtonUI : MonoBehaviour
         SetText(raceNameText, "");
         SetText(subraceNameText, "");
         SetText(levelText, "");
-        SetText(emptyText, "Empty");
+        SetText(emptyText, "New Character");
 
         SetActive(emptyText, true);
         SetActive(characterPortrait, false);
