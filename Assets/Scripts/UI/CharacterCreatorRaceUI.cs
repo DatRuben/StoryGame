@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class CharacterCreatorRaceUI : MonoBehaviour
 {
@@ -9,67 +8,70 @@ public class CharacterCreatorRaceUI : MonoBehaviour
     [SerializeField] private CharacterDataLibrary characterDataLibrary;
     [SerializeField] private CharacterCreator characterCreator;
 
-    [Header("Base Race Buttons")]
+    [Header("Base Race UI")]
     [SerializeField] private Transform baseRaceButtonParent;
-    [SerializeField] private Button baseRaceButtonTemplate;
-
-    [Header("Text")]
+    [SerializeField] private CharacterOptionButtonUI optionButtonPrefab;
     [SerializeField] private TMP_Text baseRaceDescriptionText;
 
-    private readonly List<Button> createdButtons = new();
+    private readonly List<CharacterOptionButtonUI> baseRaceButtons = new();
 
-    private void Start()
+    private void OnEnable()
     {
         BuildBaseRaceButtons();
     }
 
+    private void OnDisable()
+    {
+        ClearBaseRaceButtons();
+    }
+
     public void BuildBaseRaceButtons()
     {
-        ClearButtons();
+        ClearBaseRaceButtons();
 
         if (characterDataLibrary == null)
         {
-            ShowDescription("CharacterDataLibrary is missing.");
+            ShowBaseRaceDescription("CharacterDataLibrary is missing.");
+            return;
+        }
+
+        if (characterCreator == null)
+        {
+            ShowBaseRaceDescription("CharacterCreator is missing.");
             return;
         }
 
         if (baseRaceButtonParent == null)
         {
-            ShowDescription("BaseRaceSelection is missing.");
+            ShowBaseRaceDescription("BaseRaceSelection is missing.");
             return;
         }
 
-        if (baseRaceButtonTemplate == null)
+        if (optionButtonPrefab == null)
         {
-            ShowDescription("BaseRaceButton_Template is missing.");
+            ShowBaseRaceDescription("CharacterOptionButton prefab is missing.");
             return;
         }
-
-        baseRaceButtonTemplate.gameObject.SetActive(false);
 
         List<BaseRace> baseRaces = GetBaseRaces();
 
         foreach (BaseRace baseRace in baseRaces)
         {
-            Button button = Instantiate(
-                baseRaceButtonTemplate,
+            CharacterOptionButtonUI button = Instantiate(
+                optionButtonPrefab,
                 baseRaceButtonParent
             );
 
-            button.name = $"{baseRace}Button";
+            button.name = $"{baseRace}OptionButton";
+            button.SetText(FormatBaseRaceName(baseRace));
+            button.SetSelected(false);
 
-            TMP_Text raceNameText =
-                button.transform.Find("RaceName")?.GetComponent<TMP_Text>();
+            BaseRace capturedRace = baseRace;
 
-            if (raceNameText != null)
-                raceNameText.text = FormatBaseRaceName(baseRace);
+            button.Button.onClick.RemoveAllListeners();
+            button.Button.onClick.AddListener(() => SelectBaseRace(capturedRace));
 
-            button.onClick.RemoveAllListeners();
-            button.onClick.AddListener(() => SelectBaseRace(baseRace));
-
-            button.gameObject.SetActive(true);
-
-            createdButtons.Add(button);
+            baseRaceButtons.Add(button);
         }
 
         if (baseRaces.Count > 0)
@@ -100,14 +102,12 @@ public class CharacterCreatorRaceUI : MonoBehaviour
 
         if (profile == null)
         {
-            ShowDescription($"{FormatBaseRaceName(baseRace)} has no profiles.");
+            ShowBaseRaceDescription(
+                $"{FormatBaseRaceName(baseRace)} has no race profiles."
+            );
+
             return;
         }
-
-        ShowDescription(profile.description);
-
-        if (characterCreator == null)
-            return;
 
         bool selected = characterCreator.SelectRace(
             profile.profileId,
@@ -115,7 +115,13 @@ public class CharacterCreatorRaceUI : MonoBehaviour
         );
 
         if (!selected)
-            ShowDescription(errorMessage);
+        {
+            ShowBaseRaceDescription(errorMessage);
+            return;
+        }
+
+        ShowBaseRaceDescription(profile.description);
+        RefreshSelectedBaseRace(baseRace);
     }
 
     private RaceProfile GetFirstProfileForBaseRace(BaseRace baseRace)
@@ -132,18 +138,31 @@ public class CharacterCreatorRaceUI : MonoBehaviour
         return null;
     }
 
-    private void ClearButtons()
+    private void RefreshSelectedBaseRace(BaseRace selectedBaseRace)
     {
-        for (int i = createdButtons.Count - 1; i >= 0; i--)
+        foreach (CharacterOptionButtonUI button in baseRaceButtons)
         {
-            if (createdButtons[i] != null)
-                Destroy(createdButtons[i].gameObject);
-        }
+            if (button == null)
+                continue;
 
-        createdButtons.Clear();
+            button.SetSelected(
+                button.name == $"{selectedBaseRace}OptionButton"
+            );
+        }
     }
 
-    private void ShowDescription(string message)
+    private void ClearBaseRaceButtons()
+    {
+        for (int i = baseRaceButtons.Count - 1; i >= 0; i--)
+        {
+            if (baseRaceButtons[i] != null)
+                Destroy(baseRaceButtons[i].gameObject);
+        }
+
+        baseRaceButtons.Clear();
+    }
+
+    private void ShowBaseRaceDescription(string message)
     {
         if (baseRaceDescriptionText != null)
             baseRaceDescriptionText.text = message;

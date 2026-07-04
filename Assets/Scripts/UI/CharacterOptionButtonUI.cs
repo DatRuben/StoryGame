@@ -25,6 +25,12 @@ public class CharacterOptionButtonUI : MonoBehaviour
         optionImage.enabled = sprite != null;
     }
 
+    public void SetSelected(bool selected)
+    {
+        if (button != null)
+            button.interactable = !selected;
+    }
+
     private void Reset()
     {
         button = GetComponent<Button>();
