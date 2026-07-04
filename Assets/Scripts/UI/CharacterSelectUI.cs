@@ -29,6 +29,11 @@ public class CharacterSelectUI : MonoBehaviour
         Refresh();
     }
 
+    private void Start()
+    {
+        Refresh();
+    }
+
     public void Refresh()
     {
         profiles = CharacterSelection.GetProfiles();
