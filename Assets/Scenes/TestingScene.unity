@@ -5131,6 +5131,7 @@ MonoBehaviour:
   emptyText: {fileID: 930040972}
   characterPortrait: {fileID: 1366749251}
   selectedCharacter: {fileID: 278270300}
+  storyProgressImage: {fileID: 1131225426}
   deleteCharacterButton: {fileID: 1137907414}
 --- !u!1 &328885257
 GameObject:
@@ -7103,6 +7104,7 @@ MonoBehaviour:
   emptyText: {fileID: 305506492}
   characterPortrait: {fileID: 1933790278}
   selectedCharacter: {fileID: 2106101505}
+  storyProgressImage: {fileID: 113532273}
   deleteCharacterButton: {fileID: 1542566701}
 --- !u!1 &486523104
 GameObject:
@@ -15912,6 +15914,7 @@ MonoBehaviour:
   emptyText: {fileID: 916584917}
   characterPortrait: {fileID: 1795513499}
   selectedCharacter: {fileID: 172033535}
+  storyProgressImage: {fileID: 541972525}
   deleteCharacterButton: {fileID: 1316863948}
 --- !u!1 &1121656959
 GameObject:
@@ -19375,6 +19378,7 @@ MonoBehaviour:
   emptyText: {fileID: 947224797}
   characterPortrait: {fileID: 1053938167}
   selectedCharacter: {fileID: 760152284}
+  storyProgressImage: {fileID: 1350007752}
   deleteCharacterButton: {fileID: 1993329115}
 --- !u!1 &1408778593
 GameObject:

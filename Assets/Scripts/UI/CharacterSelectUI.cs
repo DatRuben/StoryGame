@@ -55,7 +55,12 @@ public class CharacterSelectUI : MonoBehaviour
             CharacterProfileData profile = GetProfileForSlot(i);
 
             if (profile != null)
-                slot.ShowCharacter(profile, characterDataLibrary, i == selectedSlotIndex);
+                slot.ShowCharacter(
+                    profile,
+                    characterDataLibrary,
+                    i == selectedSlotIndex,
+                    IsStoryComplete(profile)
+                );
             else
                 slot.ShowEmpty(i == selectedSlotIndex);
         }
@@ -185,8 +190,6 @@ public class CharacterSelectUI : MonoBehaviour
 
     private bool IsStoryComplete(CharacterProfileData profile)
     {
-        // Later, add something like profile.storyCompleted.
-        // For now, all saved characters count as unfinished/playable.
-        return false;
+        return profile != null && profile.storyCompleted;
     }
 }

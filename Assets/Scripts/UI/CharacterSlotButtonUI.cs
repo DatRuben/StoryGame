@@ -18,6 +18,7 @@ public class CharacterSlotButtonUI : MonoBehaviour
     [Header("Visuals")]
     [SerializeField] private Image characterPortrait;
     [SerializeField] private GameObject selectedCharacter;
+    [SerializeField] private Image storyProgressImage;
 
     [Header("Delete")]
     [SerializeField] private Button deleteCharacterButton;
@@ -32,7 +33,8 @@ public class CharacterSlotButtonUI : MonoBehaviour
     public void ShowCharacter(
         CharacterProfileData characterProfile,
         CharacterDataLibrary dataLibrary,
-        bool selected)
+        bool selected,
+        bool storyComplete)
     {
         profile = characterProfile;
 
@@ -61,6 +63,7 @@ public class CharacterSlotButtonUI : MonoBehaviour
         SetActive(emptyText, false);
         SetActive(characterPortrait, true);
         SetActive(deleteCharacterButton, true);
+        SetActive(storyProgressImage, true);
 
         SetSelected(selected);
     }
@@ -78,6 +81,7 @@ public class CharacterSlotButtonUI : MonoBehaviour
         SetActive(emptyText, true);
         SetActive(characterPortrait, false);
         SetActive(deleteCharacterButton, false);
+        SetActive(storyProgressImage, false);
 
         SetSelected(selected);
     }
@@ -137,5 +141,6 @@ public class CharacterSlotButtonUI : MonoBehaviour
         characterPortrait = transform.Find("CharacterPortrait")?.GetComponent<Image>();
         selectedCharacter = transform.Find("SelectedCharacter")?.gameObject;
         deleteCharacterButton = transform.Find("DeleteCharacter")?.GetComponent<Button>();
+        storyProgressImage = transform.Find("StoryProgress")?.GetComponent<Image>();
     }
 }

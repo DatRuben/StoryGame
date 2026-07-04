@@ -13,6 +13,7 @@ public class CharacterProfileData
     public List<string> lineageIds = new();
 
     public int level = 1;
+    public bool storyCompleted;
 
     public CharacterAttributes allocatedAttributes = CharacterAttributes.CreateDefault(0);
     public int unspentAttributePoints;
