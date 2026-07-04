@@ -19,6 +19,8 @@ public class CharacterSlotButtonUI : MonoBehaviour
     [SerializeField] private Image characterPortrait;
     [SerializeField] private GameObject selectedCharacter;
     [SerializeField] private Image storyProgressImage;
+    [SerializeField] private Sprite storyIncompleteSprite;
+    [SerializeField] private Sprite storyCompleteSprite;
 
     [Header("Delete")]
     [SerializeField] private Button deleteCharacterButton;
@@ -63,9 +65,24 @@ public class CharacterSlotButtonUI : MonoBehaviour
         SetActive(emptyText, false);
         SetActive(characterPortrait, true);
         SetActive(deleteCharacterButton, true);
-        SetActive(storyProgressImage, true);
+        SetStoryProgress(storyComplete);
 
         SetSelected(selected);
+    }
+
+    private void SetStoryProgress(bool storyComplete)
+    {
+        if (storyProgressImage == null)
+            return;
+
+        storyProgressImage.gameObject.SetActive(true);
+
+        Sprite sprite = storyComplete
+            ? storyCompleteSprite
+            : storyIncompleteSprite;
+
+        if (sprite != null)
+            storyProgressImage.sprite = sprite;
     }
 
     public void ShowEmpty(bool selected)
