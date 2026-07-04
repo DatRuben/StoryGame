@@ -18252,6 +18252,7 @@ MonoBehaviour:
   characterSelectPanel: {fileID: 807692050}
   characterCreatorPanel: {fileID: 1133515380}
   gameplayHudPanel: {fileID: 692613047}
+  characterSelectUI: {fileID: 807692054}
   playerSpawner: {fileID: 1297872241}
   characterRuntimeBinder: {fileID: 967172425}
   messageText: {fileID: 1168074061}

@@ -8,6 +8,7 @@ public class Menus : MonoBehaviour
     [SerializeField] private GameObject characterSelectPanel;
     [SerializeField] private GameObject characterCreatorPanel;
     [SerializeField] private GameObject gameplayHudPanel;
+    [SerializeField] private CharacterSelectUI characterSelectUI;
 
     [Header("Gameplay")]
     [SerializeField] private PlayerSpawner playerSpawner;
@@ -38,7 +39,8 @@ public class Menus : MonoBehaviour
         SetPanel(characterCreatorPanel, false);
         SetPanel(gameplayHudPanel, false);
 
-        ShowMessage("");
+        if (characterSelectUI != null)
+            characterSelectUI.Refresh();
     }
 
     public void ShowCharacterCreator()
