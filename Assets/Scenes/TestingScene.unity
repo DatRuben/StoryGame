@@ -2977,19 +2977,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 166690291}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1341710893}
-        m_TargetAssemblyTypeName: Menus, Assembly-CSharp
-        m_MethodName: ShowCharacterCreator
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &166690291
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4812,8 +4800,8 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 484424763}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.75, y: 0}
-  m_AnchorMax: {x: 1, y: 0.425}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -4837,7 +4825,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 
+  m_text: New Character
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -4864,7 +4852,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
+  m_fontSize: 72
   m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -4929,6 +4917,7 @@ GameObject:
   - component: {fileID: 308655970}
   - component: {fileID: 308655969}
   - component: {fileID: 308655968}
+  - component: {fileID: 308655971}
   m_Layer: 5
   m_Name: CharacterSlot2Button
   m_TagString: Untagged
@@ -5045,6 +5034,28 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 308655966}
   m_CullTransparentMesh: 1
+--- !u!114 &308655971
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 308655966}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 385db8f8d9ba1794ea860b4a06a3e0da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterSlotButtonUI
+  slotButton: {fileID: 308655968}
+  slotImage: {fileID: 308655969}
+  characterNameText: {fileID: 1549812596}
+  raceNameText: {fileID: 287725250}
+  subraceNameText: {fileID: 1999914145}
+  levelText: {fileID: 384504854}
+  emptyText: {fileID: 930040972}
+  characterPortrait: {fileID: 1366749251}
+  selectedCharacter: {fileID: 278270300}
+  deleteCharacterButton: {fileID: 1137907414}
 --- !u!1 &328885257
 GameObject:
   m_ObjectHideFlags: 0
@@ -6877,6 +6888,7 @@ GameObject:
   - component: {fileID: 484424766}
   - component: {fileID: 484424765}
   - component: {fileID: 484424764}
+  - component: {fileID: 484424767}
   m_Layer: 5
   m_Name: CharacterSlot3Button
   m_TagString: Untagged
@@ -6993,6 +7005,28 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 484424762}
   m_CullTransparentMesh: 1
+--- !u!114 &484424767
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 484424762}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 385db8f8d9ba1794ea860b4a06a3e0da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterSlotButtonUI
+  slotButton: {fileID: 484424764}
+  slotImage: {fileID: 484424765}
+  characterNameText: {fileID: 1819917194}
+  raceNameText: {fileID: 1396091182}
+  subraceNameText: {fileID: 981398349}
+  levelText: {fileID: 1584776307}
+  emptyText: {fileID: 305506492}
+  characterPortrait: {fileID: 1933790278}
+  selectedCharacter: {fileID: 2106101505}
+  deleteCharacterButton: {fileID: 1542566701}
 --- !u!1 &486523104
 GameObject:
   m_ObjectHideFlags: 0
@@ -12822,8 +12856,8 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1097415112}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.75, y: 0}
-  m_AnchorMax: {x: 1, y: 0.425}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -12847,7 +12881,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 
+  m_text: New Character
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -12874,7 +12908,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
+  m_fontSize: 72
   m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -13128,8 +13162,8 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 308655967}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.75, y: 0}
-  m_AnchorMax: {x: 1, y: 0.425}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -13153,7 +13187,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 
+  m_text: New Character
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -13180,7 +13214,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
+  m_fontSize: 72
   m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -13340,8 +13374,8 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1404496680}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.75, y: 0}
-  m_AnchorMax: {x: 1, y: 0.425}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -13365,7 +13399,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 
+  m_text: New Character
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -13392,7 +13426,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
+  m_fontSize: 72
   m_fontSizeBase: 24
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -13527,19 +13561,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 950209665}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1341710891}
-        m_TargetAssemblyTypeName: 
-        m_MethodName: 
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: 
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &950209665
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15576,6 +15598,7 @@ GameObject:
   - component: {fileID: 1097415115}
   - component: {fileID: 1097415114}
   - component: {fileID: 1097415113}
+  - component: {fileID: 1097415116}
   m_Layer: 5
   m_Name: CharacterSlot1Button
   m_TagString: Untagged
@@ -15692,6 +15715,28 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1097415111}
   m_CullTransparentMesh: 1
+--- !u!114 &1097415116
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1097415111}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 385db8f8d9ba1794ea860b4a06a3e0da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterSlotButtonUI
+  slotButton: {fileID: 1097415113}
+  slotImage: {fileID: 1097415114}
+  characterNameText: {fileID: 2067538096}
+  raceNameText: {fileID: 581645474}
+  subraceNameText: {fileID: 1692443405}
+  levelText: {fileID: 1811462730}
+  emptyText: {fileID: 916584917}
+  characterPortrait: {fileID: 1795513499}
+  selectedCharacter: {fileID: 172033535}
+  deleteCharacterButton: {fileID: 1316863948}
 --- !u!1 &1121656959
 GameObject:
   m_ObjectHideFlags: 0
@@ -18865,6 +18910,7 @@ GameObject:
   - component: {fileID: 1404496683}
   - component: {fileID: 1404496682}
   - component: {fileID: 1404496681}
+  - component: {fileID: 1404496684}
   m_Layer: 5
   m_Name: CharacterSlot4Button
   m_TagString: Untagged
@@ -18981,6 +19027,28 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1404496679}
   m_CullTransparentMesh: 1
+--- !u!114 &1404496684
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1404496679}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 385db8f8d9ba1794ea860b4a06a3e0da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterSlotButtonUI
+  slotButton: {fileID: 1404496681}
+  slotImage: {fileID: 1404496682}
+  characterNameText: {fileID: 887032449}
+  raceNameText: {fileID: 548939245}
+  subraceNameText: {fileID: 274075759}
+  levelText: {fileID: 1523038508}
+  emptyText: {fileID: 947224797}
+  characterPortrait: {fileID: 1053938167}
+  selectedCharacter: {fileID: 760152284}
+  deleteCharacterButton: {fileID: 1993329115}
 --- !u!1 &1408778593
 GameObject:
   m_ObjectHideFlags: 0
@@ -25768,19 +25836,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1827312485}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1341710891}
-        m_TargetAssemblyTypeName: 
-        m_MethodName: 
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: 
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &1827312485
 MonoBehaviour:
   m_ObjectHideFlags: 0
