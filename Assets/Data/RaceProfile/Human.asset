@@ -17,6 +17,7 @@ MonoBehaviour:
   subraceName: Human
   size: 1
   bodyType: 0
+  profileId: Human
   description: Standard Human
   baseAttributes:
     strength: 8
@@ -30,8 +31,9 @@ MonoBehaviour:
     perception: 8
     technique: 8
   baseHealth: 100
+  baseSoulBarrier: 50
   baseStamina: 100
-  baseMana: 50
+  baseAether: 100
   baseMass: 1
   basePoise: 100
   movementCostMultiplier: 1
@@ -39,9 +41,11 @@ MonoBehaviour:
   equipmentWeightMultiplier: 1
   vitalityToHealth: 10
   enduranceToStamina: 10
-  spiritToMana: 10
+  spiritToAether: 10
   vitalityToPoise: 4
   strengthToPoise: 3
+  spiritToSoulBarrier: 4
+  willpowerToSoulBarrier: 8
   capsuleRadius: 0.5
   capsuleHeight: 2
   capsuleCenter: {x: 0, y: 2, z: 0}
@@ -69,11 +73,10 @@ MonoBehaviour:
   naturalCatalyst: 0
   racialSkillTreeName: 
   racialSkillTreeTheme: 
-  usesLineageProfiles: 1
-  allowedLineage:
-  - {fileID: 11400000, guid: 4d45a399ff6ce6e499b99aa38b5672e2, type: 2}
-  - {fileID: 11400000, guid: a847b282eaa85e1459cc193c4b8f8a82, type: 2}
-  maxLineageCount: 1
+  lineageSelectionRule: 1
+  minLineages: 0
+  maxLineages: 0
+  allowedLineageIds: []
   canShapeshift: 0
   shapeshiftForms: []
   hasAetherInventory: 0

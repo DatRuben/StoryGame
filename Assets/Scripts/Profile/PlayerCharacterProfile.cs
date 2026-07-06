@@ -155,7 +155,7 @@ public class PlayerCharacterProfile : MonoBehaviour
             $"INT {FinalAttributes.intelligence}, " +
             $"WIL {FinalAttributes.willpower}, " +
             $"SPI {FinalAttributes.spirit}, " +
-            $"PER {FinalAttributes.perception}, ",
+            $"PER {FinalAttributes.perception}",
             this
         );
 

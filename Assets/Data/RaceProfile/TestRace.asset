@@ -17,6 +17,7 @@ MonoBehaviour:
   subraceName: Test
   size: 5
   bodyType: 1
+  profileId: Test
   description: 
   baseAttributes:
     strength: 8
@@ -72,9 +73,10 @@ MonoBehaviour:
   naturalCatalyst: 1
   racialSkillTreeName: 
   racialSkillTreeTheme: 
-  usesLineageProfiles: 0
-  allowedLineage: []
-  maxLineageCount: 1
+  lineageSelectionRule: 1
+  minLineages: 0
+  maxLineages: 0
+  allowedLineageIds: []
   canShapeshift: 0
   shapeshiftForms: []
   hasAetherInventory: 1
