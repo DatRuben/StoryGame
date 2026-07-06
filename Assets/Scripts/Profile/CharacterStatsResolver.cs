@@ -1,47 +1,41 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public static class CharacterStatsResolver
 {
     public static CharacterAttributes ResolveAttributes(
-        RaceProfile raceProfile,
+        RaceDefinition raceDefinition,
+        SubraceDefinition subraceDefinition,
         CharacterProfileData characterProfile,
-        LineageProfile[] lineageProfiles)
+        LineageDefinition[] lineageDefinitions)
     {
         CharacterAttributes finalAttributes =
-            CharacterAttributes.CreateDefault(0);
+            CreateHumanBaselineAttributes();
 
-        if (raceProfile != null)
+        if (raceDefinition != null)
         {
             finalAttributes =
-                CharacterAttributes.Add(
+                CharacterAttributes.AddModifiers(
                     finalAttributes,
-                    raceProfile.baseAttributes
+                    raceDefinition.modifiersFromHuman
                 );
         }
         else
         {
             Debug.LogWarning(
-                "CharacterStatsResolver could not resolve race base attributes because RaceProfile is missing."
+                "CharacterStatsResolver could not apply race modifiers because RaceDefinition is missing."
             );
         }
 
-        if (lineageProfiles != null)
-        {
-            for (int i = 0; i < lineageProfiles.Length; i++)
-            {
-                LineageProfile lineageProfile =
-                    lineageProfiles[i];
+        ApplySubraceModifiers(
+            ref finalAttributes,
+            subraceDefinition
+        );
 
-                if (lineageProfile == null)
-                    continue;
-
-                finalAttributes =
-                    CharacterAttributes.AddModifiers(
-                        finalAttributes,
-                        lineageProfile.attributeModifiers
-                    );
-            }
-        }
+        ApplyLineageModifiers(
+            ref finalAttributes,
+            lineageDefinitions
+        );
 
         if (characterProfile != null)
         {
@@ -58,38 +52,100 @@ public static class CharacterStatsResolver
             );
         }
 
-        return CharacterAttributes.ClampMinimum(finalAttributes, 1);
+        return CharacterAttributes.ClampMinimum(
+            finalAttributes,
+            1
+        );
+    }
+
+    public static FinalCharacterStats ResolveFinalStats(
+        CharacterAttributes attributes)
+    {
+        attributes =
+            CharacterAttributes.ClampMinimum(
+                attributes,
+                1
+            );
+
+        return new FinalCharacterStats
+        {
+            maxHealth =
+                75f +
+                attributes.vitality * 10f,
+
+            maxSoulBarrier =
+                20f +
+                attributes.spirit * 4f +
+                attributes.willpower * 6f,
+
+            maxStamina =
+                50f +
+                attributes.endurance * 8f,
+
+            maxAether =
+                20f +
+                attributes.spirit * 7f +
+                attributes.intelligence * 3f,
+
+            mass =
+                60f +
+                attributes.strength * 1.5f +
+                attributes.vitality,
+
+            poise =
+                10f +
+                attributes.vitality * 1.5f +
+                attributes.strength,
+
+            movementCostMultiplier =
+                Mathf.Max(
+                    0.5f,
+                    1f - attributes.endurance * 0.005f
+                ),
+
+            dodgeCostMultiplier =
+                Mathf.Max(
+                    0.5f,
+                    1f - attributes.agility * 0.004f
+                ),
+
+            equipmentWeightMultiplier =
+                Mathf.Max(
+                    0.5f,
+                    1f - attributes.strength * 0.005f
+                )
+        };
     }
 
     public static FinalMovementStats ResolveMovementStats(
-        RaceProfile raceProfile)
+        SubraceDefinition subraceDefinition)
     {
-        if (raceProfile == null)
+        if (subraceDefinition == null)
         {
             Debug.LogWarning(
-                "CharacterStatsResolver could not resolve movement stats because RaceProfile is missing."
+                "CharacterStatsResolver could not resolve movement stats because SubraceDefinition is missing."
             );
 
             return CreateSize2HumanoidMovement();
         }
 
         MovementBaseType movementBaseType =
-            ResolveMovementBaseType(raceProfile);
+            ResolveMovementBaseType(subraceDefinition);
 
         return ResolveMovementStats(
-            raceProfile,
+            subraceDefinition,
             movementBaseType
         );
     }
 
     public static FinalMovementStats ResolveMovementStats(
-        RaceProfile raceProfile,
+        SubraceDefinition subraceDefinition,
         MovementBaseType movementBaseType)
     {
-        if (raceProfile == null)
+        if (subraceDefinition == null)
         {
             Debug.LogWarning(
-                "CharacterStatsResolver could not resolve movement stats because RaceProfile is missing."
+                "CharacterStatsResolver could not resolve movement stats because SubraceDefinition is missing."
             );
 
             return CreateSize2HumanoidMovement();
@@ -111,56 +167,106 @@ public static class CharacterStatsResolver
 
         ApplySizeMovementModifiers(
             movementStats,
-            raceProfile.size
+            subraceDefinition.size
         );
 
         ApplyDodgeProfile(
             movementStats,
-            ResolveDodgeType(raceProfile)
+            ResolveDodgeType(subraceDefinition)
         );
 
         return movementStats;
     }
 
+    private static CharacterAttributes CreateHumanBaselineAttributes()
+    {
+        return CharacterAttributes.CreateDefault(10);
+    }
+
+    private static void ApplySubraceModifiers(
+        ref CharacterAttributes attributes,
+        SubraceDefinition subraceDefinition)
+    {
+        if (subraceDefinition == null)
+            return;
+
+        HashSet<SubraceDefinition> visited = new();
+        SubraceDefinition current = subraceDefinition;
+
+        while (current != null)
+        {
+            if (!visited.Add(current))
+            {
+                Debug.LogWarning(
+                    $"Subrace comparison loop detected at {current.displayName}."
+                );
+
+                break;
+            }
+
+            attributes =
+                CharacterAttributes.AddModifiers(
+                    attributes,
+                    current.modifiersFromComparison
+                );
+
+            current = current.compareToSubrace;
+        }
+    }
+
+    private static void ApplyLineageModifiers(
+        ref CharacterAttributes attributes,
+        LineageDefinition[] lineageDefinitions)
+    {
+        if (lineageDefinitions == null)
+            return;
+
+        foreach (LineageDefinition lineageDefinition in lineageDefinitions)
+        {
+            if (lineageDefinition == null)
+                continue;
+
+            attributes =
+                CharacterAttributes.AddModifiers(
+                    attributes,
+                    lineageDefinition.modifiers
+                );
+        }
+    }
+
     private static FinalMovementStats CreateSize2HumanoidMovement()
     {
-        FinalMovementStats movementStats =
-            new FinalMovementStats
-            {
-                walkSpeed = 8f,
-                sprintSpeed = 12f,
-                groundAcceleration = 8f,
-                airAcceleration = 2f,
-                deceleration = 16f,
-                jumpForce = 7f
-            };
-
-        return movementStats;
+        return new FinalMovementStats
+        {
+            walkSpeed = 8f,
+            sprintSpeed = 12f,
+            groundAcceleration = 8f,
+            airAcceleration = 2f,
+            deceleration = 16f,
+            jumpForce = 7f
+        };
     }
 
     private static FinalMovementStats CreateSize2FeralMovement()
     {
-        FinalMovementStats movementStats =
-            new FinalMovementStats
-            {
-                walkSpeed = 12f,
-                sprintSpeed = 18f,
-                groundAcceleration = 10f,
-                airAcceleration = 2.5f,
-                deceleration = 12f,
-                jumpForce = 6.5f
-            };
-
-        return movementStats;
+        return new FinalMovementStats
+        {
+            walkSpeed = 12f,
+            sprintSpeed = 18f,
+            groundAcceleration = 10f,
+            airAcceleration = 2.5f,
+            deceleration = 12f,
+            jumpForce = 6.5f
+        };
     }
 
     private static MovementBaseType ResolveMovementBaseType(
-        RaceProfile raceProfile)
+        SubraceDefinition subraceDefinition)
     {
-        if (raceProfile == null)
+        if (subraceDefinition == null)
             return MovementBaseType.Size2Humanoid;
 
-        switch (raceProfile.size)
+        switch (subraceDefinition.size)
         {
             case RaceSize.Size1Feral:
             case RaceSize.Size2Feral:
@@ -168,46 +274,21 @@ public static class CharacterStatsResolver
                 return MovementBaseType.Size2Feral;
         }
 
-        switch (raceProfile.baseRace)
+        switch (subraceDefinition.bodyType)
         {
-            case BaseRace.Human:
-            case BaseRace.Animali:
-            case BaseRace.Canispar:
-            case BaseRace.Drakken:
-            case BaseRace.Eastern:
-                return MovementBaseType.Size2Humanoid;
-
-            case BaseRace.Griffin:
-            case BaseRace.WesternDragon:
-                return ResolveCreatureMovementBaseType(raceProfile);
-        }
-
-        return raceProfile.bodyType == BodyType.Quadruped
-            ? MovementBaseType.Size2Feral
-            : MovementBaseType.Size2Humanoid;
-    }
-
-    private static MovementBaseType ResolveCreatureMovementBaseType(
-    RaceProfile raceProfile)
-    {
-        if (raceProfile == null)
-            return MovementBaseType.Size2Humanoid;
-
-        switch (raceProfile.bodyType)
-        {
-            case BodyType.Humanoid:
-                return MovementBaseType.Size2Humanoid;
-
             case BodyType.Quadruped:
             case BodyType.StanceSwitching:
-            default:
                 return MovementBaseType.Size2Feral;
+
+            case BodyType.Humanoid:
+            default:
+                return MovementBaseType.Size2Humanoid;
         }
     }
 
     private static void ApplyDodgeProfile(
-    FinalMovementStats movementStats,
-    DodgeType dodgeType)
+        FinalMovementStats movementStats,
+        DodgeType dodgeType)
     {
         if (movementStats == null)
             return;
@@ -235,7 +316,7 @@ public static class CharacterStatsResolver
             case DodgeType.MediumDash:
             default:
                 movementStats.dodgeDistance = 5f;
-                movementStats.dodgeDuration = 0.3f; // use your tuned value here
+                movementStats.dodgeDuration = 0.3f;
                 movementStats.dodgeCooldown = 0.7f;
                 movementStats.dodgeStaminaCost = 25f;
                 movementStats.dodgeControl = 0.15f;
@@ -304,12 +385,13 @@ public static class CharacterStatsResolver
         }
     }
 
-    private static DodgeType ResolveDodgeType(RaceProfile raceProfile)
+    private static DodgeType ResolveDodgeType(
+        SubraceDefinition subraceDefinition)
     {
-        if (raceProfile == null)
+        if (subraceDefinition == null)
             return DodgeType.MediumDash;
 
-        switch (raceProfile.size)
+        switch (subraceDefinition.size)
         {
             case RaceSize.Size1:
             case RaceSize.Size1Feral:
@@ -324,61 +406,5 @@ public static class CharacterStatsResolver
             default:
                 return DodgeType.MediumDash;
         }
-    }
-
-    public static FinalCharacterStats ResolveFinalStats(
-        RaceProfile raceProfile,
-        CharacterAttributes attributes)
-    {
-        if (raceProfile == null)
-        {
-            Debug.LogWarning(
-                "CharacterStatsResolver could not resolve final stats because RaceProfile is missing."
-            );
-
-            raceProfile = ScriptableObject.CreateInstance<RaceProfile>();
-        }
-
-        attributes =
-            CharacterAttributes.ClampMinimum(attributes, 1);
-
-        return new FinalCharacterStats
-        {
-            maxHealth =
-                raceProfile.baseHealth +
-                attributes.vitality * raceProfile.vitalityToHealth,
-
-            maxSoulBarrier =
-                raceProfile.baseSoulBarrier +
-                attributes.spirit * raceProfile.spiritToSoulBarrier +
-                attributes.willpower * raceProfile.willpowerToSoulBarrier,
-
-            maxStamina =
-                (
-                    raceProfile.baseStamina +
-                    attributes.endurance * raceProfile.enduranceToStamina
-                ) * raceProfile.staminaMultiplier,
-
-            maxAether =
-                raceProfile.baseAether +
-                attributes.spirit * raceProfile.spiritToAether,
-
-            mass =
-                raceProfile.baseMass,
-
-            poise =
-                raceProfile.basePoise +
-                attributes.vitality * raceProfile.vitalityToPoise +
-                attributes.strength * raceProfile.strengthToPoise,
-
-            movementCostMultiplier =
-                raceProfile.movementCostMultiplier,
-
-            dodgeCostMultiplier =
-                raceProfile.dodgeCostMultiplier,
-
-            equipmentWeightMultiplier =
-                raceProfile.equipmentWeightMultiplier
-        };
     }
 }
