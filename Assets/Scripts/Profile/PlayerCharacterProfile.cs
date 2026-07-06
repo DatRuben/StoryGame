@@ -3,78 +3,112 @@ using UnityEngine;
 public class PlayerCharacterProfile : MonoBehaviour
 {
     public CharacterProfileData ProfileData { get; private set; }
+    public RaceDefinition RaceDefinition { get; private set; }
+    public SubraceDefinition SubraceDefinition { get; private set; }
+    public LineageDefinition[] LineageDefinitions { get; private set; }
+
     public CharacterAttributes FinalAttributes { get; private set; }
     public FinalCharacterStats FinalStats { get; private set; }
     public FinalMovementStats FinalMovementStats { get; private set; }
 
     public void Initialize(
         CharacterProfileData profileData,
-        RaceProfile raceProfile,
-        LineageProfile[] lineageProfiles)
+        RaceDefinition raceDefinition,
+        SubraceDefinition subraceDefinition,
+        LineageDefinition[] lineageDefinitions)
     {
         ProfileData = profileData;
+        RaceDefinition = raceDefinition;
+        SubraceDefinition = subraceDefinition;
+        LineageDefinitions = lineageDefinitions;
 
         FinalAttributes =
             CharacterStatsResolver.ResolveAttributes(
-                raceProfile,
-                ProfileData,
-                lineageProfiles
+                raceDefinition,
+                subraceDefinition,
+                profileData,
+                lineageDefinitions
             );
 
         FinalStats =
             CharacterStatsResolver.ResolveFinalStats(
-                raceProfile,
                 FinalAttributes
             );
 
         FinalMovementStats =
             CharacterStatsResolver.ResolveMovementStats(
-                raceProfile
+                subraceDefinition
             );
 
+        ApplyResources();
+        ApplyBody();
+        ApplyInput();
+
+        LogResolvedCharacter();
+    }
+
+    private void ApplyResources()
+    {
         PlayerResources playerResources =
             GetComponent<PlayerResources>();
 
-        if (playerResources != null)
-        {
-            playerResources.ApplyFinalStats(
-                FinalStats,
-                true
-            );
-        }
-        else
+        if (playerResources == null)
         {
             Debug.LogWarning(
                 "PlayerCharacterProfile could not apply final stats because PlayerResources is missing.",
                 this
             );
+
+            return;
         }
 
+        playerResources.ApplyFinalStats(
+            FinalStats,
+            true
+        );
+    }
+
+    private void ApplyBody()
+    {
         PlayerBodySetup bodySetup =
             GetComponent<PlayerBodySetup>();
 
         if (bodySetup == null)
             bodySetup = gameObject.AddComponent<PlayerBodySetup>();
 
-        bodySetup.ApplyRaceBody(
-            raceProfile,
+        bodySetup.ApplyBody(
+            SubraceDefinition,
             FinalStats
         );
+    }
 
+    private void ApplyInput()
+    {
         PlayerInput playerInput =
             GetComponent<PlayerInput>();
 
-        if (playerInput != null)
-        {
-            playerInput.ApplyMovementStats(FinalMovementStats);
-            playerInput.ApplyFinalStats(FinalStats);
-        }
-        else
+        if (playerInput == null)
         {
             Debug.LogWarning(
                 "PlayerCharacterProfile could not apply movement/final stats because PlayerInput is missing.",
                 this
             );
+
+            return;
+        }
+
+        playerInput.ApplyMovementStats(FinalMovementStats);
+        playerInput.ApplyFinalStats(FinalStats);
+    }
+
+    private void LogResolvedCharacter()
+    {
+        if (ProfileData == null ||
+            FinalAttributes == null ||
+            FinalStats == null ||
+            FinalMovementStats == null)
+        {
+            return;
         }
 
         Debug.Log(
@@ -97,7 +131,7 @@ public class PlayerCharacterProfile : MonoBehaviour
             $"HP {FinalStats.maxHealth}, " +
             $"SOUL BARRIER {FinalStats.maxSoulBarrier}, " +
             $"STA {FinalStats.maxStamina}, " +
-            $"Aether {FinalStats.maxAether}, " +
+            $"AETHER {FinalStats.maxAether}, " +
             $"POISE {FinalStats.poise}",
             this
         );

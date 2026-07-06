@@ -8,23 +8,14 @@ using UnityEditor;
 [CreateAssetMenu(menuName = "Game/Character Data Library")]
 public class CharacterDataLibrary : ScriptableObject
 {
-    [Header("New Race Data")]
+    [Header("Race Data")]
     [SerializeField] private List<RaceDefinition> raceDefinitions = new();
     [SerializeField] private List<SubraceDefinition> subraceDefinitions = new();
     [SerializeField] private List<LineageDefinition> lineageDefinitions = new();
 
-    [Header("Old Race Data")]
-    [SerializeField] private List<RaceProfile> raceProfiles = new();
-
-    [Header("Old Lineage Data")]
-    [SerializeField] private List<LineageProfile> lineageProfiles = new();
-
     public IReadOnlyList<RaceDefinition> RaceDefinitions => raceDefinitions;
     public IReadOnlyList<SubraceDefinition> SubraceDefinitions => subraceDefinitions;
     public IReadOnlyList<LineageDefinition> LineageDefinitions => lineageDefinitions;
-
-    public IReadOnlyList<RaceProfile> RaceProfiles => raceProfiles;
-    public IReadOnlyList<LineageProfile> LineageProfiles => lineageProfiles;
 
     public bool TryGetRaceDefinition(
         string raceId,
@@ -107,6 +98,32 @@ public class CharacterDataLibrary : ScriptableObject
         return false;
     }
 
+    public List<SubraceDefinition> GetSubraceDefinitionsForRace(
+        RaceDefinition raceDefinition)
+    {
+        List<SubraceDefinition> found = new();
+
+        if (raceDefinition == null)
+            return found;
+
+        foreach (SubraceDefinition definition in subraceDefinitions)
+        {
+            if (definition == null)
+                continue;
+
+            if (definition.race == null)
+                continue;
+
+            if (definition.race == raceDefinition ||
+                definition.race.raceId == raceDefinition.raceId)
+            {
+                found.Add(definition);
+            }
+        }
+
+        return found;
+    }
+
     public List<LineageDefinition> GetLineageDefinitions(
         List<string> lineageIds)
     {
@@ -139,92 +156,6 @@ public class CharacterDataLibrary : ScriptableObject
         return null;
     }
 
-    public bool TryGetRaceProfile(
-        string profileId,
-        out RaceProfile raceProfile)
-    {
-        raceProfile = null;
-
-        if (string.IsNullOrWhiteSpace(profileId))
-            return false;
-
-        foreach (RaceProfile profile in raceProfiles)
-        {
-            if (profile == null)
-                continue;
-
-            if (string.Equals(
-                profile.profileId,
-                profileId,
-                System.StringComparison.OrdinalIgnoreCase))
-            {
-                raceProfile = profile;
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public RaceProfile GetDefaultRaceProfile()
-    {
-        foreach (RaceProfile profile in raceProfiles)
-        {
-            if (profile != null)
-                return profile;
-        }
-
-        return null;
-    }
-
-    public List<LineageProfile> GetLineageProfiles(
-        List<string> lineageIds)
-    {
-        List<LineageProfile> foundProfiles = new();
-
-        if (lineageIds == null)
-            return foundProfiles;
-
-        foreach (string lineageId in lineageIds)
-        {
-            if (TryGetLineageProfile(
-                lineageId,
-                out LineageProfile profile))
-            {
-                foundProfiles.Add(profile);
-            }
-        }
-
-        return foundProfiles;
-    }
-
-    public bool TryGetLineageProfile(
-        string lineageId,
-        out LineageProfile lineageProfile)
-    {
-        lineageProfile = null;
-
-        if (string.IsNullOrWhiteSpace(lineageId))
-            return false;
-
-        foreach (LineageProfile profile in lineageProfiles)
-        {
-            if (profile == null)
-                continue;
-
-            if (string.Equals(
-                profile.LineageName,
-                lineageId,
-                System.StringComparison.OrdinalIgnoreCase))
-            {
-                lineageProfile = profile;
-                return true;
-            }
-        }
-
-        return false;
-    }
-
 #if UNITY_EDITOR
     [ContextMenu("Rebuild Library From Project Assets")]
     public void RebuildLibrary()
@@ -233,19 +164,14 @@ public class CharacterDataLibrary : ScriptableObject
         RebuildSubraceDefinitions();
         RebuildLineageDefinitions();
 
-        RebuildRaceProfiles();
-        RebuildLineageProfiles();
-
         EditorUtility.SetDirty(this);
         AssetDatabase.SaveAssets();
 
         Debug.Log(
             $"Rebuilt CharacterDataLibrary with " +
             $"{raceDefinitions.Count} race definitions, " +
-            $"{subraceDefinitions.Count} subrace definitions, " +
-            $"{lineageDefinitions.Count} lineage definitions, " +
-            $"{raceProfiles.Count} old race profiles, and " +
-            $"{lineageProfiles.Count} old lineage profiles.",
+            $"{subraceDefinitions.Count} subrace definitions, and " +
+            $"{lineageDefinitions.Count} lineage definitions.",
             this
         );
     }
@@ -318,52 +244,6 @@ public class CharacterDataLibrary : ScriptableObject
             }
         }
     }
-
-    private void RebuildRaceProfiles()
-    {
-        raceProfiles.Clear();
-
-        string[] guids =
-            AssetDatabase.FindAssets("t:RaceProfile");
-
-        foreach (string guid in guids)
-        {
-            string path =
-                AssetDatabase.GUIDToAssetPath(guid);
-
-            RaceProfile profile =
-                AssetDatabase.LoadAssetAtPath<RaceProfile>(path);
-
-            if (profile != null &&
-                !raceProfiles.Contains(profile))
-            {
-                raceProfiles.Add(profile);
-            }
-        }
-    }
-
-    private void RebuildLineageProfiles()
-    {
-        lineageProfiles.Clear();
-
-        string[] guids =
-            AssetDatabase.FindAssets("t:LineageProfile");
-
-        foreach (string guid in guids)
-        {
-            string path =
-                AssetDatabase.GUIDToAssetPath(guid);
-
-            LineageProfile profile =
-                AssetDatabase.LoadAssetAtPath<LineageProfile>(path);
-
-            if (profile != null &&
-                !lineageProfiles.Contains(profile))
-            {
-                lineageProfiles.Add(profile);
-            }
-        }
-    }
 #endif
 }
 
@@ -421,9 +301,7 @@ public class CharacterDataLibraryAutoRebuilder : AssetPostprocessor
 
             if (asset is RaceDefinition ||
                 asset is SubraceDefinition ||
-                asset is LineageDefinition ||
-                asset is RaceProfile ||
-                asset is LineageProfile)
+                asset is LineageDefinition)
             {
                 return true;
             }

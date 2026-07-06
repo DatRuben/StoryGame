@@ -19,11 +19,11 @@ public class CharacterCreatorRaceUI : MonoBehaviour
     [SerializeField] private Transform subraceButtonParent;
     [SerializeField] private TMP_Text subraceDescriptionText;
 
-    private readonly List<CharacterOptionButtonUI> baseRaceButtons = new();
+    private readonly List<CharacterOptionButtonUI> raceButtons = new();
     private readonly List<CharacterOptionButtonUI> subraceButtons = new();
 
-    private BaseRace selectedBaseRace;
-    private string selectedRaceProfileId;
+    private string selectedRaceId;
+    private string selectedSubraceId;
 
     private static readonly BaseRace[] BaseRaceOrder =
     {
@@ -39,50 +39,157 @@ public class CharacterCreatorRaceUI : MonoBehaviour
 
     private void OnEnable()
     {
-        BuildBaseRaceButtons();
+        BuildRaceButtons();
     }
 
     private void OnDisable()
     {
-        ClearButtons(baseRaceButtons);
+        ClearButtons(raceButtons);
         ClearButtons(subraceButtons);
     }
 
-    public void BuildBaseRaceButtons()
+    public void BuildRaceButtons()
     {
-        ClearButtons(baseRaceButtons);
+        ClearButtons(raceButtons);
         ClearButtons(subraceButtons);
 
         if (!HasRequiredReferences())
             return;
 
-        List<BaseRace> baseRaces = GetBaseRaces();
+        List<RaceDefinition> raceDefinitions =
+            GetOrderedRaceDefinitions();
 
-        foreach (BaseRace baseRace in baseRaces)
+        foreach (RaceDefinition raceDefinition in raceDefinitions)
         {
             CharacterOptionButtonUI button =
                 Instantiate(optionButtonPrefab, baseRaceButtonParent);
 
-            button.name = $"{baseRace}OptionButton";
-            button.SetText(FormatBaseRaceName(baseRace));
+            button.name = $"{raceDefinition.raceId}RaceButton";
+            button.SetText(GetRaceButtonText(raceDefinition));
             button.SetSelected(false);
 
-            BaseRace capturedRace = baseRace;
+            RaceDefinition capturedRace = raceDefinition;
+            CharacterOptionButtonUI capturedButton = button;
 
             button.Button.onClick.RemoveAllListeners();
-            button.Button.onClick.AddListener(() => SelectBaseRace(capturedRace));
+            button.Button.onClick.AddListener(() =>
+                SelectRaceDefinition(capturedRace, capturedButton)
+            );
 
-            baseRaceButtons.Add(button);
+            raceButtons.Add(button);
         }
 
-        if (baseRaces.Count > 0)
+        if (raceDefinitions.Count > 0)
         {
-            BaseRace startingRace = baseRaces.Contains(BaseRace.Human)
-                ? BaseRace.Human
-                : baseRaces[0];
+            RaceDefinition startingRace =
+                GetStartingRaceDefinition(raceDefinitions);
 
-            SelectBaseRace(startingRace);
+            CharacterOptionButtonUI startingButton =
+                GetRaceButtonFor(startingRace);
+
+            SelectRaceDefinition(startingRace, startingButton);
         }
+        else
+        {
+            ShowBaseRaceDescription("No race definitions found.");
+            ShowSubraceDescription("");
+        }
+    }
+
+    private void SelectRaceDefinition(
+        RaceDefinition raceDefinition,
+        CharacterOptionButtonUI selectedButton)
+    {
+        if (raceDefinition == null)
+            return;
+
+        if (!characterCreator.SelectRace(
+            raceDefinition.raceId,
+            out string errorMessage))
+        {
+            ShowBaseRaceDescription(errorMessage);
+            return;
+        }
+
+        selectedRaceId = raceDefinition.raceId;
+
+        RefreshSelectedRace(selectedButton);
+        ShowBaseRaceDescription(GetRaceDescription(raceDefinition));
+
+        BuildSubraceButtons(raceDefinition);
+    }
+
+    private void BuildSubraceButtons(
+        RaceDefinition raceDefinition)
+    {
+        ClearButtons(subraceButtons);
+
+        if (raceDefinition == null)
+        {
+            ShowSubraceDescription("");
+            return;
+        }
+
+        List<SubraceDefinition> subraceDefinitions =
+            GetSubraceDefinitionsForRace(raceDefinition);
+
+        foreach (SubraceDefinition subraceDefinition in subraceDefinitions)
+        {
+            CharacterOptionButtonUI button =
+                Instantiate(optionButtonPrefab, subraceButtonParent);
+
+            button.name = $"{subraceDefinition.subraceId}SubraceButton";
+            button.SetText(GetSubraceButtonText(subraceDefinition));
+            button.SetSelected(false);
+
+            SubraceDefinition capturedSubrace = subraceDefinition;
+            CharacterOptionButtonUI capturedButton = button;
+
+            button.Button.onClick.RemoveAllListeners();
+            button.Button.onClick.AddListener(() =>
+                SelectSubraceDefinition(capturedSubrace, capturedButton)
+            );
+
+            subraceButtons.Add(button);
+        }
+
+        if (subraceDefinitions.Count == 0)
+        {
+            ShowSubraceDescription("No subraces available.");
+            return;
+        }
+
+        SubraceDefinition startingSubrace =
+            GetStartingSubraceDefinition(
+                raceDefinition,
+                subraceDefinitions
+            );
+
+        CharacterOptionButtonUI startingButton =
+            GetSubraceButtonFor(startingSubrace);
+
+        SelectSubraceDefinition(startingSubrace, startingButton);
+    }
+
+    private void SelectSubraceDefinition(
+        SubraceDefinition subraceDefinition,
+        CharacterOptionButtonUI selectedButton)
+    {
+        if (subraceDefinition == null)
+            return;
+
+        if (!characterCreator.SelectSubrace(
+            subraceDefinition.subraceId,
+            out string errorMessage))
+        {
+            ShowSubraceDescription(errorMessage);
+            return;
+        }
+
+        selectedSubraceId = subraceDefinition.subraceId;
+
+        RefreshSelectedSubrace(selectedButton);
+        ShowSubraceDescription(GetSubraceDescription(subraceDefinition));
     }
 
     private bool HasRequiredReferences()
@@ -120,128 +227,157 @@ public class CharacterCreatorRaceUI : MonoBehaviour
         return true;
     }
 
-    private List<BaseRace> GetBaseRaces()
+    private List<RaceDefinition> GetOrderedRaceDefinitions()
     {
-        List<BaseRace> found = new();
+        List<RaceDefinition> ordered = new();
 
         foreach (BaseRace baseRace in BaseRaceOrder)
         {
-            if (HasAnyProfileForBaseRace(baseRace))
-                found.Add(baseRace);
+            foreach (RaceDefinition raceDefinition in characterDataLibrary.RaceDefinitions)
+            {
+                if (raceDefinition == null)
+                    continue;
+
+                if (ordered.Contains(raceDefinition))
+                    continue;
+
+                if (raceDefinition.baseRace == baseRace)
+                    ordered.Add(raceDefinition);
+            }
+        }
+
+        foreach (RaceDefinition raceDefinition in characterDataLibrary.RaceDefinitions)
+        {
+            if (raceDefinition == null)
+                continue;
+
+            if (!ordered.Contains(raceDefinition))
+                ordered.Add(raceDefinition);
+        }
+
+        return ordered;
+    }
+
+    private List<SubraceDefinition> GetSubraceDefinitionsForRace(
+        RaceDefinition raceDefinition)
+    {
+        List<SubraceDefinition> found = new();
+
+        if (raceDefinition == null)
+            return found;
+
+        foreach (SubraceDefinition subraceDefinition in characterDataLibrary.SubraceDefinitions)
+        {
+            if (subraceDefinition == null)
+                continue;
+
+            if (subraceDefinition.race == null)
+                continue;
+
+            if (subraceDefinition.race == raceDefinition ||
+                subraceDefinition.race.raceId == raceDefinition.raceId)
+            {
+                found.Add(subraceDefinition);
+            }
         }
 
         return found;
     }
 
-    private bool HasAnyProfileForBaseRace(BaseRace baseRace)
+    private RaceDefinition GetStartingRaceDefinition(
+        List<RaceDefinition> raceDefinitions)
     {
-        foreach (RaceProfile profile in characterDataLibrary.RaceProfiles)
+        foreach (RaceDefinition raceDefinition in raceDefinitions)
         {
-            if (profile == null)
+            if (raceDefinition != null &&
+                raceDefinition.baseRace == BaseRace.Human)
+            {
+                return raceDefinition;
+            }
+        }
+
+        return raceDefinitions[0];
+    }
+
+    private SubraceDefinition GetStartingSubraceDefinition(
+        RaceDefinition raceDefinition,
+        List<SubraceDefinition> subraceDefinitions)
+    {
+        if (raceDefinition != null &&
+            raceDefinition.standardSubrace != null)
+        {
+            foreach (SubraceDefinition subraceDefinition in subraceDefinitions)
+            {
+                if (subraceDefinition == null)
+                    continue;
+
+                if (subraceDefinition == raceDefinition.standardSubrace ||
+                    subraceDefinition.subraceId == raceDefinition.standardSubrace.subraceId)
+                {
+                    return subraceDefinition;
+                }
+            }
+        }
+
+        foreach (SubraceDefinition subraceDefinition in subraceDefinitions)
+        {
+            if (subraceDefinition != null)
+                return subraceDefinition;
+        }
+
+        return null;
+    }
+
+    private CharacterOptionButtonUI GetRaceButtonFor(
+        RaceDefinition raceDefinition)
+    {
+        foreach (CharacterOptionButtonUI button in raceButtons)
+        {
+            if (button == null ||
+                raceDefinition == null)
+            {
                 continue;
+            }
 
-            if (profile.baseRace == baseRace)
-                return true;
+            if (button.name == $"{raceDefinition.raceId}RaceButton")
+                return button;
         }
 
-        return false;
+        return null;
     }
 
-    private void SelectBaseRace(BaseRace baseRace)
+    private CharacterOptionButtonUI GetSubraceButtonFor(
+        SubraceDefinition subraceDefinition)
     {
-        selectedBaseRace = baseRace;
-
-        RefreshSelectedBaseRace(baseRace);
-        ShowBaseRaceDescription(FormatBaseRaceName(baseRace).Replace("\n", " "));
-
-        BuildSubraceButtons(baseRace);
-    }
-
-    private void BuildSubraceButtons(BaseRace baseRace)
-    {
-        ClearButtons(subraceButtons);
-
-        List<RaceProfile> profiles = GetRaceProfilesForBaseRace(baseRace);
-
-        foreach (RaceProfile profile in profiles)
+        foreach (CharacterOptionButtonUI button in subraceButtons)
         {
-            CharacterOptionButtonUI button =
-                Instantiate(optionButtonPrefab, subraceButtonParent);
-
-            button.name = $"{profile.profileId}OptionButton";
-            button.SetText(GetRaceProfileButtonText(profile));
-            button.SetSelected(false);
-
-            RaceProfile capturedProfile = profile;
-            CharacterOptionButtonUI capturedButton = button;
-
-            button.Button.onClick.RemoveAllListeners();
-            button.Button.onClick.AddListener(() =>
-                SelectRaceProfile(capturedProfile, capturedButton)
-            );
-
-            subraceButtons.Add(button);
-        }
-
-        if (profiles.Count > 0 && subraceButtons.Count > 0)
-            SelectRaceProfile(profiles[0], subraceButtons[0]);
-        else
-            ShowSubraceDescription("No subraces available.");
-    }
-
-    private List<RaceProfile> GetRaceProfilesForBaseRace(BaseRace baseRace)
-    {
-        List<RaceProfile> profiles = new();
-
-        foreach (RaceProfile profile in characterDataLibrary.RaceProfiles)
-        {
-            if (profile == null)
+            if (button == null ||
+                subraceDefinition == null)
+            {
                 continue;
+            }
 
-            if (profile.baseRace == baseRace)
-                profiles.Add(profile);
+            if (button.name == $"{subraceDefinition.subraceId}SubraceButton")
+                return button;
         }
 
-        return profiles;
+        return null;
     }
 
-    private void SelectRaceProfile(
-        RaceProfile profile,
+    private void RefreshSelectedRace(
         CharacterOptionButtonUI selectedButton)
     {
-        if (profile == null)
-            return;
-
-        bool selected =
-            characterCreator.SelectRace(
-                profile.profileId,
-                out string errorMessage
-            );
-
-        if (!selected)
-        {
-            ShowSubraceDescription(errorMessage);
-            return;
-        }
-
-        selectedRaceProfileId = profile.profileId;
-
-        ShowSubraceDescription(profile.description);
-        RefreshSelectedSubrace(selectedButton);
-    }
-
-    private void RefreshSelectedBaseRace(BaseRace selectedBaseRaceValue)
-    {
-        foreach (CharacterOptionButtonUI button in baseRaceButtons)
+        foreach (CharacterOptionButtonUI button in raceButtons)
         {
             if (button == null)
                 continue;
 
-            button.SetSelected(button.name == $"{selectedBaseRaceValue}OptionButton");
+            button.SetSelected(button == selectedButton);
         }
     }
 
-    private void RefreshSelectedSubrace(CharacterOptionButtonUI selectedButton)
+    private void RefreshSelectedSubrace(
+        CharacterOptionButtonUI selectedButton)
     {
         foreach (CharacterOptionButtonUI button in subraceButtons)
         {
@@ -252,7 +388,8 @@ public class CharacterCreatorRaceUI : MonoBehaviour
         }
     }
 
-    private void ClearButtons(List<CharacterOptionButtonUI> buttons)
+    private void ClearButtons(
+        List<CharacterOptionButtonUI> buttons)
     {
         for (int i = buttons.Count - 1; i >= 0; i--)
         {
@@ -275,48 +412,51 @@ public class CharacterCreatorRaceUI : MonoBehaviour
             subraceDescriptionText.text = message;
     }
 
-    private string GetRaceProfileButtonText(RaceProfile profile)
+    private string GetRaceButtonText(
+        RaceDefinition raceDefinition)
     {
-        if (profile == null)
+        if (raceDefinition == null)
             return "";
 
-        if (!string.IsNullOrWhiteSpace(profile.subraceName))
-            return profile.subraceName;
+        if (!string.IsNullOrWhiteSpace(raceDefinition.displayName))
+            return raceDefinition.displayName;
 
-        if (!string.IsNullOrWhiteSpace(profile.displayName))
-            return profile.displayName;
-
-        return profile.profileId;
+        return raceDefinition.baseRace.ToString();
     }
 
-    private string FormatBaseRaceName(BaseRace baseRace)
+    private string GetSubraceButtonText(
+        SubraceDefinition subraceDefinition)
     {
-        return baseRace switch
-        {
-            BaseRace.WesternDragon => "Western\nDragon",
-            BaseRace.SoulChip => "Soul-Chip",
-            _ => SplitWords(baseRace.ToString())
-        };
-    }
-
-    private string SplitWords(string text)
-    {
-        if (string.IsNullOrWhiteSpace(text))
+        if (subraceDefinition == null)
             return "";
 
-        string result = text[0].ToString();
+        if (!string.IsNullOrWhiteSpace(subraceDefinition.displayName))
+            return subraceDefinition.displayName;
 
-        for (int i = 1; i < text.Length; i++)
-        {
-            char current = text[i];
-            char previous = text[i - 1];
+        return subraceDefinition.subraceId;
+    }
 
-            if (char.IsUpper(current) && !char.IsUpper(previous))
-                result += " ";
+    private string GetRaceDescription(
+        RaceDefinition raceDefinition)
+    {
+        if (raceDefinition == null)
+            return "";
 
-            result += current;
-        }
+        if (!string.IsNullOrWhiteSpace(raceDefinition.description))
+            return raceDefinition.description;
 
-        return result;
+        return GetRaceButtonText(raceDefinition);
+    }
+
+    private string GetSubraceDescription(
+        SubraceDefinition subraceDefinition)
+    {
+        if (subraceDefinition == null)
+            return "";
+
+        if (!string.IsNullOrWhiteSpace(subraceDefinition.description))
+            return subraceDefinition.description;
+
+        return GetSubraceButtonText(subraceDefinition);
     }
 }

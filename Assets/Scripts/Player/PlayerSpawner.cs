@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerSpawner : MonoBehaviour
@@ -23,11 +24,6 @@ public class PlayerSpawner : MonoBehaviour
 
     public bool SpawnSelectedCharacter()
     {
-        Debug.LogWarning(
-            "SpawnSelectedCharacter was called.",
-            this
-        );
-
         if (playerPrefab == null)
         {
             Debug.LogWarning(
@@ -51,11 +47,14 @@ public class PlayerSpawner : MonoBehaviour
         if (!TryGetProfileToSpawn(out CharacterProfileData profile))
             return false;
 
-        RaceProfile raceProfile =
-            GetRaceProfileFor(profile);
-
-        if (raceProfile == null)
+        if (!TryGetRuntimeDefinitions(
+            profile,
+            out RaceDefinition raceDefinition,
+            out SubraceDefinition subraceDefinition,
+            out LineageDefinition[] lineageDefinitions))
+        {
             return false;
+        }
 
         Vector3 position =
             spawnPoint != null
@@ -80,15 +79,11 @@ public class PlayerSpawner : MonoBehaviour
         if (playerCharacterProfile == null)
             playerCharacterProfile = spawnedPlayer.AddComponent<PlayerCharacterProfile>();
 
-        LineageProfile[] lineageProfiles =
-            characterDataLibrary
-                .GetLineageProfiles(profile.lineageIds)
-                .ToArray();
-
         playerCharacterProfile.Initialize(
             profile,
-            raceProfile,
-            lineageProfiles
+            raceDefinition,
+            subraceDefinition,
+            lineageDefinitions
         );
 
         return true;
@@ -110,24 +105,24 @@ public class PlayerSpawner : MonoBehaviour
             return false;
         }
 
-        RaceProfile defaultRaceProfile =
-            characterDataLibrary.GetDefaultRaceProfile();
+        RaceDefinition defaultRaceDefinition =
+            characterDataLibrary.GetDefaultRaceDefinition();
 
-        if (defaultRaceProfile == null)
+        if (defaultRaceDefinition == null)
         {
             Debug.LogWarning(
-                "PlayerSpawner could not create a default character because the CharacterDataLibrary has no race profiles.",
+                "PlayerSpawner could not create a default character because the CharacterDataLibrary has no race definitions.",
                 this
             );
 
             return false;
         }
 
-        if (string.IsNullOrWhiteSpace(defaultRaceProfile.profileId))
+        if (defaultRaceDefinition.standardSubrace == null)
         {
             Debug.LogWarning(
-                "PlayerSpawner could not create a default character because the default RaceProfile has no profileId.",
-                defaultRaceProfile
+                $"PlayerSpawner could not create a default character because {defaultRaceDefinition.displayName} has no standard subrace.",
+                defaultRaceDefinition
             );
 
             return false;
@@ -136,43 +131,59 @@ public class PlayerSpawner : MonoBehaviour
         profile =
             CharacterSelection.CreateCharacter(
                 defaultCharacterName,
-                defaultRaceProfile.profileId
+                defaultRaceDefinition,
+                defaultRaceDefinition.standardSubrace,
+                new List<string>()
             );
 
         return profile != null;
     }
 
-    private RaceProfile GetRaceProfileFor(
-        CharacterProfileData profile)
+    private bool TryGetRuntimeDefinitions(
+        CharacterProfileData profile,
+        out RaceDefinition raceDefinition,
+        out SubraceDefinition subraceDefinition,
+        out LineageDefinition[] lineageDefinitions)
     {
+        raceDefinition = null;
+        subraceDefinition = null;
+        lineageDefinitions = null;
+
         if (profile == null)
-            return null;
+            return false;
 
-        if (characterDataLibrary.TryGetRaceProfile(
-            profile.raceProfileId,
-            out RaceProfile raceProfile))
-        {
-            return raceProfile;
-        }
-
-        RaceProfile fallbackRaceProfile =
-            characterDataLibrary.GetDefaultRaceProfile();
-
-        if (fallbackRaceProfile == null)
+        if (!characterDataLibrary.TryGetRaceDefinition(
+            profile.raceId,
+            out raceDefinition))
         {
             Debug.LogWarning(
-                $"PlayerSpawner could not find RaceProfile '{profile.raceProfileId}' and no default RaceProfile exists.",
+                $"PlayerSpawner could not find RaceDefinition '{profile.raceId}'.",
                 this
             );
 
-            return null;
+            return false;
         }
 
-        Debug.LogWarning(
-            $"PlayerSpawner could not find RaceProfile '{profile.raceProfileId}'. Using default RaceProfile '{fallbackRaceProfile.profileId}'.",
-            fallbackRaceProfile
-        );
+        if (!characterDataLibrary.TryGetSubraceDefinition(
+            profile.subraceId,
+            out subraceDefinition))
+        {
+            Debug.LogWarning(
+                $"PlayerSpawner could not find SubraceDefinition '{profile.subraceId}'.",
+                this
+            );
 
-        return fallbackRaceProfile;
+            return false;
+        }
+
+        List<LineageDefinition> lineageDefinitionList =
+            characterDataLibrary.GetLineageDefinitions(
+                profile.lineageIds
+            );
+
+        lineageDefinitions =
+            lineageDefinitionList.ToArray();
+
+        return true;
     }
 }

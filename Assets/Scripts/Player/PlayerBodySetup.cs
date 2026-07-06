@@ -19,27 +19,28 @@ public class PlayerBodySetup : MonoBehaviour
             cameraPivot = FindChildRecursive(transform, "CameraPivot");
     }
 
-    public void ApplyRaceBody(
-        RaceProfile raceProfile,
+    public void ApplyBody(
+        SubraceDefinition subraceDefinition,
         FinalCharacterStats finalStats)
     {
-        if (raceProfile == null)
+        if (subraceDefinition == null)
         {
             Debug.LogWarning(
-                "PlayerBodySetup could not apply race body because RaceProfile is missing.",
+                "PlayerBodySetup could not apply body because SubraceDefinition is missing.",
                 this
             );
 
             return;
         }
 
-        ApplyCapsule(raceProfile);
-        ApplyGroundCheck(raceProfile);
-        ApplyCameraPivot(raceProfile);
+        ApplyCapsule(subraceDefinition);
+        ApplyGroundCheck(subraceDefinition);
+        ApplyCameraPivot(subraceDefinition);
         ApplyRigidbody(finalStats);
     }
 
-    private void ApplyCapsule(RaceProfile raceProfile)
+    private void ApplyCapsule(
+        SubraceDefinition subraceDefinition)
     {
         if (capsuleCollider == null)
         {
@@ -51,13 +52,152 @@ public class PlayerBodySetup : MonoBehaviour
             return;
         }
 
-        capsuleCollider.radius = raceProfile.capsuleRadius;
-        capsuleCollider.height = raceProfile.capsuleHeight;
-        capsuleCollider.center = raceProfile.capsuleCenter;
-        capsuleCollider.direction = (int)raceProfile.capsuleDirection;
+        capsuleCollider.direction = 1;
+        capsuleCollider.radius = GetCapsuleRadius(subraceDefinition);
+        capsuleCollider.height = GetCapsuleHeight(subraceDefinition);
+        capsuleCollider.center = new Vector3(
+            0f,
+            capsuleCollider.height * 0.5f,
+            0f
+        );
     }
 
-    private void ApplyRigidbody(FinalCharacterStats finalStats)
+    private float GetCapsuleRadius(
+        SubraceDefinition subraceDefinition)
+    {
+        switch (subraceDefinition.size)
+        {
+            case RaceSize.Size1:
+            case RaceSize.Size1Feral:
+                return 0.35f;
+
+            case RaceSize.Size3:
+            case RaceSize.Size3Feral:
+                return 0.75f;
+
+            case RaceSize.Dragon:
+                return 0.9f;
+
+            case RaceSize.BigDragon:
+                return 1.15f;
+
+            default:
+                return 0.5f;
+        }
+    }
+
+    private float GetCapsuleHeight(
+        SubraceDefinition subraceDefinition)
+    {
+        switch (subraceDefinition.size)
+        {
+            case RaceSize.Size1:
+                return 1.4f;
+
+            case RaceSize.Size1Feral:
+                return 1.0f;
+
+            case RaceSize.TallerSize2:
+                return 2.3f;
+
+            case RaceSize.Size3:
+                return 2.7f;
+
+            case RaceSize.Size2Feral:
+                return 1.3f;
+
+            case RaceSize.Size3Feral:
+                return 1.7f;
+
+            case RaceSize.Dragon:
+                return 1.9f;
+
+            case RaceSize.BigDragon:
+                return 2.3f;
+
+            default:
+                return 2f;
+        }
+    }
+
+    private void ApplyGroundCheck(
+        SubraceDefinition subraceDefinition)
+    {
+        if (groundCheck == null)
+        {
+            Debug.LogWarning(
+                "PlayerBodySetup could not apply ground check position because GroundCheck is missing.",
+                this
+            );
+
+            return;
+        }
+
+        groundCheck.localPosition =
+            new Vector3(
+                0f,
+                -0.05f,
+                0f
+            );
+    }
+
+    private void ApplyCameraPivot(
+        SubraceDefinition subraceDefinition)
+    {
+        if (cameraPivot == null)
+        {
+            Debug.LogWarning(
+                "PlayerBodySetup could not apply camera pivot position because CameraPivot is missing.",
+                this
+            );
+
+            return;
+        }
+
+        cameraPivot.localPosition =
+            new Vector3(
+                0f,
+                GetCameraPivotHeight(subraceDefinition),
+                0f
+            );
+    }
+
+    private float GetCameraPivotHeight(
+        SubraceDefinition subraceDefinition)
+    {
+        switch (subraceDefinition.size)
+        {
+            case RaceSize.Size1:
+                return 0.7f;
+
+            case RaceSize.Size1Feral:
+                return 0.55f;
+
+            case RaceSize.TallerSize2:
+                return 1.1f;
+
+            case RaceSize.Size3:
+                return 1.35f;
+
+            case RaceSize.Size2Feral:
+                return 0.7f;
+
+            case RaceSize.Size3Feral:
+                return 0.95f;
+
+            case RaceSize.Dragon:
+                return 1.05f;
+
+            case RaceSize.BigDragon:
+                return 1.25f;
+
+            default:
+                return 0.9f;
+        }
+    }
+
+    private void ApplyRigidbody(
+        FinalCharacterStats finalStats)
     {
         if (finalStats == null)
         {
@@ -83,36 +223,6 @@ public class PlayerBodySetup : MonoBehaviour
         }
 
         rb.mass = Mathf.Max(0.01f, finalStats.mass);
-    }
-
-    private void ApplyGroundCheck(RaceProfile raceProfile)
-    {
-        if (groundCheck == null)
-        {
-            Debug.LogWarning(
-                "PlayerBodySetup could not apply ground check position because GroundCheck is missing.",
-                this
-            );
-
-            return;
-        }
-
-        groundCheck.localPosition = raceProfile.groundCheckLocalPosition;
-    }
-
-    private void ApplyCameraPivot(RaceProfile raceProfile)
-    {
-        if (cameraPivot == null)
-        {
-            Debug.LogWarning(
-                "PlayerBodySetup could not apply camera pivot position because CameraPivot is missing.",
-                this
-            );
-
-            return;
-        }
-
-        cameraPivot.localPosition = raceProfile.cameraPivotLocalPosition;
     }
 
     private Transform FindChildRecursive(

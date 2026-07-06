@@ -6,37 +6,62 @@ public class CharacterCreator : MonoBehaviour
     [SerializeField] private CharacterDataLibrary characterDataLibrary;
 
     [Header("Current Selection")]
-    [SerializeField] private string selectedRaceProfileId;
+    [SerializeField] private string selectedRaceId;
+    [SerializeField] private string selectedSubraceId;
     [SerializeField] private List<string> selectedLineageIds = new();
 
-    public string SelectedRaceProfileId => selectedRaceProfileId;
+    public string SelectedRaceId => selectedRaceId;
+    public string SelectedSubraceId => selectedSubraceId;
     public IReadOnlyList<string> SelectedLineageIds => selectedLineageIds;
 
     public bool SelectRace(
-        string raceProfileId,
+        string raceId,
         out string errorMessage)
     {
         errorMessage = "";
 
-        if (characterDataLibrary == null)
+        if (!TryGetRaceDefinition(
+            raceId,
+            out RaceDefinition raceDefinition,
+            out errorMessage))
         {
-            errorMessage = "CharacterDataLibrary is missing.";
             return false;
         }
 
-        if (!characterDataLibrary.TryGetRaceProfile(
-            raceProfileId,
-            out RaceProfile raceProfile))
+        selectedRaceId = raceDefinition.raceId;
+
+        SelectDefaultSubraceFor(raceDefinition);
+        CleanSelectedLineages(raceDefinition);
+
+        return true;
+    }
+
+    public bool SelectSubrace(
+        string subraceId,
+        out string errorMessage)
+    {
+        errorMessage = "";
+
+        if (!TryGetSubraceDefinition(
+            subraceId,
+            out SubraceDefinition subraceDefinition,
+            out errorMessage))
+        {
+            return false;
+        }
+
+        if (subraceDefinition.race == null)
         {
             errorMessage =
-                $"RaceProfile '{raceProfileId}' was not found.";
+                $"{subraceDefinition.displayName} has no RaceDefinition assigned.";
 
             return false;
         }
 
-        selectedRaceProfileId = raceProfile.profileId;
+        selectedRaceId = subraceDefinition.race.raceId;
+        selectedSubraceId = subraceDefinition.subraceId;
 
-        CleanSelectedLineages(raceProfile);
+        CleanSelectedLineages(subraceDefinition.race);
 
         return true;
     }
@@ -47,55 +72,41 @@ public class CharacterCreator : MonoBehaviour
     {
         errorMessage = "";
 
-        if (string.IsNullOrWhiteSpace(lineageId))
-        {
-            errorMessage = "Lineage ID is missing.";
-            return false;
-        }
-
-        if (!TryGetSelectedRace(out RaceProfile raceProfile))
+        if (!TryGetSelectedRace(out RaceDefinition raceDefinition))
         {
             errorMessage = "No race is selected.";
             return false;
         }
 
-        if (selectedLineageIds.Contains(lineageId))
+        if (!TryGetLineageDefinition(
+            lineageId,
+            out LineageDefinition lineageDefinition,
+            out errorMessage))
         {
-            selectedLineageIds.Remove(lineageId);
+            return false;
+        }
+
+        if (selectedLineageIds.Contains(lineageDefinition.lineageId))
+        {
+            selectedLineageIds.Remove(lineageDefinition.lineageId);
             return true;
         }
 
-        if (!raceProfile.CanUseLineages())
+        if (!raceDefinition.IsLineageAllowed(lineageDefinition))
         {
             errorMessage =
-                $"{raceProfile.displayName} cannot use lineages.";
+                $"{raceDefinition.displayName} cannot use lineage {lineageDefinition.displayName}.";
 
             return false;
         }
 
-        if (selectedLineageIds.Count >= raceProfile.maxLineages)
-        {
-            errorMessage =
-                $"{raceProfile.displayName} can only use up to {raceProfile.maxLineages} lineages.";
+        selectedLineageIds.Add(lineageDefinition.lineageId);
 
-            return false;
-        }
-
-        if (!raceProfile.IsLineageAllowed(lineageId))
-        {
-            errorMessage =
-                $"{raceProfile.displayName} cannot use lineage '{lineageId}'.";
-
-            return false;
-        }
-
-        selectedLineageIds.Add(lineageId);
-
-        if (!raceProfile.AreLineagesValid(
-            selectedLineageIds,
+        if (!AreSelectedLineagesValid(
+            raceDefinition,
             out errorMessage))
         {
-            selectedLineageIds.Remove(lineageId);
+            selectedLineageIds.Remove(lineageDefinition.lineageId);
             return false;
         }
 
@@ -116,16 +127,26 @@ public class CharacterCreator : MonoBehaviour
             return false;
         }
 
-        if (!TryGetSelectedRace(out RaceProfile raceProfile))
+        if (!TryGetSelectedRace(out RaceDefinition raceDefinition))
         {
             errorMessage = "No race is selected.";
             return false;
         }
 
+        if (!TryGetSelectedSubrace(out SubraceDefinition subraceDefinition))
+        {
+            errorMessage = "No subrace is selected.";
+            return false;
+        }
+
+        List<LineageDefinition> lineageDefinitions =
+            GetSelectedLineageDefinitions();
+
         return CharacterSelection.TryCreateCharacter(
             characterName,
-            raceProfile,
-            selectedLineageIds,
+            raceDefinition,
+            subraceDefinition,
+            lineageDefinitions,
             out profile,
             out errorMessage
         );
@@ -136,14 +157,29 @@ public class CharacterCreator : MonoBehaviour
     {
         errorMessage = "";
 
-        if (!TryGetSelectedRace(out RaceProfile raceProfile))
+        if (!TryGetSelectedRace(out RaceDefinition raceDefinition))
         {
             errorMessage = "No race is selected.";
             return false;
         }
 
-        return raceProfile.AreLineagesValid(
-            selectedLineageIds,
+        if (!TryGetSelectedSubrace(out SubraceDefinition subraceDefinition))
+        {
+            errorMessage = "No subrace is selected.";
+            return false;
+        }
+
+        if (subraceDefinition.race == null ||
+            subraceDefinition.race.raceId != raceDefinition.raceId)
+        {
+            errorMessage =
+                $"{subraceDefinition.displayName} does not belong to {raceDefinition.displayName}.";
+
+            return false;
+        }
+
+        return AreSelectedLineagesValid(
+            raceDefinition,
             out errorMessage
         );
     }
@@ -153,33 +189,155 @@ public class CharacterCreator : MonoBehaviour
         selectedLineageIds.Clear();
     }
 
-    private bool TryGetSelectedRace(
-        out RaceProfile raceProfile)
+    private void SelectDefaultSubraceFor(
+        RaceDefinition raceDefinition)
     {
-        raceProfile = null;
+        selectedSubraceId = "";
+
+        if (raceDefinition == null)
+            return;
+
+        if (raceDefinition.standardSubrace != null)
+            selectedSubraceId = raceDefinition.standardSubrace.subraceId;
+    }
+
+    private bool TryGetRaceDefinition(
+        string raceId,
+        out RaceDefinition raceDefinition,
+        out string errorMessage)
+    {
+        raceDefinition = null;
+        errorMessage = "";
+
+        if (characterDataLibrary == null)
+        {
+            errorMessage = "CharacterDataLibrary is missing.";
+            return false;
+        }
+
+        if (!characterDataLibrary.TryGetRaceDefinition(
+            raceId,
+            out raceDefinition))
+        {
+            errorMessage =
+                $"RaceDefinition '{raceId}' was not found.";
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private bool TryGetSubraceDefinition(
+        string subraceId,
+        out SubraceDefinition subraceDefinition,
+        out string errorMessage)
+    {
+        subraceDefinition = null;
+        errorMessage = "";
+
+        if (characterDataLibrary == null)
+        {
+            errorMessage = "CharacterDataLibrary is missing.";
+            return false;
+        }
+
+        if (!characterDataLibrary.TryGetSubraceDefinition(
+            subraceId,
+            out subraceDefinition))
+        {
+            errorMessage =
+                $"SubraceDefinition '{subraceId}' was not found.";
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private bool TryGetLineageDefinition(
+        string lineageId,
+        out LineageDefinition lineageDefinition,
+        out string errorMessage)
+    {
+        lineageDefinition = null;
+        errorMessage = "";
+
+        if (characterDataLibrary == null)
+        {
+            errorMessage = "CharacterDataLibrary is missing.";
+            return false;
+        }
+
+        if (!characterDataLibrary.TryGetLineageDefinition(
+            lineageId,
+            out lineageDefinition))
+        {
+            errorMessage =
+                $"LineageDefinition '{lineageId}' was not found.";
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private bool TryGetSelectedRace(
+        out RaceDefinition raceDefinition)
+    {
+        raceDefinition = null;
 
         if (characterDataLibrary == null)
             return false;
 
-        if (string.IsNullOrWhiteSpace(selectedRaceProfileId))
+        if (string.IsNullOrWhiteSpace(selectedRaceId))
             return false;
 
-        return characterDataLibrary.TryGetRaceProfile(
-            selectedRaceProfileId,
-            out raceProfile
+        return characterDataLibrary.TryGetRaceDefinition(
+            selectedRaceId,
+            out raceDefinition
+        );
+    }
+
+    private bool TryGetSelectedSubrace(
+        out SubraceDefinition subraceDefinition)
+    {
+        subraceDefinition = null;
+
+        if (characterDataLibrary == null)
+            return false;
+
+        if (string.IsNullOrWhiteSpace(selectedSubraceId))
+            return false;
+
+        return characterDataLibrary.TryGetSubraceDefinition(
+            selectedSubraceId,
+            out subraceDefinition
+        );
+    }
+
+    private List<LineageDefinition> GetSelectedLineageDefinitions()
+    {
+        return characterDataLibrary.GetLineageDefinitions(
+            selectedLineageIds
+        );
+    }
+
+    private bool AreSelectedLineagesValid(
+        RaceDefinition raceDefinition,
+        out string errorMessage)
+    {
+        return raceDefinition.AreLineagesValid(
+            GetSelectedLineageDefinitions(),
+            out errorMessage
         );
     }
 
     private void CleanSelectedLineages(
-        RaceProfile raceProfile)
+        RaceDefinition raceDefinition)
     {
-        if (raceProfile == null)
-        {
-            selectedLineageIds.Clear();
-            return;
-        }
-
-        if (!raceProfile.CanUseLineages())
+        if (raceDefinition == null ||
+            !raceDefinition.CanUseLineages())
         {
             selectedLineageIds.Clear();
             return;
@@ -187,11 +345,19 @@ public class CharacterCreator : MonoBehaviour
 
         for (int i = selectedLineageIds.Count - 1; i >= 0; i--)
         {
-            if (!raceProfile.IsLineageAllowed(selectedLineageIds[i]))
+            if (!characterDataLibrary.TryGetLineageDefinition(
+                selectedLineageIds[i],
+                out LineageDefinition lineageDefinition))
+            {
+                selectedLineageIds.RemoveAt(i);
+                continue;
+            }
+
+            if (!raceDefinition.IsLineageAllowed(lineageDefinition))
                 selectedLineageIds.RemoveAt(i);
         }
 
-        while (selectedLineageIds.Count > raceProfile.maxLineages)
+        while (selectedLineageIds.Count > raceDefinition.maxLineages)
         {
             selectedLineageIds.RemoveAt(
                 selectedLineageIds.Count - 1

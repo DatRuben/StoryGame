@@ -108,9 +108,6 @@ public class RaceDefinition : ScriptableObject
                 errorMessage =
                     $"{lineage.displayName} has no lineage ID.";
 
-                errorMessage =
-                     $"{lineage.displayName} has no lineage ID.";
-
                 return false;
             }
 

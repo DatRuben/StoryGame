@@ -46,21 +46,24 @@ public class CharacterSlotButtonUI : MonoBehaviour
             return;
         }
 
-        RaceProfile raceProfile = GetRaceProfile(dataLibrary, profile.raceProfileId);
+        RaceDefinition raceDefinition =
+            GetRaceDefinition(dataLibrary, profile.raceId);
+
+        SubraceDefinition subraceDefinition =
+            GetSubraceDefinition(dataLibrary, profile.subraceId);
 
         SetText(characterNameText, profile.characterName);
         SetText(levelText, $"Level:\n{profile.level}");
 
-        if (raceProfile != null)
-        {
-            SetText(raceNameText, $"Race:\n{raceProfile.baseRace}");
-            SetText(subraceNameText, $"Subrace:\n{raceProfile.subraceName}");
-        }
-        else
-        {
-            SetText(raceNameText, $"Race:\n{profile.raceProfileId}");
-            SetText(subraceNameText, "Subrace:\nUnknown");
-        }
+        SetText(
+            raceNameText,
+            $"Race:\n{GetRaceName(raceDefinition, profile.raceId)}"
+        );
+
+        SetText(
+            subraceNameText,
+            $"Subrace:\n{GetSubraceName(subraceDefinition, profile.subraceId)}"
+        );
 
         SetActive(emptyText, false);
         SetActive(characterPortrait, true);
@@ -68,21 +71,6 @@ public class CharacterSlotButtonUI : MonoBehaviour
         SetStoryProgress(storyComplete);
 
         SetSelected(selected);
-    }
-
-    private void SetStoryProgress(bool storyComplete)
-    {
-        if (storyProgressImage == null)
-            return;
-
-        storyProgressImage.gameObject.SetActive(true);
-
-        Sprite sprite = storyComplete
-            ? storyCompleteSprite
-            : storyIncompleteSprite;
-
-        if (sprite != null)
-            storyProgressImage.sprite = sprite;
     }
 
     public void ShowEmpty(bool selected)
@@ -109,22 +97,85 @@ public class CharacterSlotButtonUI : MonoBehaviour
             selectedCharacter.SetActive(selected);
     }
 
-    private RaceProfile GetRaceProfile(
+    private void SetStoryProgress(bool storyComplete)
+    {
+        if (storyProgressImage == null)
+            return;
+
+        Sprite sprite = storyComplete
+            ? storyCompleteSprite
+            : storyIncompleteSprite;
+
+        storyProgressImage.gameObject.SetActive(sprite != null);
+
+        if (sprite != null)
+            storyProgressImage.sprite = sprite;
+    }
+
+    private RaceDefinition GetRaceDefinition(
         CharacterDataLibrary dataLibrary,
-        string raceProfileId)
+        string raceId)
     {
         if (dataLibrary == null)
             return null;
 
-        if (string.IsNullOrWhiteSpace(raceProfileId))
+        if (string.IsNullOrWhiteSpace(raceId))
             return null;
 
-        dataLibrary.TryGetRaceProfile(
-            raceProfileId,
-            out RaceProfile raceProfile
+        dataLibrary.TryGetRaceDefinition(
+            raceId,
+            out RaceDefinition raceDefinition
         );
 
-        return raceProfile;
+        return raceDefinition;
+    }
+
+    private SubraceDefinition GetSubraceDefinition(
+        CharacterDataLibrary dataLibrary,
+        string subraceId)
+    {
+        if (dataLibrary == null)
+            return null;
+
+        if (string.IsNullOrWhiteSpace(subraceId))
+            return null;
+
+        dataLibrary.TryGetSubraceDefinition(
+            subraceId,
+            out SubraceDefinition subraceDefinition
+        );
+
+        return subraceDefinition;
+    }
+
+    private string GetRaceName(
+        RaceDefinition raceDefinition,
+        string fallback)
+    {
+        if (raceDefinition == null)
+            return string.IsNullOrWhiteSpace(fallback)
+                ? "Unknown"
+                : fallback;
+
+        if (!string.IsNullOrWhiteSpace(raceDefinition.displayName))
+            return raceDefinition.displayName;
+
+        return raceDefinition.raceId;
+    }
+
+    private string GetSubraceName(
+        SubraceDefinition subraceDefinition,
+        string fallback)
+    {
+        if (subraceDefinition == null)
+            return string.IsNullOrWhiteSpace(fallback)
+                ? "Unknown"
+                : fallback;
+
+        if (!string.IsNullOrWhiteSpace(subraceDefinition.displayName))
+            return subraceDefinition.displayName;
+
+        return subraceDefinition.subraceId;
     }
 
     private void SetText(TMP_Text text, string value)

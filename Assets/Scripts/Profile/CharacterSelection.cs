@@ -3,7 +3,8 @@ using UnityEngine;
 
 public static class CharacterSelection
 {
-    private const string SelectedProfileIdKey = "SelectedCharacterProfileId";
+    private const string SelectedProfileIdKey =
+        "SelectedCharacterProfileId";
 
     public static List<CharacterProfileData> GetProfiles()
     {
@@ -18,13 +19,15 @@ public static class CharacterSelection
 
     public static CharacterProfileData CreateCharacter(
         string characterName,
-        string raceProfileId = "Human_Default",
-        List<string> lineageIds = null)
+        RaceDefinition raceDefinition,
+        SubraceDefinition subraceDefinition,
+        List<string> lineageIds)
     {
         CharacterProfileData profile =
             CharacterProfileData.CreateNew(
                 characterName,
-                raceProfileId,
+                raceDefinition.raceId,
+                subraceDefinition.subraceId,
                 lineageIds
             );
 
@@ -32,6 +35,73 @@ public static class CharacterSelection
         SelectProfile(profile.profileId);
 
         return profile;
+    }
+
+    public static bool TryCreateCharacter(
+        string characterName,
+        RaceDefinition raceDefinition,
+        SubraceDefinition subraceDefinition,
+        List<LineageDefinition> lineageDefinitions,
+        out CharacterProfileData profile,
+        out string errorMessage)
+    {
+        profile = null;
+        errorMessage = "";
+
+        if (string.IsNullOrWhiteSpace(characterName))
+        {
+            errorMessage = "Character name is required.";
+            return false;
+        }
+
+        if (raceDefinition == null)
+        {
+            errorMessage = "Race definition is missing.";
+            return false;
+        }
+
+        if (subraceDefinition == null)
+        {
+            errorMessage = "Subrace definition is missing.";
+            return false;
+        }
+
+        if (subraceDefinition.race == null ||
+            subraceDefinition.race.raceId != raceDefinition.raceId)
+        {
+            errorMessage =
+                $"{subraceDefinition.displayName} does not belong to {raceDefinition.displayName}.";
+
+            return false;
+        }
+
+        if (!raceDefinition.AreLineagesValid(
+            lineageDefinitions,
+            out errorMessage))
+        {
+            return false;
+        }
+
+        List<string> lineageIds = new();
+
+        if (lineageDefinitions != null)
+        {
+            foreach (LineageDefinition lineageDefinition in lineageDefinitions)
+            {
+                if (lineageDefinition != null)
+                    lineageIds.Add(lineageDefinition.lineageId);
+            }
+        }
+
+        profile =
+            CreateCharacter(
+                characterName,
+                raceDefinition,
+                subraceDefinition,
+                lineageIds
+            );
+
+        return true;
     }
 
     public static void SelectProfile(string profileId)
@@ -76,47 +146,5 @@ public static class CharacterSelection
     {
         PlayerPrefs.DeleteKey(SelectedProfileIdKey);
         PlayerPrefs.Save();
-    }
-
-    public static bool TryCreateCharacter(
-    string characterName,
-    RaceProfile raceProfile,
-    List<string> lineageIds,
-    out CharacterProfileData profile,
-    out string errorMessage)
-    {
-        profile = null;
-        errorMessage = "";
-
-        if (raceProfile == null)
-        {
-            errorMessage = "Race profile is missing.";
-            return false;
-        }
-
-        if (string.IsNullOrWhiteSpace(raceProfile.profileId))
-        {
-            errorMessage = "Race profile has no profileId.";
-            return false;
-        }
-
-        if (!raceProfile.AreLineagesValid(
-            lineageIds,
-            out errorMessage))
-        {
-            return false;
-        }
-
-        profile =
-            CharacterProfileData.CreateNew(
-                characterName,
-                raceProfile.profileId,
-                lineageIds
-            );
-
-        CharacterSaveSystem.SaveProfile(profile);
-        SelectProfile(profile.profileId);
-
-        return true;
     }
 }
