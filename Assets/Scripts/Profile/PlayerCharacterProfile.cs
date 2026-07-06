@@ -42,6 +42,7 @@ public class PlayerCharacterProfile : MonoBehaviour
 
         ApplyResources();
         ApplyBody();
+        ApplyEquipmentRules();
         ApplyInput();
 
         LogResolvedCharacter();
@@ -101,6 +102,39 @@ public class PlayerCharacterProfile : MonoBehaviour
         playerInput.ApplyFinalStats(FinalStats);
     }
 
+    private void ApplyEquipmentRules()
+    {
+        PlayerHolding playerHolding =
+            GetComponent<PlayerHolding>();
+
+        if (playerHolding != null)
+        {
+            playerHolding.ApplySubraceDefinition(
+                SubraceDefinition
+            );
+        }
+
+        PlayerWeaponSlots playerWeaponSlots =
+            GetComponent<PlayerWeaponSlots>();
+
+        if (playerWeaponSlots != null)
+        {
+            playerWeaponSlots.ApplySubraceDefinition(
+                SubraceDefinition
+            );
+        }
+
+        PlayerEquipment playerEquipment =
+            GetComponent<PlayerEquipment>();
+
+        if (playerEquipment != null)
+        {
+            playerEquipment.ApplySubraceDefinition(
+                SubraceDefinition
+            );
+        }
+    }
+
     private void LogResolvedCharacter()
     {
         if (ProfileData == null ||
@@ -121,8 +155,7 @@ public class PlayerCharacterProfile : MonoBehaviour
             $"INT {FinalAttributes.intelligence}, " +
             $"WIL {FinalAttributes.willpower}, " +
             $"SPI {FinalAttributes.spirit}, " +
-            $"PER {FinalAttributes.perception}, " +
-            $"TEC {FinalAttributes.technique}",
+            $"PER {FinalAttributes.perception}, ",
             this
         );
 

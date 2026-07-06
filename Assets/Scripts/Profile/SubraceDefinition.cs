@@ -22,6 +22,11 @@ public class SubraceDefinition : ScriptableObject
     public RaceSize size;
     public BodyType bodyType;
 
+    [Header("Equipment / Holding Rules")]
+    public bool canHoldItemInMouth;
+    public bool canUseMouthWeapons;
+    public bool canEquipSaddles;
+
     private void OnValidate()
     {
         if (string.IsNullOrWhiteSpace(displayName))

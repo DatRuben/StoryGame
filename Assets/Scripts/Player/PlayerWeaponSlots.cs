@@ -433,7 +433,7 @@ public class PlayerWeaponSlots : MonoBehaviour
     [Header("Draw State")]
     [SerializeField] private bool weaponsDrawn = false;
 
-    [Header("Race Rules")]
+    [Header("Body Weapon Rules")]
     [SerializeField] private bool canUseMouthWeapons = false;
 
     public WeaponSet WeaponSet1 => weaponSet1;
@@ -474,13 +474,14 @@ public class PlayerWeaponSlots : MonoBehaviour
         }
     }
 
-    public void ApplyRaceProfile(RaceProfile raceProfile)
+    public void ApplySubraceDefinition(
+        SubraceDefinition subraceDefinition)
     {
-        if (raceProfile == null)
+        if (subraceDefinition == null)
             return;
 
         canUseMouthWeapons =
-            raceProfile.canUseMouthWeapons;
+            subraceDefinition.canUseMouthWeapons;
 
         OnWeaponSlotsChanged?.Invoke();
     }

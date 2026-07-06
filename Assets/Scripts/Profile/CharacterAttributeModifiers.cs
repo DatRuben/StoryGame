@@ -12,7 +12,6 @@ public class CharacterAttributeModifiers
     public int willpower;
     public int spirit;
     public int perception;
-    public int technique;
 
     public static CharacterAttributeModifiers CreateZero()
     {

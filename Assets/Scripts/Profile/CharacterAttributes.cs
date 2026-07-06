@@ -13,7 +13,6 @@ public class CharacterAttributes
     [Min(0)] public int willpower;
     [Min(0)] public int spirit;
     [Min(0)] public int perception;
-    [Min(0)] public int technique;
 
     public static CharacterAttributes CreateDefault(int value)
     {
@@ -27,8 +26,7 @@ public class CharacterAttributes
             intelligence = value,
             willpower = value,
             spirit = value,
-            perception = value,
-            technique = value
+            perception = value
         };
     }
 
@@ -49,8 +47,7 @@ public class CharacterAttributes
             intelligence = Mathf.Max(minimumValue, attributes.intelligence),
             willpower = Mathf.Max(minimumValue, attributes.willpower),
             spirit = Mathf.Max(minimumValue, attributes.spirit),
-            perception = Mathf.Max(minimumValue, attributes.perception),
-            technique = Mathf.Max(minimumValue, attributes.technique)
+            perception = Mathf.Max(minimumValue, attributes.perception)
         };
     }
 
@@ -77,8 +74,7 @@ public class CharacterAttributes
             intelligence = a.intelligence + b.intelligence,
             willpower = a.willpower + b.willpower,
             spirit = a.spirit + b.spirit,
-            perception = a.perception + b.perception,
-            technique = a.technique + b.technique
+            perception = a.perception + b.perception
         };
     }
 
@@ -97,8 +93,7 @@ public class CharacterAttributes
             intelligence = source.intelligence,
             willpower = source.willpower,
             spirit = source.spirit,
-            perception = source.perception,
-            technique = source.technique
+            perception = source.perception
         };
     }
 
@@ -122,8 +117,7 @@ public class CharacterAttributes
             intelligence = attributes.intelligence + modifiers.intelligence,
             willpower = attributes.willpower + modifiers.willpower,
             spirit = attributes.spirit + modifiers.spirit,
-            perception = attributes.perception + modifiers.perception,
-            technique = attributes.technique + modifiers.technique
+            perception = attributes.perception + modifiers.perception
         };
     }
 
@@ -137,7 +131,6 @@ public class CharacterAttributes
                intelligence +
                willpower +
                spirit +
-               perception +
-               technique;
+               perception;
     }
 }

@@ -11,7 +11,7 @@ public enum HoldingSlot
 
 public class PlayerHolding : MonoBehaviour
 {
-    [Header("Race Holding Rules")]
+    [Header("Body Holding Rules")]
     [SerializeField] private bool canHoldItemInMouth = false;
 
     [Header("Current Held Items")]
@@ -42,13 +42,17 @@ public class PlayerHolding : MonoBehaviour
         ValidateHoldingState();
     }
 
-    public void ApplyRaceProfile(RaceProfile raceProfile)
+    public void ApplySubraceDefinition(
+        SubraceDefinition subraceDefinition)
     {
-        if (raceProfile == null)
+        if (subraceDefinition == null)
             return;
 
         canHoldItemInMouth =
-            raceProfile.canHoldItemInMouth;
+            subraceDefinition.canHoldItemInMouth;
+
+        if (!canHoldItemInMouth)
+            mouthItem = null;
 
         OnHoldingChanged?.Invoke();
     }
