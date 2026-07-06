@@ -173,15 +173,18 @@ public class CharacterCreatorRaceUI : MonoBehaviour
             button.SetSelected(false);
 
             RaceProfile capturedProfile = profile;
+            CharacterOptionButtonUI capturedButton = button;
 
             button.Button.onClick.RemoveAllListeners();
-            button.Button.onClick.AddListener(() => SelectRaceProfile(capturedProfile));
+            button.Button.onClick.AddListener(() =>
+                SelectRaceProfile(capturedProfile, capturedButton)
+            );
 
             subraceButtons.Add(button);
         }
 
-        if (profiles.Count > 0)
-            SelectRaceProfile(profiles[0]);
+        if (profiles.Count > 0 && subraceButtons.Count > 0)
+            SelectRaceProfile(profiles[0], subraceButtons[0]);
         else
             ShowSubraceDescription("No subraces available.");
     }
@@ -202,7 +205,9 @@ public class CharacterCreatorRaceUI : MonoBehaviour
         return profiles;
     }
 
-    private void SelectRaceProfile(RaceProfile profile)
+    private void SelectRaceProfile(
+        RaceProfile profile,
+        CharacterOptionButtonUI selectedButton)
     {
         if (profile == null)
             return;
@@ -222,7 +227,7 @@ public class CharacterCreatorRaceUI : MonoBehaviour
         selectedRaceProfileId = profile.profileId;
 
         ShowSubraceDescription(profile.description);
-        RefreshSelectedSubrace(profile.profileId);
+        RefreshSelectedSubrace(selectedButton);
     }
 
     private void RefreshSelectedBaseRace(BaseRace selectedBaseRaceValue)
@@ -236,14 +241,14 @@ public class CharacterCreatorRaceUI : MonoBehaviour
         }
     }
 
-    private void RefreshSelectedSubrace(string profileId)
+    private void RefreshSelectedSubrace(CharacterOptionButtonUI selectedButton)
     {
         foreach (CharacterOptionButtonUI button in subraceButtons)
         {
             if (button == null)
                 continue;
 
-            button.SetSelected(button.name == $"{profileId}OptionButton");
+            button.SetSelected(button == selectedButton);
         }
     }
 

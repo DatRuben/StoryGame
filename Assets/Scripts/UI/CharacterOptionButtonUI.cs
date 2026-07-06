@@ -7,6 +7,7 @@ public class CharacterOptionButtonUI : MonoBehaviour
     [SerializeField] private Button button;
     [SerializeField] private TMP_Text optionNameText;
     [SerializeField] private Image optionImage;
+    [SerializeField] private GameObject selectedOption;
 
     public Button Button => button;
 
@@ -27,8 +28,14 @@ public class CharacterOptionButtonUI : MonoBehaviour
 
     public void SetSelected(bool selected)
     {
+        if (selectedOption != null)
+            selectedOption.SetActive(selected);
+    }
+
+    public void SetInteractable(bool interactable)
+    {
         if (button != null)
-            button.interactable = !selected;
+            button.interactable = interactable;
     }
 
     private void Reset()
@@ -36,5 +43,6 @@ public class CharacterOptionButtonUI : MonoBehaviour
         button = GetComponent<Button>();
         optionNameText = transform.Find("OptionName")?.GetComponent<TMP_Text>();
         optionImage = transform.Find("OptionImage")?.GetComponent<Image>();
+        selectedOption = transform.Find("SelectedOption")?.gameObject;
     }
 }
