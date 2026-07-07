@@ -31,7 +31,15 @@ public class CharacterCreator : MonoBehaviour
         selectedRaceId = raceDefinition.raceId;
 
         SelectDefaultSubraceFor(raceDefinition);
-        CleanSelectedLineages(raceDefinition);
+
+        TryGetSelectedSubrace(
+            out SubraceDefinition selectedSubraceDefinition
+        );
+
+        CleanSelectedLineages(
+            raceDefinition,
+            selectedSubraceDefinition
+        );
 
         return true;
     }
@@ -61,7 +69,10 @@ public class CharacterCreator : MonoBehaviour
         selectedRaceId = subraceDefinition.race.raceId;
         selectedSubraceId = subraceDefinition.subraceId;
 
-        CleanSelectedLineages(subraceDefinition.race);
+        CleanSelectedLineages(
+            subraceDefinition.race,
+            subraceDefinition
+        );
 
         return true;
     }
@@ -75,6 +86,12 @@ public class CharacterCreator : MonoBehaviour
         if (!TryGetSelectedRace(out RaceDefinition raceDefinition))
         {
             errorMessage = "No race is selected.";
+            return false;
+        }
+
+        if (!TryGetSelectedSubrace(out SubraceDefinition subraceDefinition))
+        {
+            errorMessage = "No subrace is selected.";
             return false;
         }
 
@@ -92,7 +109,9 @@ public class CharacterCreator : MonoBehaviour
             return true;
         }
 
-        if (!raceDefinition.IsLineageAllowed(lineageDefinition))
+        if (!raceDefinition.IsLineageAllowed(
+            lineageDefinition,
+            subraceDefinition))
         {
             errorMessage =
                 $"{raceDefinition.displayName} cannot use lineage {lineageDefinition.displayName}.";
@@ -104,6 +123,7 @@ public class CharacterCreator : MonoBehaviour
 
         if (!AreSelectedLineagesValid(
             raceDefinition,
+            subraceDefinition,
             out errorMessage))
         {
             selectedLineageIds.Remove(lineageDefinition.lineageId);
@@ -180,6 +200,7 @@ public class CharacterCreator : MonoBehaviour
 
         return AreSelectedLineagesValid(
             raceDefinition,
+            subraceDefinition,
             out errorMessage
         );
     }
@@ -325,16 +346,19 @@ public class CharacterCreator : MonoBehaviour
 
     private bool AreSelectedLineagesValid(
         RaceDefinition raceDefinition,
+        SubraceDefinition subraceDefinition,
         out string errorMessage)
     {
         return raceDefinition.AreLineagesValid(
+            subraceDefinition,
             GetSelectedLineageDefinitions(),
             out errorMessage
         );
     }
 
     private void CleanSelectedLineages(
-        RaceDefinition raceDefinition)
+        RaceDefinition raceDefinition,
+        SubraceDefinition subraceDefinition)
     {
         if (raceDefinition == null ||
             !raceDefinition.CanUseLineages())
@@ -353,7 +377,9 @@ public class CharacterCreator : MonoBehaviour
                 continue;
             }
 
-            if (!raceDefinition.IsLineageAllowed(lineageDefinition))
+            if (!raceDefinition.IsLineageAllowed(
+                lineageDefinition,
+                subraceDefinition))
                 selectedLineageIds.RemoveAt(i);
         }
 

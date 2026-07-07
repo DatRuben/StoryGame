@@ -158,7 +158,6 @@ public class CharacterDataLibrary : ScriptableObject
 
 #if UNITY_EDITOR
     [ContextMenu("Rebuild Library From Project Assets")]
-    [ContextMenu("Rebuild Library From Project Assets")]
     public void RebuildLibrary()
     {
         RebuildLibraryInternal(true);

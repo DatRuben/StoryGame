@@ -76,6 +76,7 @@ public static class CharacterSelection
         }
 
         if (!raceDefinition.AreLineagesValid(
+            subraceDefinition,
             lineageDefinitions,
             out errorMessage))
         {

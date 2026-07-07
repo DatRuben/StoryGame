@@ -47,7 +47,9 @@ public class RaceDefinition : ScriptableObject
         return maxLineages > 0;
     }
 
-    public bool IsLineageAllowed(LineageDefinition lineage)
+    public bool IsLineageAllowed(
+        LineageDefinition lineage,
+        SubraceDefinition subraceDefinition)
     {
         if (lineage == null)
             return false;
@@ -58,10 +60,14 @@ public class RaceDefinition : ScriptableObject
         if (lineage.lineageType != allowedLineageType)
             return false;
 
-        return lineage.IsAllowedForRace(this);
+        return lineage.IsAllowedFor(
+            this,
+            subraceDefinition
+        );
     }
 
     public bool AreLineagesValid(
+        SubraceDefinition subraceDefinition,
         List<LineageDefinition> lineages,
         out string errorMessage)
     {
@@ -132,7 +138,9 @@ public class RaceDefinition : ScriptableObject
                 return false;
             }
 
-            if (!IsLineageAllowed(lineage))
+            if (!IsLineageAllowed(
+                lineage,
+                subraceDefinition))
             {
                 errorMessage =
                     $"{displayName} cannot use lineage {lineage.displayName}.";
