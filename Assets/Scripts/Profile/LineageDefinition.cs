@@ -59,13 +59,8 @@ public class LineageDefinition : ScriptableObject
         return allowedRaces.Contains(race);
     }
 
-    private void OnValidate()
+    public void RecalculatePreview()
     {
-        if (string.IsNullOrWhiteSpace(displayName))
-            displayName = name;
-
-        lineageId = MakeId(displayName);
-
         finalAttributesPreview =
             CharacterAttributes.AddModifiers(
                 CharacterAttributes.CreateDefault(10),
@@ -74,6 +69,16 @@ public class LineageDefinition : ScriptableObject
 
         totalAttributePointsPreview =
             finalAttributesPreview.BasePoints();
+    }
+
+    private void OnValidate()
+    {
+        if (string.IsNullOrWhiteSpace(displayName))
+            displayName = name;
+
+        lineageId = MakeId(displayName);
+
+        RecalculatePreview();
     }
 
     private string MakeId(string value)

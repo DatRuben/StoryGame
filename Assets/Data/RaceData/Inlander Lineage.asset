@@ -28,5 +28,16 @@ MonoBehaviour:
     willpower: 0
     spirit: 0
     perception: 0
+  finalAttributesPreview:
+    strength: 10
+    dexterity: 10
+    agility: 10
+    vitality: 10
+    endurance: 10
+    intelligence: 10
+    willpower: 10
+    spirit: 10
+    perception: 10
+  totalAttributePointsPreview: 90
   skillTheme: 
   skillTreeTheme: 

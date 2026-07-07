@@ -158,14 +158,29 @@ public class CharacterDataLibrary : ScriptableObject
 
 #if UNITY_EDITOR
     [ContextMenu("Rebuild Library From Project Assets")]
+    [ContextMenu("Rebuild Library From Project Assets")]
     public void RebuildLibrary()
+    {
+        RebuildLibraryInternal(true);
+    }
+
+    public void RebuildLibraryFromAuto()
+    {
+        RebuildLibraryInternal(false);
+    }
+
+    private void RebuildLibraryInternal(bool saveAssets)
     {
         RebuildRaceDefinitions();
         RebuildSubraceDefinitions();
         RebuildLineageDefinitions();
 
+        RecalculateDefinitionPreviews();
+
         EditorUtility.SetDirty(this);
-        AssetDatabase.SaveAssets();
+
+        if (saveAssets)
+            AssetDatabase.SaveAssets();
 
         Debug.Log(
             $"Rebuilt CharacterDataLibrary with " +
@@ -244,6 +259,39 @@ public class CharacterDataLibrary : ScriptableObject
             }
         }
     }
+
+    private void RecalculateDefinitionPreviews()
+    {
+        foreach (RaceDefinition definition in raceDefinitions)
+        {
+            if (definition == null)
+                continue;
+
+            definition.RecalculatePreview();
+            EditorUtility.SetDirty(definition);
+        }
+
+        for (int pass = 0; pass < subraceDefinitions.Count; pass++)
+        {
+            foreach (SubraceDefinition definition in subraceDefinitions)
+            {
+                if (definition == null)
+                    continue;
+
+                definition.RecalculatePreview();
+                EditorUtility.SetDirty(definition);
+            }
+        }
+
+        foreach (LineageDefinition definition in lineageDefinitions)
+        {
+            if (definition == null)
+                continue;
+
+            definition.RecalculatePreview();
+            EditorUtility.SetDirty(definition);
+        }
+    }
 #endif
 }
 
@@ -252,12 +300,17 @@ public class CharacterDataLibraryAutoRebuilder : AssetPostprocessor
 {
     private static bool rebuildQueued;
 
+    private static bool isRebuilding;
+
     private static void OnPostprocessAllAssets(
         string[] importedAssets,
         string[] deletedAssets,
         string[] movedAssets,
         string[] movedFromAssetPaths)
     {
+        if (isRebuilding)
+            return;
+
         if (!ShouldQueueRebuild(
             importedAssets,
             deletedAssets,
@@ -328,21 +381,33 @@ public class CharacterDataLibraryAutoRebuilder : AssetPostprocessor
     {
         rebuildQueued = false;
 
-        string[] libraryGuids =
-            AssetDatabase.FindAssets("t:CharacterDataLibrary");
+        if (isRebuilding)
+            return;
 
-        foreach (string guid in libraryGuids)
+        isRebuilding = true;
+
+        try
         {
-            string path =
-                AssetDatabase.GUIDToAssetPath(guid);
+            string[] libraryGuids =
+                AssetDatabase.FindAssets("t:CharacterDataLibrary");
 
-            CharacterDataLibrary library =
-                AssetDatabase.LoadAssetAtPath<CharacterDataLibrary>(path);
+            foreach (string guid in libraryGuids)
+            {
+                string path =
+                    AssetDatabase.GUIDToAssetPath(guid);
 
-            if (library == null)
-                continue;
+                CharacterDataLibrary library =
+                    AssetDatabase.LoadAssetAtPath<CharacterDataLibrary>(path);
 
-            library.RebuildLibrary();
+                if (library == null)
+                    continue;
+
+                library.RebuildLibraryFromAuto();
+            }
+        }
+        finally
+        {
+            isRebuilding = false;
         }
     }
 }

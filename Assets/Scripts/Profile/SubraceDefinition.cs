@@ -40,20 +40,19 @@ public class SubraceDefinition : ScriptableObject
     public bool canUseMouthWeapons;
     public bool canEquipSaddles;
 
-    private void OnValidate()
+    public void RecalculatePreview()
     {
-        if (string.IsNullOrWhiteSpace(displayName))
-            displayName = name;
-
-        subraceId = MakeId(displayName);
-
         CharacterAttributes baseAttributes =
             race != null
                 ? race.FinalAttributesPreview
                 : CharacterAttributes.CreateDefault(10);
 
-        if (compareToSubrace != null)
-            baseAttributes = compareToSubrace.FinalAttributesPreview;
+        if (compareToSubrace != null &&
+            compareToSubrace != this)
+        {
+            baseAttributes =
+                compareToSubrace.FinalAttributesPreview;
+        }
 
         finalAttributesPreview =
             CharacterAttributes.AddModifiers(
@@ -63,6 +62,16 @@ public class SubraceDefinition : ScriptableObject
 
         totalAttributePointsPreview =
             finalAttributesPreview.BasePoints();
+    }
+
+    private void OnValidate()
+    {
+        if (string.IsNullOrWhiteSpace(displayName))
+            displayName = name;
+
+        subraceId = MakeId(displayName);
+
+        RecalculatePreview();
     }
 
     private string MakeId(string value)

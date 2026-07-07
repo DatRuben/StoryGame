@@ -144,13 +144,8 @@ public class RaceDefinition : ScriptableObject
         return true;
     }
 
-    private void OnValidate()
+    public void RecalculatePreview()
     {
-        if (string.IsNullOrWhiteSpace(displayName))
-            displayName = name;
-
-        raceId = MakeId(displayName);
-
         finalAttributesPreview =
             CharacterAttributes.AddModifiers(
                 CharacterAttributes.CreateDefault(10),
@@ -159,6 +154,16 @@ public class RaceDefinition : ScriptableObject
 
         totalAttributePointsPreview =
             finalAttributesPreview.BasePoints();
+    }
+
+    private void OnValidate()
+    {
+        if (string.IsNullOrWhiteSpace(displayName))
+            displayName = name;
+
+        raceId = MakeId(displayName);
+
+        RecalculatePreview();
 
         if (maxLineages < minLineages)
             maxLineages = minLineages;

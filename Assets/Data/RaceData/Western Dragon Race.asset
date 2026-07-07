@@ -27,6 +27,17 @@ MonoBehaviour:
     willpower: 2
     spirit: 4
     perception: -6
+  finalAttributesPreview:
+    strength: 12
+    dexterity: 4
+    agility: 4
+    vitality: 14
+    endurance: 12
+    intelligence: 14
+    willpower: 12
+    spirit: 14
+    perception: 4
+  totalAttributePointsPreview: 90
   allowedLineageType: 1
   minLineages: 0
   maxLineages: 0

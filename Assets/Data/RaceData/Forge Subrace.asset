@@ -28,15 +28,15 @@ MonoBehaviour:
     spirit: -4
     perception: 0
   finalAttributesPreview:
-    strength: 12
-    dexterity: 14
-    agility: 10
-    vitality: 10
-    endurance: 8
-    intelligence: 10
-    willpower: 10
-    spirit: 6
-    perception: 10
+    strength: 14
+    dexterity: 8
+    agility: 4
+    vitality: 14
+    endurance: 10
+    intelligence: 14
+    willpower: 12
+    spirit: 10
+    perception: 4
   totalAttributePointsPreview: 90
   size: 8
   bodyType: 2
