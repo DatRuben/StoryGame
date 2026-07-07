@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 376e908953958f448b9282fdc762a931, type: 3}
+  m_Name: Forge Subrace
+  m_EditorClassIdentifier: Assembly-CSharp::SubraceDefinition
+  subraceId: forge
+  displayName: Forge
+  race: {fileID: 11400000, guid: 8518a5df7a2504f419e63f8b4b096beb, type: 2}
+  description: 
+  compareToSubrace: {fileID: 11400000, guid: e5a75990c0f7ed14691ff7adba7a5edc, type: 2}
+  modifiersFromComparison:
+    strength: 2
+    dexterity: 4
+    agility: 0
+    vitality: 0
+    endurance: -2
+    intelligence: 0
+    willpower: 0
+    spirit: -4
+    perception: 0
+  finalAttributesPreview:
+    strength: 12
+    dexterity: 14
+    agility: 10
+    vitality: 10
+    endurance: 8
+    intelligence: 10
+    willpower: 10
+    spirit: 6
+    perception: 10
+  totalAttributePointsPreview: 90
+  size: 8
+  bodyType: 2
+  canHoldItemInMouth: 1
+  canUseMouthWeapons: 1
+  canEquipSaddles: 1

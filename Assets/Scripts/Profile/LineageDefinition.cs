@@ -26,6 +26,19 @@ public class LineageDefinition : ScriptableObject
     public CharacterAttributeModifiers modifiers =
         CharacterAttributeModifiers.CreateZero();
 
+    [Header("Calculated Preview")]
+    [SerializeField]
+    private CharacterAttributes finalAttributesPreview =
+        CharacterAttributes.CreateDefault(10);
+
+    [SerializeField] private int totalAttributePointsPreview;
+
+    public CharacterAttributes FinalAttributesPreview =>
+        finalAttributesPreview;
+
+    public int TotalAttributePointsPreview =>
+        totalAttributePointsPreview;
+
     [Header("Skill / Theme")]
     public string skillTheme;
 
@@ -52,6 +65,15 @@ public class LineageDefinition : ScriptableObject
             displayName = name;
 
         lineageId = MakeId(displayName);
+
+        finalAttributesPreview =
+            CharacterAttributes.AddModifiers(
+                CharacterAttributes.CreateDefault(10),
+                modifiers
+            );
+
+        totalAttributePointsPreview =
+            finalAttributesPreview.BasePoints();
     }
 
     private string MakeId(string value)

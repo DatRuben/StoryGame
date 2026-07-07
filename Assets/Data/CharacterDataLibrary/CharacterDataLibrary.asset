@@ -15,9 +15,13 @@ MonoBehaviour:
   raceDefinitions:
   - {fileID: 11400000, guid: 04996e97c0750844d95f7836e2af77e0, type: 2}
   - {fileID: 11400000, guid: d7a9f4b0ea5e81241949f634f4fd991f, type: 2}
+  - {fileID: 11400000, guid: 8518a5df7a2504f419e63f8b4b096beb, type: 2}
   subraceDefinitions:
+  - {fileID: 11400000, guid: 5fdc2e4338fbbaf4f9ffeb47e349c79c, type: 2}
+  - {fileID: 11400000, guid: e5a75990c0f7ed14691ff7adba7a5edc, type: 2}
   - {fileID: 11400000, guid: 479ce3a3f5eba2a429ca98e97b02a597, type: 2}
   - {fileID: 11400000, guid: fdf2bdf5c7475b1459048f51b0a3c550, type: 2}
   lineageDefinitions:
+  - {fileID: 11400000, guid: 78aa257596a733f4e9f714f374fed6ed, type: 2}
   - {fileID: 11400000, guid: 1380c3f0cdfd8c545b84b3459b686ec3, type: 2}
   - {fileID: 11400000, guid: 51f5ca8e394e7604f961c9cfaa86fd26, type: 2}

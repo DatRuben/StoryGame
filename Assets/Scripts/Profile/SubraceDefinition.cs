@@ -18,6 +18,19 @@ public class SubraceDefinition : ScriptableObject
     public CharacterAttributeModifiers modifiersFromComparison =
         CharacterAttributeModifiers.CreateZero();
 
+    [Header("Calculated Preview")]
+    [SerializeField]
+    private CharacterAttributes finalAttributesPreview =
+        CharacterAttributes.CreateDefault(10);
+
+    [SerializeField] private int totalAttributePointsPreview;
+
+    public CharacterAttributes FinalAttributesPreview =>
+        finalAttributesPreview;
+
+    public int TotalAttributePointsPreview =>
+        totalAttributePointsPreview;
+
     [Header("Body")]
     public RaceSize size;
     public BodyType bodyType;
@@ -33,6 +46,23 @@ public class SubraceDefinition : ScriptableObject
             displayName = name;
 
         subraceId = MakeId(displayName);
+
+        CharacterAttributes baseAttributes =
+            race != null
+                ? race.FinalAttributesPreview
+                : CharacterAttributes.CreateDefault(10);
+
+        if (compareToSubrace != null)
+            baseAttributes = compareToSubrace.FinalAttributesPreview;
+
+        finalAttributesPreview =
+            CharacterAttributes.AddModifiers(
+                baseAttributes,
+                modifiersFromComparison
+            );
+
+        totalAttributePointsPreview =
+            finalAttributesPreview.BasePoints();
     }
 
     private string MakeId(string value)

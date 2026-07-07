@@ -20,6 +20,19 @@ public class RaceDefinition : ScriptableObject
     public CharacterAttributeModifiers modifiersFromHuman =
         CharacterAttributeModifiers.CreateZero();
 
+    [Header("Calculated Preview")]
+    [SerializeField]
+    private CharacterAttributes finalAttributesPreview =
+        CharacterAttributes.CreateDefault(10);
+
+    [SerializeField] private int totalAttributePointsPreview;
+
+    public CharacterAttributes FinalAttributesPreview =>
+        finalAttributesPreview;
+
+    public int TotalAttributePointsPreview =>
+        totalAttributePointsPreview;
+
     [Header("Lineage Rules")]
     public LineageType allowedLineageType = LineageType.HybridAncestry;
 
@@ -137,6 +150,15 @@ public class RaceDefinition : ScriptableObject
             displayName = name;
 
         raceId = MakeId(displayName);
+
+        finalAttributesPreview =
+            CharacterAttributes.AddModifiers(
+                CharacterAttributes.CreateDefault(10),
+                modifiersFromHuman
+            );
+
+        totalAttributePointsPreview =
+            finalAttributesPreview.BasePoints();
 
         if (maxLineages < minLineages)
             maxLineages = minLineages;

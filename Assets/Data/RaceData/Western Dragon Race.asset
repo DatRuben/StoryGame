@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 10551bd0ca1de1a4387828a69e4e131d, type: 3}
+  m_Name: Western Dragon Race
+  m_EditorClassIdentifier: Assembly-CSharp::RaceDefinition
+  raceId: western_dragon
+  displayName: Western Dragon
+  baseRace: 7
+  description: 
+  standardSubrace: {fileID: 11400000, guid: e5a75990c0f7ed14691ff7adba7a5edc, type: 2}
+  modifiersFromHuman:
+    strength: 2
+    dexterity: -6
+    agility: -6
+    vitality: 4
+    endurance: 2
+    intelligence: 4
+    willpower: 2
+    spirit: 4
+    perception: -6
+  allowedLineageType: 1
+  minLineages: 0
+  maxLineages: 0
