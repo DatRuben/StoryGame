@@ -15,9 +15,3 @@ MonoBehaviour:
   raceDefinitions: []
   subraceDefinitions: []
   lineageDefinitions: []
-  raceProfiles:
-  - {fileID: 11400000, guid: b129ca34dc2505b4bb75de6a89cfaaba, type: 2}
-  - {fileID: 11400000, guid: e33edd5605b045a489f842bc056ed28f, type: 2}
-  lineageProfiles:
-  - {fileID: 11400000, guid: 4d45a399ff6ce6e499b99aa38b5672e2, type: 2}
-  - {fileID: 11400000, guid: a847b282eaa85e1459cc193c4b8f8a82, type: 2}
