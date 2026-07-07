@@ -12,7 +12,7 @@ public enum LineageType
 public class LineageDefinition : ScriptableObject
 {
     [Header("Identity")]
-    public string lineageId;
+    [HideInInspector] public string lineageId;
     public string displayName;
     public LineageType lineageType;
 

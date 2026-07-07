@@ -6,7 +6,7 @@ using UnityEngine;
 public class RaceDefinition : ScriptableObject
 {
     [Header("Identity")]
-    public string raceId;
+    [HideInInspector] public string raceId;
     public string displayName;
     public BaseRace baseRace;
 

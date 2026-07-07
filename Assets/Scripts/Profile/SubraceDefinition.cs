@@ -5,7 +5,7 @@ using UnityEngine;
 public class SubraceDefinition : ScriptableObject
 {
     [Header("Identity")]
-    public string subraceId;
+    [HideInInspector] public string subraceId;
     public string displayName;
     public RaceDefinition race;
 

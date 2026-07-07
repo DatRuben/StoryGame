@@ -22891,7 +22891,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CharacterCreator
   characterDataLibrary: {fileID: 11400000, guid: c1acf6bd8c47e7e46a8bb26e72e63560, type: 2}
-  selectedRaceProfileId: 
+  selectedRaceId: 
+  selectedSubraceId: 
   selectedLineageIds: []
 --- !u!1 &1655536987
 GameObject:

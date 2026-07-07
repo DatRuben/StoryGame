@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 376e908953958f448b9282fdc762a931, type: 3}
+  m_Name: Test Subrace
+  m_EditorClassIdentifier: Assembly-CSharp::SubraceDefinition
+  subraceId: test
+  displayName: Test
+  race: {fileID: 11400000, guid: d7a9f4b0ea5e81241949f634f4fd991f, type: 2}
+  description: 
+  compareToSubrace: {fileID: 0}
+  modifiersFromComparison:
+    strength: 0
+    dexterity: 0
+    agility: 0
+    vitality: 0
+    endurance: 0
+    intelligence: 0
+    willpower: 0
+    spirit: 0
+    perception: 0
+  size: 0
+  bodyType: 0
+  canHoldItemInMouth: 0
+  canUseMouthWeapons: 0
+  canEquipSaddles: 0
