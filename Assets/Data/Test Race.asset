@@ -27,6 +27,6 @@ MonoBehaviour:
     willpower: 0
     spirit: 0
     perception: 0
-  allowedLineageType: 1
-  minLineages: 0
-  maxLineages: 0
+  allowedLineageType: 0
+  minLineages: 1
+  maxLineages: 3
