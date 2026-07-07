@@ -22,9 +22,6 @@ public class LineageDefinition : ScriptableObject
     [Header("Allowed Main Races")]
     public List<RaceDefinition> allowedRaces = new();
 
-    [Header("Allowed Subraces")]
-    public List<SubraceDefinition> allowedSubraces = new();
-
     [Header("Attribute Modifiers")]
     public CharacterAttributeModifiers modifiers =
         CharacterAttributeModifiers.CreateZero();
@@ -48,9 +45,7 @@ public class LineageDefinition : ScriptableObject
     [TextArea]
     public string skillTreeTheme;
 
-    public bool IsAllowedFor(
-        RaceDefinition race,
-        SubraceDefinition subrace)
+    public bool IsAllowedForRace(RaceDefinition race)
     {
         if (race == null)
             return false;
@@ -61,19 +56,7 @@ public class LineageDefinition : ScriptableObject
             return false;
         }
 
-        if (!allowedRaces.Contains(race))
-            return false;
-
-        if (allowedSubraces == null ||
-            allowedSubraces.Count == 0)
-        {
-            return true;
-        }
-
-        if (subrace == null)
-            return false;
-
-        return allowedSubraces.Contains(subrace);
+        return allowedRaces.Contains(race);
     }
 
     public void RecalculatePreview()

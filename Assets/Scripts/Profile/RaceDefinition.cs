@@ -49,7 +49,7 @@ public class RaceDefinition : ScriptableObject
 
     public bool IsLineageAllowed(
         LineageDefinition lineage,
-        SubraceDefinition subraceDefinition)
+        SubraceDefinition selectedSubrace)
     {
         if (lineage == null)
             return false;
@@ -60,10 +60,16 @@ public class RaceDefinition : ScriptableObject
         if (lineage.lineageType != allowedLineageType)
             return false;
 
-        return lineage.IsAllowedFor(
-            this,
-            subraceDefinition
-        );
+        if (!lineage.IsAllowedForRace(this))
+            return false;
+
+        if (selectedSubrace != null &&
+            lineage.lineageId == selectedSubrace.subraceId)
+        {
+            return false;
+        }
+
+        return true;
     }
 
     public bool AreLineagesValid(

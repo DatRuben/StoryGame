@@ -356,6 +356,62 @@ public class CharacterCreator : MonoBehaviour
         );
     }
 
+    public bool TryGetFinalAttributesPreview(
+    out CharacterAttributes finalAttributes,
+    out int totalPoints,
+    out string errorMessage)
+    {
+        finalAttributes = null;
+        totalPoints = 0;
+        errorMessage = "";
+
+        if (!TryGetSelectedRace(out RaceDefinition raceDefinition))
+        {
+            errorMessage = "No race is selected.";
+            return false;
+        }
+
+        if (!TryGetSelectedSubrace(out SubraceDefinition subraceDefinition))
+        {
+            errorMessage = "No subrace is selected.";
+            return false;
+        }
+
+        finalAttributes =
+            CharacterAttributes.Copy(
+                raceDefinition.FinalAttributesPreview
+            );
+
+        finalAttributes =
+            CharacterAttributes.AddModifiers(
+                finalAttributes,
+                subraceDefinition.modifiersFromComparison
+            );
+
+        List<LineageDefinition> lineages =
+            GetSelectedLineageDefinitions();
+
+        foreach (LineageDefinition lineage in lineages)
+        {
+            if (lineage == null)
+                continue;
+
+            finalAttributes =
+                CharacterAttributes.AddModifiers(
+                    finalAttributes,
+                    lineage.modifiers
+                );
+        }
+
+        finalAttributes =
+            CharacterAttributes.ClampMinimum(finalAttributes);
+
+        totalPoints =
+            finalAttributes.BasePoints();
+
+        return true;
+    }
+
     private void CleanSelectedLineages(
         RaceDefinition raceDefinition,
         SubraceDefinition subraceDefinition)
