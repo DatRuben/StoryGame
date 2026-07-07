@@ -27,8 +27,8 @@ MonoBehaviour:
     willpower: 0
     spirit: 0
     perception: 0
-  size: 0
-  bodyType: 0
-  canHoldItemInMouth: 0
-  canUseMouthWeapons: 0
-  canEquipSaddles: 0
+  size: 1
+  bodyType: 1
+  canHoldItemInMouth: 1
+  canUseMouthWeapons: 1
+  canEquipSaddles: 1

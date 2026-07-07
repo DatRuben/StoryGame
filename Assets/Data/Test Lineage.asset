@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LineageDefinition
   lineageId: test_lineage
   displayName: Test Lineage
-  lineageType: 1
+  lineageType: 0
   description: 
   allowedRaces:
   - {fileID: 11400000, guid: d7a9f4b0ea5e81241949f634f4fd991f, type: 2}
