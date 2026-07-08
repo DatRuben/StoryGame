@@ -22,22 +22,22 @@ public class LineageDefinition : ScriptableObject
     [Header("Allowed Main Races")]
     public List<RaceDefinition> allowedRaces = new();
 
-    [Header("Attribute Modifiers")]
+    [Header("Attribute Shape Modifiers")]
     public CharacterAttributeModifiers modifiers =
         CharacterAttributeModifiers.CreateZero();
 
-    [Header("Calculated Preview")]
+    [Header("Lineage Attribute Shape")]
     [SerializeField]
-    private CharacterAttributes finalAttributesPreview =
+    private CharacterAttributes attributeShapePreview =
         CharacterAttributes.CreateDefault(10);
 
-    [SerializeField] private int totalAttributePointsPreview;
+    [SerializeField] private int totalAttributeShapePointsPreview;
 
-    public CharacterAttributes FinalAttributesPreview =>
-        finalAttributesPreview;
+    public CharacterAttributes AttributeShapePreview =>
+        attributeShapePreview;
 
-    public int TotalAttributePointsPreview =>
-        totalAttributePointsPreview;
+    public int TotalAttributeShapePointsPreview =>
+        totalAttributeShapePointsPreview;
 
     [Header("Skill / Theme")]
     public string skillTheme;
@@ -61,28 +61,14 @@ public class LineageDefinition : ScriptableObject
 
     public void RecalculatePreview()
     {
-        CharacterAttributes fallbackAttributes =
+        attributeShapePreview =
             CharacterAttributes.AddModifiers(
                 CharacterAttributes.CreateDefault(10),
                 modifiers
             );
 
-        RecalculatePreview(fallbackAttributes);
-    }
-
-    public void RecalculatePreview(
-        CharacterAttributes targetAttributes)
-    {
-        finalAttributesPreview =
-            targetAttributes != null
-                ? CharacterAttributes.Copy(targetAttributes)
-                : CharacterAttributes.AddModifiers(
-                    CharacterAttributes.CreateDefault(10),
-                    modifiers
-                );
-
-        totalAttributePointsPreview =
-            finalAttributesPreview.BasePoints();
+        totalAttributeShapePointsPreview =
+            attributeShapePreview.BasePoints();
     }
 
     private void OnValidate()

@@ -287,56 +287,9 @@ public class CharacterDataLibrary : ScriptableObject
             if (definition == null)
                 continue;
 
-            CharacterAttributes targetAttributes =
-                GetLineageTargetAttributes(definition);
-
-            definition.RecalculatePreview(targetAttributes);
+            definition.RecalculatePreview();
             EditorUtility.SetDirty(definition);
         }
-    }
-
-    private CharacterAttributes GetLineageTargetAttributes(
-        LineageDefinition lineage)
-    {
-        SubraceDefinition matchingSubrace =
-            FindMatchingSubraceForLineage(lineage);
-
-        if (matchingSubrace != null)
-            return matchingSubrace.FinalAttributesPreview;
-
-        return CharacterAttributes.AddModifiers(
-            CharacterAttributes.CreateDefault(10),
-            lineage.modifiers
-        );
-    }
-
-    private SubraceDefinition FindMatchingSubraceForLineage(
-        LineageDefinition lineage)
-    {
-        if (lineage == null ||
-            string.IsNullOrWhiteSpace(lineage.lineageId))
-        {
-            return null;
-        }
-
-        foreach (SubraceDefinition subrace in subraceDefinitions)
-        {
-            if (subrace == null)
-                continue;
-
-            if (subrace.race == null)
-                continue;
-
-            if (subrace.subraceId != lineage.lineageId)
-                continue;
-
-            if (!lineage.IsAllowedForRace(subrace.race))
-                continue;
-
-            return subrace;
-        }
-
-        return null;
     }
 #endif
 }
@@ -345,7 +298,6 @@ public class CharacterDataLibrary : ScriptableObject
 public class CharacterDataLibraryAutoRebuilder : AssetPostprocessor
 {
     private static bool rebuildQueued;
-
     private static bool isRebuilding;
 
     private static void OnPostprocessAllAssets(
