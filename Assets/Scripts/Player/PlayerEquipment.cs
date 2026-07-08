@@ -12,7 +12,7 @@ public class PlayerEquipment : MonoBehaviour
     [SerializeField] private ItemData equippedHelmet;
     [SerializeField] private ItemData equippedAccessory;
 
-    [Header("Race Rules")]
+    [Header("Body Equipment Rules")]
     [SerializeField] private bool canEquipSaddles = false;
 
     [Header("Saddle Turret Settings")]
@@ -46,12 +46,14 @@ public class PlayerEquipment : MonoBehaviour
             Mathf.Clamp(manualSaddleTurretWeaponSetIndex, 0, 1);
     }
 
-    public void ApplyRaceProfile(RaceProfile raceProfile)
+    public void ApplySubraceDefinition(
+        SubraceDefinition subraceDefinition)
     {
-        if (raceProfile == null)
+        if (subraceDefinition == null)
             return;
 
-        canEquipSaddles = raceProfile.canEquipSaddles;
+        canEquipSaddles =
+            subraceDefinition.canEquipSaddles;
 
         if (!canEquipSaddles && equippedSaddle != null)
         {

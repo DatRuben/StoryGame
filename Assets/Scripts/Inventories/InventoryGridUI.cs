@@ -99,7 +99,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
         if (playerInput == null)
             playerInput = new PlayerInputActions();
 
-        playerInput.Player.RotateItem.started += OnRotateItem;
+        playerInput.Player.ReloadRotateItem.started += OnRotateItem;
         playerInput.Player.Enable();
     }
 
@@ -107,7 +107,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
     {
         if (playerInput != null)
         {
-            playerInput.Player.RotateItem.started -= OnRotateItem;
+            playerInput.Player.ReloadRotateItem.started -= OnRotateItem;
             playerInput.Player.Disable();
         }
     }
@@ -3006,6 +3006,39 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
             ),
             color
         );
+    }
+
+    public void BindPlayer(
+    PlayerInventory newPlayerInventory,
+    PlayerStorageContainerInteract newStorageInteract)
+    {
+        if (playerInventory != null)
+        {
+            playerInventory.OnInventoryChanged -= Refresh;
+            playerInventory.OnHeldItemChanged -= HandleHeldItemChanged;
+        }
+
+        playerInventory = newPlayerInventory;
+
+        playerStorageContainerInteract =
+            newStorageInteract != null
+                ? newStorageInteract
+                : playerInventory != null
+                    ? playerInventory.GetComponent<PlayerStorageContainerInteract>()
+                    : null;
+
+        if (playerInventory != null)
+        {
+            playerInventory.OnInventoryChanged += Refresh;
+            playerInventory.OnHeldItemChanged += HandleHeldItemChanged;
+        }
+
+        if (heldPreviewRoot == null)
+            CreateHeldPreviewRoot();
+
+        BuildGrid();
+        HandleHeldItemChanged();
+        Refresh();
     }
 
     private void CreateOutlineRect(

@@ -13,8 +13,9 @@ public class PlayerResourcesUI : MonoBehaviour
 
     [Header("Colors")]
     [SerializeField] private Color healthColor = Color.red;
+    [SerializeField] private Color soulBarrierColor = Color.blue;
     [SerializeField] private Color staminaColor = Color.green;
-    [SerializeField] private Color manaColor = Color.cyan;
+    [SerializeField] private Color aetherColor = Color.cyan;
     [SerializeField] private Color barBackgroundColor = new Color(0f, 0f, 0f, 0.55f);
     [SerializeField] private Color borderColor = Color.black;
 
@@ -24,8 +25,9 @@ public class PlayerResourcesUI : MonoBehaviour
     private RectTransform root;
 
     private RectTransform healthFill;
+    private RectTransform soulBarrierFill;
     private RectTransform staminaFill;
-    private RectTransform manaFill;
+    private RectTransform aetherFill;
 
     private void Awake()
     {
@@ -73,11 +75,15 @@ public class PlayerResourcesUI : MonoBehaviour
 
         y -= barSize.y + barSpacing;
 
+        soulBarrierFill = CreateBar("SoulBarrierBar", y, soulBarrierColor);
+
+        y -= barSize.y + barSpacing;
+
         staminaFill = CreateBar("StaminaBar", y, staminaColor);
 
         y -= barSize.y + barSpacing;
 
-        manaFill = CreateBar("ManaBar", y, manaColor);
+        aetherFill = CreateBar("AetherBar", y, aetherColor);
     }
 
     private RectTransform CreateBar(
@@ -143,14 +149,16 @@ public class PlayerResourcesUI : MonoBehaviour
         if (playerResources == null)
         {
             SetFillPercent(healthFill, 1f);
+            SetFillPercent(soulBarrierFill, 1f);
             SetFillPercent(staminaFill, 1f);
-            SetFillPercent(manaFill, 1f);
+            SetFillPercent(aetherFill, 1f);
             return;
         }
 
         SetFillPercent(healthFill, playerResources.HealthPercent);
+        SetFillPercent(soulBarrierFill, playerResources.SoulBarrierPercent);
         SetFillPercent(staminaFill, playerResources.StaminaPercent);
-        SetFillPercent(manaFill, playerResources.ManaPercent);
+        SetFillPercent(aetherFill, playerResources.AetherPercent);
     }
 
     private void SetFillPercent(
@@ -210,6 +218,19 @@ public class PlayerResourcesUI : MonoBehaviour
             new Vector2(0f, 0f),
             new Vector2(borderThickness, 0f)
         );
+    }
+
+    public void BindPlayer(PlayerResources newPlayerResources)
+    {
+        if (playerResources != null)
+            playerResources.OnResourcesChanged -= Refresh;
+
+        playerResources = newPlayerResources;
+
+        if (playerResources != null)
+            playerResources.OnResourcesChanged += Refresh;
+
+        Refresh();
     }
 
     private void CreateBorderPiece(

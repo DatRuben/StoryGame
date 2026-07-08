@@ -44,6 +44,7 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
     private bool wasShowingHeldPreview;
     private Vector2 lastHeldPreviewMousePosition;
     private int lastHeldPreviewRotationSteps = -1;
+    private bool playerHasBeenBound;
 
     private ItemData dragOriginalItemData;
     private Vector2Int dragOriginalPosition;
@@ -73,7 +74,7 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
 
     private void Awake()
     {
-        ValidateReferences(true, true);
+        ValidateReferences(true, false);
 
         if (cellParent != null)
             gridLayoutGroup = cellParent.GetComponent<GridLayoutGroup>();
@@ -343,7 +344,7 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
 
     public void SetStorageContainer(StorageContainer newStorageContainer)
     {
-        ValidateReferences(false, true);
+        ValidateReferences(false, playerHasBeenBound);
 
         if (storageContainer != null)
             storageContainer.OnContainerChanged -= Refresh;
@@ -2314,6 +2315,39 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
             size,
             color
         );
+    }
+
+    public void BindPlayer(
+        PlayerInventory newPlayerInventory,
+        InventoryGridUI newPlayerInventoryGridUI)
+    {
+        playerHasBeenBound = true;
+
+        playerInventory = newPlayerInventory;
+
+        playerInventoryGridUI =
+            newPlayerInventoryGridUI != null
+                ? newPlayerInventoryGridUI
+                : FindSceneComponent<InventoryGridUI>();
+
+        if (playerInventory == null)
+        {
+            Debug.LogWarning(
+                "StorageContainerGridUI was bound without PlayerInventory.",
+                this
+            );
+        }
+
+        if (playerInventoryGridUI == null)
+        {
+            Debug.LogWarning(
+                "StorageContainerGridUI was bound without InventoryGridUI.",
+                this
+            );
+        }
+
+        BuildGrid();
+        Refresh();
     }
 
     private void RefreshHeldPreviewIfNeeded()

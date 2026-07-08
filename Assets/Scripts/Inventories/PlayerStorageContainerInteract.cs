@@ -27,18 +27,19 @@ public class PlayerStorageContainerInteract : MonoBehaviour
 
     private void Reset()
     {
-        ValidateReferences(true, false);
     }
 
     private void OnValidate()
     {
-        ValidateReferences(true, false);
+        interactRange = Mathf.Max(0f, interactRange);
+        lookInteractRange = Mathf.Max(0f, lookInteractRange);
+        autoCloseRange = Mathf.Max(0f, autoCloseRange);
     }
 
     private void Awake()
     {
         inputActions = new PlayerInputActions();
-        ValidateReferences(true, true);
+        ValidateReferences(false, false);
     }
 
     private void OnEnable()
@@ -428,5 +429,17 @@ public class PlayerStorageContainerInteract : MonoBehaviour
             if (containerGridUI != null)
                 containerGridUI.SetStorageContainer(null);
         }
+    }
+
+    public void BindSceneReferences(
+    Transform newCameraTransform,
+    StorageContainerGridUI newContainerGridUI,
+    GameObject newContainerPanel,
+    InventoryContextPanelController newContextPanelController)
+    {
+        cameraTransform = newCameraTransform;
+        containerGridUI = newContainerGridUI;
+        containerPanel = newContainerPanel;
+        contextPanelController = newContextPanelController;
     }
 }

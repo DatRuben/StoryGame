@@ -17,8 +17,24 @@ public class PlayerInput : MonoBehaviour
     [SerializeField] private float airAcceleration = 2f;
     [SerializeField] private float deceleration = 16f;
     [SerializeField] private float jumpForce = 7f;
-    [SerializeField] private float sprintSpeed = 15f;
     [SerializeField] private float walkSpeed = 10f;
+
+    [Header("Sprinting")]
+    [SerializeField] private float sprintSpeed = 15f;
+    [SerializeField] private float sprintStaminaCostPerSecond = 10f;
+    [SerializeField] private float staminaRegenPerSecond = 20f;
+    [SerializeField] private float staminaRegenDelayAfterSprint = 1f;
+
+    [Header("Dodge")]
+    [SerializeField] private float dodgeDistance = 4f;
+    [SerializeField] private float dodgeDuration = 0.40f;
+    [SerializeField] private float dodgeCooldown = 0.60f;
+    [SerializeField] private float dodgeStaminaCost = 25f;
+
+    private bool isDodging;
+    private Vector3 dodgeDirection;
+    private float movementCostMultiplier = 1f;
+    private float dodgeCostMultiplier = 1f;
 
     [Header("Ground Check")]
     [SerializeField] private Transform groundCheck;
@@ -63,15 +79,20 @@ public class PlayerInput : MonoBehaviour
     [SerializeField] private PlayerInventory playerInventory;
     [SerializeField] private PlayerWeaponSlots playerWeaponSlots;
 
+    [SerializeField] private PlayerResources playerResources;
+
     private Animator animator;
 
     private Vector3 groundNormal = Vector3.up;
     private Vector3 wallNormal = Vector3.zero;
 
+    private float dodgeEndTime = -999f;
+    private float lastDodgeTime = -999f;
     private float lastWallContactTime = -999f;
     private float lastJumpTime = -999f;
     private float lastGroundedTime = -999f;
     private float forcedAirUntil = -999f;
+    private float lastStaminaSpendTime = -999f;
 
     private bool cameraLocked = false;
     public bool CameraLocked => cameraLocked;
@@ -89,6 +110,8 @@ public class PlayerInput : MonoBehaviour
             playerInventory = GetComponent<PlayerInventory>();
         if (playerWeaponSlots == null)
             playerWeaponSlots = GetComponent<PlayerWeaponSlots>();
+        if (playerResources == null)
+            playerResources = GetComponent<PlayerResources>();
     }
 
     private void OnEnable()
@@ -99,11 +122,13 @@ public class PlayerInput : MonoBehaviour
         playerInput.Player.Jump.started += StartJumpHold;
         playerInput.Player.Jump.canceled += StopJumpHold;
 
-        playerInput.Player.Attack.started += DoAttack;
+        playerInput.Player.PrimaryAttack.started += DoAttack;
         playerInput.Player.CameraLock.started += ToggleCameraLock;
 
         playerInput.Player.Sprint.started += StartSprint;
         playerInput.Player.Sprint.canceled += StopSprint;
+
+        playerInput.Player.Dodge.started += DoDodge;
 
         playerInput.Player.SheatheUnsheathe.started += ToggleWeaponSheathe;
 
@@ -118,17 +143,81 @@ public class PlayerInput : MonoBehaviour
         playerInput.Player.Jump.started -= StartJumpHold;
         playerInput.Player.Jump.canceled -= StopJumpHold;
 
-        playerInput.Player.Attack.started -= DoAttack;
+        playerInput.Player.PrimaryAttack.started -= DoAttack;
         playerInput.Player.CameraLock.started -= ToggleCameraLock;
 
         playerInput.Player.Sprint.started -= StartSprint;
         playerInput.Player.Sprint.canceled -= StopSprint;
+
+        playerInput.Player.Dodge.started -= DoDodge;
 
         playerInput.Player.SheatheUnsheathe.started -= ToggleWeaponSheathe;
 
         playerInput.Player.SwitchWeapon.started -= SwitchWeaponSet;
 
         playerInput.Player.Disable();
+    }
+
+    public void ApplyMovementStats(FinalMovementStats movementStats)
+    {
+        if (movementStats == null)
+        {
+            Debug.LogWarning(
+                "PlayerInput could not apply movement stats because FinalMovementStats is missing.",
+                this
+            );
+
+            return;
+        }
+
+        walkSpeed = movementStats.walkSpeed;
+        sprintSpeed = movementStats.sprintSpeed;
+        groundAcceleration = movementStats.groundAcceleration;
+        airAcceleration = movementStats.airAcceleration;
+        deceleration = movementStats.deceleration;
+        jumpForce = movementStats.jumpForce;
+        dodgeDistance = movementStats.dodgeDistance;
+        dodgeDuration = movementStats.dodgeDuration;
+        dodgeCooldown = movementStats.dodgeCooldown;
+        dodgeStaminaCost = movementStats.dodgeStaminaCost;
+    }
+
+    public void SetRuntimeCameraReferences(
+    Camera camera,
+    Transform cameraTransformOverride = null,
+    TextMeshProUGUI speedTextOverride = null)
+    {
+        if (playerCamera == null)
+            playerCamera = camera;
+
+        if (cameraTransform == null)
+        {
+            cameraTransform =
+                cameraTransformOverride != null
+                    ? cameraTransformOverride
+                    : camera != null
+                        ? camera.transform
+                        : null;
+        }
+
+        if (speedText == null)
+            speedText = speedTextOverride;
+    }
+
+    public void ApplyFinalStats(FinalCharacterStats finalStats)
+    {
+        if (finalStats == null)
+        {
+            Debug.LogWarning(
+                "PlayerInput could not apply final stats because FinalCharacterStats is missing.",
+                this
+            );
+
+            return;
+        }
+
+        movementCostMultiplier = finalStats.movementCostMultiplier;
+        dodgeCostMultiplier = finalStats.dodgeCostMultiplier;
     }
 
     private void FixedUpdate()
@@ -148,6 +237,23 @@ public class PlayerInput : MonoBehaviour
         Vector2 input =
             move.ReadValue<Vector2>();
 
+        if (isDodging)
+        {
+            rb.linearVelocity =
+                new Vector3(
+                    dodgeDirection.x * (dodgeDistance / dodgeDuration),
+                    rb.linearVelocity.y,
+                    dodgeDirection.z * (dodgeDistance / dodgeDuration)
+                );
+
+            if (Time.time >= dodgeEndTime)
+            {
+                isDodging = false;
+            }
+
+            return;
+        }
+
         Vector3 movement =
             input.x * GetCameraRight(playerCamera) +
             input.y * GetCameraForward(playerCamera);
@@ -161,8 +267,26 @@ public class PlayerInput : MonoBehaviour
 
         HandleWallMovement(ref movement);
 
+        bool hasMovementDirection =
+            movement.sqrMagnitude > 0.01f;
+
+        bool canSprint =
+            isSprinting &&
+            hasMovementDirection &&
+            playerResources != null &&
+            playerResources.SpendStamina(
+                sprintStaminaCostPerSecond *
+                movementCostMultiplier *
+                Time.fixedDeltaTime
+            );
+
+        if (canSprint)
+        {
+            lastStaminaSpendTime = Time.time;
+        }
+
         float currentSpeed =
-            isSprinting ? sprintSpeed : walkSpeed;
+            canSprint ? sprintSpeed : walkSpeed;
 
         Vector3 targetVelocity =
             movement * currentSpeed;
@@ -174,9 +298,6 @@ public class PlayerInput : MonoBehaviour
 
         Vector3 velocityChange =
             targetVelocity - currentHorizontalVelocity;
-
-        bool hasMovementDirection =
-            movement.sqrMagnitude > 0.01f;
 
         float acceleration;
 
@@ -205,8 +326,26 @@ public class PlayerInput : MonoBehaviour
         PreventDefaultMovementLaunch(grounded);
         ApplyExtraGravity(grounded);
         ClampHorizontalSpeed(currentSpeed);
+        RegenerateStamina(hasMovementDirection);
         UpdateSpeedText(grounded);
         LookAt();
+    }
+
+    private void RegenerateStamina(bool hasMovementDirection)
+    {
+        if (playerResources == null)
+            return;
+
+        if (isSprinting && hasMovementDirection)
+            return;
+
+        if (Time.time - lastStaminaSpendTime < staminaRegenDelayAfterSprint)
+            return;
+
+        playerResources.AddStamina(
+            staminaRegenPerSecond *
+            Time.fixedDeltaTime
+        );
     }
 
     private void HandleWallMovement(ref Vector3 movement)
@@ -463,6 +602,40 @@ public class PlayerInput : MonoBehaviour
         return right.normalized;
     }
 
+    private void DoDodge(InputAction.CallbackContext obj)
+    {
+        if (Time.time - lastDodgeTime < dodgeCooldown)
+            return;
+
+        if (playerResources == null)
+            return;
+
+        float finalDodgeCost =
+            dodgeStaminaCost * dodgeCostMultiplier;
+
+        if (!playerResources.SpendStamina(finalDodgeCost))
+            return;
+
+        Vector2 input =
+            move.ReadValue<Vector2>();
+
+        dodgeDirection =
+            input.x * GetCameraRight(playerCamera) +
+            input.y * GetCameraForward(playerCamera);
+
+        dodgeDirection.y = 0f;
+
+        if (dodgeDirection.sqrMagnitude < 0.01f)
+            dodgeDirection = transform.forward;
+        else
+            dodgeDirection.Normalize();
+
+        isDodging = true;
+        dodgeEndTime = Time.time + dodgeDuration;
+        lastDodgeTime = Time.time;
+        lastStaminaSpendTime = Time.time;
+    }
+
     private void DoJump(InputAction.CallbackContext obj)
     {
         if (!IsGrounded())
@@ -608,19 +781,6 @@ public class PlayerInput : MonoBehaviour
 
         return Time.time - lastWallContactTime <= wallContactMemory &&
                wallNormal.sqrMagnitude > 0.001f;
-    }
-
-    public void ApplyRaceMovement(RaceProfile raceProfile)
-    {
-        if (raceProfile == null)
-            return;
-
-        walkSpeed = raceProfile.walkSpeed;
-        sprintSpeed = raceProfile.sprintSpeed;
-        groundAcceleration = raceProfile.groundAcceleration;
-        airAcceleration = raceProfile.airAcceleration;
-        deceleration = raceProfile.deceleration;
-        jumpForce = raceProfile.jumpForce;
     }
 
     private void ToggleWeaponSheathe(InputAction.CallbackContext context)

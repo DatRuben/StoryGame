@@ -549,6 +549,39 @@ public class HeldItemUI : MonoBehaviour
                playerWeaponSlots.CanUseMouthWeapons;
     }
 
+    public void BindPlayer(
+    PlayerInventory newPlayerInventory,
+    PlayerHolding newPlayerHolding,
+    PlayerWeaponSlots newPlayerWeaponSlots)
+    {
+        if (playerInventory != null)
+            playerInventory.OnHeldItemChanged -= Refresh;
+
+        if (playerHolding != null)
+            playerHolding.OnHoldingChanged -= Refresh;
+
+        if (playerWeaponSlots != null)
+            playerWeaponSlots.OnWeaponSlotsChanged -= Refresh;
+
+        playerInventory = newPlayerInventory;
+        playerHolding = newPlayerHolding;
+        playerWeaponSlots = newPlayerWeaponSlots;
+
+        if (isActiveAndEnabled)
+        {
+            if (playerInventory != null)
+                playerInventory.OnHeldItemChanged += Refresh;
+
+            if (playerHolding != null)
+                playerHolding.OnHoldingChanged += Refresh;
+
+            if (playerWeaponSlots != null)
+                playerWeaponSlots.OnWeaponSlotsChanged += Refresh;
+        }
+
+        Refresh();
+    }
+
     private string GetControlsText(
         ItemData item,
         bool isWeaponUse)
