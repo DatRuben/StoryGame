@@ -61,11 +61,25 @@ public class LineageDefinition : ScriptableObject
 
     public void RecalculatePreview()
     {
-        finalAttributesPreview =
+        CharacterAttributes fallbackAttributes =
             CharacterAttributes.AddModifiers(
                 CharacterAttributes.CreateDefault(10),
                 modifiers
             );
+
+        RecalculatePreview(fallbackAttributes);
+    }
+
+    public void RecalculatePreview(
+        CharacterAttributes targetAttributes)
+    {
+        finalAttributesPreview =
+            targetAttributes != null
+                ? CharacterAttributes.Copy(targetAttributes)
+                : CharacterAttributes.AddModifiers(
+                    CharacterAttributes.CreateDefault(10),
+                    modifiers
+                );
 
         totalAttributePointsPreview =
             finalAttributesPreview.BasePoints();

@@ -379,13 +379,7 @@ public class CharacterCreator : MonoBehaviour
 
         finalAttributes =
             CharacterAttributes.Copy(
-                raceDefinition.FinalAttributesPreview
-            );
-
-        finalAttributes =
-            CharacterAttributes.AddModifiers(
-                finalAttributes,
-                subraceDefinition.modifiersFromComparison
+                subraceDefinition.FinalAttributesPreview
             );
 
         List<LineageDefinition> lineages =
