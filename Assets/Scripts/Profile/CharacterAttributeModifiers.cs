@@ -17,4 +17,17 @@ public class CharacterAttributeModifiers
     {
         return new CharacterAttributeModifiers();
     }
+
+    public int Total()
+    {
+        return strength +
+               dexterity +
+               agility +
+               vitality +
+               endurance +
+               intelligence +
+               willpower +
+               spirit +
+               perception;
+    }
 }

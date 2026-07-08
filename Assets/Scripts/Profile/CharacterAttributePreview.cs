@@ -157,14 +157,6 @@ public class CharacterAttributePreview
         if (modifiers == null)
             return 0;
 
-        return modifiers.strength +
-               modifiers.dexterity +
-               modifiers.agility +
-               modifiers.vitality +
-               modifiers.endurance +
-               modifiers.intelligence +
-               modifiers.willpower +
-               modifiers.spirit +
-               modifiers.perception;
+        return modifiers.Total();
     }
 }
