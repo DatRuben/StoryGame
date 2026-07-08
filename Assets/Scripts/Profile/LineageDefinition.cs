@@ -26,19 +26,6 @@ public class LineageDefinition : ScriptableObject
     public CharacterAttributeModifiers modifiers =
         CharacterAttributeModifiers.CreateZero();
 
-    [Header("Lineage Attribute Shape")]
-    [SerializeField]
-    private CharacterAttributes attributeShapePreview =
-        CharacterAttributes.CreateDefault(10);
-
-    [SerializeField] private int totalAttributeShapePointsPreview;
-
-    public CharacterAttributes AttributeShapePreview =>
-        attributeShapePreview;
-
-    public int TotalAttributeShapePointsPreview =>
-        totalAttributeShapePointsPreview;
-
     [Header("Skill / Theme")]
     public string skillTheme;
 
@@ -59,26 +46,12 @@ public class LineageDefinition : ScriptableObject
         return allowedRaces.Contains(race);
     }
 
-    public void RecalculatePreview()
-    {
-        attributeShapePreview =
-            CharacterAttributes.AddModifiers(
-                CharacterAttributes.CreateDefault(10),
-                modifiers
-            );
-
-        totalAttributeShapePointsPreview =
-            attributeShapePreview.BasePoints();
-    }
-
     private void OnValidate()
     {
         if (string.IsNullOrWhiteSpace(displayName))
             displayName = name;
 
         lineageId = MakeId(displayName);
-
-        RecalculatePreview();
     }
 
     private string MakeId(string value)

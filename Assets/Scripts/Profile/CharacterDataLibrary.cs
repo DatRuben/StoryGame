@@ -281,15 +281,6 @@ public class CharacterDataLibrary : ScriptableObject
                 EditorUtility.SetDirty(definition);
             }
         }
-
-        foreach (LineageDefinition definition in lineageDefinitions)
-        {
-            if (definition == null)
-                continue;
-
-            definition.RecalculatePreview();
-            EditorUtility.SetDirty(definition);
-        }
     }
 #endif
 }
