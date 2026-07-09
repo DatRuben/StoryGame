@@ -131,6 +131,7 @@ public class PlayerSpawner : MonoBehaviour
         profile =
             CharacterSelection.CreateCharacter(
                 defaultCharacterName,
+                CharacterGender.Male,
                 defaultRaceDefinition,
                 defaultRaceDefinition.standardSubrace,
                 new List<string>()

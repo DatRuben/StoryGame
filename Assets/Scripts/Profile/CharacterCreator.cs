@@ -9,10 +9,18 @@ public class CharacterCreator : MonoBehaviour
     [SerializeField] private string selectedRaceId;
     [SerializeField] private string selectedSubraceId;
     [SerializeField] private List<string> selectedLineageIds = new();
+    [SerializeField] private CharacterGender selectedGender = CharacterGender.Male;
 
     public string SelectedRaceId => selectedRaceId;
     public string SelectedSubraceId => selectedSubraceId;
     public IReadOnlyList<string> SelectedLineageIds => selectedLineageIds;
+    public CharacterGender SelectedGender => selectedGender;
+
+    public void SelectGender(
+    CharacterGender gender)
+    {
+        selectedGender = gender;
+    }
 
     public bool SelectRace(
         string raceId,
@@ -163,12 +171,13 @@ public class CharacterCreator : MonoBehaviour
             GetSelectedLineageDefinitions();
 
         return CharacterSelection.TryCreateCharacter(
-            characterName,
-            raceDefinition,
-            subraceDefinition,
-            lineageDefinitions,
-            out profile,
-            out errorMessage
+                characterName,
+                selectedGender,
+                raceDefinition,
+                subraceDefinition,
+                lineageDefinitions,
+                out profile,
+                out errorMessage
         );
     }
 

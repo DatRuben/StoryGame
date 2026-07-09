@@ -2,11 +2,18 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum CharacterGender
+{
+    Male,
+    Female
+}
+
 [Serializable]
 public class CharacterProfileData
 {
     public string profileId;
     public string characterName;
+    public CharacterGender gender;
 
     public string raceId;
     public string subraceId;
@@ -27,6 +34,7 @@ public class CharacterProfileData
 
     public static CharacterProfileData CreateNew(
         string characterName,
+        CharacterGender gender,
         string raceId,
         string subraceId,
         List<string> lineageIds = null)
@@ -37,6 +45,7 @@ public class CharacterProfileData
         {
             profileId = Guid.NewGuid().ToString("N"),
             characterName = characterName,
+            gender = gender,
             raceId = raceId,
             subraceId = subraceId,
             lineageIds = lineageIds != null

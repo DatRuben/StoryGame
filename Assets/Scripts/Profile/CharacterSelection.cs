@@ -19,6 +19,7 @@ public static class CharacterSelection
 
     public static CharacterProfileData CreateCharacter(
         string characterName,
+        CharacterGender gender,
         RaceDefinition raceDefinition,
         SubraceDefinition subraceDefinition,
         List<string> lineageIds)
@@ -26,6 +27,7 @@ public static class CharacterSelection
         CharacterProfileData profile =
             CharacterProfileData.CreateNew(
                 characterName,
+                gender,
                 raceDefinition.raceId,
                 subraceDefinition.subraceId,
                 lineageIds
@@ -39,6 +41,7 @@ public static class CharacterSelection
 
     public static bool TryCreateCharacter(
         string characterName,
+        CharacterGender gender,
         RaceDefinition raceDefinition,
         SubraceDefinition subraceDefinition,
         List<LineageDefinition> lineageDefinitions,
@@ -97,6 +100,7 @@ public static class CharacterSelection
         profile =
             CreateCharacter(
                 characterName,
+                gender,
                 raceDefinition,
                 subraceDefinition,
                 lineageIds
