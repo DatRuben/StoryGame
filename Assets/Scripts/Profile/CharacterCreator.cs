@@ -17,20 +17,37 @@ public class CharacterCreator : MonoBehaviour
     public IReadOnlyList<string> SelectedLineageIds => selectedLineageIds;
     public CharacterGender SelectedGender => selectedGender;
     public string SelectedCharacterName => selectedCharacterName;
+    public event System.Action SelectionChanged;
 
     public void SelectGender(
         CharacterGender gender)
     {
+        if (selectedGender == gender)
+            return;
+
         selectedGender = gender;
+        NotifySelectionChanged();
     }
 
     public void SetCharacterName(
-    string characterName)
+        string characterName)
     {
-        selectedCharacterName =
+        string cleanedName =
             string.IsNullOrWhiteSpace(characterName)
                 ? ""
                 : characterName.Trim();
+
+        if (selectedCharacterName == cleanedName)
+            return;
+
+        selectedCharacterName = cleanedName;
+        NotifySelectionChanged();
+    }
+
+    private void NotifySelectionChanged()
+    {
+        if (SelectionChanged != null)
+            SelectionChanged.Invoke();
     }
 
     public bool SelectRace(
@@ -60,6 +77,7 @@ public class CharacterCreator : MonoBehaviour
             selectedSubraceDefinition
         );
 
+        NotifySelectionChanged();
         return true;
     }
 
@@ -125,6 +143,7 @@ public class CharacterCreator : MonoBehaviour
         if (selectedLineageIds.Contains(lineageDefinition.lineageId))
         {
             selectedLineageIds.Remove(lineageDefinition.lineageId);
+            NotifySelectionChanged();
             return true;
         }
 
@@ -149,6 +168,7 @@ public class CharacterCreator : MonoBehaviour
             return false;
         }
 
+        NotifySelectionChanged();
         return true;
     }
 
@@ -227,7 +247,11 @@ public class CharacterCreator : MonoBehaviour
 
     public void ClearLineages()
     {
+        if (selectedLineageIds.Count == 0)
+            return;
+
         selectedLineageIds.Clear();
+        NotifySelectionChanged();
     }
 
     private void SelectDefaultSubraceFor(
