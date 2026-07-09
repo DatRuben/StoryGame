@@ -111,6 +111,7 @@ public class CharacterCreator : MonoBehaviour
             subraceDefinition
         );
 
+        NotifySelectionChanged();
         return true;
     }
 
