@@ -24645,6 +24645,8 @@ MonoBehaviour:
   selectedRaceId: 
   selectedSubraceId: 
   selectedLineageIds: []
+  selectedGender: 0
+  selectedCharacterName: 
 --- !u!1 &1655536987
 GameObject:
   m_ObjectHideFlags: 0

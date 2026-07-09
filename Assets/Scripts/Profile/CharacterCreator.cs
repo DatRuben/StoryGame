@@ -10,16 +10,27 @@ public class CharacterCreator : MonoBehaviour
     [SerializeField] private string selectedSubraceId;
     [SerializeField] private List<string> selectedLineageIds = new();
     [SerializeField] private CharacterGender selectedGender = CharacterGender.Male;
+    [SerializeField] private string selectedCharacterName = "";
 
     public string SelectedRaceId => selectedRaceId;
     public string SelectedSubraceId => selectedSubraceId;
     public IReadOnlyList<string> SelectedLineageIds => selectedLineageIds;
     public CharacterGender SelectedGender => selectedGender;
+    public string SelectedCharacterName => selectedCharacterName;
 
     public void SelectGender(
-    CharacterGender gender)
+        CharacterGender gender)
     {
         selectedGender = gender;
+    }
+
+    public void SetCharacterName(
+    string characterName)
+    {
+        selectedCharacterName =
+            string.IsNullOrWhiteSpace(characterName)
+                ? ""
+                : characterName.Trim();
     }
 
     public bool SelectRace(
@@ -469,5 +480,16 @@ public class CharacterCreator : MonoBehaviour
                 selectedLineageIds.Count - 1
             );
         }
+    }
+
+    public bool TryCreateSelectedCharacter(
+        out CharacterProfileData profile,
+        out string errorMessage)
+    {
+        return TryCreateCharacter(
+            selectedCharacterName,
+            out profile,
+            out errorMessage
+        );
     }
 }
