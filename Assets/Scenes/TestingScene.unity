@@ -4596,8 +4596,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CharacterCreatorCharacteristicsUI
   characterCreator: {fileID: 1655067621}
   characterNameInput: {fileID: 579475512}
-  maleGenderButton: {fileID: 0}
-  femaleGenderButton: {fileID: 0}
+  maleGenderButton: {fileID: 1404192813}
+  femaleGenderButton: {fileID: 605014168}
   attributePreviewText: {fileID: 1420395947}
   derivedStatsPreviewText: {fileID: 601759383}
 --- !u!1 &260714064
@@ -9907,6 +9907,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 7770439988601777645, guid: 4d0a3e46169b32043b98985d4ca49936, type: 3}
   m_PrefabInstance: {fileID: 605014166}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &605014168 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4585678755487291, guid: 4d0a3e46169b32043b98985d4ca49936, type: 3}
+  m_PrefabInstance: {fileID: 605014166}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf275a88e1127594ba60f280006e16d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterOptionButtonUI
 --- !u!1 &608811551
 GameObject:
   m_ObjectHideFlags: 0
@@ -21226,6 +21237,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 7770439988601777645, guid: 4d0a3e46169b32043b98985d4ca49936, type: 3}
   m_PrefabInstance: {fileID: 1404192811}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1404192813 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4585678755487291, guid: 4d0a3e46169b32043b98985d4ca49936, type: 3}
+  m_PrefabInstance: {fileID: 1404192811}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf275a88e1127594ba60f280006e16d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterOptionButtonUI
 --- !u!1 &1404496679
 GameObject:
   m_ObjectHideFlags: 0
