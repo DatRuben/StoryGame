@@ -228,9 +228,6 @@ public class CharacterCreatorCharacteristicsUI : MonoBehaviour
         StringBuilder builder =
             new StringBuilder();
 
-        builder.AppendLine("Attributes");
-        builder.AppendLine();
-
         builder.AppendLine(
             $"Ancestry Total: {attributePreview.AncestryTotal}"
         );
@@ -288,38 +285,86 @@ public class CharacterCreatorCharacteristicsUI : MonoBehaviour
         if (attributes == null)
             return "";
 
-        int health =
-            50 + attributes.vitality * 10;
+        if (!characterCreator.TryGetBaseStatsPreview(
+            out CharacterBaseStats baseStats,
+            out string errorMessage))
+        {
+            return errorMessage;
+        }
 
-        int stamina =
-            50 + attributes.endurance * 8 +
-            attributes.agility * 2;
+        int healthBonus =
+            (attributes.vitality - 10) * 10;
 
-        int mana =
-            30 + attributes.intelligence * 6 +
-            attributes.spirit * 4;
+        int staminaBonus =
+            (attributes.endurance - 10) * 8 +
+            (attributes.agility - 10) * 2;
 
-        int focus =
-            20 + attributes.willpower * 5 +
-            attributes.perception * 2;
+        int manaBonus =
+            (attributes.intelligence - 10) * 6 +
+            (attributes.spirit - 10) * 4;
 
-        int carryWeight =
-            20 + attributes.strength * 3 +
-            attributes.endurance;
+        int staggerResistBonus =
+            (attributes.vitality - 10) * 3 +
+            (attributes.endurance - 10) * 4 +
+            (attributes.willpower - 10) * 2;
+
+        int carryWeightBonus =
+            (attributes.strength - 10) * 3 +
+            (attributes.endurance - 10);
 
         StringBuilder builder =
             new StringBuilder();
 
-        builder.AppendLine("Base Stats");
-        builder.AppendLine();
+        AppendBaseStatLine(
+            builder,
+            "Health",
+            baseStats.health,
+            healthBonus
+        );
 
-        builder.AppendLine($"Health: {health}");
-        builder.AppendLine($"Stamina: {stamina}");
-        builder.AppendLine($"Mana: {mana}");
-        builder.AppendLine($"Focus: {focus}");
-        builder.AppendLine($"Carry Weight: {carryWeight}");
+        AppendBaseStatLine(
+            builder,
+            "Stamina",
+            baseStats.stamina,
+            staminaBonus
+        );
+
+        AppendBaseStatLine(
+            builder,
+            "Mana",
+            baseStats.mana,
+            manaBonus
+        );
+
+        AppendBaseStatLine(
+            builder,
+            "Stagger Resist",
+            baseStats.staggerResist,
+            staggerResistBonus
+        );
+
+        AppendBaseStatLine(
+            builder,
+            "Carry Weight",
+            baseStats.carryWeight,
+            carryWeightBonus
+        );
 
         return builder.ToString();
+    }
+
+    private void AppendBaseStatLine(
+        StringBuilder builder,
+        string label,
+        int baseValue,
+        int attributeBonus)
+    {
+        int total =
+            baseValue + attributeBonus;
+
+        builder.AppendLine(
+            $"{label}: {baseValue} -> {total} ({GetSignedNumber(attributeBonus)})"
+        );
     }
 
     private string GetSignedNumber(

@@ -507,6 +507,34 @@ public class CharacterCreator : MonoBehaviour
         }
     }
 
+    public bool TryGetBaseStatsPreview(
+        out CharacterBaseStats baseStats,
+        out string errorMessage)
+    {
+        baseStats = null;
+        errorMessage = "";
+
+        if (!TryGetSelectedRace(out RaceDefinition raceDefinition))
+        {
+            errorMessage = "No race is selected.";
+            return false;
+        }
+
+        if (!TryGetSelectedSubrace(out SubraceDefinition subraceDefinition))
+        {
+            errorMessage = "No subrace is selected.";
+            return false;
+        }
+
+        baseStats =
+            CharacterBaseStats.Add(
+                raceDefinition.baseStats,
+                subraceDefinition.baseStatModifiers
+            );
+
+        return true;
+    }
+
     public bool TryCreateSelectedCharacter(
         out CharacterProfileData profile,
         out string errorMessage)

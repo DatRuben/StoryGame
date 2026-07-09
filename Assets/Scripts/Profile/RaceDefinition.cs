@@ -16,6 +16,10 @@ public class RaceDefinition : ScriptableObject
     [Header("Standard Subrace")]
     public SubraceDefinition standardSubrace;
 
+    [Header("Base Combat Stats")]
+    public CharacterBaseStats baseStats =
+        CharacterBaseStats.CreateHumanDefault();
+
     [Header("Compared To Human")]
     public CharacterAttributeModifiers modifiersFromHuman =
         CharacterAttributeModifiers.CreateZero();

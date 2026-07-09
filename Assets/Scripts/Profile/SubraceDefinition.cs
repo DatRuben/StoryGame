@@ -12,6 +12,10 @@ public class SubraceDefinition : ScriptableObject
     [TextArea]
     public string description;
 
+    [Header("Base Combat Stat Modifiers")]
+    public CharacterBaseStats baseStatModifiers =
+        CharacterBaseStats.CreateZero();
+
     [Header("Comparison")]
     public SubraceDefinition compareToSubrace;
 
