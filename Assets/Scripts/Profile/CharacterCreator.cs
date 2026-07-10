@@ -535,6 +535,36 @@ public class CharacterCreator : MonoBehaviour
         return true;
     }
 
+    public bool TryGetStatPreview(
+        out CharacterStatPreview statPreview,
+        out string errorMessage)
+    {
+        statPreview = null;
+        errorMessage = "";
+
+        if (!TryGetAttributePreview(
+            out CharacterAttributePreview attributePreview,
+            out errorMessage))
+        {
+            return false;
+        }
+
+        if (!TryGetBaseStatsPreview(
+            out CharacterBaseStats baseStats,
+            out errorMessage))
+        {
+            return false;
+        }
+
+        statPreview =
+            CharacterStatsResolver.CreateStatPreview(
+                baseStats,
+                attributePreview.levelOneAttributes
+            );
+
+        return true;
+    }
+
     public bool TryCreateSelectedCharacter(
         out CharacterProfileData profile,
         out string errorMessage)

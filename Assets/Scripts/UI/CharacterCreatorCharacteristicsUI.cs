@@ -198,10 +198,16 @@ public class CharacterCreatorCharacteristicsUI : MonoBehaviour
             GetAttributePreviewText(attributePreview)
         );
 
+        if (!characterCreator.TryGetStatPreview(
+            out CharacterStatPreview statPreview,
+            out errorMessage))
+        {
+            ShowDerivedStatsPreview(errorMessage);
+            return;
+        }
+
         ShowDerivedStatsPreview(
-            GetDerivedStatsPreviewText(
-                attributePreview.levelOneAttributes
-            )
+            GetDerivedStatsPreviewText(statPreview)
         );
     }
 
@@ -280,22 +286,15 @@ public class CharacterCreatorCharacteristicsUI : MonoBehaviour
     }
 
     private string GetDerivedStatsPreviewText(
-        CharacterAttributes attributes)
+        CharacterStatPreview statPreview)
     {
-        if (attributes == null)
-            return "";
-
-        if (!characterCreator.TryGetBaseStatsPreview(
-            out CharacterBaseStats baseStats,
-            out string errorMessage))
+        if (statPreview == null ||
+            statPreview.baseStats == null ||
+            statPreview.attributeBonuses == null ||
+            statPreview.finalStats == null)
         {
-            return errorMessage;
+            return "";
         }
-
-        CharacterBaseStats attributeBonuses =
-            CharacterStatsResolver.ResolveAttributeStatBonuses(
-                attributes
-            );
 
         StringBuilder builder =
             new StringBuilder();
@@ -303,36 +302,41 @@ public class CharacterCreatorCharacteristicsUI : MonoBehaviour
         AppendBaseStatLine(
             builder,
             "Health",
-            baseStats.health,
-            attributeBonuses.health
+            statPreview.baseStats.health,
+            statPreview.finalStats.health,
+            statPreview.attributeBonuses.health
         );
 
         AppendBaseStatLine(
             builder,
             "Stamina",
-            baseStats.stamina,
-            attributeBonuses.stamina
+            statPreview.baseStats.stamina,
+            statPreview.finalStats.stamina,
+            statPreview.attributeBonuses.stamina
         );
 
         AppendBaseStatLine(
             builder,
             "Mana",
-            baseStats.mana,
-            attributeBonuses.mana
+            statPreview.baseStats.mana,
+            statPreview.finalStats.mana,
+            statPreview.attributeBonuses.mana
         );
 
         AppendBaseStatLine(
             builder,
             "Stagger Resist",
-            baseStats.staggerResist,
-            attributeBonuses.staggerResist
+            statPreview.baseStats.staggerResist,
+            statPreview.finalStats.staggerResist,
+            statPreview.attributeBonuses.staggerResist
         );
 
         AppendBaseStatLine(
             builder,
             "Carry Weight",
-            baseStats.carryWeight,
-            attributeBonuses.carryWeight
+            statPreview.baseStats.carryWeight,
+            statPreview.finalStats.carryWeight,
+            statPreview.attributeBonuses.carryWeight
         );
 
         return builder.ToString();
@@ -342,13 +346,11 @@ public class CharacterCreatorCharacteristicsUI : MonoBehaviour
         StringBuilder builder,
         string label,
         int baseValue,
+        int finalValue,
         int attributeBonus)
     {
-        int total =
-            baseValue + attributeBonus;
-
         builder.AppendLine(
-            $"{label}: {baseValue} -> {total} ({GetSignedNumber(attributeBonus)})"
+            $"{label}: {baseValue} -> {finalValue} ({GetSignedNumber(attributeBonus)})"
         );
     }
 
