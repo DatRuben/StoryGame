@@ -448,6 +448,19 @@ public static class CharacterStatsResolver
         );
     }
 
+    public static CharacterStatPreview CreateStatPreview(
+        CharacterBaseStats baseStats,
+        CharacterAttributes attributes)
+    {
+        CharacterBaseStats attributeBonuses =
+            ResolveAttributeStatBonuses(attributes);
+
+        return CharacterStatPreview.Create(
+            baseStats,
+            attributeBonuses
+        );
+    }
+
     private static DodgeType ResolveDodgeType(
         SubraceDefinition subraceDefinition)
     {

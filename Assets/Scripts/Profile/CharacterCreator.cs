@@ -527,9 +527,9 @@ public class CharacterCreator : MonoBehaviour
         }
 
         baseStats =
-            CharacterBaseStats.Add(
-                raceDefinition.baseStats,
-                subraceDefinition.baseStatModifiers
+            CharacterStatsResolver.ResolveBaseStats(
+                raceDefinition,
+                subraceDefinition
             );
 
         return true;

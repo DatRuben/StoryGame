@@ -292,25 +292,10 @@ public class CharacterCreatorCharacteristicsUI : MonoBehaviour
             return errorMessage;
         }
 
-        int healthBonus =
-            (attributes.vitality - 10) * 10;
-
-        int staminaBonus =
-            (attributes.endurance - 10) * 8 +
-            (attributes.agility - 10) * 2;
-
-        int manaBonus =
-            (attributes.intelligence - 10) * 6 +
-            (attributes.spirit - 10) * 4;
-
-        int staggerResistBonus =
-            (attributes.vitality - 10) * 3 +
-            (attributes.endurance - 10) * 4 +
-            (attributes.willpower - 10) * 2;
-
-        int carryWeightBonus =
-            (attributes.strength - 10) * 3 +
-            (attributes.endurance - 10);
+        CharacterBaseStats attributeBonuses =
+            CharacterStatsResolver.ResolveAttributeStatBonuses(
+                attributes
+            );
 
         StringBuilder builder =
             new StringBuilder();
@@ -319,35 +304,35 @@ public class CharacterCreatorCharacteristicsUI : MonoBehaviour
             builder,
             "Health",
             baseStats.health,
-            healthBonus
+            attributeBonuses.health
         );
 
         AppendBaseStatLine(
             builder,
             "Stamina",
             baseStats.stamina,
-            staminaBonus
+            attributeBonuses.stamina
         );
 
         AppendBaseStatLine(
             builder,
             "Mana",
             baseStats.mana,
-            manaBonus
+            attributeBonuses.mana
         );
 
         AppendBaseStatLine(
             builder,
             "Stagger Resist",
             baseStats.staggerResist,
-            staggerResistBonus
+            attributeBonuses.staggerResist
         );
 
         AppendBaseStatLine(
             builder,
             "Carry Weight",
             baseStats.carryWeight,
-            carryWeightBonus
+            attributeBonuses.carryWeight
         );
 
         return builder.ToString();
