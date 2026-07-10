@@ -385,6 +385,69 @@ public static class CharacterStatsResolver
         }
     }
 
+    public static CharacterBaseStats ResolveBaseStats(
+        RaceDefinition raceDefinition,
+        SubraceDefinition subraceDefinition)
+    {
+        CharacterBaseStats raceBaseStats =
+            raceDefinition != null
+                ? raceDefinition.baseStats
+                : CharacterBaseStats.CreateHumanDefault();
+
+        CharacterBaseStats subraceModifiers =
+            subraceDefinition != null
+                ? subraceDefinition.baseStatModifiers
+                : CharacterBaseStats.CreateZero();
+
+        return CharacterBaseStats.Add(
+            raceBaseStats,
+            subraceModifiers
+        );
+    }
+
+    public static CharacterBaseStats ResolveAttributeStatBonuses(
+        CharacterAttributes attributes)
+    {
+        if (attributes == null)
+            attributes = CharacterAttributes.CreateDefault(10);
+
+        return new CharacterBaseStats
+        {
+            health =
+                (attributes.vitality - 10) * 10,
+
+            stamina =
+                (attributes.endurance - 10) * 8 +
+                (attributes.agility - 10) * 2,
+
+            mana =
+                (attributes.intelligence - 10) * 6 +
+                (attributes.spirit - 10) * 4,
+
+            staggerResist =
+                (attributes.vitality - 10) * 3 +
+                (attributes.endurance - 10) * 4 +
+                (attributes.willpower - 10) * 2,
+
+            carryWeight =
+                (attributes.strength - 10) * 3 +
+                (attributes.endurance - 10)
+        };
+    }
+
+    public static CharacterBaseStats ResolveTotalBaseStats(
+        CharacterBaseStats baseStats,
+        CharacterAttributes attributes)
+    {
+        CharacterBaseStats attributeBonuses =
+            ResolveAttributeStatBonuses(attributes);
+
+        return CharacterBaseStats.Add(
+            baseStats,
+            attributeBonuses
+        );
+    }
+
     private static DodgeType ResolveDodgeType(
         SubraceDefinition subraceDefinition)
     {
