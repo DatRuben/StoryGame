@@ -16,6 +16,12 @@ MonoBehaviour:
   displayName: Test
   race: {fileID: 11400000, guid: d7a9f4b0ea5e81241949f634f4fd991f, type: 2}
   description: 
+  baseStatModifiers:
+    health: 0
+    stamina: 0
+    mana: 0
+    staggerResist: 0
+    carryWeight: 0
   compareToSubrace: {fileID: 0}
   modifiersFromComparison:
     strength: 0

@@ -17,6 +17,12 @@ MonoBehaviour:
   baseRace: 0
   description: 
   standardSubrace: {fileID: 11400000, guid: fdf2bdf5c7475b1459048f51b0a3c550, type: 2}
+  baseStats:
+    health: 100
+    stamina: 100
+    mana: 50
+    staggerResist: 50
+    carryWeight: 50
   modifiersFromHuman:
     strength: 0
     dexterity: 0

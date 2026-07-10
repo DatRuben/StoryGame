@@ -16,6 +16,12 @@ MonoBehaviour:
   displayName: Forge
   race: {fileID: 11400000, guid: 8518a5df7a2504f419e63f8b4b096beb, type: 2}
   description: 
+  baseStatModifiers:
+    health: 0
+    stamina: 0
+    mana: 0
+    staggerResist: 0
+    carryWeight: 0
   compareToSubrace: {fileID: 11400000, guid: e5a75990c0f7ed14691ff7adba7a5edc, type: 2}
   modifiersFromComparison:
     strength: 2
