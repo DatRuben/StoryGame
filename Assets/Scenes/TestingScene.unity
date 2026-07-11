@@ -22212,7 +22212,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 18fd2733a27218247b91177d977e4dc7, type: 3}
       propertyPath: m_Name
-      value: RinV1.
+      value: RinV1
       objectReference: {fileID: 0}
     - target: {fileID: 5806788660014683483, guid: 18fd2733a27218247b91177d977e4dc7, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
