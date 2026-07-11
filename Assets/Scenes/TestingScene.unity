@@ -2564,7 +2564,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 704960622}
   m_Direction: 2
   m_Value: 1
-  m_Size: 0.50408036
+  m_Size: 0.6436525
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -22212,7 +22212,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 18fd2733a27218247b91177d977e4dc7, type: 3}
       propertyPath: m_Name
-      value: RinV1
+      value: RinV1.
       objectReference: {fileID: 0}
     - target: {fileID: 5806788660014683483, guid: 18fd2733a27218247b91177d977e4dc7, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
@@ -26310,7 +26310,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 875874960}
   m_Direction: 2
   m_Value: 1
-  m_Size: 0.4006792
+  m_Size: 0.5116212
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
