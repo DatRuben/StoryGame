@@ -185,8 +185,8 @@ public class CharacterCreatorCharacteristicsUI : MonoBehaviour
             return;
         }
 
-        if (!characterCreator.TryGetAttributePreview(
-            out CharacterAttributePreview attributePreview,
+        if (!characterCreator.TryGetResolvedStats(
+            out ResolvedCharacterStats resolvedStats,
             out string errorMessage))
         {
             ShowAttributePreview(errorMessage);
@@ -195,19 +195,15 @@ public class CharacterCreatorCharacteristicsUI : MonoBehaviour
         }
 
         ShowAttributePreview(
-            GetAttributePreviewText(attributePreview)
+            GetAttributePreviewText(
+                resolvedStats.attributePreview
+            )
         );
 
-        if (!characterCreator.TryGetStatPreview(
-            out CharacterStatPreview statPreview,
-            out errorMessage))
-        {
-            ShowDerivedStatsPreview(errorMessage);
-            return;
-        }
-
         ShowDerivedStatsPreview(
-            GetDerivedStatsPreviewText(statPreview)
+            GetDerivedStatsPreviewText(
+                resolvedStats
+            )
         );
     }
 
@@ -286,12 +282,13 @@ public class CharacterCreatorCharacteristicsUI : MonoBehaviour
     }
 
     private string GetDerivedStatsPreviewText(
-        CharacterStatPreview statPreview)
+        ResolvedCharacterStats resolvedStats)
     {
-        if (statPreview == null ||
-            statPreview.baseStats == null ||
-            statPreview.attributeBonuses == null ||
-            statPreview.finalStats == null)
+        if (resolvedStats == null ||
+            resolvedStats.baseStats == null ||
+            resolvedStats.attributeBonuses == null ||
+            resolvedStats.totalBaseStats == null ||
+            resolvedStats.finalStats == null)
         {
             return "";
         }
@@ -299,45 +296,56 @@ public class CharacterCreatorCharacteristicsUI : MonoBehaviour
         StringBuilder builder =
             new StringBuilder();
 
+        builder.AppendLine("Base Stat Breakdown");
+
         AppendBaseStatLine(
             builder,
             "Health",
-            statPreview.baseStats.health,
-            statPreview.finalStats.health,
-            statPreview.attributeBonuses.health
+            resolvedStats.baseStats.health,
+            resolvedStats.totalBaseStats.health,
+            resolvedStats.attributeBonuses.health
         );
 
         AppendBaseStatLine(
             builder,
             "Stamina",
-            statPreview.baseStats.stamina,
-            statPreview.finalStats.stamina,
-            statPreview.attributeBonuses.stamina
+            resolvedStats.baseStats.stamina,
+            resolvedStats.totalBaseStats.stamina,
+            resolvedStats.attributeBonuses.stamina
         );
 
         AppendBaseStatLine(
             builder,
             "Mana",
-            statPreview.baseStats.mana,
-            statPreview.finalStats.mana,
-            statPreview.attributeBonuses.mana
+            resolvedStats.baseStats.mana,
+            resolvedStats.totalBaseStats.mana,
+            resolvedStats.attributeBonuses.mana
         );
 
         AppendBaseStatLine(
             builder,
             "Stagger Resist",
-            statPreview.baseStats.staggerResist,
-            statPreview.finalStats.staggerResist,
-            statPreview.attributeBonuses.staggerResist
+            resolvedStats.baseStats.staggerResist,
+            resolvedStats.totalBaseStats.staggerResist,
+            resolvedStats.attributeBonuses.staggerResist
         );
 
         AppendBaseStatLine(
             builder,
             "Carry Weight",
-            statPreview.baseStats.carryWeight,
-            statPreview.finalStats.carryWeight,
-            statPreview.attributeBonuses.carryWeight
+            resolvedStats.baseStats.carryWeight,
+            resolvedStats.totalBaseStats.carryWeight,
+            resolvedStats.attributeBonuses.carryWeight
         );
+
+        builder.AppendLine();
+        builder.AppendLine("Runtime Final Stats");
+        builder.AppendLine($"Max Health: {resolvedStats.finalStats.maxHealth:0}");
+        builder.AppendLine($"Soul Barrier: {resolvedStats.finalStats.maxSoulBarrier:0}");
+        builder.AppendLine($"Max Stamina: {resolvedStats.finalStats.maxStamina:0}");
+        builder.AppendLine($"Max Aether: {resolvedStats.finalStats.maxAether:0}");
+        builder.AppendLine($"Poise: {resolvedStats.finalStats.poise:0}");
+        builder.AppendLine($"Mass: {resolvedStats.finalStats.mass:0}");
 
         return builder.ToString();
     }

@@ -22,11 +22,6 @@ public class CharacterProfileData
     public int level = 1;
     public bool storyCompleted;
 
-    public CharacterAttributes allocatedAttributes =
-        CharacterAttributes.CreateDefault(0);
-
-    public int unspentAttributePoints;
-
     public List<CharacterSkillLevel> skillLevels = new();
 
     public string createdUtc;
@@ -54,9 +49,7 @@ public class CharacterProfileData
             level = 1,
             storyCompleted = false,
             createdUtc = now,
-            lastSavedUtc = now,
-            allocatedAttributes = CharacterAttributes.CreateDefault(0),
-            unspentAttributePoints = 5
+            lastSavedUtc = now
         };
     }
 }

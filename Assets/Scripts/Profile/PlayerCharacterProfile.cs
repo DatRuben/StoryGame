@@ -6,7 +6,6 @@ public class PlayerCharacterProfile : MonoBehaviour
     public RaceDefinition RaceDefinition { get; private set; }
     public SubraceDefinition SubraceDefinition { get; private set; }
     public LineageDefinition[] LineageDefinitions { get; private set; }
-
     public CharacterAttributes FinalAttributes { get; private set; }
     public FinalCharacterStats FinalStats { get; private set; }
     public FinalMovementStats FinalMovementStats { get; private set; }
@@ -22,23 +21,21 @@ public class PlayerCharacterProfile : MonoBehaviour
         SubraceDefinition = subraceDefinition;
         LineageDefinitions = lineageDefinitions;
 
-        FinalAttributes =
-            CharacterStatsResolver.ResolveAttributes(
+        ResolvedCharacterStats resolvedStats =
+            CharacterStatsResolver.ResolveCharacter(
                 raceDefinition,
                 subraceDefinition,
-                profileData,
                 lineageDefinitions
             );
 
+        FinalAttributes =
+            resolvedStats.finalAttributes;
+
         FinalStats =
-            CharacterStatsResolver.ResolveFinalStats(
-                FinalAttributes
-            );
+            resolvedStats.finalStats;
 
         FinalMovementStats =
-            CharacterStatsResolver.ResolveMovementStats(
-                subraceDefinition
-            );
+            resolvedStats.movementStats;
 
         ApplyResources();
         ApplyBody();

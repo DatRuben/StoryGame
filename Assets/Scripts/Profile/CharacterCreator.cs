@@ -565,23 +565,39 @@ public class CharacterCreator : MonoBehaviour
         return true;
     }
 
-    public bool TryGetResolvedStats(out ResolvedCharacterStats resolvedStats)
+    public bool TryGetResolvedStats(
+        out ResolvedCharacterStats resolvedStats,
+        out string errorMessage)
     {
         resolvedStats = null;
+        errorMessage = "";
 
-        if (!TryGetSelectedDefinitions(
-                out RaceDefinition race,
-                out SubraceDefinition subrace,
-                out List<LineageDefinition> lineages))
+        if (!TryGetSelectedRace(out RaceDefinition raceDefinition))
+        {
+            errorMessage = "No race is selected.";
+            return false;
+        }
+
+        if (!TryGetSelectedSubrace(out SubraceDefinition subraceDefinition))
+        {
+            errorMessage = "No subrace is selected.";
+            return false;
+        }
+
+        if (!AreSelectedLineagesValid(
+            raceDefinition,
+            subraceDefinition,
+            out errorMessage))
         {
             return false;
         }
 
-        resolvedStats = CharacterStatsResolver.ResolveCharacter(
-            race,
-            subrace,
-            null,
-            lineages);
+        resolvedStats =
+            CharacterStatsResolver.ResolveCharacter(
+                raceDefinition,
+                subraceDefinition,
+                GetSelectedLineageDefinitions()
+            );
 
         return true;
     }

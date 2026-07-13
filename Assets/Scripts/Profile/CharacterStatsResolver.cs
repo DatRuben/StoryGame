@@ -37,21 +37,6 @@ public static class CharacterStatsResolver
             lineageDefinitions
         );
 
-        if (characterProfile != null)
-        {
-            finalAttributes =
-                CharacterAttributes.Add(
-                    finalAttributes,
-                    characterProfile.allocatedAttributes
-                );
-        }
-        else
-        {
-            Debug.LogWarning(
-                "CharacterStatsResolver could not add allocated attributes because CharacterProfileData is missing."
-            );
-        }
-
         return CharacterAttributes.ClampMinimum(
             finalAttributes,
             1
@@ -59,6 +44,7 @@ public static class CharacterStatsResolver
     }
 
     public static FinalCharacterStats ResolveFinalStats(
+        CharacterBaseStats totalBaseStats,
         CharacterAttributes attributes)
     {
         attributes =
@@ -67,35 +53,62 @@ public static class CharacterStatsResolver
                 1
             );
 
+        if (totalBaseStats == null)
+        {
+            CharacterBaseStats baseStats =
+                CharacterBaseStats.CreateHumanDefault();
+
+            CharacterBaseStats attributeBonuses =
+                ResolveAttributeStatBonuses(attributes);
+
+            totalBaseStats =
+                CharacterBaseStats.Add(
+                    baseStats,
+                    attributeBonuses
+                );
+        }
+
         return new FinalCharacterStats
         {
             maxHealth =
-                75f +
-                attributes.vitality * 10f,
+                Mathf.Max(
+                    1f,
+                    totalBaseStats.health
+                ),
 
             maxSoulBarrier =
-                20f +
-                attributes.spirit * 4f +
-                attributes.willpower * 6f,
+                Mathf.Max(
+                    0f,
+                    20f +
+                    attributes.spirit * 4f +
+                    attributes.willpower * 6f
+                ),
 
             maxStamina =
-                50f +
-                attributes.endurance * 8f,
+                Mathf.Max(
+                    1f,
+                    totalBaseStats.stamina
+                ),
 
             maxAether =
-                20f +
-                attributes.spirit * 7f +
-                attributes.intelligence * 3f,
+                Mathf.Max(
+                    0f,
+                    totalBaseStats.mana
+                ),
 
             mass =
-                60f +
-                attributes.strength * 1.5f +
-                attributes.vitality,
+                Mathf.Max(
+                    1f,
+                    60f +
+                    attributes.strength * 1.5f +
+                    attributes.vitality
+                ),
 
             poise =
-                10f +
-                attributes.vitality * 1.5f +
-                attributes.strength,
+                Mathf.Max(
+                    0f,
+                    totalBaseStats.staggerResist
+                ),
 
             movementCostMultiplier =
                 Mathf.Max(
@@ -464,26 +477,53 @@ public static class CharacterStatsResolver
     public static ResolvedCharacterStats ResolveCharacter(
         RaceDefinition race,
         SubraceDefinition subrace,
-        CharacterProfileData profile,
         List<LineageDefinition> lineages)
     {
+        if (lineages == null)
+            lineages = new List<LineageDefinition>();
+
         CharacterAttributePreview attributePreview =
-            CharacterAttributeResolver.CreatePreview(race, subrace, lineages);
+            CharacterAttributeResolver.CreatePreview(
+                race,
+                subrace,
+                lineages
+            );
 
-        CharacterAttributes finalAttributes = attributePreview.levelOneAttributes.Copy();
+        CharacterAttributes finalAttributes =
+            CharacterAttributes.ClampMinimum(
+                CharacterAttributes.Copy(
+                    attributePreview.levelOneAttributes
+                ),
+                1
+            );
 
-        if (profile != null && profile.allocatedAttributes != null)
-        {
-            finalAttributes.Add(profile.allocatedAttributes);
-            finalAttributes.ClampMinimum(1);
-        }
+        CharacterBaseStats baseStats =
+            ResolveBaseStats(
+                race,
+                subrace
+            );
 
-        CharacterBaseStats baseStats = ResolveBaseStats(race, subrace);
-        CharacterBaseStats attributeBonuses = ResolveAttributeStatBonuses(finalAttributes);
-        CharacterBaseStats totalBaseStats = CharacterBaseStats.Add(baseStats, attributeBonuses);
+        CharacterBaseStats attributeBonuses =
+            ResolveAttributeStatBonuses(
+                finalAttributes
+            );
 
-        FinalCharacterStats finalStats = ResolveFinalStats(finalAttributes);
-        FinalMovementStats movementStats = ResolveMovementStats(race, subrace, finalAttributes);
+        CharacterBaseStats totalBaseStats =
+            CharacterBaseStats.Add(
+                baseStats,
+                attributeBonuses
+            );
+
+        FinalCharacterStats finalStats =
+            ResolveFinalStats(
+                totalBaseStats,
+                finalAttributes
+            );
+
+        FinalMovementStats movementStats =
+            ResolveMovementStats(
+                subrace
+            );
 
         return new ResolvedCharacterStats
         {
@@ -495,6 +535,23 @@ public static class CharacterStatsResolver
             finalStats = finalStats,
             movementStats = movementStats
         };
+    }
+
+    public static ResolvedCharacterStats ResolveCharacter(
+        RaceDefinition race,
+        SubraceDefinition subrace,
+        LineageDefinition[] lineages)
+    {
+        List<LineageDefinition> lineageList =
+            lineages != null
+                ? new List<LineageDefinition>(lineages)
+                : new List<LineageDefinition>();
+
+        return ResolveCharacter(
+            race,
+            subrace,
+            lineageList
+        );
     }
 
     private static DodgeType ResolveDodgeType(
