@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: CharacterDataLibrary
   m_EditorClassIdentifier: Assembly-CSharp::CharacterDataLibrary
   raceDefinitions:
+  - {fileID: 11400000, guid: 06eab789c3374b544a0a50dd9c0b58b4, type: 2}
   - {fileID: 11400000, guid: 04996e97c0750844d95f7836e2af77e0, type: 2}
   - {fileID: 11400000, guid: d7a9f4b0ea5e81241949f634f4fd991f, type: 2}
   - {fileID: 11400000, guid: 8518a5df7a2504f419e63f8b4b096beb, type: 2}
