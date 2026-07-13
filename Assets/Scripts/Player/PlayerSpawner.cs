@@ -134,7 +134,8 @@ public class PlayerSpawner : MonoBehaviour
                 CharacterGender.Male,
                 defaultRaceDefinition,
                 defaultRaceDefinition.standardSubrace,
-                new List<string>()
+                new List<string>(),
+                CharacterAppearanceData.CreateDefault()
             );
 
         return profile != null;

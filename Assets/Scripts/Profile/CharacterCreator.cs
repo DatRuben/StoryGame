@@ -11,6 +11,7 @@ public class CharacterCreator : MonoBehaviour
     [SerializeField] private List<string> selectedLineageIds = new();
     [SerializeField] private CharacterGender selectedGender = CharacterGender.Male;
     [SerializeField] private string selectedCharacterName = "";
+    [SerializeField] private CharacterAppearanceData selectedAppearance = CharacterAppearanceData.CreateDefault();
 
     public string SelectedRaceId => selectedRaceId;
     public string SelectedSubraceId => selectedSubraceId;
@@ -18,6 +19,7 @@ public class CharacterCreator : MonoBehaviour
     public CharacterGender SelectedGender => selectedGender;
     public string SelectedCharacterName => selectedCharacterName;
     public event System.Action SelectionChanged;
+    public CharacterAppearanceData SelectedAppearance => CharacterAppearanceData.Copy(selectedAppearance);
 
     public void SelectGender(
         CharacterGender gender)
@@ -41,6 +43,42 @@ public class CharacterCreator : MonoBehaviour
             return;
 
         selectedCharacterName = cleanedName;
+        NotifySelectionChanged();
+    }
+
+    public void SetBodyScale(
+    float bodyScale)
+    {
+        selectedAppearance.bodyScale =
+            ClampBodyScaleForSelectedRaceSize(bodyScale);
+
+        NotifySelectionChanged();
+    }
+
+    public void SetHue(
+        float hue)
+    {
+        selectedAppearance.hue =
+            Mathf.Repeat(hue, 1f);
+
+        NotifySelectionChanged();
+    }
+
+    public void SetSaturation(
+        float saturation)
+    {
+        selectedAppearance.saturation =
+            Mathf.Clamp01(saturation);
+
+        NotifySelectionChanged();
+    }
+
+    public void SetValue(
+        float value)
+    {
+        selectedAppearance.value =
+            Mathf.Clamp01(value);
+
         NotifySelectionChanged();
     }
 
@@ -77,6 +115,8 @@ public class CharacterCreator : MonoBehaviour
             selectedSubraceDefinition
         );
 
+        ClampSelectedAppearance();
+
         NotifySelectionChanged();
         return true;
     }
@@ -110,6 +150,8 @@ public class CharacterCreator : MonoBehaviour
             subraceDefinition.race,
             subraceDefinition
         );
+
+        ClampSelectedAppearance();
 
         NotifySelectionChanged();
         return true;
@@ -208,6 +250,7 @@ public class CharacterCreator : MonoBehaviour
                 raceDefinition,
                 subraceDefinition,
                 lineageDefinitions,
+                CharacterAppearanceData.Copy(selectedAppearance),
                 out profile,
                 out errorMessage
         );
@@ -433,6 +476,87 @@ public class CharacterCreator : MonoBehaviour
             selectedLineageIds.RemoveAt(
                 selectedLineageIds.Count - 1
             );
+        }
+    }
+
+    private void ClampSelectedAppearance()
+    {
+        if (selectedAppearance == null)
+            selectedAppearance = CharacterAppearanceData.CreateDefault();
+
+        selectedAppearance.bodyScale =
+            ClampBodyScaleForSelectedRaceSize(
+                selectedAppearance.bodyScale
+            );
+
+        selectedAppearance.hue =
+            Mathf.Repeat(
+                selectedAppearance.hue,
+                1f
+            );
+
+        selectedAppearance.saturation =
+            Mathf.Clamp01(
+                selectedAppearance.saturation
+            );
+
+        selectedAppearance.value =
+            Mathf.Clamp01(
+                selectedAppearance.value
+            );
+    }
+
+    private float ClampBodyScaleForSelectedRaceSize(
+        float value)
+    {
+        RaceSize raceSize =
+            GetSelectedRaceSize();
+
+        Vector2 range =
+            GetBodyScaleRange(raceSize);
+
+        return Mathf.Clamp(
+            value,
+            range.x,
+            range.y
+        );
+    }
+
+    private RaceSize GetSelectedRaceSize()
+    {
+        if (TryGetSelectedSubrace(
+            out SubraceDefinition subraceDefinition))
+        {
+            return subraceDefinition.size;
+        }
+
+        return RaceSize.Size2;
+    }
+
+    private Vector2 GetBodyScaleRange(
+        RaceSize raceSize)
+    {
+        switch (raceSize)
+        {
+            case RaceSize.Size1:
+            case RaceSize.Size1Feral:
+                return new Vector2(0.9f, 1.1f);
+
+            case RaceSize.TallerSize2:
+                return new Vector2(0.9f, 1.1f);
+
+            case RaceSize.Size3:
+            case RaceSize.Size3Feral:
+                return new Vector2(0.9f, 1.1f);
+
+            case RaceSize.Dragon:
+            case RaceSize.BigDragon:
+                return new Vector2(0.9f, 1.1f);
+
+            case RaceSize.Size2:
+            case RaceSize.Size2Feral:
+            default:
+                return new Vector2(0.9f, 1.1f);
         }
     }
 

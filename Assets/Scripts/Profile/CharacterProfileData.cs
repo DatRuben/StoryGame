@@ -18,6 +18,9 @@ public class CharacterProfileData
     public string subraceId;
     public List<string> lineageIds = new();
 
+    public CharacterAppearanceData appearance =
+        CharacterAppearanceData.CreateDefault();
+
     public int level = 1;
     public bool storyCompleted;
 
@@ -31,7 +34,8 @@ public class CharacterProfileData
         CharacterGender gender,
         string raceId,
         string subraceId,
-        List<string> lineageIds = null)
+        List<string> lineageIds = null,
+        CharacterAppearanceData appearance = null)
     {
         string now = DateTime.UtcNow.ToString("O");
 
@@ -45,6 +49,7 @@ public class CharacterProfileData
             lineageIds = lineageIds != null
                 ? new List<string>(lineageIds)
                 : new List<string>(),
+            appearance = CharacterAppearanceData.Copy(appearance),
             level = 1,
             storyCompleted = false,
             createdUtc = now,

@@ -22,7 +22,8 @@ public static class CharacterSelection
         CharacterGender gender,
         RaceDefinition raceDefinition,
         SubraceDefinition subraceDefinition,
-        List<string> lineageIds)
+        List<string> lineageIds,
+        CharacterAppearanceData appearance)
     {
         CharacterProfileData profile =
             CharacterProfileData.CreateNew(
@@ -30,7 +31,8 @@ public static class CharacterSelection
                 gender,
                 raceDefinition.raceId,
                 subraceDefinition.subraceId,
-                lineageIds
+                lineageIds,
+                appearance
             );
 
         CharacterSaveSystem.SaveProfile(profile);
@@ -45,6 +47,7 @@ public static class CharacterSelection
         RaceDefinition raceDefinition,
         SubraceDefinition subraceDefinition,
         List<LineageDefinition> lineageDefinitions,
+        CharacterAppearanceData appearance,
         out CharacterProfileData profile,
         out string errorMessage)
     {
@@ -103,7 +106,8 @@ public static class CharacterSelection
                 gender,
                 raceDefinition,
                 subraceDefinition,
-                lineageIds
+                lineageIds,
+                appearance
             );
 
         return true;
