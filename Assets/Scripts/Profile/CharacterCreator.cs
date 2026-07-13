@@ -565,6 +565,27 @@ public class CharacterCreator : MonoBehaviour
         return true;
     }
 
+    public bool TryGetResolvedStats(out ResolvedCharacterStats resolvedStats)
+    {
+        resolvedStats = null;
+
+        if (!TryGetSelectedDefinitions(
+                out RaceDefinition race,
+                out SubraceDefinition subrace,
+                out List<LineageDefinition> lineages))
+        {
+            return false;
+        }
+
+        resolvedStats = CharacterStatsResolver.ResolveCharacter(
+            race,
+            subrace,
+            null,
+            lineages);
+
+        return true;
+    }
+
     public bool TryCreateSelectedCharacter(
         out CharacterProfileData profile,
         out string errorMessage)

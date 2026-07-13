@@ -461,6 +461,42 @@ public static class CharacterStatsResolver
         );
     }
 
+    public static ResolvedCharacterStats ResolveCharacter(
+        RaceDefinition race,
+        SubraceDefinition subrace,
+        CharacterProfileData profile,
+        List<LineageDefinition> lineages)
+    {
+        CharacterAttributePreview attributePreview =
+            CharacterAttributeResolver.CreatePreview(race, subrace, lineages);
+
+        CharacterAttributes finalAttributes = attributePreview.levelOneAttributes.Copy();
+
+        if (profile != null && profile.allocatedAttributes != null)
+        {
+            finalAttributes.Add(profile.allocatedAttributes);
+            finalAttributes.ClampMinimum(1);
+        }
+
+        CharacterBaseStats baseStats = ResolveBaseStats(race, subrace);
+        CharacterBaseStats attributeBonuses = ResolveAttributeStatBonuses(finalAttributes);
+        CharacterBaseStats totalBaseStats = CharacterBaseStats.Add(baseStats, attributeBonuses);
+
+        FinalCharacterStats finalStats = ResolveFinalStats(finalAttributes);
+        FinalMovementStats movementStats = ResolveMovementStats(race, subrace, finalAttributes);
+
+        return new ResolvedCharacterStats
+        {
+            attributePreview = attributePreview,
+            finalAttributes = finalAttributes,
+            baseStats = baseStats,
+            attributeBonuses = attributeBonuses,
+            totalBaseStats = totalBaseStats,
+            finalStats = finalStats,
+            movementStats = movementStats
+        };
+    }
+
     private static DodgeType ResolveDodgeType(
         SubraceDefinition subraceDefinition)
     {
