@@ -6,7 +6,6 @@ public static class CharacterStatsResolver
     public static CharacterAttributes ResolveAttributes(
         RaceDefinition raceDefinition,
         SubraceDefinition subraceDefinition,
-        CharacterProfileData characterProfile,
         LineageDefinition[] lineageDefinitions)
     {
         CharacterAttributes finalAttributes =
