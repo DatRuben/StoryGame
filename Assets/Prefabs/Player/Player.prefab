@@ -221,7 +221,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1948218584183092293}
-  - component: {fileID: 5446509128502253107}
   - component: {fileID: 3813683606675395284}
   - component: {fileID: 1697116650113979843}
   - component: {fileID: 6784262885347828411}
@@ -232,7 +231,6 @@ GameObject:
   - component: {fileID: 4318760400326166696}
   - component: {fileID: 6082714783708757298}
   - component: {fileID: -5809314173310206114}
-  - component: {fileID: 5737036684374793302}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -257,24 +255,6 @@ Transform:
   - {fileID: 3644507542924445183}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &5446509128502253107
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3981885625536899075}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 56a66fdedba50ee429bfff2a1d72e0e7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::RaceProfileApplier
-  raceProfile: {fileID: 11400000, guid: b129ca34dc2505b4bb75de6a89cfaaba, type: 2}
-  capsuleCollider: {fileID: 3813683606675395284}
-  groundCheck: {fileID: 3929204665239071809}
-  cameraPivot: {fileID: 3435356018134033480}
-  playerWeaponSlots: {fileID: 7061591094718048246}
-  playerEquipment: {fileID: 4318760400326166696}
 --- !u!136 &3813683606675395284
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -511,21 +491,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc7687194832bfa4db670f875ea1cc41, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerCharacterProfile
---- !u!114 &5737036684374793302
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3981885625536899075}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9fae8dc59ec60774098fabe0be129371, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerDamageTest
-  resources: {fileID: 5991753881997761642}
-  physicalDamage: 25
-  aetherDamage: 25
 --- !u!1 &4361632423051394989
 GameObject:
   m_ObjectHideFlags: 0
