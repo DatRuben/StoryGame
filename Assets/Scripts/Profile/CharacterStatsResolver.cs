@@ -352,19 +352,6 @@ public static class CharacterStatsResolver
         };
     }
 
-    public static CharacterBaseStats ResolveTotalBaseStats(
-        CharacterBaseStats baseStats,
-        CharacterAttributes attributes)
-    {
-        CharacterBaseStats attributeBonuses =
-            ResolveAttributeStatBonuses(attributes);
-
-        return CharacterBaseStats.Add(
-            baseStats,
-            attributeBonuses
-        );
-    }
-
     public static ResolvedCharacterStats ResolveCharacter(
         RaceDefinition race,
         SubraceDefinition subrace,
