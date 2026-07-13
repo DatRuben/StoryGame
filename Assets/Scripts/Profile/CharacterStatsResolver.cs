@@ -3,45 +3,6 @@ using UnityEngine;
 
 public static class CharacterStatsResolver
 {
-    public static CharacterAttributes ResolveAttributes(
-        RaceDefinition raceDefinition,
-        SubraceDefinition subraceDefinition,
-        LineageDefinition[] lineageDefinitions)
-    {
-        CharacterAttributes finalAttributes =
-            CreateHumanBaselineAttributes();
-
-        if (raceDefinition != null)
-        {
-            finalAttributes =
-                CharacterAttributes.AddModifiers(
-                    finalAttributes,
-                    raceDefinition.modifiersFromHuman
-                );
-        }
-        else
-        {
-            Debug.LogWarning(
-                "CharacterStatsResolver could not apply race modifiers because RaceDefinition is missing."
-            );
-        }
-
-        ApplySubraceModifiers(
-            ref finalAttributes,
-            subraceDefinition
-        );
-
-        ApplyLineageModifiers(
-            ref finalAttributes,
-            lineageDefinitions
-        );
-
-        return CharacterAttributes.ClampMinimum(
-            finalAttributes,
-            1
-        );
-    }
-
     public static FinalCharacterStats ResolveFinalStats(
         CharacterBaseStats totalBaseStats,
         CharacterAttributes attributes)
@@ -188,62 +149,6 @@ public static class CharacterStatsResolver
         );
 
         return movementStats;
-    }
-
-    private static CharacterAttributes CreateHumanBaselineAttributes()
-    {
-        return CharacterAttributes.CreateDefault(10);
-    }
-
-    private static void ApplySubraceModifiers(
-        ref CharacterAttributes attributes,
-        SubraceDefinition subraceDefinition)
-    {
-        if (subraceDefinition == null)
-            return;
-
-        HashSet<SubraceDefinition> visited = new();
-        SubraceDefinition current = subraceDefinition;
-
-        while (current != null)
-        {
-            if (!visited.Add(current))
-            {
-                Debug.LogWarning(
-                    $"Subrace comparison loop detected at {current.displayName}."
-                );
-
-                break;
-            }
-
-            attributes =
-                CharacterAttributes.AddModifiers(
-                    attributes,
-                    current.modifiersFromComparison
-                );
-
-            current = current.compareToSubrace;
-        }
-    }
-
-    private static void ApplyLineageModifiers(
-        ref CharacterAttributes attributes,
-        LineageDefinition[] lineageDefinitions)
-    {
-        if (lineageDefinitions == null)
-            return;
-
-        foreach (LineageDefinition lineageDefinition in lineageDefinitions)
-        {
-            if (lineageDefinition == null)
-                continue;
-
-            attributes =
-                CharacterAttributes.AddModifiers(
-                    attributes,
-                    lineageDefinition.modifiers
-                );
-        }
     }
 
     private static FinalMovementStats CreateSize2HumanoidMovement()
@@ -455,19 +360,6 @@ public static class CharacterStatsResolver
             ResolveAttributeStatBonuses(attributes);
 
         return CharacterBaseStats.Add(
-            baseStats,
-            attributeBonuses
-        );
-    }
-
-    public static CharacterStatPreview CreateStatPreview(
-        CharacterBaseStats baseStats,
-        CharacterAttributes attributes)
-    {
-        CharacterBaseStats attributeBonuses =
-            ResolveAttributeStatBonuses(attributes);
-
-        return CharacterStatPreview.Create(
             baseStats,
             attributeBonuses
         );

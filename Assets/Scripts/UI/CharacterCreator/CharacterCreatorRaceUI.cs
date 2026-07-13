@@ -131,7 +131,7 @@ public class CharacterCreatorRaceUI : MonoBehaviour
         }
 
         List<SubraceDefinition> subraceDefinitions =
-            GetSubraceDefinitionsForRace(raceDefinition);
+            characterDataLibrary.GetSubraceDefinitionsForRace(raceDefinition);
 
         foreach (SubraceDefinition subraceDefinition in subraceDefinitions)
         {
