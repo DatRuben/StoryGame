@@ -25,6 +25,15 @@ public class CharacterCreator : MonoBehaviour
     public string SelectedBackgroundId => selectedBackgroundId;
     public IReadOnlyList<string> SelectedTraitIds => selectedTraitIds;
 
+    private class SelectedCreatorDefinitions
+    {
+        public RaceDefinition raceDefinition;
+        public SubraceDefinition subraceDefinition;
+        public List<LineageDefinition> lineageDefinitions;
+        public BackgroundDefinition backgroundDefinition;
+        public List<TraitDefinition> traitDefinitions;
+    }
+
     public void SelectGender(
         CharacterGender gender)
     {
@@ -233,42 +242,30 @@ public class CharacterCreator : MonoBehaviour
             return false;
         }
 
-        if (!TryGetSelectedRace(out RaceDefinition raceDefinition))
-        {
-            errorMessage = "No race is selected.";
-            return false;
-        }
-
-        if (!TryGetSelectedSubrace(out SubraceDefinition subraceDefinition))
-        {
-            errorMessage = "No subrace is selected.";
-            return false;
-        }
-
-        List<LineageDefinition> lineageDefinitions =
-            GetSelectedLineageDefinitions();
-
-        if (!TryGetResolvedStats(
-            out ResolvedCharacterStats resolvedStats,
+        if (!TryGetSelectedDefinitions(
+            out SelectedCreatorDefinitions selectedDefinitions,
             out errorMessage))
         {
             return false;
         }
 
-        BackgroundDefinition backgroundDefinition =
-            GetSelectedBackgroundDefinition();
-
-        List<TraitDefinition> traitDefinitions =
-            GetSelectedTraitDefinitions();
+        ResolvedCharacterStats resolvedStats =
+            CharacterStatsResolver.ResolveCharacter(
+                selectedDefinitions.raceDefinition,
+                selectedDefinitions.subraceDefinition,
+                selectedDefinitions.lineageDefinitions,
+                selectedDefinitions.backgroundDefinition,
+                selectedDefinitions.traitDefinitions
+            );
 
         return CharacterSelection.TryCreateCharacter(
             characterName,
             selectedGender,
-            raceDefinition,
-            subraceDefinition,
-            lineageDefinitions,
-            backgroundDefinition,
-            traitDefinitions,
+            selectedDefinitions.raceDefinition,
+            selectedDefinitions.subraceDefinition,
+            selectedDefinitions.lineageDefinitions,
+            selectedDefinitions.backgroundDefinition,
+            selectedDefinitions.traitDefinitions,
             CharacterAppearanceData.Copy(selectedAppearance),
             CharacterAttributes.Copy(resolvedStats.finalAttributes),
             CharacterBaseStats.Copy(resolvedStats.totalBaseStats),
@@ -280,32 +277,8 @@ public class CharacterCreator : MonoBehaviour
     public bool CanCreateCharacter(
         out string errorMessage)
     {
-        errorMessage = "";
-
-        if (!TryGetSelectedRace(out RaceDefinition raceDefinition))
-        {
-            errorMessage = "No race is selected.";
-            return false;
-        }
-
-        if (!TryGetSelectedSubrace(out SubraceDefinition subraceDefinition))
-        {
-            errorMessage = "No subrace is selected.";
-            return false;
-        }
-
-        if (subraceDefinition.race == null ||
-            subraceDefinition.race.raceId != raceDefinition.raceId)
-        {
-            errorMessage =
-                $"{subraceDefinition.displayName} does not belong to {raceDefinition.displayName}.";
-
-            return false;
-        }
-
-        return AreSelectedLineagesValid(
-            raceDefinition,
-            subraceDefinition,
+        return TryGetSelectedDefinitions(
+            out SelectedCreatorDefinitions _,
             out errorMessage
         );
     }
@@ -612,6 +585,31 @@ public class CharacterCreator : MonoBehaviour
         out string errorMessage)
     {
         resolvedStats = null;
+
+        if (!TryGetSelectedDefinitions(
+            out SelectedCreatorDefinitions selectedDefinitions,
+            out errorMessage))
+        {
+            return false;
+        }
+
+        resolvedStats =
+            CharacterStatsResolver.ResolveCharacter(
+                selectedDefinitions.raceDefinition,
+                selectedDefinitions.subraceDefinition,
+                selectedDefinitions.lineageDefinitions,
+                selectedDefinitions.backgroundDefinition,
+                selectedDefinitions.traitDefinitions
+            );
+
+        return true;
+    }
+
+    private bool TryGetSelectedDefinitions(
+    out SelectedCreatorDefinitions selectedDefinitions,
+    out string errorMessage)
+    {
+        selectedDefinitions = null;
         errorMessage = "";
 
         if (!TryGetSelectedRace(out RaceDefinition raceDefinition))
@@ -626,6 +624,14 @@ public class CharacterCreator : MonoBehaviour
             return false;
         }
 
+        if (subraceDefinition.race == null ||
+            subraceDefinition.race.raceId != raceDefinition.raceId)
+        {
+            errorMessage =
+                $"{subraceDefinition.displayName} does not belong to {raceDefinition.displayName}.";
+            return false;
+        }
+
         if (!AreSelectedLineagesValid(
             raceDefinition,
             subraceDefinition,
@@ -634,20 +640,15 @@ public class CharacterCreator : MonoBehaviour
             return false;
         }
 
-        resolvedStats =
-                CharacterStatsResolver.ResolveCharacter(
-                    raceDefinition,
-                    subraceDefinition,
-                    GetSelectedLineageDefinitions(),
-                    GetSelectedBackgroundDefinition(),
-                    GetSelectedTraitDefinitions()
-                );
-
-        BackgroundDefinition backgroundDefinition =
-            GetSelectedBackgroundDefinition();
-
-        List<TraitDefinition> traitDefinitions =
-            GetSelectedTraitDefinitions();
+        selectedDefinitions =
+            new SelectedCreatorDefinitions
+            {
+                raceDefinition = raceDefinition,
+                subraceDefinition = subraceDefinition,
+                lineageDefinitions = GetSelectedLineageDefinitions(),
+                backgroundDefinition = GetSelectedBackgroundDefinition(),
+                traitDefinitions = GetSelectedTraitDefinitions()
+            };
 
         return true;
     }
