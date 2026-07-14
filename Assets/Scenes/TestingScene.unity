@@ -24963,6 +24963,11 @@ MonoBehaviour:
   selectedLineageIds: []
   selectedGender: 0
   selectedCharacterName: 
+  selectedAppearance:
+    bodyScale: 1
+    hue: 0
+    saturation: 0.75
+    value: 0.9
 --- !u!1 &1655536987
 GameObject:
   m_ObjectHideFlags: 0
