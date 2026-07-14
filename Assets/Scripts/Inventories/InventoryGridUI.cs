@@ -547,7 +547,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
 
         bool hasHeldItem =
             heldItem != null &&
-            heldItem.ItemData != null;
+            heldItem.ItemDefinition != null;
 
         bool hoverIsValid =
             hoveredCoordinate.x >= 0 &&
@@ -634,9 +634,9 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
                     coordinate.y
                 );
 
-            ItemData item =
+            ItemDefinition item =
                 placedItem != null
-                    ? placedItem.ItemData
+                    ? placedItem.ItemDefinition
                     : null;
 
             cell.SetColor(
@@ -1028,7 +1028,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
 
         Debug.Log(
             "Picked up item: " +
-            pickedItem.ItemData.itemName +
+            pickedItem.ItemDefinition.itemName +
             " with grab offset: " +
             heldGrabOffset
         );
@@ -1237,7 +1237,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
             HeldItem;
 
         if (heldItem == null ||
-            heldItem.ItemData == null)
+            heldItem.ItemDefinition == null)
         {
             heldGrabOffset = Vector2Int.zero;
             centerHeldPreviewOnMouse = false;
@@ -1273,7 +1273,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
             HeldItem;
 
         if (heldItem == null ||
-            heldItem.ItemData == null)
+            heldItem.ItemDefinition == null)
         {
             return false;
         }
@@ -1292,7 +1292,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
             return false;
         }
 
-        return heldItem.ItemData.IsCellOccupied(
+        return heldItem.ItemDefinition.IsCellOccupied(
             localX,
             localY,
             heldItem.RotationSteps
@@ -1308,13 +1308,13 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
             HeldItem;
 
         if (heldItem == null ||
-            heldItem.ItemData == null)
+            heldItem.ItemDefinition == null)
         {
             return false;
         }
 
         return InventoryShapeUtility.IsOccupiedInShape(
-            heldItem.ItemData,
+            heldItem.ItemDefinition,
             coordinate.x - dragOriginalPosition.x,
             coordinate.y - dragOriginalPosition.y,
             dragOriginalRotationSteps
@@ -1445,7 +1445,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
             HeldItem;
 
         if (heldItem == null ||
-            heldItem.ItemData == null)
+            heldItem.ItemDefinition == null)
         {
             heldPreviewRoot.gameObject.SetActive(false);
 
@@ -1459,8 +1459,8 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
         heldPreviewLayoutGroup.constraintCount =
             heldItem.Width;
 
-        ItemData itemData =
-            heldItem.ItemData;
+        ItemDefinition itemDefinition =
+            heldItem.ItemDefinition;
 
         bool quantityTextAssigned = false;
 
@@ -1487,7 +1487,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
                     button.interactable = false;
 
                 bool occupied =
-                    itemData.IsCellOccupied(
+                    itemDefinition.IsCellOccupied(
                         x,
                         y,
                         heldItem.RotationSteps
@@ -1512,7 +1512,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
                 bool showQuantity =
                     occupied &&
                     !quantityTextAssigned &&
-                    itemData.isStackable &&
+                    itemDefinition.isStackable &&
                     heldItem.Quantity > 1;
 
                 if (quantityText != null)
@@ -1726,14 +1726,14 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
             HeldItem;
 
         if (heldItem == null ||
-            heldItem.ItemData == null ||
+            heldItem.ItemDefinition == null ||
             heldPreviewLayoutGroup == null)
         {
             return;
         }
 
-        ItemData itemData =
-            heldItem.ItemData;
+        ItemDefinition itemDefinition =
+            heldItem.ItemDefinition;
 
         int width =
             heldItem.Width;
@@ -1749,7 +1749,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
             for (int x = 0; x < width; x++)
             {
                 if (!InventoryShapeUtility.IsOccupiedInShape(
-                        itemData,
+                        itemDefinition,
                         x,
                         y,
                         rotationSteps))
@@ -1759,7 +1759,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
 
                 bool topOpen =
                     !InventoryShapeUtility.IsOccupiedInShape(
-                        itemData,
+                        itemDefinition,
                         x,
                         y + 1,
                         rotationSteps
@@ -1767,7 +1767,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
 
                 bool bottomOpen =
                     !InventoryShapeUtility.IsOccupiedInShape(
-                        itemData,
+                        itemDefinition,
                         x,
                         y - 1,
                         rotationSteps
@@ -1775,7 +1775,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
 
                 bool leftOpen =
                     !InventoryShapeUtility.IsOccupiedInShape(
-                        itemData,
+                        itemDefinition,
                         x - 1,
                         y,
                         rotationSteps
@@ -1783,7 +1783,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
 
                 bool rightOpen =
                     !InventoryShapeUtility.IsOccupiedInShape(
-                        itemData,
+                        itemDefinition,
                         x + 1,
                         y,
                         rotationSteps
@@ -1805,7 +1805,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
                 {
                     bool rightFilled =
                         InventoryShapeUtility.IsOccupiedInShape(
-                            itemData,
+                            itemDefinition,
                             x + 1,
                             y,
                             rotationSteps
@@ -1813,7 +1813,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
 
                     bool downFilled =
                         InventoryShapeUtility.IsOccupiedInShape(
-                            itemData,
+                            itemDefinition,
                             x,
                             y - 1,
                             rotationSteps
@@ -1822,7 +1822,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
                     if (topOpen &&
                         rightFilled &&
                         !InventoryShapeUtility.IsOccupiedInShape(
-                            itemData,
+                            itemDefinition,
                             x + 1,
                             y + 1,
                             rotationSteps))
@@ -1833,7 +1833,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
                     if (bottomOpen &&
                         rightFilled &&
                         !InventoryShapeUtility.IsOccupiedInShape(
-                            itemData,
+                            itemDefinition,
                             x + 1,
                             y - 1,
                             rotationSteps))
@@ -1844,7 +1844,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
                     if (leftOpen &&
                         downFilled &&
                         !InventoryShapeUtility.IsOccupiedInShape(
-                            itemData,
+                            itemDefinition,
                             x - 1,
                             y - 1,
                             rotationSteps))
@@ -1855,7 +1855,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
                     if (rightOpen &&
                         downFilled &&
                         !InventoryShapeUtility.IsOccupiedInShape(
-                            itemData,
+                            itemDefinition,
                             x + 1,
                             y - 1,
                             rotationSteps))
@@ -1881,7 +1881,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
         if (fillPaddingBetweenCells)
         {
             DrawHeldPreviewInnerCorners(
-                itemData,
+                itemDefinition,
                 rotationSteps,
                 width,
                 height
@@ -2203,12 +2203,12 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
     }
 
     private void DrawHeldPreviewInnerCorners(
-        ItemData itemData,
+        ItemDefinition itemDefinition,
         int rotationSteps,
         int width,
         int height)
     {
-        if (itemData == null)
+        if (itemDefinition == null)
             return;
 
         for (int y = 0; y < height; y++)
@@ -2216,7 +2216,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
             for (int x = 0; x < width; x++)
             {
                 if (InventoryShapeUtility.IsOccupiedInShape(
-                        itemData,
+                        itemDefinition,
                         x,
                         y,
                         rotationSteps))
@@ -2226,7 +2226,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
 
                 bool leftFilled =
                     InventoryShapeUtility.IsOccupiedInShape(
-                        itemData,
+                        itemDefinition,
                         x - 1,
                         y,
                         rotationSteps
@@ -2234,7 +2234,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
 
                 bool rightFilled =
                     InventoryShapeUtility.IsOccupiedInShape(
-                        itemData,
+                        itemDefinition,
                         x + 1,
                         y,
                         rotationSteps
@@ -2242,7 +2242,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
 
                 bool upFilled =
                     InventoryShapeUtility.IsOccupiedInShape(
-                        itemData,
+                        itemDefinition,
                         x,
                         y + 1,
                         rotationSteps
@@ -2250,7 +2250,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
 
                 bool downFilled =
                     InventoryShapeUtility.IsOccupiedInShape(
-                        itemData,
+                        itemDefinition,
                         x,
                         y - 1,
                         rotationSteps
@@ -2430,7 +2430,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
                 outlinedItems.Add(placedItem);
 
                 DrawItemOutline(
-                    placedItem.ItemData,
+                    placedItem.ItemDefinition,
                     placedItem.Position,
                     placedItem.RotationSteps,
                     itemOutlineColor
@@ -2440,10 +2440,10 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
 
         if (isDraggingItem &&
             HeldItem != null &&
-            HeldItem.ItemData != null)
+            HeldItem.ItemDefinition != null)
         {
             DrawItemOutline(
-                HeldItem.ItemData,
+                HeldItem.ItemDefinition,
                 dragOriginalPosition,
                 dragOriginalRotationSteps,
                 dragOriginalOutlineColor
@@ -2454,7 +2454,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
             HeldItem;
 
         if (heldItem != null &&
-            heldItem.ItemData != null &&
+            heldItem.ItemDefinition != null &&
             InventoryMenuController.IsInventoryOpen &&
             IsValidGridCoordinate(hoveredCoordinate))
         {
@@ -2462,7 +2462,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
                 GetHeldPlacementOrigin(hoveredCoordinate);
 
             DrawItemOutline(
-                heldItem.ItemData,
+                heldItem.ItemDefinition,
                 previewOrigin,
                 heldItem.RotationSteps,
                 itemOutlineColor
@@ -2471,38 +2471,38 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
     }
 
     private void DrawItemOutline(
-        ItemData itemData,
+        ItemDefinition itemDefinition,
         Vector2Int origin,
         int rotationSteps,
         Color color)
     {
-        if (itemData == null)
+        if (itemDefinition == null)
             return;
 
         int width =
-            itemData.GetWidth(rotationSteps);
+            itemDefinition.GetWidth(rotationSteps);
 
         int height =
-            itemData.GetHeight(rotationSteps);
+            itemDefinition.GetHeight(rotationSteps);
 
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
             {
-                if (!itemData.IsCellOccupied(x, y, rotationSteps))
+                if (!itemDefinition.IsCellOccupied(x, y, rotationSteps))
                     continue;
 
                 bool topOpen =
-                    !InventoryShapeUtility.IsOccupiedInShape(itemData, x, y + 1, rotationSteps);
+                    !InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x, y + 1, rotationSteps);
 
                 bool bottomOpen =
-                    !InventoryShapeUtility.IsOccupiedInShape(itemData, x, y - 1, rotationSteps);
+                    !InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x, y - 1, rotationSteps);
 
                 bool leftOpen =
-                    !InventoryShapeUtility.IsOccupiedInShape(itemData, x - 1, y, rotationSteps);
+                    !InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x - 1, y, rotationSteps);
 
                 bool rightOpen =
-                    !InventoryShapeUtility.IsOccupiedInShape(itemData, x + 1, y, rotationSteps);
+                    !InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x + 1, y, rotationSteps);
 
                 if (topOpen)
                     DrawOutlineEdge(origin.x + x, origin.y + y, InventoryOutlineSide.Top, color);
@@ -2519,35 +2519,35 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
                 if (fillPaddingBetweenCells)
                 {
                     bool rightFilled =
-                        InventoryShapeUtility.IsOccupiedInShape(itemData, x + 1, y, rotationSteps);
+                        InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x + 1, y, rotationSteps);
 
                     bool downFilled =
-                        InventoryShapeUtility.IsOccupiedInShape(itemData, x, y - 1, rotationSteps);
+                        InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x, y - 1, rotationSteps);
 
                     if (topOpen &&
                         rightFilled &&
-                        !InventoryShapeUtility.IsOccupiedInShape(itemData, x + 1, y + 1, rotationSteps))
+                        !InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x + 1, y + 1, rotationSteps))
                     {
                         DrawBridge(origin.x + x, origin.y + y, InventoryOutlineSide.Top, color);
                     }
 
                     if (bottomOpen &&
                         rightFilled &&
-                        !InventoryShapeUtility.IsOccupiedInShape(itemData, x + 1, y - 1, rotationSteps))
+                        !InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x + 1, y - 1, rotationSteps))
                     {
                         DrawBridge(origin.x + x, origin.y + y, InventoryOutlineSide.Bottom, color);
                     }
 
                     if (leftOpen &&
                         downFilled &&
-                        !InventoryShapeUtility.IsOccupiedInShape(itemData, x - 1, y - 1, rotationSteps))
+                        !InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x - 1, y - 1, rotationSteps))
                     {
                         DrawBridge(origin.x + x, origin.y + y, InventoryOutlineSide.Left, color);
                     }
 
                     if (rightOpen &&
                         downFilled &&
-                        !InventoryShapeUtility.IsOccupiedInShape(itemData, x + 1, y - 1, rotationSteps))
+                        !InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x + 1, y - 1, rotationSteps))
                     {
                         DrawBridge(origin.x + x, origin.y + y, InventoryOutlineSide.Right, color);
                     }
@@ -2570,7 +2570,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
         if (fillPaddingBetweenCells)
         {
             DrawInnerCorners(
-                itemData,
+                itemDefinition,
                 origin,
                 rotationSteps,
                 color
@@ -2857,38 +2857,38 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
     }
 
     private void DrawInnerCorners(
-        ItemData itemData,
+        ItemDefinition itemDefinition,
         Vector2Int origin,
         int rotationSteps,
         Color color)
     {
-        if (itemData == null)
+        if (itemDefinition == null)
             return;
 
         int width =
-            itemData.GetWidth(rotationSteps);
+            itemDefinition.GetWidth(rotationSteps);
 
         int height =
-            itemData.GetHeight(rotationSteps);
+            itemDefinition.GetHeight(rotationSteps);
 
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
             {
-                if (InventoryShapeUtility.IsOccupiedInShape(itemData, x, y, rotationSteps))
+                if (InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x, y, rotationSteps))
                     continue;
 
                 bool leftFilled =
-                    InventoryShapeUtility.IsOccupiedInShape(itemData, x - 1, y, rotationSteps);
+                    InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x - 1, y, rotationSteps);
 
                 bool rightFilled =
-                    InventoryShapeUtility.IsOccupiedInShape(itemData, x + 1, y, rotationSteps);
+                    InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x + 1, y, rotationSteps);
 
                 bool upFilled =
-                    InventoryShapeUtility.IsOccupiedInShape(itemData, x, y + 1, rotationSteps);
+                    InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x, y + 1, rotationSteps);
 
                 bool downFilled =
-                    InventoryShapeUtility.IsOccupiedInShape(itemData, x, y - 1, rotationSteps);
+                    InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x, y - 1, rotationSteps);
 
                 if (rightFilled && downFilled)
                 {

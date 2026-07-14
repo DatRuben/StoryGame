@@ -39,7 +39,7 @@ public class HeldItemUI : MonoBehaviour
         }
 
         public void ShowItem(
-            ItemData item,
+            ItemDefinition item,
             string fallbackName,
             string controls)
         {
@@ -181,11 +181,11 @@ public class HeldItemUI : MonoBehaviour
         mouthCard.emptyText = mouthEmptyText;
         saddleTurretCard.emptyText = saddleTurretEmptyText;
 
-        ItemData leftHandItem = null;
-        ItemData rightHandItem = null;
-        ItemData bothHandsItem = null;
-        ItemData mouthItem = null;
-        ItemData saddleTurretSource = null;
+        ItemDefinition leftHandItem = null;
+        ItemDefinition rightHandItem = null;
+        ItemDefinition bothHandsItem = null;
+        ItemDefinition mouthItem = null;
+        ItemDefinition saddleTurretSource = null;
 
         bool leftIsWeaponUse = false;
         bool rightIsWeaponUse = false;
@@ -240,10 +240,10 @@ public class HeldItemUI : MonoBehaviour
     }
 
     private void LoadPlayerHoldingItems(
-        ref ItemData leftHandItem,
-        ref ItemData rightHandItem,
-        ref ItemData bothHandsItem,
-        ref ItemData mouthItem,
+        ref ItemDefinition leftHandItem,
+        ref ItemDefinition rightHandItem,
+        ref ItemDefinition bothHandsItem,
+        ref ItemDefinition mouthItem,
         ref bool leftIsWeaponUse,
         ref bool rightIsWeaponUse,
         ref bool bothIsWeaponUse,
@@ -271,11 +271,11 @@ public class HeldItemUI : MonoBehaviour
     }
 
     private void LoadDrawnWeaponSetItems(
-        ref ItemData leftHandItem,
-        ref ItemData rightHandItem,
-        ref ItemData bothHandsItem,
-        ref ItemData mouthItem,
-        ref ItemData saddleTurretSource,
+        ref ItemDefinition leftHandItem,
+        ref ItemDefinition rightHandItem,
+        ref ItemDefinition bothHandsItem,
+        ref ItemDefinition mouthItem,
+        ref ItemDefinition saddleTurretSource,
         ref bool leftIsWeaponUse,
         ref bool rightIsWeaponUse,
         ref bool bothIsWeaponUse,
@@ -287,7 +287,7 @@ public class HeldItemUI : MonoBehaviour
         if (!playerWeaponSlots.WeaponsDrawn)
             return;
 
-        ItemData drawnTwoHandedWeapon =
+        ItemDefinition drawnTwoHandedWeapon =
             playerWeaponSlots.GetDrawnTwoHandedWeapon();
 
         if (drawnTwoHandedWeapon != null)
@@ -303,7 +303,7 @@ public class HeldItemUI : MonoBehaviour
             return;
         }
 
-        ItemData drawnLeftWeapon =
+        ItemDefinition drawnLeftWeapon =
             playerWeaponSlots.GetDrawnLeftHandWeapon();
 
         if (drawnLeftWeapon != null)
@@ -312,7 +312,7 @@ public class HeldItemUI : MonoBehaviour
             leftIsWeaponUse = true;
         }
 
-        ItemData drawnRightWeapon =
+        ItemDefinition drawnRightWeapon =
             playerWeaponSlots.GetDrawnRightHandWeapon();
 
         if (drawnRightWeapon != null)
@@ -321,7 +321,7 @@ public class HeldItemUI : MonoBehaviour
             rightIsWeaponUse = true;
         }
 
-        ItemData drawnMouthWeapon =
+        ItemDefinition drawnMouthWeapon =
             playerWeaponSlots.GetDrawnMouthWeapon();
 
         if (drawnMouthWeapon != null)
@@ -335,10 +335,10 @@ public class HeldItemUI : MonoBehaviour
     }
 
     private void LoadMouseHeldItem(
-        ref ItemData leftHandItem,
-        ref ItemData rightHandItem,
-        ref ItemData bothHandsItem,
-        ref ItemData mouthItem,
+        ref ItemDefinition leftHandItem,
+        ref ItemDefinition rightHandItem,
+        ref ItemDefinition bothHandsItem,
+        ref ItemDefinition mouthItem,
         ref bool leftIsWeaponUse,
         ref bool rightIsWeaponUse,
         ref bool bothIsWeaponUse,
@@ -351,13 +351,13 @@ public class HeldItemUI : MonoBehaviour
             return;
 
         if (playerInventory.HeldItem == null ||
-            playerInventory.HeldItem.ItemData == null)
+            playerInventory.HeldItem.ItemDefinition == null)
         {
             return;
         }
 
-        ItemData mouseHeldItem =
-            playerInventory.HeldItem.ItemData;
+        ItemDefinition mouseHeldItem =
+            playerInventory.HeldItem.ItemDefinition;
 
         bool isUsableHandWeapon =
             IsUsableHandWeapon(mouseHeldItem);
@@ -425,11 +425,11 @@ public class HeldItemUI : MonoBehaviour
     }
 
     private void DrawCards(
-        ItemData leftHandItem,
-        ItemData rightHandItem,
-        ItemData bothHandsItem,
-        ItemData mouthItem,
-        ItemData saddleTurretSource,
+        ItemDefinition leftHandItem,
+        ItemDefinition rightHandItem,
+        ItemDefinition bothHandsItem,
+        ItemDefinition mouthItem,
+        ItemDefinition saddleTurretSource,
         bool leftIsWeaponUse,
         bool rightIsWeaponUse,
         bool bothIsWeaponUse,
@@ -533,14 +533,14 @@ public class HeldItemUI : MonoBehaviour
         }
     }
 
-    private bool IsUsableHandWeapon(ItemData item)
+    private bool IsUsableHandWeapon(ItemDefinition item)
     {
         return item != null &&
                item.itemCategory == ItemCategory.Weapon &&
                item.weaponUseType == WeaponUseType.HandWeapon;
     }
 
-    private bool IsUsableMouthWeapon(ItemData item)
+    private bool IsUsableMouthWeapon(ItemDefinition item)
     {
         return item != null &&
                item.itemCategory == ItemCategory.Weapon &&
@@ -583,7 +583,7 @@ public class HeldItemUI : MonoBehaviour
     }
 
     private string GetControlsText(
-        ItemData item,
+        ItemDefinition item,
         bool isWeaponUse)
     {
         if (item == null)

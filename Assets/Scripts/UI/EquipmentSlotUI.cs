@@ -98,13 +98,13 @@ public class EquipmentSlotUI : MonoBehaviour
     private void TryEquipHeldItem()
     {
         if (playerInventory.HeldItem == null ||
-            playerInventory.HeldItem.ItemData == null)
+            playerInventory.HeldItem.ItemDefinition == null)
         {
             return;
         }
 
-        ItemData heldItem =
-            playerInventory.HeldItem.ItemData;
+        ItemDefinition heldItem =
+            playerInventory.HeldItem.ItemDefinition;
 
         if (!playerEquipment.CanEquipItemToSlot(
                 heldItem,
@@ -123,7 +123,7 @@ public class EquipmentSlotUI : MonoBehaviour
             playerEquipment.TryEquipItemToSlot(
                 heldItem,
                 equipmentSlotType,
-                out ItemData replacedItem
+                out ItemDefinition replacedItem
             );
 
         if (!equipped)
@@ -145,7 +145,7 @@ public class EquipmentSlotUI : MonoBehaviour
 
     private void TryPickUpEquippedItem()
     {
-        ItemData removedItem =
+        ItemDefinition removedItem =
             playerEquipment.UnequipSlot(
                 equipmentSlotType
             );
@@ -179,7 +179,7 @@ public class EquipmentSlotUI : MonoBehaviour
             return;
         }
 
-        ItemData equippedItem =
+        ItemDefinition equippedItem =
             playerEquipment.GetEquippedItem(
                 equipmentSlotType
             );
@@ -216,13 +216,13 @@ public class EquipmentSlotUI : MonoBehaviour
     {
         if (playerInventory == null ||
             playerInventory.HeldItem == null ||
-            playerInventory.HeldItem.ItemData == null)
+            playerInventory.HeldItem.ItemDefinition == null)
         {
             return;
         }
 
-        ItemData heldItem =
-            playerInventory.HeldItem.ItemData;
+        ItemDefinition heldItem =
+            playerInventory.HeldItem.ItemDefinition;
 
         bool canEquip =
             playerEquipment.CanEquipItemToSlot(
@@ -240,7 +240,7 @@ public class EquipmentSlotUI : MonoBehaviour
             return;
         }
 
-        ItemData equippedItem =
+        ItemDefinition equippedItem =
             playerEquipment.GetEquippedItem(
                 equipmentSlotType
             );

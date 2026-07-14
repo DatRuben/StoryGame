@@ -7,10 +7,10 @@ public class PlayerEquipment : MonoBehaviour
     [SerializeField] private PlayerWeaponSlots playerWeaponSlots;
 
     [Header("Equipment")]
-    [SerializeField] private ItemData equippedSaddle;
-    [SerializeField] private ItemData equippedArmor;
-    [SerializeField] private ItemData equippedHelmet;
-    [SerializeField] private ItemData equippedAccessory;
+    [SerializeField] private ItemDefinition equippedSaddle;
+    [SerializeField] private ItemDefinition equippedArmor;
+    [SerializeField] private ItemDefinition equippedHelmet;
+    [SerializeField] private ItemDefinition equippedAccessory;
 
     [Header("Body Equipment Rules")]
     [SerializeField] private bool canEquipSaddles = false;
@@ -19,10 +19,10 @@ public class PlayerEquipment : MonoBehaviour
     [Tooltip("0 = Weapon Set 1, 1 = Weapon Set 2")]
     [SerializeField] private int manualSaddleTurretWeaponSetIndex = 1;
 
-    public ItemData EquippedSaddle => equippedSaddle;
-    public ItemData EquippedArmor => equippedArmor;
-    public ItemData EquippedHelmet => equippedHelmet;
-    public ItemData EquippedAccessory => equippedAccessory;
+    public ItemDefinition EquippedSaddle => equippedSaddle;
+    public ItemDefinition EquippedArmor => equippedArmor;
+    public ItemDefinition EquippedHelmet => equippedHelmet;
+    public ItemDefinition EquippedAccessory => equippedAccessory;
 
     public bool HasEquippedSaddle => equippedSaddle != null;
     public bool CanEquipSaddles => canEquipSaddles;
@@ -64,7 +64,7 @@ public class PlayerEquipment : MonoBehaviour
     }
 
     public bool CanEquipItemToSlot(
-        ItemData item,
+        ItemDefinition item,
         EquipmentSlotType slotType)
     {
         if (item == null)
@@ -86,9 +86,9 @@ public class PlayerEquipment : MonoBehaviour
     }
 
     public bool TryEquipItemToSlot(
-        ItemData item,
+        ItemDefinition item,
         EquipmentSlotType slotType,
-        out ItemData replacedItem)
+        out ItemDefinition replacedItem)
     {
         replacedItem = null;
 
@@ -116,12 +116,12 @@ public class PlayerEquipment : MonoBehaviour
         return true;
     }
 
-    public ItemData UnequipSlot(EquipmentSlotType slotType)
+    public ItemDefinition UnequipSlot(EquipmentSlotType slotType)
     {
         if (slotType == EquipmentSlotType.Saddle)
             return UnequipSaddle();
 
-        ItemData oldItem =
+        ItemDefinition oldItem =
             GetEquippedItem(slotType);
 
         if (oldItem == null)
@@ -137,7 +137,7 @@ public class PlayerEquipment : MonoBehaviour
         return oldItem;
     }
 
-    public ItemData GetEquippedItem(EquipmentSlotType slotType)
+    public ItemDefinition GetEquippedItem(EquipmentSlotType slotType)
     {
         switch (slotType)
         {
@@ -160,7 +160,7 @@ public class PlayerEquipment : MonoBehaviour
 
     private void SetEquippedItemDirect(
         EquipmentSlotType slotType,
-        ItemData item)
+        ItemDefinition item)
     {
         switch (slotType)
         {
@@ -182,7 +182,7 @@ public class PlayerEquipment : MonoBehaviour
         }
     }
 
-    public bool CanEquipSaddle(ItemData item)
+    public bool CanEquipSaddle(ItemDefinition item)
     {
         return CanEquipItemToSlot(
             item,
@@ -190,17 +190,17 @@ public class PlayerEquipment : MonoBehaviour
         );
     }
 
-    public bool TryEquipSaddle(ItemData saddleItem)
+    public bool TryEquipSaddle(ItemDefinition saddleItem)
     {
         return TryEquipSaddle(
             saddleItem,
-            out ItemData ignoredOldSaddle
+            out ItemDefinition ignoredOldSaddle
         );
     }
 
     public bool TryEquipSaddle(
-        ItemData saddleItem,
-        out ItemData replacedSaddle)
+        ItemDefinition saddleItem,
+        out ItemDefinition replacedSaddle)
     {
         replacedSaddle = null;
 
@@ -210,7 +210,7 @@ public class PlayerEquipment : MonoBehaviour
         if (playerWeaponSlots == null)
             playerWeaponSlots = GetComponent<PlayerWeaponSlots>();
 
-        ItemData oldSaddle =
+        ItemDefinition oldSaddle =
             equippedSaddle;
 
         if (oldSaddle == saddleItem)
@@ -260,9 +260,9 @@ public class PlayerEquipment : MonoBehaviour
         return true;
     }
 
-    public ItemData UnequipSaddle()
+    public ItemDefinition UnequipSaddle()
     {
-        ItemData oldSaddle =
+        ItemDefinition oldSaddle =
             equippedSaddle;
 
         if (oldSaddle == null)
@@ -313,7 +313,7 @@ public class PlayerEquipment : MonoBehaviour
         }
     }
 
-    private void RestoreOldSaddle(ItemData oldSaddle)
+    private void RestoreOldSaddle(ItemDefinition oldSaddle)
     {
         if (oldSaddle == null)
         {

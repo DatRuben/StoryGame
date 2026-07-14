@@ -5,7 +5,7 @@ using UnityEngine;
 [Serializable]
 public class StartingInventoryItem
 {
-    public ItemData item;
+    public ItemDefinition item;
 
     [Min(1)]
     public int quantity = 1;
@@ -33,7 +33,7 @@ public class PlayerInventory : MonoBehaviour
         new List<StartingInventoryItem>();
 
     [Header("Old Weapon Slot - Temporary")]
-    [SerializeField] private ItemData weaponSlotItem;
+    [SerializeField] private ItemDefinition weaponSlotItem;
     [SerializeField] private bool weaponDrawn = false;
 
     public InventoryGrid Grid { get; private set; }
@@ -41,7 +41,7 @@ public class PlayerInventory : MonoBehaviour
     public PlacedInventoryItem HeldItem { get; private set; }
     public bool IsHoldingItem => HeldItem != null;
 
-    public ItemData WeaponSlotItem => weaponSlotItem;
+    public ItemDefinition WeaponSlotItem => weaponSlotItem;
     public bool IsWeaponDrawn => weaponDrawn;
     public bool HasWeaponInSlot => weaponSlotItem != null;
 
@@ -105,7 +105,7 @@ public class PlayerInventory : MonoBehaviour
     }
 
     private int GetSafePlacedQuantityForItem(
-        ItemData item,
+        ItemDefinition item,
         int quantity)
     {
         quantity = Mathf.Max(1, quantity);
@@ -124,7 +124,7 @@ public class PlayerInventory : MonoBehaviour
     }
 
     private int GetSafeTransferQuantityForItem(
-        ItemData item,
+        ItemDefinition item,
         int quantity)
     {
         quantity = Mathf.Max(1, quantity);
@@ -204,7 +204,7 @@ public class PlayerInventory : MonoBehaviour
     }
 
     public bool CanPlaceItem(
-        ItemData item,
+        ItemDefinition item,
         int x,
         int y,
         int rotationSteps)
@@ -221,7 +221,7 @@ public class PlayerInventory : MonoBehaviour
     }
 
     public bool TryPlaceItem(
-        ItemData item,
+        ItemDefinition item,
         int x,
         int y,
         int rotationSteps,
@@ -259,7 +259,7 @@ public class PlayerInventory : MonoBehaviour
             return false;
 
         if (HeldItem == null ||
-            HeldItem.ItemData == null)
+            HeldItem.ItemDefinition == null)
         {
             return false;
         }
@@ -268,7 +268,7 @@ public class PlayerInventory : MonoBehaviour
             Grid.GetPlacedItem(x, y);
 
         if (targetStack == null ||
-            targetStack.ItemData == null)
+            targetStack.ItemDefinition == null)
         {
             return false;
         }
@@ -276,10 +276,10 @@ public class PlayerInventory : MonoBehaviour
         if (targetStack == HeldItem)
             return false;
 
-        if (targetStack.ItemData != HeldItem.ItemData)
+        if (targetStack.ItemDefinition != HeldItem.ItemDefinition)
             return false;
 
-        if (!targetStack.ItemData.isStackable)
+        if (!targetStack.ItemDefinition.isStackable)
             return false;
 
         if (!targetStack.HasRoomInStack)
@@ -316,7 +316,7 @@ public class PlayerInventory : MonoBehaviour
     }
 
     public bool TryAddItemToFirstAvailableSpace(
-        ItemData item,
+        ItemDefinition item,
         int rotationSteps = 0,
         int quantity = 1)
     {
@@ -329,7 +329,7 @@ public class PlayerInventory : MonoBehaviour
     }
 
     public bool TryAddItemToFirstAvailableSpace(
-        ItemData item,
+        ItemDefinition item,
         int rotationSteps,
         int quantity,
         out int remainingQuantity)
@@ -390,7 +390,7 @@ public class PlayerInventory : MonoBehaviour
             {
                 bool canKeepWeaponsDrawn =
                     playerWeaponSlots.ActiveSetCanCoexistWithHeldItem(
-                        itemAtCell.ItemData
+                        itemAtCell.ItemDefinition
                     );
 
                 if (!canKeepWeaponsDrawn)
@@ -402,7 +402,7 @@ public class PlayerInventory : MonoBehaviour
                 bool oldWeaponCanStayDrawn =
                     weaponSlotItem != null &&
                     weaponSlotItem.handUsage == ItemHandUsage.OneHanded &&
-                    itemAtCell.ItemData.handUsage == ItemHandUsage.OneHanded;
+                    itemAtCell.ItemDefinition.handUsage == ItemHandUsage.OneHanded;
 
                 if (!oldWeaponCanStayDrawn)
                     SheatheWeapon();
@@ -439,15 +439,15 @@ public class PlayerInventory : MonoBehaviour
             Grid.GetPlacedItem(x, y);
 
         if (sourceStack == null ||
-            sourceStack.ItemData == null)
+            sourceStack.ItemDefinition == null)
         {
             return false;
         }
 
-        ItemData itemData =
-            sourceStack.ItemData;
+        ItemDefinition itemDefinition =
+            sourceStack.ItemDefinition;
 
-        if (!itemData.isStackable)
+        if (!itemDefinition.isStackable)
             return false;
 
         int sourceQuantity =
@@ -472,7 +472,7 @@ public class PlayerInventory : MonoBehaviour
             {
                 bool canKeepWeaponsDrawn =
                     playerWeaponSlots.ActiveSetCanCoexistWithHeldItem(
-                        itemData
+                        itemDefinition
                     );
 
                 if (!canKeepWeaponsDrawn)
@@ -484,7 +484,7 @@ public class PlayerInventory : MonoBehaviour
                 bool oldWeaponCanStayDrawn =
                     weaponSlotItem != null &&
                     weaponSlotItem.handUsage == ItemHandUsage.OneHanded &&
-                    itemData.handUsage == ItemHandUsage.OneHanded;
+                    itemDefinition.handUsage == ItemHandUsage.OneHanded;
 
                 if (!oldWeaponCanStayDrawn)
                     SheatheWeapon();
@@ -495,7 +495,7 @@ public class PlayerInventory : MonoBehaviour
 
         HeldItem =
             new PlacedInventoryItem(
-                itemData,
+                itemDefinition,
                 Vector2Int.zero,
                 sourceStack.RotationSteps,
                 splitQuantity
@@ -518,13 +518,13 @@ public class PlayerInventory : MonoBehaviour
             return false;
 
         if (HeldItem == null ||
-            HeldItem.ItemData == null)
+            HeldItem.ItemDefinition == null)
         {
             return false;
         }
 
         return Grid.CanPlaceItem(
-            HeldItem.ItemData,
+            HeldItem.ItemDefinition,
             x,
             y,
             HeldItem.RotationSteps
@@ -539,13 +539,13 @@ public class PlayerInventory : MonoBehaviour
             return false;
 
         if (HeldItem == null ||
-            HeldItem.ItemData == null)
+            HeldItem.ItemDefinition == null)
         {
             return false;
         }
 
-        ItemData itemData =
-            HeldItem.ItemData;
+        ItemDefinition itemDefinition =
+            HeldItem.ItemDefinition;
 
         int rotationSteps =
             HeldItem.RotationSteps;
@@ -555,7 +555,7 @@ public class PlayerInventory : MonoBehaviour
 
         bool placed =
             Grid.PlaceItem(
-                itemData,
+                itemDefinition,
                 x,
                 y,
                 rotationSteps,
@@ -582,15 +582,15 @@ public class PlayerInventory : MonoBehaviour
             return false;
 
         if (HeldItem == null ||
-            HeldItem.ItemData == null)
+            HeldItem.ItemDefinition == null)
         {
             return false;
         }
 
-        ItemData itemData =
-            HeldItem.ItemData;
+        ItemDefinition itemDefinition =
+            HeldItem.ItemDefinition;
 
-        if (!itemData.isStackable)
+        if (!itemDefinition.isStackable)
             return false;
 
         int heldQuantity =
@@ -604,10 +604,10 @@ public class PlayerInventory : MonoBehaviour
 
         if (targetStack != null)
         {
-            if (targetStack.ItemData != itemData)
+            if (targetStack.ItemDefinition != itemDefinition)
                 return false;
 
-            if (!targetStack.ItemData.isStackable)
+            if (!targetStack.ItemDefinition.isStackable)
                 return false;
 
             if (!targetStack.HasRoomInStack)
@@ -629,7 +629,7 @@ public class PlayerInventory : MonoBehaviour
 
         bool placed =
             Grid.PlaceItem(
-                itemData,
+                itemDefinition,
                 x,
                 y,
                 HeldItem.RotationSteps,
@@ -673,7 +673,7 @@ public class PlayerInventory : MonoBehaviour
     public bool RotateHeldItemCounterClockwise()
     {
         if (HeldItem == null ||
-            HeldItem.ItemData == null)
+            HeldItem.ItemDefinition == null)
         {
             return false;
         }
@@ -701,14 +701,14 @@ public class PlayerInventory : MonoBehaviour
         int quantity)
     {
         if (HeldItem == null ||
-            HeldItem.ItemData == null)
+            HeldItem.ItemDefinition == null)
         {
             return;
         }
 
         int safeQuantity =
             GetSafePlacedQuantityForItem(
-                HeldItem.ItemData,
+                HeldItem.ItemDefintion,
                 quantity
             );
 
@@ -719,7 +719,7 @@ public class PlayerInventory : MonoBehaviour
     }
 
     public void SetMouseHeldItemFromExternal(
-        ItemData item,
+        ItemDefinition item,
         int rotationSteps = 0,
         bool countsAsHeld = true,
         int quantity = 1)
@@ -785,19 +785,19 @@ public class PlayerInventory : MonoBehaviour
         return GetUsableMouseHeldWeapon() != null;
     }
 
-    public ItemData GetUsableMouseHeldWeapon()
+    public ItemDefinition GetUsableMouseHeldWeapon()
     {
         if (!MouseHeldItemCountsAsHeld)
             return null;
 
         if (HeldItem == null ||
-            HeldItem.ItemData == null)
+            HeldItem.ItemDefinition == null)
         {
             return null;
         }
 
-        ItemData item =
-            HeldItem.ItemData;
+        ItemDefinition item =
+            HeldItem.ItemDefinition;
 
         if (!IsWeapon(item))
             return null;
@@ -811,7 +811,7 @@ public class PlayerInventory : MonoBehaviour
     public bool TryStoreHeldItemInInventoryOrDrop()
     {
         if (HeldItem == null ||
-            HeldItem.ItemData == null)
+            HeldItem.ItemDefinition == null)
         {
             MouseHeldItemCountsAsHeld = false;
             return true;
@@ -820,8 +820,8 @@ public class PlayerInventory : MonoBehaviour
         if (Grid == null)
             return false;
 
-        ItemData itemData =
-            HeldItem.ItemData;
+        ItemDefinition itemDefinition =
+            HeldItem.ItemDefinition;
 
         int rotationSteps =
             HeldItem.RotationSteps;
@@ -831,7 +831,7 @@ public class PlayerInventory : MonoBehaviour
 
         bool fullyStored =
             Grid.TryAddItemTopLeft(
-                itemData,
+                itemDefinition,
                 rotationSteps,
                 quantity,
                 out int remainingQuantity
@@ -852,7 +852,7 @@ public class PlayerInventory : MonoBehaviour
                 "Dropped " +
                 remainingQuantity +
                 " of " +
-                itemData.itemName +
+                itemDefinition.itemName +
                 " because there was no room in the inventory. Temporary behavior: item disappears."
             );
         }
@@ -865,7 +865,7 @@ public class PlayerInventory : MonoBehaviour
     public bool CanEquipHeldItemToWeaponSlot()
     {
         if (HeldItem == null ||
-            HeldItem.ItemData == null)
+            HeldItem.ItemDefinition == null)
         {
             return false;
         }
@@ -873,7 +873,7 @@ public class PlayerInventory : MonoBehaviour
         if (weaponSlotItem != null)
             return false;
 
-        return IsWeapon(HeldItem.ItemData);
+        return IsWeapon(HeldItem.ItemDefinition);
     }
 
     public bool TryEquipHeldItemToWeaponSlot()
@@ -881,7 +881,7 @@ public class PlayerInventory : MonoBehaviour
         if (!CanEquipHeldItemToWeaponSlot())
             return false;
 
-        weaponSlotItem = HeldItem.ItemData;
+        weaponSlotItem = HeldItem.ItemDefinition;
         weaponDrawn = false;
 
         HeldItem = null;
@@ -926,12 +926,12 @@ public class PlayerInventory : MonoBehaviour
     public bool TrySwapHeldWeaponWithWeaponSlot()
     {
         if (HeldItem == null ||
-            HeldItem.ItemData == null)
+            HeldItem.ItemDefinition == null)
         {
             return false;
         }
 
-        if (!IsWeapon(HeldItem.ItemData))
+        if (!IsWeapon(HeldItem.ItemDefinition))
             return false;
 
         if (weaponSlotItem == null)
@@ -940,11 +940,11 @@ public class PlayerInventory : MonoBehaviour
         if (weaponDrawn)
             SheatheWeapon();
 
-        ItemData oldWeapon =
+        ItemDefinition oldWeapon =
             weaponSlotItem;
 
         weaponSlotItem =
-            HeldItem.ItemData;
+            HeldItem.ItemDefinition;
 
         HeldItem =
             new PlacedInventoryItem(
@@ -965,7 +965,7 @@ public class PlayerInventory : MonoBehaviour
     }
 
     public bool TryEquipWeaponToSlot(
-        ItemData weaponItem)
+        ItemDefinition weaponItem)
     {
         if (!IsWeapon(weaponItem))
             return false;
@@ -994,7 +994,7 @@ public class PlayerInventory : MonoBehaviour
         {
             bool canKeepHeldItem =
                 weaponSlotItem.handUsage == ItemHandUsage.OneHanded &&
-                HeldItem.ItemData.handUsage == ItemHandUsage.OneHanded;
+                HeldItem.ItemDefinition.handUsage == ItemHandUsage.OneHanded;
 
             if (!canKeepHeldItem)
                 TryStoreHeldItemInInventoryOrDrop();
@@ -1028,7 +1028,7 @@ public class PlayerInventory : MonoBehaviour
     }
 
     public bool IsWeapon(
-        ItemData item)
+        ItemDefinition item)
     {
         return item != null &&
                item.itemCategory == ItemCategory.Weapon;

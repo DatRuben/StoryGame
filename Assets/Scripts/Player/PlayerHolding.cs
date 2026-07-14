@@ -15,17 +15,17 @@ public class PlayerHolding : MonoBehaviour
     [SerializeField] private bool canHoldItemInMouth = false;
 
     [Header("Current Held Items")]
-    [SerializeField] private ItemData leftHandItem;
-    [SerializeField] private ItemData rightHandItem;
-    [SerializeField] private ItemData twoHandedItem;
-    [SerializeField] private ItemData mouthItem;
+    [SerializeField] private ItemDefinition leftHandItem;
+    [SerializeField] private ItemDefinition rightHandItem;
+    [SerializeField] private ItemDefinition twoHandedItem;
+    [SerializeField] private ItemDefinition mouthItem;
 
     public bool CanHoldItemInMouth => canHoldItemInMouth;
 
-    public ItemData LeftHandItem => leftHandItem;
-    public ItemData RightHandItem => rightHandItem;
-    public ItemData TwoHandedItem => twoHandedItem;
-    public ItemData MouthItem => mouthItem;
+    public ItemDefinition LeftHandItem => leftHandItem;
+    public ItemDefinition RightHandItem => rightHandItem;
+    public ItemDefinition TwoHandedItem => twoHandedItem;
+    public ItemDefinition MouthItem => mouthItem;
 
     public bool IsHoldingTwoHanded => twoHandedItem != null;
 
@@ -85,7 +85,7 @@ public class PlayerHolding : MonoBehaviour
     }
 
     public bool TryHoldItem(
-        ItemData item,
+        ItemDefinition item,
         HoldingSlot holdingSlot)
     {
         if (item == null)
@@ -116,7 +116,7 @@ public class PlayerHolding : MonoBehaviour
         }
     }
 
-    public bool TryHoldInLeftHand(ItemData item)
+    public bool TryHoldInLeftHand(ItemDefinition item)
     {
         if (!CanHoldOneHandedItem(item))
             return false;
@@ -131,7 +131,7 @@ public class PlayerHolding : MonoBehaviour
         return true;
     }
 
-    public bool TryHoldInRightHand(ItemData item)
+    public bool TryHoldInRightHand(ItemDefinition item)
     {
         if (!CanHoldOneHandedItem(item))
             return false;
@@ -146,7 +146,7 @@ public class PlayerHolding : MonoBehaviour
         return true;
     }
 
-    public bool TryHoldTwoHanded(ItemData item)
+    public bool TryHoldTwoHanded(ItemDefinition item)
     {
         if (item == null)
             return false;
@@ -163,7 +163,7 @@ public class PlayerHolding : MonoBehaviour
         return true;
     }
 
-    public bool TryHoldInMouth(ItemData item)
+    public bool TryHoldInMouth(ItemDefinition item)
     {
         if (!canHoldItemInMouth)
         {
@@ -260,7 +260,7 @@ public class PlayerHolding : MonoBehaviour
             OnHoldingChanged?.Invoke();
     }
 
-    private bool CanHoldOneHandedItem(ItemData item)
+    private bool CanHoldOneHandedItem(ItemDefinition item)
     {
         if (item == null)
             return false;

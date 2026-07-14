@@ -46,7 +46,7 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
     private int lastHeldPreviewRotationSteps = -1;
     private bool playerHasBeenBound;
 
-    private ItemData dragOriginalItemData;
+    private ItemDefinition dragOriginalItemData;
     private Vector2Int dragOriginalPosition;
     private int dragOriginalRotationSteps;
     private int dragOriginalQuantity;
@@ -507,11 +507,11 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
                     playerInventory.HeldItem;
 
                 if (heldItem != null &&
-                    heldItem.ItemData != null)
+                    heldItem.ItemDefinition != null)
                 {
                     previewCanPlace =
                         grid.CanPlaceItem(
-                            heldItem.ItemData,
+                            heldItem.ItemDefinition,
                             previewOrigin.x,
                             previewOrigin.y,
                             heldItem.RotationSteps
@@ -589,9 +589,9 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
                     coordinate.y
                 );
 
-            ItemData item =
+            ItemDefinition item =
                 placedItem != null
-                    ? placedItem.ItemData
+                    ? placedItem.ItemDefinition
                     : null;
 
             cell.SetColor(
@@ -747,7 +747,7 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
 
         pendingStorageDragPickup =
             sourceItem != null &&
-            sourceItem.ItemData != null;
+            sourceItem.ItemDefinition != null;
     }
 
     private void OnCellPointerUp(Vector2Int coordinate)
@@ -841,19 +841,19 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
             );
 
         if (sourceItem == null ||
-            sourceItem.ItemData == null)
+            sourceItem.ItemDefinition == null)
         {
             return false;
         }
 
         activeStorageDragUI = this;
-        dragOriginalItemData = sourceItem.ItemData;
+        dragOriginalItemData = sourceItem.ItemDefinition;
         dragOriginalPosition = sourceItem.Position;
         dragOriginalRotationSteps = sourceItem.RotationSteps;
         dragOriginalQuantity = sourceItem.Quantity;
 
         playerInventory.SetMouseHeldItemFromExternal(
-            sourceItem.ItemData,
+            sourceItem.ItemDefinition,
             sourceItem.RotationSteps,
             false,
             sourceItem.Quantity
@@ -932,13 +932,13 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
             );
 
         if (pickedItem == null ||
-            pickedItem.ItemData == null)
+            pickedItem.ItemDefinition == null)
         {
             return;
         }
 
         playerInventory.SetMouseHeldItemFromExternal(
-            pickedItem.ItemData,
+            pickedItem.ItemDefinition,
             pickedItem.RotationSteps,
             true,
             pickedItem.Quantity
@@ -964,15 +964,15 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
             );
 
         if (sourceStack == null ||
-            sourceStack.ItemData == null)
+            sourceStack.ItemDefinition == null)
         {
             return;
         }
 
-        ItemData itemData =
-            sourceStack.ItemData;
+        ItemDefinition itemDefinition =
+            sourceStack.ItemDefinition;
 
-        if (!itemData.isStackable)
+        if (!itemDefinition.isStackable)
             return;
 
         int sourceQuantity =
@@ -993,7 +993,7 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
         sourceStack.SetQuantity(remainingQuantity);
 
         playerInventory.SetMouseHeldItemFromExternal(
-            itemData,
+            itemDefinition,
             sourceStack.RotationSteps,
             true,
             splitQuantity
@@ -1021,7 +1021,7 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
             playerInventory.HeldItem;
 
         if (heldItem == null ||
-            heldItem.ItemData == null)
+            heldItem.ItemDefinition == null)
         {
             return false;
         }
@@ -1033,7 +1033,7 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
 
         bool placed =
             storageContainer.PlaceItem(
-                heldItem.ItemData,
+                heldItem.ItemDefinition,
                 placementOrigin.x,
                 placementOrigin.y,
                 heldItem.RotationSteps,
@@ -1062,15 +1062,15 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
             playerInventory.HeldItem;
 
         if (heldItem == null ||
-            heldItem.ItemData == null)
+            heldItem.ItemDefinition == null)
         {
             return false;
         }
 
-        ItemData itemData =
-            heldItem.ItemData;
+        ItemDefinition itemDefinition =
+            heldItem.ItemDefinition;
 
-        if (!itemData.isStackable)
+        if (!itemDefinition.isStackable)
             return false;
 
         PlacedInventoryItem targetStack =
@@ -1081,10 +1081,10 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
 
         if (targetStack != null)
         {
-            if (targetStack.ItemData != itemData)
+            if (targetStack.ItemDefinition != itemDefinition)
                 return false;
 
-            if (!targetStack.ItemData.isStackable)
+            if (!targetStack.ItemDefinition.isStackable)
                 return false;
 
             if (!targetStack.HasRoomInStack)
@@ -1108,7 +1108,7 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
 
         bool placed =
             storageContainer.PlaceItem(
-                itemData,
+                itemDefinition,
                 placementOrigin.x,
                 placementOrigin.y,
                 heldItem.RotationSteps,
@@ -1167,8 +1167,8 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
             playerInventory.HeldItem;
 
         if (heldItem == null ||
-            heldItem.ItemData == null ||
-            !heldItem.ItemData.isStackable)
+            heldItem.ItemDefinition == null ||
+            !heldItem.ItemDefinition.isStackable)
         {
             return false;
         }
@@ -1180,12 +1180,12 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
             );
 
         if (targetStack == null ||
-            targetStack.ItemData == null)
+            targetStack.ItemDefinition == null)
         {
             return false;
         }
 
-        if (targetStack.ItemData != heldItem.ItemData)
+        if (targetStack.ItemDefinition != heldItem.ItemDefinition)
             return false;
 
         int addedQuantity =
@@ -1231,13 +1231,13 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
             );
 
         if (pickedItem == null ||
-            pickedItem.ItemData == null)
+            pickedItem.ItemDefinition == null)
         {
             return;
         }
 
         playerInventory.TryAddItemToFirstAvailableSpace(
-            pickedItem.ItemData,
+            pickedItem.ItemDefinition,
             pickedItem.RotationSteps,
             pickedItem.Quantity,
             out int remainingQuantity
@@ -1246,7 +1246,7 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
         if (remainingQuantity > 0)
         {
             storageContainer.PlaceItem(
-                pickedItem.ItemData,
+                pickedItem.ItemDefinition,
                 pickedItem.Position.x,
                 pickedItem.Position.y,
                 pickedItem.RotationSteps,
@@ -1702,7 +1702,7 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
                 outlinedItems.Add(placedItem);
 
                 DrawItemOutline(
-                    placedItem.ItemData,
+                    placedItem.ItemDefinition,
                     placedItem.Position,
                     placedItem.RotationSteps,
                     itemOutlineColor
@@ -1727,7 +1727,7 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
             : null;
 
         if (heldItem != null &&
-            heldItem.ItemData != null &&
+            heldItem.ItemDefinition != null &&
             Mouse.current != null &&
             TryGetGridCoordinateFromScreenPoint(
                 Mouse.current.position.ReadValue(),
@@ -1737,7 +1737,7 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
                 GetHeldPlacementOrigin(previewCoordinate);
 
             DrawItemOutline(
-                heldItem.ItemData,
+                heldItem.ItemDefinition,
                 previewOrigin,
                 heldItem.RotationSteps,
                 itemOutlineColor
@@ -1746,38 +1746,38 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
     }
 
     private void DrawItemOutline(
-        ItemData itemData,
+        ItemDefinition itemDefinition,
         Vector2Int origin,
         int rotationSteps,
         Color color)
     {
-        if (itemData == null)
+        if (itemDefinition == null)
             return;
 
         int width =
-            itemData.GetWidth(rotationSteps);
+            itemDefinition.GetWidth(rotationSteps);
 
         int height =
-            itemData.GetHeight(rotationSteps);
+            itemDefinition.GetHeight(rotationSteps);
 
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
             {
-                if (!itemData.IsCellOccupied(x, y, rotationSteps))
+                if (!itemDefinition.IsCellOccupied(x, y, rotationSteps))
                     continue;
 
                 bool topOpen =
-                    !InventoryShapeUtility.IsOccupiedInShape(itemData, x, y + 1, rotationSteps);
+                    !InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x, y + 1, rotationSteps);
 
                 bool bottomOpen =
-                    !InventoryShapeUtility.IsOccupiedInShape(itemData, x, y - 1, rotationSteps);
+                    !InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x, y - 1, rotationSteps);
 
                 bool leftOpen =
-                    !InventoryShapeUtility.IsOccupiedInShape(itemData, x - 1, y, rotationSteps);
+                    !InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x - 1, y, rotationSteps);
 
                 bool rightOpen =
-                    !InventoryShapeUtility.IsOccupiedInShape(itemData, x + 1, y, rotationSteps);
+                    !InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x + 1, y, rotationSteps);
 
                 if (topOpen)
                     DrawOutlineEdge(origin.x + x, origin.y + y, InventoryOutlineSide.Top, color);
@@ -1794,35 +1794,35 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
                 if (fillPaddingBetweenCells)
                 {
                     bool rightFilled =
-                        InventoryShapeUtility.IsOccupiedInShape(itemData, x + 1, y, rotationSteps);
+                        InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x + 1, y, rotationSteps);
 
                     bool downFilled =
-                        InventoryShapeUtility.IsOccupiedInShape(itemData, x, y - 1, rotationSteps);
+                        InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x, y - 1, rotationSteps);
 
                     if (topOpen &&
                         rightFilled &&
-                        !InventoryShapeUtility.IsOccupiedInShape(itemData, x + 1, y + 1, rotationSteps))
+                        !InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x + 1, y + 1, rotationSteps))
                     {
                         DrawBridge(origin.x + x, origin.y + y, InventoryOutlineSide.Top, color);
                     }
 
                     if (bottomOpen &&
                         rightFilled &&
-                        !InventoryShapeUtility.IsOccupiedInShape(itemData, x + 1, y - 1, rotationSteps))
+                        !InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x + 1, y - 1, rotationSteps))
                     {
                         DrawBridge(origin.x + x, origin.y + y, InventoryOutlineSide.Bottom, color);
                     }
 
                     if (leftOpen &&
                         downFilled &&
-                        !InventoryShapeUtility.IsOccupiedInShape(itemData, x - 1, y - 1, rotationSteps))
+                        !InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x - 1, y - 1, rotationSteps))
                     {
                         DrawBridge(origin.x + x, origin.y + y, InventoryOutlineSide.Left, color);
                     }
 
                     if (rightOpen &&
                         downFilled &&
-                        !InventoryShapeUtility.IsOccupiedInShape(itemData, x + 1, y - 1, rotationSteps))
+                        !InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x + 1, y - 1, rotationSteps))
                     {
                         DrawBridge(origin.x + x, origin.y + y, InventoryOutlineSide.Right, color);
                     }
@@ -1845,7 +1845,7 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
         if (fillPaddingBetweenCells)
         {
             DrawInnerCorners(
-                itemData,
+                itemDefinition,
                 origin,
                 rotationSteps,
                 color
@@ -2147,38 +2147,38 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
     }
 
     private void DrawInnerCorners(
-        ItemData itemData,
+        ItemDefinition itemDefinition,
         Vector2Int origin,
         int rotationSteps,
         Color color)
     {
-        if (itemData == null)
+        if (itemDefinition == null)
             return;
 
         int width =
-            itemData.GetWidth(rotationSteps);
+            itemDefinition.GetWidth(rotationSteps);
 
         int height =
-            itemData.GetHeight(rotationSteps);
+            itemDefinition.GetHeight(rotationSteps);
 
         for (int y = 0; y < height; y++)
         {
             for (int x = 0; x < width; x++)
             {
-                if (InventoryShapeUtility.IsOccupiedInShape(itemData, x, y, rotationSteps))
+                if (InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x, y, rotationSteps))
                     continue;
 
                 bool leftFilled =
-                    InventoryShapeUtility.IsOccupiedInShape(itemData, x - 1, y, rotationSteps);
+                    InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x - 1, y, rotationSteps);
 
                 bool rightFilled =
-                    InventoryShapeUtility.IsOccupiedInShape(itemData, x + 1, y, rotationSteps);
+                    InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x + 1, y, rotationSteps);
 
                 bool upFilled =
-                    InventoryShapeUtility.IsOccupiedInShape(itemData, x, y + 1, rotationSteps);
+                    InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x, y + 1, rotationSteps);
 
                 bool downFilled =
-                    InventoryShapeUtility.IsOccupiedInShape(itemData, x, y - 1, rotationSteps);
+                    InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x, y - 1, rotationSteps);
 
                 if (rightFilled && downFilled)
                 {

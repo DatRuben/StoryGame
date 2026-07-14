@@ -3,19 +3,19 @@ using UnityEngine;
 public static class InventoryShapeUtility
 {
     public static bool IsOccupiedInShape(
-        ItemData itemData,
+        ItemDefinition itemDefinition,
         int x,
         int y,
         int rotationSteps)
     {
-        if (itemData == null)
+        if (itemDefinition == null)
             return false;
 
         int width =
-            itemData.GetWidth(rotationSteps);
+            itemDefinition.GetWidth(rotationSteps);
 
         int height =
-            itemData.GetHeight(rotationSteps);
+            itemDefinition.GetHeight(rotationSteps);
 
         if (x < 0 ||
             y < 0 ||
@@ -25,7 +25,7 @@ public static class InventoryShapeUtility
             return false;
         }
 
-        return itemData.IsCellOccupied(
+        return itemDefinition.IsCellOccupied(
             x,
             y,
             rotationSteps

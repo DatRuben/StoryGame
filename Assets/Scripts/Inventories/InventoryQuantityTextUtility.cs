@@ -7,12 +7,12 @@ public static class InventoryQuantityTextUtility
         Vector2Int coordinate)
     {
         if (placedItem == null ||
-            placedItem.ItemData == null)
+            placedItem.ItemDefinition == null)
         {
             return "";
         }
 
-        if (!placedItem.ItemData.isStackable)
+        if (!placedItem.ItemDefinition.isStackable)
             return "";
 
         if (placedItem.Quantity <= 1)

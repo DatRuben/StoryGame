@@ -116,7 +116,7 @@ public class WeaponSetSlotUI : MonoBehaviour
     private void TryEquipHeldItemToSlot()
     {
         if (playerInventory.HeldItem == null ||
-            playerInventory.HeldItem.ItemData == null)
+            playerInventory.HeldItem.ItemDefinition == null)
         {
             return;
         }
@@ -124,13 +124,13 @@ public class WeaponSetSlotUI : MonoBehaviour
         WeaponEquipPoint equipPoint =
             GetEquipPoint();
 
-        ItemData heldItem =
-            playerInventory.HeldItem.ItemData;
+        ItemDefinition heldItem =
+            playerInventory.HeldItem.ItemDefinition;
 
         int heldRotationSteps =
             playerInventory.HeldItemRotationSteps;
 
-        ItemData oldWeapon =
+        ItemDefinition oldWeapon =
             playerWeaponSlots.RemoveWeaponFromSetSlot(
                 weaponSetIndex,
                 equipPoint
@@ -178,7 +178,7 @@ public class WeaponSetSlotUI : MonoBehaviour
         WeaponEquipPoint equipPoint =
             GetEquipPoint();
 
-        ItemData removedWeapon =
+        ItemDefinition removedWeapon =
             playerWeaponSlots.RemoveWeaponFromSetSlot(
                 weaponSetIndex,
                 equipPoint
@@ -211,7 +211,7 @@ public class WeaponSetSlotUI : MonoBehaviour
         WeaponEquipPoint equipPoint =
             GetEquipPoint();
 
-        ItemData slotWeapon =
+        ItemDefinition slotWeapon =
             playerWeaponSlots.GetWeaponInSetSlot(
                 weaponSetIndex,
                 equipPoint
@@ -259,17 +259,17 @@ public class WeaponSetSlotUI : MonoBehaviour
         SetSlot(text, color);
     }
 
-    private void RefreshWhileHoldingItem(ItemData slotWeapon)
+    private void RefreshWhileHoldingItem(ItemDefinition slotWeapon)
     {
         if (playerInventory == null ||
             playerInventory.HeldItem == null ||
-            playerInventory.HeldItem.ItemData == null)
+            playerInventory.HeldItem.ItemDefinition == null)
         {
             return;
         }
 
-        ItemData heldItem =
-            playerInventory.HeldItem.ItemData;
+        ItemDefinition heldItem =
+            playerInventory.HeldItem.ItemDefinition;
 
         bool canEquip =
             CanHeldItemEquipHere(heldItem);
@@ -321,7 +321,7 @@ public class WeaponSetSlotUI : MonoBehaviour
         SetSlot(text, reservedColor);
     }
 
-    private bool CanHeldItemEquipHere(ItemData item)
+    private bool CanHeldItemEquipHere(ItemDefinition item)
     {
         if (item == null)
             return false;

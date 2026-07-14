@@ -37,8 +37,8 @@ public enum WeaponUseType
     MouthWeapon
 }
 
-[CreateAssetMenu(menuName = "Game/Item Data")]
-public class ItemData : ScriptableObject
+[CreateAssetMenu(menuName = "Game/Item Definition")]
+public class ItemDefinition : ScriptableObject
 {
     [Header("Identity")]
     public string itemName;
@@ -291,12 +291,12 @@ public class ItemData : ScriptableObject
 }
 
 #if UNITY_EDITOR
-[CustomEditor(typeof(ItemData))]
-public class ItemDataEditor : Editor
+[CustomEditor(typeof(ItemDefinition))]
+public class ItemDefinitionEditor : Editor
 {
     public override void OnInspectorGUI()
     {
-        ItemData item = (ItemData)target;
+        ItemDefinition item = (ItemDefinition)target;
 
         EditorGUI.BeginChangeCheck();
 
@@ -315,7 +315,7 @@ public class ItemDataEditor : Editor
         }
     }
 
-    private void DrawIdentitySection(ItemData item)
+    private void DrawIdentitySection(ItemDefinition item)
     {
         EditorGUILayout.LabelField(
             "Identity",
@@ -331,7 +331,7 @@ public class ItemDataEditor : Editor
         EditorGUILayout.Space();
     }
 
-    private void DrawItemTypeSection(ItemData item)
+    private void DrawItemTypeSection(ItemDefinition item)
     {
         EditorGUILayout.LabelField(
             "Item Type",
@@ -347,7 +347,7 @@ public class ItemDataEditor : Editor
         EditorGUILayout.Space();
     }
 
-    private void DrawHeldSection(ItemData item)
+    private void DrawHeldSection(ItemDefinition item)
     {
         EditorGUILayout.LabelField(
             "Held UI",
@@ -387,7 +387,7 @@ public class ItemDataEditor : Editor
         EditorGUILayout.Space();
     }
 
-    private void DrawWeaponUseSection(ItemData item)
+    private void DrawWeaponUseSection(ItemDefinition item)
     {
         if (item.itemCategory != ItemCategory.Weapon)
         {
@@ -409,7 +409,7 @@ public class ItemDataEditor : Editor
         EditorGUILayout.Space();
     }
 
-    private void DrawCarryRequirementsSection(ItemData item)
+    private void DrawCarryRequirementsSection(ItemDefinition item)
     {
         EditorGUILayout.LabelField(
             "Future Carry Requirements",
@@ -437,7 +437,7 @@ public class ItemDataEditor : Editor
         EditorGUILayout.Space();
     }
 
-    private void DrawStackingSection(ItemData item)
+    private void DrawStackingSection(ItemDefinition item)
     {
         EditorGUILayout.LabelField(
             "Stacking",
@@ -469,7 +469,7 @@ public class ItemDataEditor : Editor
         EditorGUILayout.Space();
     }
 
-    private void DrawSaddleEquipmentSection(ItemData item)
+    private void DrawSaddleEquipmentSection(ItemDefinition item)
     {
         if (item.itemCategory != ItemCategory.Equipment)
         {
@@ -529,7 +529,7 @@ public class ItemDataEditor : Editor
         EditorGUILayout.Space();
     }
 
-    private void DrawInventoryShapeSection(ItemData item)
+    private void DrawInventoryShapeSection(ItemDefinition item)
     {
         EditorGUILayout.LabelField(
             "Inventory Shape",
@@ -609,7 +609,7 @@ public class ItemDataEditor : Editor
         }
     }
 
-    private void DrawShapeGrid(ItemData item)
+    private void DrawShapeGrid(ItemDefinition item)
     {
         EnsureOccupiedCells(item);
 
@@ -652,7 +652,7 @@ public class ItemDataEditor : Editor
         }
     }
 
-    private void ResizeOccupiedCells(ItemData item)
+    private void ResizeOccupiedCells(ItemDefinition item)
     {
         int requiredSize =
             Mathf.Max(
@@ -681,7 +681,7 @@ public class ItemDataEditor : Editor
         item.occupiedCells = newCells;
     }
 
-    private void EnsureOccupiedCells(ItemData item)
+    private void EnsureOccupiedCells(ItemDefinition item)
     {
         int requiredSize =
             Mathf.Max(

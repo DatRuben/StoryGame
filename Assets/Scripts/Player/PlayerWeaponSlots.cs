@@ -25,23 +25,23 @@ public class WeaponSet
     [SerializeField] private WeaponSetMode mode = WeaponSetMode.Empty;
 
     [Header("One-Handed Pair")]
-    [SerializeField] private ItemData leftHandWeapon;
-    [SerializeField] private ItemData rightHandWeapon;
+    [SerializeField] private ItemDefinition leftHandWeapon;
+    [SerializeField] private ItemDefinition rightHandWeapon;
 
     [Header("Single Weapon Modes")]
-    [SerializeField] private ItemData twoHandedWeapon;
-    [SerializeField] private ItemData mouthWeapon;
+    [SerializeField] private ItemDefinition twoHandedWeapon;
+    [SerializeField] private ItemDefinition mouthWeapon;
 
     [Header("Saddle Turret Reservation")]
-    [SerializeField] private ItemData saddleSourceEquipment;
+    [SerializeField] private ItemDefinition saddleSourceEquipment;
 
     public WeaponSetMode Mode => mode;
 
-    public ItemData LeftHandWeapon => leftHandWeapon;
-    public ItemData RightHandWeapon => rightHandWeapon;
-    public ItemData TwoHandedWeapon => twoHandedWeapon;
-    public ItemData MouthWeapon => mouthWeapon;
-    public ItemData SaddleSourceEquipment => saddleSourceEquipment;
+    public ItemDefinition LeftHandWeapon => leftHandWeapon;
+    public ItemDefinition RightHandWeapon => rightHandWeapon;
+    public ItemDefinition TwoHandedWeapon => twoHandedWeapon;
+    public ItemDefinition MouthWeapon => mouthWeapon;
+    public ItemDefinition SaddleSourceEquipment => saddleSourceEquipment;
 
     public bool HasAnyWeaponOrReservation =>
         leftHandWeapon != null ||
@@ -55,7 +55,7 @@ public class WeaponSet
         saddleSourceEquipment != null;
 
     public bool TryEquipWeapon(
-        ItemData weapon,
+        ItemDefinition weapon,
         WeaponEquipPoint equipPoint,
         bool canUseMouthWeapons)
     {
@@ -91,7 +91,7 @@ public class WeaponSet
     }
 
     private bool TryEquipOneHandedWeapon(
-        ItemData weapon,
+        ItemDefinition weapon,
         bool leftHand)
     {
         if (!IsValidOneHandedHandWeapon(weapon))
@@ -122,7 +122,7 @@ public class WeaponSet
         return true;
     }
 
-    private bool TryEquipTwoHandedWeapon(ItemData weapon)
+    private bool TryEquipTwoHandedWeapon(ItemDefinition weapon)
     {
         if (!IsValidTwoHandedHandWeapon(weapon))
             return false;
@@ -138,7 +138,7 @@ public class WeaponSet
         return true;
     }
 
-    private bool TryEquipMouthWeapon(ItemData weapon)
+    private bool TryEquipMouthWeapon(ItemDefinition weapon)
     {
         if (!IsValidMouthWeapon(weapon))
             return false;
@@ -154,7 +154,7 @@ public class WeaponSet
         return true;
     }
 
-    public bool TryReserveForManualSaddleTurret(ItemData saddleEquipment)
+    public bool TryReserveForManualSaddleTurret(ItemDefinition saddleEquipment)
     {
         if (saddleEquipment == null)
             return false;
@@ -176,7 +176,7 @@ public class WeaponSet
         return true;
     }
 
-    public bool ClearManualSaddleTurretReservation(ItemData saddleEquipment)
+    public bool ClearManualSaddleTurretReservation(ItemDefinition saddleEquipment)
     {
         if (mode != WeaponSetMode.ManualSaddleTurret)
             return false;
@@ -188,7 +188,7 @@ public class WeaponSet
         return true;
     }
 
-    public ItemData GetWeaponInSlot(WeaponEquipPoint equipPoint)
+    public ItemDefinition GetWeaponInSlot(WeaponEquipPoint equipPoint)
     {
         switch (equipPoint)
         {
@@ -221,9 +221,9 @@ public class WeaponSet
         }
     }
 
-    public ItemData RemoveWeaponInSlot(WeaponEquipPoint equipPoint)
+    public ItemDefinition RemoveWeaponInSlot(WeaponEquipPoint equipPoint)
     {
-        ItemData removedWeapon = null;
+        ItemDefinition removedWeapon = null;
 
         switch (equipPoint)
         {
@@ -389,27 +389,27 @@ public class WeaponSet
         saddleSourceEquipment = null;
     }
 
-    private bool IsWeapon(ItemData item)
+    private bool IsWeapon(ItemDefinition item)
     {
         return item != null &&
                item.itemCategory == ItemCategory.Weapon;
     }
 
-    private bool IsValidOneHandedHandWeapon(ItemData item)
+    private bool IsValidOneHandedHandWeapon(ItemDefinition item)
     {
         return IsWeapon(item) &&
                item.weaponUseType == WeaponUseType.HandWeapon &&
                item.handUsage == ItemHandUsage.OneHanded;
     }
 
-    private bool IsValidTwoHandedHandWeapon(ItemData item)
+    private bool IsValidTwoHandedHandWeapon(ItemDefinition item)
     {
         return IsWeapon(item) &&
                item.weaponUseType == WeaponUseType.HandWeapon &&
                item.handUsage == ItemHandUsage.TwoHanded;
     }
 
-    private bool IsValidMouthWeapon(ItemData item)
+    private bool IsValidMouthWeapon(ItemDefinition item)
     {
         return IsWeapon(item) &&
                item.weaponUseType == WeaponUseType.MouthWeapon;
@@ -486,7 +486,7 @@ public class PlayerWeaponSlots : MonoBehaviour
         OnWeaponSlotsChanged?.Invoke();
     }
 
-    public bool ActiveSetCanCoexistWithHeldItem(ItemData item)
+    public bool ActiveSetCanCoexistWithHeldItem(ItemDefinition item)
     {
         if (item == null)
             return true;
@@ -543,7 +543,7 @@ public class PlayerWeaponSlots : MonoBehaviour
     }
 
     public bool TryEquipWeaponToActiveSet(
-        ItemData weapon,
+        ItemDefinition weapon,
         WeaponEquipPoint equipPoint)
     {
         return TryEquipWeaponToSet(
@@ -555,7 +555,7 @@ public class PlayerWeaponSlots : MonoBehaviour
 
     public bool TryEquipWeaponToSet(
         int setIndex,
-        ItemData weapon,
+        ItemDefinition weapon,
         WeaponEquipPoint equipPoint)
     {
         WeaponSet set =
@@ -585,7 +585,7 @@ public class PlayerWeaponSlots : MonoBehaviour
         return true;
     }
 
-    public ItemData GetWeaponInSetSlot(
+    public ItemDefinition GetWeaponInSetSlot(
         int setIndex,
         WeaponEquipPoint equipPoint)
     {
@@ -598,7 +598,7 @@ public class PlayerWeaponSlots : MonoBehaviour
         return set.GetWeaponInSlot(equipPoint);
     }
 
-    public ItemData RemoveWeaponFromSetSlot(
+    public ItemDefinition RemoveWeaponFromSetSlot(
         int setIndex,
         WeaponEquipPoint equipPoint)
     {
@@ -614,7 +614,7 @@ public class PlayerWeaponSlots : MonoBehaviour
             SheatheWeapons();
         }
 
-        ItemData removedWeapon =
+        ItemDefinition removedWeapon =
             set.RemoveWeaponInSlot(equipPoint);
 
         if (removedWeapon == null)
@@ -633,7 +633,7 @@ public class PlayerWeaponSlots : MonoBehaviour
 
     public bool TryReserveSetForManualSaddleTurret(
         int setIndex,
-        ItemData saddleEquipment)
+        ItemDefinition saddleEquipment)
     {
         WeaponSet set =
             GetWeaponSet(setIndex);
@@ -661,7 +661,7 @@ public class PlayerWeaponSlots : MonoBehaviour
     }
 
     public void ClearManualSaddleTurretReservation(
-        ItemData saddleEquipment)
+        ItemDefinition saddleEquipment)
     {
         bool changed = false;
 
@@ -720,8 +720,8 @@ public class PlayerWeaponSlots : MonoBehaviour
             if (!playerInventory.MouseHeldItemCountsAsHeld)
                 return false;
 
-            ItemData heldItem =
-                playerInventory.HeldItem.ItemData;
+            ItemDefinition heldItem =
+                playerInventory.HeldItem.ItemDefinition;
 
             bool canKeepHeldItem =
                 ActiveSetCanCoexistWithHeldItem(heldItem);
@@ -771,7 +771,7 @@ public class PlayerWeaponSlots : MonoBehaviour
             : weaponSet1;
     }
 
-    public ItemData GetDrawnLeftHandWeapon()
+    public ItemDefinition GetDrawnLeftHandWeapon()
     {
         if (!weaponsDrawn ||
             ActiveWeaponSet == null ||
@@ -783,7 +783,7 @@ public class PlayerWeaponSlots : MonoBehaviour
         return ActiveWeaponSet.LeftHandWeapon;
     }
 
-    public ItemData GetDrawnRightHandWeapon()
+    public ItemDefinition GetDrawnRightHandWeapon()
     {
         if (!weaponsDrawn ||
             ActiveWeaponSet == null ||
@@ -795,7 +795,7 @@ public class PlayerWeaponSlots : MonoBehaviour
         return ActiveWeaponSet.RightHandWeapon;
     }
 
-    public ItemData GetDrawnTwoHandedWeapon()
+    public ItemDefinition GetDrawnTwoHandedWeapon()
     {
         if (!weaponsDrawn ||
             ActiveWeaponSet == null ||
@@ -807,7 +807,7 @@ public class PlayerWeaponSlots : MonoBehaviour
         return ActiveWeaponSet.TwoHandedWeapon;
     }
 
-    public ItemData GetDrawnMouthWeapon()
+    public ItemDefinition GetDrawnMouthWeapon()
     {
         if (!weaponsDrawn ||
             ActiveWeaponSet == null ||
@@ -819,7 +819,7 @@ public class PlayerWeaponSlots : MonoBehaviour
         return ActiveWeaponSet.MouthWeapon;
     }
 
-    public ItemData GetDrawnManualSaddleTurretSource()
+    public ItemDefinition GetDrawnManualSaddleTurretSource()
     {
         if (!weaponsDrawn ||
             ActiveWeaponSet == null ||

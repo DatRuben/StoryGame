@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class PlacedInventoryItem
 {
-    public ItemData ItemData { get; private set; }
+    public ItemDefinition ItemDefinition { get; private set; }
     public Vector2Int Position { get; private set; }
 
     // 0 = 0°
@@ -18,8 +18,8 @@ public class PlacedInventoryItem
     {
         get
         {
-            return ItemData != null &&
-                   ItemData.isStackable;
+            return ItemDefinition != null &&
+                   ItemDefinition.isStackable;
         }
     }
 
@@ -27,10 +27,10 @@ public class PlacedInventoryItem
     {
         get
         {
-            if (ItemData == null)
+            if (ItemDefinition == null)
                 return 1;
 
-            return Mathf.Max(1, ItemData.maxStackSize);
+            return Mathf.Max(1, ItemDefinition.maxStackSize);
         }
     }
 
@@ -44,12 +44,12 @@ public class PlacedInventoryItem
     }
 
     public PlacedInventoryItem(
-        ItemData itemData,
+        ItemDefinition itemDefinition,
         Vector2Int position,
         int rotationSteps,
         int quantity = 1)
     {
-        ItemData = itemData;
+        ItemDefinition = itemDefinition;
         Position = position;
 
         RotationSteps =
@@ -62,10 +62,10 @@ public class PlacedInventoryItem
     {
         get
         {
-            if (ItemData == null)
+            if (ItemDefinition == null)
                 return 1;
 
-            return ItemData.GetWidth(RotationSteps);
+            return ItemDefinition.GetWidth(RotationSteps);
         }
     }
 
@@ -73,10 +73,10 @@ public class PlacedInventoryItem
     {
         get
         {
-            if (ItemData == null)
+            if (ItemDefinition == null)
                 return 1;
 
-            return ItemData.GetHeight(RotationSteps);
+            return ItemDefinition.GetHeight(RotationSteps);
         }
     }
 
@@ -153,11 +153,11 @@ public class PlacedInventoryItem
         List<Vector2Int> occupiedCells =
             new List<Vector2Int>();
 
-        if (ItemData == null)
+        if (ItemDefinition == null)
             return occupiedCells;
 
         IReadOnlyList<Vector2Int> rotatedCells =
-            ItemData.GetOccupiedCells(
+            ItemDefinition.GetOccupiedCells(
                 RotationSteps
             );
 
@@ -175,11 +175,11 @@ public class PlacedInventoryItem
         Vector2Int cellCoordinate,
         Vector2Int origin)
     {
-        if (ItemData == null)
+        if (ItemDefinition == null)
             return false;
 
         IReadOnlyList<Vector2Int> rotatedCells =
-            ItemData.GetOccupiedCells(
+            ItemDefinition.GetOccupiedCells(
                 RotationSteps
             );
 
