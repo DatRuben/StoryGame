@@ -17,6 +17,8 @@ public class CharacterProfileData
     public string raceId;
     public string subraceId;
     public List<string> lineageIds = new();
+    public string backgroundId;
+    public List<string> traitIds = new();
 
     public CharacterAppearanceData appearance =
         CharacterAppearanceData.CreateDefault();
@@ -47,6 +49,8 @@ public class CharacterProfileData
         string raceId,
         string subraceId,
         List<string> lineageIds = null,
+        string backgroundId = "",
+        List<string> traitIds = null,
         CharacterAppearanceData appearance = null,
         CharacterAttributes createdAttributes = null,
         CharacterBaseStats createdBaseStats = null)
@@ -62,6 +66,13 @@ public class CharacterProfileData
             subraceId = subraceId,
             lineageIds = lineageIds != null
                 ? new List<string>(lineageIds)
+                : new List<string>(),
+            backgroundId =
+                string.IsNullOrWhiteSpace(backgroundId)
+                    ? ""
+                    : backgroundId,
+            traitIds = traitIds != null
+                ? new List<string>(traitIds)
                 : new List<string>(),
             appearance = CharacterAppearanceData.Copy(appearance),
             createdAttributes =

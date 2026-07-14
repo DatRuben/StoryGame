@@ -142,6 +142,8 @@ public class PlayerSpawner : MonoBehaviour
                 defaultRaceDefinition,
                 defaultRaceDefinition.standardSubrace,
                 new List<string>(),
+                "",
+                new List<string>(),
                 CharacterAppearanceData.CreateDefault(),
                 CharacterAttributes.Copy(resolvedStats.finalAttributes),
                 CharacterBaseStats.Copy(resolvedStats.totalBaseStats)

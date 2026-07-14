@@ -9,6 +9,8 @@ public class CharacterCreator : MonoBehaviour
     [SerializeField] private string selectedRaceId;
     [SerializeField] private string selectedSubraceId;
     [SerializeField] private List<string> selectedLineageIds = new();
+    [SerializeField] private string selectedBackgroundId;
+    [SerializeField] private List<string> selectedTraitIds = new();
     [SerializeField] private CharacterGender selectedGender = CharacterGender.Male;
     [SerializeField] private string selectedCharacterName = "";
     [SerializeField] private CharacterAppearanceData selectedAppearance = CharacterAppearanceData.CreateDefault();
@@ -20,6 +22,8 @@ public class CharacterCreator : MonoBehaviour
     public string SelectedCharacterName => selectedCharacterName;
     public event System.Action SelectionChanged;
     public CharacterAppearanceData SelectedAppearance => CharacterAppearanceData.Copy(selectedAppearance);
+    public string SelectedBackgroundId => selectedBackgroundId;
+    public IReadOnlyList<string> SelectedTraitIds => selectedTraitIds;
 
     public void SelectGender(
         CharacterGender gender)
@@ -441,6 +445,32 @@ public class CharacterCreator : MonoBehaviour
         );
     }
 
+    private BackgroundDefinition GetSelectedBackgroundDefinition()
+    {
+        if (characterDataLibrary == null)
+            return null;
+
+        if (string.IsNullOrWhiteSpace(selectedBackgroundId))
+            return null;
+
+        characterDataLibrary.TryGetBackgroundDefinition(
+            selectedBackgroundId,
+            out BackgroundDefinition backgroundDefinition
+        );
+
+        return backgroundDefinition;
+    }
+
+    private List<TraitDefinition> GetSelectedTraitDefinitions()
+    {
+        if (characterDataLibrary == null)
+            return new List<TraitDefinition>();
+
+        return characterDataLibrary.GetTraitDefinitions(
+            selectedTraitIds
+        );
+    }
+
     private bool AreSelectedLineagesValid(
         RaceDefinition raceDefinition,
         SubraceDefinition subraceDefinition,
@@ -597,11 +627,13 @@ public class CharacterCreator : MonoBehaviour
         }
 
         resolvedStats =
-            CharacterStatsResolver.ResolveCharacter(
-                raceDefinition,
-                subraceDefinition,
-                GetSelectedLineageDefinitions()
-            );
+                CharacterStatsResolver.ResolveCharacter(
+                    raceDefinition,
+                    subraceDefinition,
+                    GetSelectedLineageDefinitions(),
+                    GetSelectedBackgroundDefinition(),
+                    GetSelectedTraitDefinitions()
+                );
 
         return true;
     }

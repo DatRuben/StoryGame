@@ -357,6 +357,22 @@ public static class CharacterStatsResolver
         SubraceDefinition subrace,
         List<LineageDefinition> lineages)
     {
+        return ResolveCharacter(
+            race,
+            subrace,
+            lineages,
+            null,
+            null
+        );
+    }
+
+    public static ResolvedCharacterStats ResolveCharacter(
+        RaceDefinition race,
+        SubraceDefinition subrace,
+        List<LineageDefinition> lineages,
+        BackgroundDefinition background,
+        List<TraitDefinition> traits)
+    {
         if (lineages == null)
             lineages = new List<LineageDefinition>();
 
@@ -364,7 +380,9 @@ public static class CharacterStatsResolver
             CharacterAttributeResolver.CreatePreview(
                 race,
                 subrace,
-                lineages
+                lineages,
+                background,
+                traits
             );
 
         CharacterAttributes finalAttributes =
@@ -413,23 +431,6 @@ public static class CharacterStatsResolver
             finalStats = finalStats,
             movementStats = movementStats
         };
-    }
-
-    public static ResolvedCharacterStats ResolveCharacter(
-        RaceDefinition race,
-        SubraceDefinition subrace,
-        LineageDefinition[] lineages)
-    {
-        List<LineageDefinition> lineageList =
-            lineages != null
-                ? new List<LineageDefinition>(lineages)
-                : new List<LineageDefinition>();
-
-        return ResolveCharacter(
-            race,
-            subrace,
-            lineageList
-        );
     }
 
     private static DodgeType ResolveDodgeType(

@@ -10,6 +10,22 @@ public static class CharacterAttributeResolver
         SubraceDefinition subraceDefinition,
         List<LineageDefinition> lineages)
     {
+        return CreatePreview(
+            raceDefinition,
+            subraceDefinition,
+            lineages,
+            null,
+            null
+        );
+    }
+
+    public static CharacterAttributePreview CreatePreview(
+        RaceDefinition raceDefinition,
+        SubraceDefinition subraceDefinition,
+        List<LineageDefinition> lineages,
+        BackgroundDefinition backgroundDefinition,
+        List<TraitDefinition> traitDefinitions)
+    {
         CharacterAttributes ancestryAttributes =
             CalculateAncestryAttributes(
                 raceDefinition,
@@ -18,10 +34,10 @@ public static class CharacterAttributeResolver
             );
 
         CharacterAttributeModifiers backgroundModifiers =
-            CharacterAttributeModifiers.CreateZero();
+            GetBackgroundModifiers(backgroundDefinition);
 
         CharacterAttributeModifiers traitModifiers =
-            CharacterAttributeModifiers.CreateZero();
+            GetTraitModifiers(traitDefinitions);
 
         CharacterAttributeModifiers racialPassiveModifiers =
             CharacterAttributeModifiers.CreateZero();
@@ -32,6 +48,41 @@ public static class CharacterAttributeResolver
             traitModifiers,
             racialPassiveModifiers
         );
+    }
+
+    private static CharacterAttributeModifiers GetBackgroundModifiers(
+    BackgroundDefinition backgroundDefinition)
+    {
+        if (backgroundDefinition == null)
+            return CharacterAttributeModifiers.CreateZero();
+
+        return CharacterAttributeModifiers.Copy(
+            backgroundDefinition.modifiers
+        );
+    }
+
+    private static CharacterAttributeModifiers GetTraitModifiers(
+        List<TraitDefinition> traitDefinitions)
+    {
+        CharacterAttributeModifiers totalModifiers =
+            CharacterAttributeModifiers.CreateZero();
+
+        if (traitDefinitions == null)
+            return totalModifiers;
+
+        foreach (TraitDefinition traitDefinition in traitDefinitions)
+        {
+            if (traitDefinition == null)
+                continue;
+
+            totalModifiers =
+                CharacterAttributeModifiers.Add(
+                    totalModifiers,
+                    traitDefinition.modifiers
+                );
+        }
+
+        return totalModifiers;
     }
 
     private static CharacterAttributes CalculateAncestryAttributes(

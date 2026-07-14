@@ -23,21 +23,25 @@ public static class CharacterSelection
         RaceDefinition raceDefinition,
         SubraceDefinition subraceDefinition,
         List<string> lineageIds,
+        string backgroundId,
+        List<string> traitIds,
         CharacterAppearanceData appearance,
         CharacterAttributes createdAttributes,
         CharacterBaseStats createdBaseStats)
     {
         CharacterProfileData profile =
-            CharacterProfileData.CreateNew(
-                characterName,
-                gender,
-                raceDefinition.raceId,
-                subraceDefinition.subraceId,
-                lineageIds,
-                appearance,
-                createdAttributes,
-                createdBaseStats
-            );
+                CharacterProfileData.CreateNew(
+                    characterName,
+                    gender,
+                    raceDefinition.raceId,
+                    subraceDefinition.subraceId,
+                    lineageIds,
+                    backgroundId,
+                    traitIds,
+                    appearance,
+                    createdAttributes,
+                    createdBaseStats
+                );
 
         CharacterSaveSystem.SaveProfile(profile);
         SelectProfile(profile.profileId);
@@ -51,6 +55,8 @@ public static class CharacterSelection
         RaceDefinition raceDefinition,
         SubraceDefinition subraceDefinition,
         List<LineageDefinition> lineageDefinitions,
+        BackgroundDefinition backgroundDefinition,
+        List<TraitDefinition> traitDefinitions,
         CharacterAppearanceData appearance,
         CharacterAttributes createdAttributes,
         CharacterBaseStats createdBaseStats,
@@ -106,6 +112,14 @@ public static class CharacterSelection
             }
         }
 
+        string backgroundId =
+                backgroundDefinition != null
+                    ? backgroundDefinition.backgroundId
+                    : "";
+
+        List<string> traitIds =
+            GetTraitIds(traitDefinitions);
+
         profile =
             CreateCharacter(
                 characterName,
@@ -119,6 +133,25 @@ public static class CharacterSelection
             );
 
         return true;
+    }
+
+    private static List<string> GetTraitIds(
+    List<TraitDefinition> traitDefinitions)
+    {
+        List<string> traitIds = new();
+
+        if (traitDefinitions == null)
+            return traitIds;
+
+        foreach (TraitDefinition traitDefinition in traitDefinitions)
+        {
+            if (traitDefinition == null)
+                continue;
+
+            traitIds.Add(traitDefinition.traitId);
+        }
+
+        return traitIds;
     }
 
     public static void SelectProfile(string profileId)
