@@ -39,6 +39,7 @@ public class PlayerCharacterProfile : MonoBehaviour
 
         ApplyResources();
         ApplyBody();
+        ApplyAppearance();
         ApplyEquipmentRules();
         ApplyInput();
 
@@ -130,6 +131,24 @@ public class PlayerCharacterProfile : MonoBehaviour
                 SubraceDefinition
             );
         }
+    }
+
+    private void ApplyAppearance()
+    {
+        CharacterAppearanceApplier appearanceApplier =
+            GetComponent<CharacterAppearanceApplier>();
+
+        if (appearanceApplier == null)
+            appearanceApplier = gameObject.AddComponent<CharacterAppearanceApplier>();
+
+        CharacterAppearanceData appearance =
+            ProfileData != null
+                ? ProfileData.appearance
+                : CharacterAppearanceData.CreateDefault();
+
+        appearanceApplier.ApplyAppearance(
+            appearance
+        );
     }
 
     private void LogResolvedCharacter()
