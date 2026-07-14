@@ -261,6 +261,8 @@ public class CharacterCreator : MonoBehaviour
             raceDefinition,
             subraceDefinition,
             lineageDefinitions,
+            backgroundDefinition,
+            traitDefinitions,
             CharacterAppearanceData.Copy(selectedAppearance),
             CharacterAttributes.Copy(resolvedStats.finalAttributes),
             CharacterBaseStats.Copy(resolvedStats.totalBaseStats),
@@ -634,6 +636,12 @@ public class CharacterCreator : MonoBehaviour
                     GetSelectedBackgroundDefinition(),
                     GetSelectedTraitDefinitions()
                 );
+
+        BackgroundDefinition backgroundDefinition =
+            GetSelectedBackgroundDefinition();
+
+        List<TraitDefinition> traitDefinitions =
+            GetSelectedTraitDefinitions();
 
         return true;
     }

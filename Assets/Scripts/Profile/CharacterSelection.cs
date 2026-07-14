@@ -127,6 +127,8 @@ public static class CharacterSelection
                 raceDefinition,
                 subraceDefinition,
                 lineageIds,
+                backgroundId,
+                traitIds,
                 appearance,
                 createdAttributes,
                 createdBaseStats
