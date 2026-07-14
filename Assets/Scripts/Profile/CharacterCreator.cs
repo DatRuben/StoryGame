@@ -255,6 +255,12 @@ public class CharacterCreator : MonoBehaviour
             return false;
         }
 
+        BackgroundDefinition backgroundDefinition =
+            GetSelectedBackgroundDefinition();
+
+        List<TraitDefinition> traitDefinitions =
+            GetSelectedTraitDefinitions();
+
         return CharacterSelection.TryCreateCharacter(
             characterName,
             selectedGender,
