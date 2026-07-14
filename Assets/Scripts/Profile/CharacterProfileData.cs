@@ -21,6 +21,18 @@ public class CharacterProfileData
     public CharacterAppearanceData appearance =
         CharacterAppearanceData.CreateDefault();
 
+    public CharacterAttributes createdAttributes =
+    CharacterAttributes.CreateDefault(10);
+
+    public CharacterAttributes currentAttributes =
+        CharacterAttributes.CreateDefault(10);
+
+    public CharacterBaseStats createdBaseStats =
+        CharacterBaseStats.CreateHumanDefault();
+
+    public CharacterBaseStats currentBaseStats =
+        CharacterBaseStats.CreateHumanDefault();
+
     public int level = 1;
     public bool storyCompleted;
 
@@ -35,7 +47,9 @@ public class CharacterProfileData
         string raceId,
         string subraceId,
         List<string> lineageIds = null,
-        CharacterAppearanceData appearance = null)
+        CharacterAppearanceData appearance = null,
+        CharacterAttributes createdAttributes = null,
+        CharacterBaseStats createdBaseStats = null)
     {
         string now = DateTime.UtcNow.ToString("O");
 
@@ -50,6 +64,14 @@ public class CharacterProfileData
                 ? new List<string>(lineageIds)
                 : new List<string>(),
             appearance = CharacterAppearanceData.Copy(appearance),
+            createdAttributes =
+                CharacterAttributes.Copy(createdAttributes),
+            currentAttributes =
+                CharacterAttributes.Copy(createdAttributes),
+            createdBaseStats =
+                CharacterBaseStats.Copy(createdBaseStats),
+            currentBaseStats =
+                CharacterBaseStats.Copy(createdBaseStats),
             level = 1,
             storyCompleted = false,
             createdUtc = now,

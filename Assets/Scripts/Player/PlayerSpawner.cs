@@ -128,6 +128,13 @@ public class PlayerSpawner : MonoBehaviour
             return false;
         }
 
+        ResolvedCharacterStats resolvedStats =
+                CharacterStatsResolver.ResolveCharacter(
+                    defaultRaceDefinition,
+                    defaultRaceDefinition.standardSubrace,
+                    new List<LineageDefinition>()
+                );
+
         profile =
             CharacterSelection.CreateCharacter(
                 defaultCharacterName,
@@ -135,7 +142,9 @@ public class PlayerSpawner : MonoBehaviour
                 defaultRaceDefinition,
                 defaultRaceDefinition.standardSubrace,
                 new List<string>(),
-                CharacterAppearanceData.CreateDefault()
+                CharacterAppearanceData.CreateDefault(),
+                CharacterAttributes.Copy(resolvedStats.finalAttributes),
+                CharacterBaseStats.Copy(resolvedStats.totalBaseStats)
             );
 
         return profile != null;

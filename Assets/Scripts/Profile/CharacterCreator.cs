@@ -244,15 +244,24 @@ public class CharacterCreator : MonoBehaviour
         List<LineageDefinition> lineageDefinitions =
             GetSelectedLineageDefinitions();
 
+        if (!TryGetResolvedStats(
+            out ResolvedCharacterStats resolvedStats,
+            out errorMessage))
+        {
+            return false;
+        }
+
         return CharacterSelection.TryCreateCharacter(
-                characterName,
-                selectedGender,
-                raceDefinition,
-                subraceDefinition,
-                lineageDefinitions,
-                CharacterAppearanceData.Copy(selectedAppearance),
-                out profile,
-                out errorMessage
+            characterName,
+            selectedGender,
+            raceDefinition,
+            subraceDefinition,
+            lineageDefinitions,
+            CharacterAppearanceData.Copy(selectedAppearance),
+            CharacterAttributes.Copy(resolvedStats.finalAttributes),
+            CharacterBaseStats.Copy(resolvedStats.totalBaseStats),
+            out profile,
+            out errorMessage
         );
     }
 

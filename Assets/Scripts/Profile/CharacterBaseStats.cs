@@ -26,6 +26,22 @@ public class CharacterBaseStats
         return new CharacterBaseStats();
     }
 
+    public static CharacterBaseStats Copy(
+    CharacterBaseStats source)
+    {
+        if (source == null)
+            return CreateHumanDefault();
+
+        return new CharacterBaseStats
+        {
+            health = source.health,
+            stamina = source.stamina,
+            mana = source.mana,
+            staggerResist = source.staggerResist,
+            carryWeight = source.carryWeight
+        };
+    }
+
     public static CharacterBaseStats Add(
         CharacterBaseStats baseStats,
         CharacterBaseStats modifiers)

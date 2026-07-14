@@ -21,21 +21,22 @@ public class PlayerCharacterProfile : MonoBehaviour
         SubraceDefinition = subraceDefinition;
         LineageDefinitions = lineageDefinitions;
 
-        ResolvedCharacterStats resolvedStats =
-            CharacterStatsResolver.ResolveCharacter(
-                raceDefinition,
-                subraceDefinition,
-                lineageDefinitions
+        FinalAttributes =
+            CharacterAttributes.ClampMinimum(
+                CharacterAttributes.Copy(ProfileData.currentAttributes),
+                1
             );
 
-        FinalAttributes =
-            resolvedStats.finalAttributes;
-
         FinalStats =
-            resolvedStats.finalStats;
+            CharacterStatsResolver.ResolveFinalStats(
+                ProfileData.currentBaseStats,
+                FinalAttributes
+            );
 
         FinalMovementStats =
-            resolvedStats.movementStats;
+            CharacterStatsResolver.ResolveMovementStats(
+                subraceDefinition
+            );
 
         ApplyResources();
         ApplyBody();
