@@ -12,10 +12,14 @@ public class CharacterDataLibrary : ScriptableObject
     [SerializeField] private List<RaceDefinition> raceDefinitions = new();
     [SerializeField] private List<SubraceDefinition> subraceDefinitions = new();
     [SerializeField] private List<LineageDefinition> lineageDefinitions = new();
+    [SerializeField] private List<BackgroundDefinition> backgroundDefinitions = new();
+    [SerializeField] private List<TraitDefinition> traitDefinitions = new();
 
     public IReadOnlyList<RaceDefinition> RaceDefinitions => raceDefinitions;
     public IReadOnlyList<SubraceDefinition> SubraceDefinitions => subraceDefinitions;
     public IReadOnlyList<LineageDefinition> LineageDefinitions => lineageDefinitions;
+    public IReadOnlyList<BackgroundDefinition> BackgroundDefinitions => backgroundDefinitions;
+    public IReadOnlyList<TraitDefinition> TraitDefinitions => traitDefinitions;
 
     public bool TryGetRaceDefinition(
         string raceId,
@@ -98,6 +102,81 @@ public class CharacterDataLibrary : ScriptableObject
         return false;
     }
 
+    public bool TryGetBackgroundDefinition(
+    string backgroundId,
+    out BackgroundDefinition backgroundDefinition)
+    {
+        backgroundDefinition = null;
+
+        if (string.IsNullOrWhiteSpace(backgroundId))
+            return false;
+
+        foreach (BackgroundDefinition definition in backgroundDefinitions)
+        {
+            if (definition == null)
+                continue;
+
+            if (string.Equals(
+                definition.backgroundId,
+                backgroundId,
+                System.StringComparison.OrdinalIgnoreCase))
+            {
+                backgroundDefinition = definition;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public bool TryGetTraitDefinition(
+        string traitId,
+        out TraitDefinition traitDefinition)
+    {
+        traitDefinition = null;
+
+        if (string.IsNullOrWhiteSpace(traitId))
+            return false;
+
+        foreach (TraitDefinition definition in traitDefinitions)
+        {
+            if (definition == null)
+                continue;
+
+            if (string.Equals(
+                definition.traitId,
+                traitId,
+                System.StringComparison.OrdinalIgnoreCase))
+            {
+                traitDefinition = definition;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public List<TraitDefinition> GetTraitDefinitions(
+        List<string> traitIds)
+    {
+        List<TraitDefinition> foundDefinitions = new();
+
+        if (traitIds == null)
+            return foundDefinitions;
+
+        foreach (string traitId in traitIds)
+        {
+            if (TryGetTraitDefinition(
+                traitId,
+                out TraitDefinition definition))
+            {
+                foundDefinitions.Add(definition);
+            }
+        }
+
+        return foundDefinitions;
+    }
+
     public List<SubraceDefinition> GetSubraceDefinitionsForRace(
         RaceDefinition raceDefinition)
     {
@@ -173,6 +252,8 @@ public class CharacterDataLibrary : ScriptableObject
         RebuildRaceDefinitions();
         RebuildSubraceDefinitions();
         RebuildLineageDefinitions();
+        RebuildBackgroundDefinitions();
+        RebuildTraitDefinitions();
 
         RecalculateDefinitionPreviews();
 
@@ -255,6 +336,52 @@ public class CharacterDataLibrary : ScriptableObject
                 !lineageDefinitions.Contains(definition))
             {
                 lineageDefinitions.Add(definition);
+            }
+        }
+    }
+
+    private void RebuildBackgroundDefinitions()
+    {
+        backgroundDefinitions.Clear();
+
+        string[] guids =
+            AssetDatabase.FindAssets("t:BackgroundDefinition");
+
+        foreach (string guid in guids)
+        {
+            string path =
+                AssetDatabase.GUIDToAssetPath(guid);
+
+            BackgroundDefinition definition =
+                AssetDatabase.LoadAssetAtPath<BackgroundDefinition>(path);
+
+            if (definition != null &&
+                !backgroundDefinitions.Contains(definition))
+            {
+                backgroundDefinitions.Add(definition);
+            }
+        }
+    }
+
+    private void RebuildTraitDefinitions()
+    {
+        traitDefinitions.Clear();
+
+        string[] guids =
+            AssetDatabase.FindAssets("t:TraitDefinition");
+
+        foreach (string guid in guids)
+        {
+            string path =
+                AssetDatabase.GUIDToAssetPath(guid);
+
+            TraitDefinition definition =
+                AssetDatabase.LoadAssetAtPath<TraitDefinition>(path);
+
+            if (definition != null &&
+                !traitDefinitions.Contains(definition))
+            {
+                traitDefinitions.Add(definition);
             }
         }
     }
@@ -343,7 +470,9 @@ public class CharacterDataLibraryAutoRebuilder : AssetPostprocessor
 
             if (asset is RaceDefinition ||
                 asset is SubraceDefinition ||
-                asset is LineageDefinition)
+                asset is LineageDefinition ||
+                asset is BackgroundDefinition ||
+                asset is TraitDefinition)
             {
                 return true;
             }
