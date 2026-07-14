@@ -26,3 +26,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 78aa257596a733f4e9f714f374fed6ed, type: 2}
   - {fileID: 11400000, guid: 1380c3f0cdfd8c545b84b3459b686ec3, type: 2}
   - {fileID: 11400000, guid: 51f5ca8e394e7604f961c9cfaa86fd26, type: 2}
+  backgroundDefinitions: []
+  traitDefinitions: []

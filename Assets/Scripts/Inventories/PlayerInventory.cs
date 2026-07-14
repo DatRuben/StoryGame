@@ -708,7 +708,7 @@ public class PlayerInventory : MonoBehaviour
 
         int safeQuantity =
             GetSafePlacedQuantityForItem(
-                HeldItem.ItemDefintion,
+                HeldItem.ItemDefinition,
                 quantity
             );
 
