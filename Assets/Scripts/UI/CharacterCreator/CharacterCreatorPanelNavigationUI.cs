@@ -1,0 +1,141 @@
+using UnityEngine;
+using UnityEngine.UI;
+
+public class CharacterCreatorPanelNavigationUI : MonoBehaviour
+{
+    [Header("Top Navigation Buttons")]
+    [SerializeField] private Button raceButton;
+    [SerializeField] private Button appearanceButton;
+    [SerializeField] private Button traitsButton;
+    [SerializeField] private Button finalizeButton;
+
+    [Header("Race Panels")]
+    [SerializeField] private GameObject raceLeftPanel;
+    [SerializeField] private GameObject raceRightPanel;
+
+    [Header("Appearance Panels")]
+    [SerializeField] private GameObject appearanceLeftPanel;
+    [SerializeField] private GameObject appearanceRightPanel;
+
+    [Header("Background / Traits Panels")]
+    [SerializeField] private GameObject traitsLeftPanel;
+    [SerializeField] private GameObject traitsRightPanel;
+
+    [Header("Finalize Panels")]
+    [SerializeField] private GameObject finalizeLeftPanel;
+    [SerializeField] private GameObject finalizeRightPanel;
+
+    private void OnEnable()
+    {
+        HookButtons();
+        ShowRacePanels();
+    }
+
+    private void OnDisable()
+    {
+        UnhookButtons();
+    }
+
+    private void HookButtons()
+    {
+        AddButtonListener(raceButton, ShowRacePanels);
+        AddButtonListener(appearanceButton, ShowAppearancePanels);
+        AddButtonListener(traitsButton, ShowTraitsPanels);
+        AddButtonListener(finalizeButton, ShowFinalizePanels);
+    }
+
+    private void UnhookButtons()
+    {
+        RemoveButtonListener(raceButton, ShowRacePanels);
+        RemoveButtonListener(appearanceButton, ShowAppearancePanels);
+        RemoveButtonListener(traitsButton, ShowTraitsPanels);
+        RemoveButtonListener(finalizeButton, ShowFinalizePanels);
+    }
+
+    public void ShowRacePanels()
+    {
+        ShowOnly(raceLeftPanel, raceRightPanel);
+        SetSelectedButton(raceButton);
+    }
+
+    public void ShowAppearancePanels()
+    {
+        ShowOnly(appearanceLeftPanel, appearanceRightPanel);
+        SetSelectedButton(appearanceButton);
+    }
+
+    public void ShowTraitsPanels()
+    {
+        ShowOnly(traitsLeftPanel, traitsRightPanel);
+        SetSelectedButton(traitsButton);
+    }
+
+    public void ShowFinalizePanels()
+    {
+        ShowOnly(finalizeLeftPanel, finalizeRightPanel);
+        SetSelectedButton(finalizeButton);
+    }
+
+    private void ShowOnly(
+        GameObject leftPanelToShow,
+        GameObject rightPanelToShow)
+    {
+        SetPanelActive(raceLeftPanel, raceLeftPanel == leftPanelToShow);
+        SetPanelActive(raceRightPanel, raceRightPanel == rightPanelToShow);
+
+        SetPanelActive(appearanceLeftPanel, appearanceLeftPanel == leftPanelToShow);
+        SetPanelActive(appearanceRightPanel, appearanceRightPanel == rightPanelToShow);
+
+        SetPanelActive(traitsLeftPanel, traitsLeftPanel == leftPanelToShow);
+        SetPanelActive(traitsRightPanel, traitsRightPanel == rightPanelToShow);
+
+        SetPanelActive(finalizeLeftPanel, finalizeLeftPanel == leftPanelToShow);
+        SetPanelActive(finalizeRightPanel, finalizeRightPanel == rightPanelToShow);
+    }
+
+    private void SetSelectedButton(
+        Button selectedButton)
+    {
+        SetButtonInteractable(raceButton, raceButton != selectedButton);
+        SetButtonInteractable(appearanceButton, appearanceButton != selectedButton);
+        SetButtonInteractable(traitsButton, traitsButton != selectedButton);
+        SetButtonInteractable(finalizeButton, finalizeButton != selectedButton);
+    }
+
+    private void AddButtonListener(
+        Button button,
+        UnityEngine.Events.UnityAction action)
+    {
+        if (button == null)
+            return;
+
+        button.onClick.RemoveListener(action);
+        button.onClick.AddListener(action);
+    }
+
+    private void RemoveButtonListener(
+        Button button,
+        UnityEngine.Events.UnityAction action)
+    {
+        if (button == null)
+            return;
+
+        button.onClick.RemoveListener(action);
+    }
+
+    private void SetButtonInteractable(
+        Button button,
+        bool interactable)
+    {
+        if (button != null)
+            button.interactable = interactable;
+    }
+
+    private void SetPanelActive(
+        GameObject panel,
+        bool active)
+    {
+        if (panel != null)
+            panel.SetActive(active);
+    }
+}

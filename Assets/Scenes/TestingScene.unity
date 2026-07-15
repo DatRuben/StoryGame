@@ -18859,6 +18859,7 @@ GameObject:
   - component: {fileID: 1133515381}
   - component: {fileID: 1133515383}
   - component: {fileID: 1133515382}
+  - component: {fileID: 1133515384}
   m_Layer: 5
   m_Name: CharacterCreator
   m_TagString: Untagged
@@ -18927,6 +18928,30 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1133515380}
   m_CullTransparentMesh: 1
+--- !u!114 &1133515384
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1133515380}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7387fb1bd704ad4388907eb9557bbbd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterCreatorPanelNavigationUI
+  raceButton: {fileID: 1599129506}
+  appearanceButton: {fileID: 1550006324}
+  traitsButton: {fileID: 1133354699}
+  finalizeButton: {fileID: 119826400}
+  raceLeftPanel: {fileID: 1359208295}
+  raceRightPanel: {fileID: 249308554}
+  appearanceLeftPanel: {fileID: 86635571}
+  appearanceRightPanel: {fileID: 2137374471}
+  traitsLeftPanel: {fileID: 305173989}
+  traitsRightPanel: {fileID: 2116189957}
+  finalizeLeftPanel: {fileID: 1465139341}
+  finalizeRightPanel: {fileID: 263831680}
 --- !u!1 &1136561930
 GameObject:
   m_ObjectHideFlags: 0

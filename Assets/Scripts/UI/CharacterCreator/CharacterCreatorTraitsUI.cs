@@ -94,8 +94,7 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
             backgroundButtonIds.Add(backgroundDefinition.backgroundId);
         }
 
-        if (string.IsNullOrWhiteSpace(characterCreator.SelectedBackgroundId) &&
-            characterDataLibrary.BackgroundDefinitions.Count > 0)
+        if (string.IsNullOrWhiteSpace(characterCreator.SelectedBackgroundId))
         {
             BackgroundDefinition startingBackground =
                 characterDataLibrary.GetDefaultBackgroundDefinition();
