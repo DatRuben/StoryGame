@@ -29,6 +29,7 @@ MonoBehaviour:
   backgroundDefinitions:
   - {fileID: 11400000, guid: 2b8fbd16e73c4e74d83088c6d7471356, type: 2}
   - {fileID: 11400000, guid: ba9a3e9e0ce01c04a8dff777ac29daec, type: 2}
+  defaultBackgroundDefinition: {fileID: 11400000, guid: ba9a3e9e0ce01c04a8dff777ac29daec, type: 2}
   traitDefinitions:
   - {fileID: 11400000, guid: 178aede27c7ccc745a66fb037afbd273, type: 2}
   - {fileID: 11400000, guid: 6f941135647b8044ab756a3ed44d62b1, type: 2}

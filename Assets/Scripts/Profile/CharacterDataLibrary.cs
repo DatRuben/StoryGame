@@ -13,6 +13,7 @@ public class CharacterDataLibrary : ScriptableObject
     [SerializeField] private List<SubraceDefinition> subraceDefinitions = new();
     [SerializeField] private List<LineageDefinition> lineageDefinitions = new();
     [SerializeField] private List<BackgroundDefinition> backgroundDefinitions = new();
+    [SerializeField] private BackgroundDefinition defaultBackgroundDefinition;
     [SerializeField] private List<TraitDefinition> traitDefinitions = new();
 
     public IReadOnlyList<RaceDefinition> RaceDefinitions => raceDefinitions;
@@ -227,6 +228,20 @@ public class CharacterDataLibrary : ScriptableObject
     public RaceDefinition GetDefaultRaceDefinition()
     {
         foreach (RaceDefinition definition in raceDefinitions)
+        {
+            if (definition != null)
+                return definition;
+        }
+
+        return null;
+    }
+
+    public BackgroundDefinition GetDefaultBackgroundDefinition()
+    {
+        if (defaultBackgroundDefinition != null)
+            return defaultBackgroundDefinition;
+
+        foreach (BackgroundDefinition definition in backgroundDefinitions)
         {
             if (definition != null)
                 return definition;

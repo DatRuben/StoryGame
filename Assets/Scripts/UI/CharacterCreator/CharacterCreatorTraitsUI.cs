@@ -70,12 +70,6 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
 
     private void BuildBackgroundButtons()
     {
-        CharacterOptionButtonUI noneButton =
-            Instantiate(optionButtonPrefab, backgroundButtonParent);
-
-        backgroundButtons.Add(noneButton);
-        backgroundButtonIds.Add("");
-
         foreach (BackgroundDefinition backgroundDefinition in characterDataLibrary.BackgroundDefinitions)
         {
             if (backgroundDefinition == null)
@@ -104,9 +98,10 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
             characterDataLibrary.BackgroundDefinitions.Count > 0)
         {
             BackgroundDefinition startingBackground =
-                characterDataLibrary.BackgroundDefinitions[0];
+                characterDataLibrary.GetDefaultBackgroundDefinition();
 
-            SelectBackground(startingBackground);
+            if (startingBackground != null)
+                SelectBackground(startingBackground);
         }
     }
 
