@@ -814,6 +814,15 @@ public class CharacterCreator : MonoBehaviour
             return false;
         }
 
+        BackgroundDefinition backgroundDefinition =
+            GetSelectedBackgroundDefinition();
+
+        if (backgroundDefinition == null)
+        {
+            errorMessage = "Background is required.";
+            return false;
+        }
+
         if (!AreSelectedTraitsValid(
             out errorMessage))
         {
@@ -826,7 +835,7 @@ public class CharacterCreator : MonoBehaviour
                 raceDefinition = raceDefinition,
                 subraceDefinition = subraceDefinition,
                 lineageDefinitions = GetSelectedLineageDefinitions(),
-                backgroundDefinition = GetSelectedBackgroundDefinition(),
+                backgroundDefinition = backgroundDefinition,
                 traitDefinitions = GetSelectedTraitDefinitions()
             };
 

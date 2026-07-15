@@ -73,14 +73,6 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
         CharacterOptionButtonUI noneButton =
             Instantiate(optionButtonPrefab, backgroundButtonParent);
 
-        noneButton.name = "NoBackgroundButton";
-        noneButton.SetText("No Background");
-        noneButton.SetSelected(false);
-        noneButton.SetInteractable(true);
-
-        noneButton.Button.onClick.RemoveAllListeners();
-        noneButton.Button.onClick.AddListener(SelectNoBackground);
-
         backgroundButtons.Add(noneButton);
         backgroundButtonIds.Add("");
 
@@ -106,6 +98,15 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
 
             backgroundButtons.Add(button);
             backgroundButtonIds.Add(backgroundDefinition.backgroundId);
+        }
+
+        if (string.IsNullOrWhiteSpace(characterCreator.SelectedBackgroundId) &&
+            characterDataLibrary.BackgroundDefinitions.Count > 0)
+        {
+            BackgroundDefinition startingBackground =
+                characterDataLibrary.BackgroundDefinitions[0];
+
+            SelectBackground(startingBackground);
         }
     }
 
@@ -134,17 +135,6 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
             traitButtons.Add(button);
             traitButtonIds.Add(traitDefinition.traitId);
         }
-    }
-
-    private void SelectNoBackground()
-    {
-        if (characterCreator == null)
-            return;
-
-        characterCreator.ClearBackground();
-
-        ShowBackgroundDescription("No background selected.");
-        RefreshUI();
     }
 
     private void SelectBackground(
