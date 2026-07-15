@@ -360,16 +360,33 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
         if (modifiers == null)
             return "None";
 
-        return
-            $"Strength: {FormatModifier(modifiers.strength)}\n" +
-            $"Dexterity: {FormatModifier(modifiers.dexterity)}\n" +
-            $"Agility: {FormatModifier(modifiers.agility)}\n" +
-            $"Vitality: {FormatModifier(modifiers.vitality)}\n" +
-            $"Endurance: {FormatModifier(modifiers.endurance)}\n" +
-            $"Intelligence: {FormatModifier(modifiers.intelligence)}\n" +
-            $"Willpower: {FormatModifier(modifiers.willpower)}\n" +
-            $"Spirit: {FormatModifier(modifiers.spirit)}\n" +
-            $"Perception: {FormatModifier(modifiers.perception)}";
+        List<string> lines = new();
+
+        AddModifierLine(lines, "Strength", modifiers.strength);
+        AddModifierLine(lines, "Dexterity", modifiers.dexterity);
+        AddModifierLine(lines, "Agility", modifiers.agility);
+        AddModifierLine(lines, "Vitality", modifiers.vitality);
+        AddModifierLine(lines, "Endurance", modifiers.endurance);
+        AddModifierLine(lines, "Intelligence", modifiers.intelligence);
+        AddModifierLine(lines, "Willpower", modifiers.willpower);
+        AddModifierLine(lines, "Spirit", modifiers.spirit);
+        AddModifierLine(lines, "Perception", modifiers.perception);
+
+        if (lines.Count == 0)
+            return "None";
+
+        return string.Join("\n", lines);
+    }
+
+    private void AddModifierLine(
+        List<string> lines,
+        string label,
+        int value)
+    {
+        if (value == 0)
+            return;
+
+        lines.Add($"{label}: {FormatModifier(value)}");
     }
 
     private string FormatModifier(
