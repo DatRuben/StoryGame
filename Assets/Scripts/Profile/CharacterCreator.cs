@@ -176,12 +176,6 @@ public class CharacterCreator : MonoBehaviour
     {
         errorMessage = "";
 
-        if (!TryGetSelectedRace(out RaceDefinition raceDefinition))
-        {
-            errorMessage = "No race is selected.";
-            return false;
-        }
-
         if (!TryGetSelectedSubrace(out SubraceDefinition subraceDefinition))
         {
             errorMessage = "No subrace is selected.";
@@ -295,7 +289,6 @@ public class CharacterCreator : MonoBehaviour
         selectedTraitIds.Add(traitDefinition.traitId);
 
         if (!AreSelectedTraitsValid(
-            raceDefinition,
             out errorMessage))
         {
             selectedTraitIds.Remove(traitDefinition.traitId);
@@ -606,8 +599,7 @@ public class CharacterCreator : MonoBehaviour
     }
 
     private bool AreSelectedTraitsValid(
-    RaceDefinition raceDefinition,
-    out string errorMessage)
+        out string errorMessage)
     {
         errorMessage = "";
 
@@ -620,14 +612,6 @@ public class CharacterCreator : MonoBehaviour
                 out TraitDefinition traitDefinition,
                 out errorMessage))
             {
-                return false;
-            }
-
-            if (!traitDefinition.IsAllowedForRace(raceDefinition))
-            {
-                errorMessage =
-                    $"{raceDefinition.displayName} cannot use trait {traitDefinition.displayName}.";
-
                 return false;
             }
 
@@ -826,7 +810,6 @@ public class CharacterCreator : MonoBehaviour
         }
 
         if (!AreSelectedTraitsValid(
-            raceDefinition,
             out errorMessage))
         {
             return false;
