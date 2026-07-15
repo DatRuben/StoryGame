@@ -182,6 +182,17 @@ public class CharacterCreator : MonoBehaviour
             return false;
         }
 
+        if (subraceDefinition.race == null)
+        {
+            errorMessage =
+                $"{subraceDefinition.displayName} has no RaceDefinition assigned.";
+
+            return false;
+        }
+
+        RaceDefinition raceDefinition =
+            subraceDefinition.race;
+
         if (!TryGetLineageDefinition(
             lineageId,
             out LineageDefinition lineageDefinition,
