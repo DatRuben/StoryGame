@@ -10,20 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b4f38750408f30544a01852387b489c6, type: 3}
-  m_Name: Small Frame
+  m_Name: Large Frame
   m_EditorClassIdentifier: Assembly-CSharp::TraitDefinition
-  traitId: small_frame
-  displayName: Small Frame
+  traitId: large_frame
+  displayName: Large Frame
   description: 
   modifiers:
-    strength: -2
+    strength: 2
     dexterity: 0
-    agility: 2
-    vitality: -1
-    endurance: 1
+    agility: -2
+    vitality: 1
+    endurance: -1
     intelligence: 0
     willpower: 0
     spirit: 0
     perception: 0
   mutuallyExclusiveTraits:
-  - {fileID: 11400000, guid: 178aede27c7ccc745a66fb037afbd273, type: 2}
+  - {fileID: 11400000, guid: 6f941135647b8044ab756a3ed44d62b1, type: 2}
