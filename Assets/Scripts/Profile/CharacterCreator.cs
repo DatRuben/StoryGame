@@ -228,6 +228,93 @@ public class CharacterCreator : MonoBehaviour
         return true;
     }
 
+    public bool SelectBackground(
+    string backgroundId,
+    out string errorMessage)
+    {
+        errorMessage = "";
+
+        if (string.IsNullOrWhiteSpace(backgroundId))
+        {
+            ClearBackground();
+            return true;
+        }
+
+        if (!TryGetBackgroundDefinition(
+            backgroundId,
+            out BackgroundDefinition backgroundDefinition,
+            out errorMessage))
+        {
+            return false;
+        }
+
+        if (selectedBackgroundId == backgroundDefinition.backgroundId)
+            return true;
+
+        selectedBackgroundId = backgroundDefinition.backgroundId;
+        NotifySelectionChanged();
+        return true;
+    }
+
+    public void ClearBackground()
+    {
+        if (string.IsNullOrWhiteSpace(selectedBackgroundId))
+            return;
+
+        selectedBackgroundId = "";
+        NotifySelectionChanged();
+    }
+
+    public bool ToggleTrait(
+        string traitId,
+        out string errorMessage)
+    {
+        errorMessage = "";
+
+        if (!TryGetSelectedRace(out RaceDefinition raceDefinition))
+        {
+            errorMessage = "No race is selected.";
+            return false;
+        }
+
+        if (!TryGetTraitDefinition(
+            traitId,
+            out TraitDefinition traitDefinition,
+            out errorMessage))
+        {
+            return false;
+        }
+
+        if (selectedTraitIds.Contains(traitDefinition.traitId))
+        {
+            selectedTraitIds.Remove(traitDefinition.traitId);
+            NotifySelectionChanged();
+            return true;
+        }
+
+        selectedTraitIds.Add(traitDefinition.traitId);
+
+        if (!AreSelectedTraitsValid(
+            raceDefinition,
+            out errorMessage))
+        {
+            selectedTraitIds.Remove(traitDefinition.traitId);
+            return false;
+        }
+
+        NotifySelectionChanged();
+        return true;
+    }
+
+    public void ClearTraits()
+    {
+        if (selectedTraitIds.Count == 0)
+            return;
+
+        selectedTraitIds.Clear();
+        NotifySelectionChanged();
+    }
+
     public bool TryCreateCharacter(
         string characterName,
         out CharacterProfileData profile,
@@ -385,6 +472,60 @@ public class CharacterCreator : MonoBehaviour
         return true;
     }
 
+    private bool TryGetBackgroundDefinition(
+    string backgroundId,
+    out BackgroundDefinition backgroundDefinition,
+    out string errorMessage)
+    {
+        backgroundDefinition = null;
+        errorMessage = "";
+
+        if (characterDataLibrary == null)
+        {
+            errorMessage = "CharacterDataLibrary is missing.";
+            return false;
+        }
+
+        if (!characterDataLibrary.TryGetBackgroundDefinition(
+            backgroundId,
+            out backgroundDefinition))
+        {
+            errorMessage =
+                $"BackgroundDefinition '{backgroundId}' was not found.";
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private bool TryGetTraitDefinition(
+        string traitId,
+        out TraitDefinition traitDefinition,
+        out string errorMessage)
+    {
+        traitDefinition = null;
+        errorMessage = "";
+
+        if (characterDataLibrary == null)
+        {
+            errorMessage = "CharacterDataLibrary is missing.";
+            return false;
+        }
+
+        if (!characterDataLibrary.TryGetTraitDefinition(
+            traitId,
+            out traitDefinition))
+        {
+            errorMessage =
+                $"TraitDefinition '{traitId}' was not found.";
+
+            return false;
+        }
+
+        return true;
+    }
+
     private bool TryGetSelectedRace(
         out RaceDefinition raceDefinition)
     {
@@ -462,6 +603,50 @@ public class CharacterCreator : MonoBehaviour
             GetSelectedLineageDefinitions(),
             out errorMessage
         );
+    }
+
+    private bool AreSelectedTraitsValid(
+    RaceDefinition raceDefinition,
+    out string errorMessage)
+    {
+        errorMessage = "";
+
+        List<TraitDefinition> traitDefinitions = new();
+
+        foreach (string selectedTraitId in selectedTraitIds)
+        {
+            if (!TryGetTraitDefinition(
+                selectedTraitId,
+                out TraitDefinition traitDefinition,
+                out errorMessage))
+            {
+                return false;
+            }
+
+            if (!traitDefinition.IsAllowedForRace(raceDefinition))
+            {
+                errorMessage =
+                    $"{raceDefinition.displayName} cannot use trait {traitDefinition.displayName}.";
+
+                return false;
+            }
+
+            foreach (TraitDefinition existingTrait in traitDefinitions)
+            {
+                if (traitDefinition.IsMutuallyExclusiveWith(existingTrait) ||
+                    existingTrait.IsMutuallyExclusiveWith(traitDefinition))
+                {
+                    errorMessage =
+                        $"{traitDefinition.displayName} cannot be combined with {existingTrait.displayName}.";
+
+                    return false;
+                }
+            }
+
+            traitDefinitions.Add(traitDefinition);
+        }
+
+        return true;
     }
 
     private void CleanSelectedLineages(
@@ -635,6 +820,13 @@ public class CharacterCreator : MonoBehaviour
         if (!AreSelectedLineagesValid(
             raceDefinition,
             subraceDefinition,
+            out errorMessage))
+        {
+            return false;
+        }
+
+        if (!AreSelectedTraitsValid(
+            raceDefinition,
             out errorMessage))
         {
             return false;
