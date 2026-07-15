@@ -274,16 +274,6 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
             return false;
         }
 
-        if (!characterDataLibrary.TryGetRaceDefinition(
-            characterCreator.SelectedRaceId,
-            out RaceDefinition raceDefinition))
-        {
-            return false;
-        }
-
-        if (!traitDefinition.IsAllowedForRace(raceDefinition))
-            return false;
-
         foreach (string selectedTraitId in characterCreator.SelectedTraitIds)
         {
             if (!characterDataLibrary.TryGetTraitDefinition(

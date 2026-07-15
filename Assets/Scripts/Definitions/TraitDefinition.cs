@@ -18,29 +18,6 @@ public class TraitDefinition : ScriptableObject
 
     [Header("Rules")]
     public List<TraitDefinition> mutuallyExclusiveTraits = new();
-    public List<RaceDefinition> requiredRaces = new();
-    public List<RaceDefinition> blockedRaces = new();
-
-    public bool IsAllowedForRace(
-        RaceDefinition raceDefinition)
-    {
-        if (raceDefinition == null)
-            return true;
-
-        if (blockedRaces != null &&
-            blockedRaces.Contains(raceDefinition))
-        {
-            return false;
-        }
-
-        if (requiredRaces == null ||
-            requiredRaces.Count == 0)
-        {
-            return true;
-        }
-
-        return requiredRaces.Contains(raceDefinition);
-    }
 
     public bool IsMutuallyExclusiveWith(
         TraitDefinition otherTrait)

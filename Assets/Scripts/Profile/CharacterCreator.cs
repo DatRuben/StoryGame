@@ -265,12 +265,6 @@ public class CharacterCreator : MonoBehaviour
     {
         errorMessage = "";
 
-        if (!TryGetSelectedRace(out RaceDefinition raceDefinition))
-        {
-            errorMessage = "No race is selected.";
-            return false;
-        }
-
         if (!TryGetTraitDefinition(
             traitId,
             out TraitDefinition traitDefinition,
