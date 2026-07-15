@@ -62,8 +62,6 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
         BuildBackgroundButtons();
         BuildTraitButtons();
 
-        ShowBackgroundDescription("");
-        ShowTraitDescription("");
         RefreshRacialPassiveText();
         RefreshUI();
     }
