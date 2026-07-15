@@ -19,8 +19,8 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
     [SerializeField] private Transform traitButtonParent;
     [SerializeField] private TMP_Text traitDescriptionText;
 
-    [Header("Messages")]
-    [SerializeField] private TMP_Text messageText;
+    [Header("Racial Passive Details")]
+    [SerializeField] private TMP_Text racialPassiveText;
 
     private readonly List<CharacterOptionButtonUI> backgroundButtons = new();
     private readonly List<string> backgroundButtonIds = new();
@@ -31,7 +31,7 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
     private void OnEnable()
     {
         if (characterCreator != null)
-            characterCreator.SelectionChanged += RefreshSelectedButtons;
+            characterCreator.SelectionChanged += RefreshUI;
 
         BuildButtons();
     }
@@ -39,7 +39,7 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
     private void OnDisable()
     {
         if (characterCreator != null)
-            characterCreator.SelectionChanged -= RefreshSelectedButtons;
+            characterCreator.SelectionChanged -= RefreshUI;
 
         ClearButtons(backgroundButtons);
         ClearButtons(traitButtons);
@@ -62,8 +62,10 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
         BuildBackgroundButtons();
         BuildTraitButtons();
 
-        RefreshSelectedButtons();
-        ShowMessage("");
+        ShowBackgroundDescription("");
+        ShowTraitDescription("");
+        RefreshRacialPassiveText();
+        RefreshUI();
     }
 
     private void BuildBackgroundButtons()
@@ -74,6 +76,7 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
         noneButton.name = "NoBackgroundButton";
         noneButton.SetText("No Background");
         noneButton.SetSelected(false);
+        noneButton.SetInteractable(true);
 
         noneButton.Button.onClick.RemoveAllListeners();
         noneButton.Button.onClick.AddListener(SelectNoBackground);
@@ -92,6 +95,7 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
             button.name = $"{backgroundDefinition.backgroundId}BackgroundButton";
             button.SetText(GetBackgroundButtonText(backgroundDefinition));
             button.SetSelected(false);
+            button.SetInteractable(true);
 
             BackgroundDefinition capturedBackground = backgroundDefinition;
 
@@ -118,6 +122,7 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
             button.name = $"{traitDefinition.traitId}TraitButton";
             button.SetText(GetTraitButtonText(traitDefinition));
             button.SetSelected(false);
+            button.SetInteractable(true);
 
             TraitDefinition capturedTrait = traitDefinition;
 
@@ -133,23 +138,29 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
 
     private void SelectNoBackground()
     {
+        if (characterCreator == null)
+            return;
+
         characterCreator.ClearBackground();
+
         ShowBackgroundDescription("No background selected.");
-        ShowMessage("");
-        RefreshSelectedButtons();
+        RefreshUI();
     }
 
     private void SelectBackground(
         BackgroundDefinition backgroundDefinition)
     {
-        if (backgroundDefinition == null)
+        if (backgroundDefinition == null ||
+            characterCreator == null)
+        {
             return;
+        }
 
         if (!characterCreator.SelectBackground(
             backgroundDefinition.backgroundId,
-            out string errorMessage))
+            out _))
         {
-            ShowMessage(errorMessage);
+            RefreshUI();
             return;
         }
 
@@ -157,21 +168,30 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
             GetBackgroundDescription(backgroundDefinition)
         );
 
-        ShowMessage("");
-        RefreshSelectedButtons();
+        RefreshUI();
     }
 
     private void ToggleTrait(
         TraitDefinition traitDefinition)
     {
-        if (traitDefinition == null)
+        if (traitDefinition == null ||
+            characterCreator == null)
+        {
             return;
+        }
+
+        if (!CanUseTrait(traitDefinition.traitId) &&
+            !IsTraitSelected(traitDefinition.traitId))
+        {
+            RefreshUI();
+            return;
+        }
 
         if (!characterCreator.ToggleTrait(
             traitDefinition.traitId,
-            out string errorMessage))
+            out _))
         {
-            ShowMessage(errorMessage);
+            RefreshUI();
             return;
         }
 
@@ -179,14 +199,14 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
             GetTraitDescription(traitDefinition)
         );
 
-        ShowMessage("");
-        RefreshSelectedButtons();
+        RefreshUI();
     }
 
-    private void RefreshSelectedButtons()
+    private void RefreshUI()
     {
         RefreshBackgroundButtons();
         RefreshTraitButtons();
+        RefreshRacialPassiveText();
     }
 
     private void RefreshBackgroundButtons()
@@ -209,6 +229,7 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
                     : "";
 
             button.SetSelected(backgroundId == selectedBackgroundId);
+            button.SetInteractable(true);
         }
     }
 
@@ -226,8 +247,63 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
                     ? traitButtonIds[i]
                     : "";
 
-            button.SetSelected(IsTraitSelected(traitId));
+            bool selected =
+                IsTraitSelected(traitId);
+
+            button.SetSelected(selected);
+            button.SetInteractable(selected || CanUseTrait(traitId));
         }
+    }
+
+    private bool CanUseTrait(
+        string traitId)
+    {
+        if (characterCreator == null ||
+            characterDataLibrary == null)
+        {
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(traitId))
+            return false;
+
+        if (!characterDataLibrary.TryGetTraitDefinition(
+            traitId,
+            out TraitDefinition traitDefinition))
+        {
+            return false;
+        }
+
+        if (!characterDataLibrary.TryGetRaceDefinition(
+            characterCreator.SelectedRaceId,
+            out RaceDefinition raceDefinition))
+        {
+            return false;
+        }
+
+        if (!traitDefinition.IsAllowedForRace(raceDefinition))
+            return false;
+
+        foreach (string selectedTraitId in characterCreator.SelectedTraitIds)
+        {
+            if (!characterDataLibrary.TryGetTraitDefinition(
+                selectedTraitId,
+                out TraitDefinition selectedTrait))
+            {
+                continue;
+            }
+
+            if (selectedTrait == traitDefinition)
+                continue;
+
+            if (traitDefinition.IsMutuallyExclusiveWith(selectedTrait) ||
+                selectedTrait.IsMutuallyExclusiveWith(traitDefinition))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private bool IsTraitSelected(
@@ -254,9 +330,10 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
         if (backgroundDefinition == null)
             return "Missing Background";
 
-        return string.IsNullOrWhiteSpace(backgroundDefinition.displayName)
-            ? backgroundDefinition.name
-            : backgroundDefinition.displayName;
+        if (string.IsNullOrWhiteSpace(backgroundDefinition.displayName))
+            return backgroundDefinition.name;
+
+        return backgroundDefinition.displayName;
     }
 
     private string GetTraitButtonText(
@@ -265,9 +342,10 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
         if (traitDefinition == null)
             return "Missing Trait";
 
-        return string.IsNullOrWhiteSpace(traitDefinition.displayName)
-            ? traitDefinition.name
-            : traitDefinition.displayName;
+        if (string.IsNullOrWhiteSpace(traitDefinition.displayName))
+            return traitDefinition.name;
+
+        return traitDefinition.displayName;
     }
 
     private string GetBackgroundDescription(
@@ -329,37 +407,31 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
         return value.ToString();
     }
 
+    private void RefreshRacialPassiveText()
+    {
+        if (racialPassiveText != null)
+        {
+            racialPassiveText.text =
+                "Racial passives will be shown here later.";
+        }
+    }
+
     private bool HasRequiredReferences()
     {
         if (characterDataLibrary == null)
-        {
-            ShowMessage("CharacterDataLibrary is missing.");
             return false;
-        }
 
         if (characterCreator == null)
-        {
-            ShowMessage("CharacterCreator is missing.");
             return false;
-        }
 
         if (optionButtonPrefab == null)
-        {
-            ShowMessage("CharacterOptionButton prefab is missing.");
             return false;
-        }
 
         if (backgroundButtonParent == null)
-        {
-            ShowMessage("Background button parent is missing.");
             return false;
-        }
 
         if (traitButtonParent == null)
-        {
-            ShowMessage("Trait button parent is missing.");
             return false;
-        }
 
         return true;
     }
@@ -376,13 +448,6 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
     {
         if (traitDescriptionText != null)
             traitDescriptionText.text = message;
-    }
-
-    private void ShowMessage(
-        string message)
-    {
-        if (messageText != null)
-            messageText.text = message;
     }
 
     private void ClearButtons(
