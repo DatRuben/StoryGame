@@ -25,6 +25,9 @@ public class CharacterCreatorPanelNavigationUI : MonoBehaviour
     [SerializeField] private GameObject finalizeLeftPanel;
     [SerializeField] private GameObject finalizeRightPanel;
 
+    [Header("Menu Navigation")]
+    [SerializeField] private Menus menus;
+
     [SerializeField] private Button backButton;
     [SerializeField] private Button nextButton;
 
@@ -42,12 +45,21 @@ public class CharacterCreatorPanelNavigationUI : MonoBehaviour
     {
         switch (currentPanel)
         {
+            case CreatorPanel.Race:
+                if (menus != null)
+                    menus.ShowCharacterSelect();
+                break;
+
             case CreatorPanel.Appearance:
                 ShowRacePanels();
                 break;
 
             case CreatorPanel.Traits:
                 ShowAppearancePanels();
+                break;
+
+            case CreatorPanel.Finalize:
+                ShowTraitsPanels();
                 break;
         }
     }
@@ -63,16 +75,25 @@ public class CharacterCreatorPanelNavigationUI : MonoBehaviour
             case CreatorPanel.Appearance:
                 ShowTraitsPanels();
                 break;
+
+            case CreatorPanel.Traits:
+                ShowFinalizePanels();
+                break;
+
+            case CreatorPanel.Finalize:
+                // Do nothing for now.
+                // Later this can create/finalize the character.
+                break;
         }
     }
 
     private void RefreshFlowButtons()
     {
         if (backButton != null)
-            backButton.interactable = currentPanel != CreatorPanel.Race;
+            backButton.interactable = true;
 
         if (nextButton != null)
-            nextButton.interactable = currentPanel != CreatorPanel.Traits;
+            nextButton.interactable = currentPanel != CreatorPanel.Finalize;
     }
 
     private void OnEnable()
