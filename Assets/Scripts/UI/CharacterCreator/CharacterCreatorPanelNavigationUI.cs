@@ -108,26 +108,34 @@ public class CharacterCreatorPanelNavigationUI : MonoBehaviour
 
     public void ShowRacePanels()
     {
+        currentPanel = CreatorPanel.Race;
         ShowOnly(raceLeftPanel, raceRightPanel);
         SetSelectedButton(raceButton);
+        RefreshFlowButtons();
     }
 
     public void ShowAppearancePanels()
     {
+        currentPanel = CreatorPanel.Appearance;
         ShowOnly(appearanceLeftPanel, appearanceRightPanel);
         SetSelectedButton(appearanceButton);
+        RefreshFlowButtons();
     }
 
     public void ShowTraitsPanels()
     {
+        currentPanel = CreatorPanel.Traits;
         ShowOnly(traitsLeftPanel, traitsRightPanel);
         SetSelectedButton(traitsButton);
+        RefreshFlowButtons();
     }
 
     public void ShowFinalizePanels()
     {
+        currentPanel = CreatorPanel.Finalize;
         ShowOnly(finalizeLeftPanel, finalizeRightPanel);
         SetSelectedButton(finalizeButton);
+        RefreshFlowButtons();
     }
 
     private void ShowOnly(
