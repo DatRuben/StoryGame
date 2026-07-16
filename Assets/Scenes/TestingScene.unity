@@ -19212,8 +19212,10 @@ MonoBehaviour:
   traitsRightPanel: {fileID: 2116189957}
   finalizeLeftPanel: {fileID: 1465139341}
   finalizeRightPanel: {fileID: 263831680}
+  menus: {fileID: 1341710893}
   backButton: {fileID: 112342131}
   nextButton: {fileID: 2066111041}
+  characterCreator: {fileID: 1655067621}
 --- !u!1 &1136561930
 GameObject:
   m_ObjectHideFlags: 0

@@ -359,6 +359,22 @@ public class CharacterCreator : MonoBehaviour
         );
     }
 
+    public void ResetCreator()
+    {
+        selectedRaceId = "";
+        selectedSubraceId = "";
+        selectedLineageIds.Clear();
+
+        selectedBackgroundId = "";
+        selectedTraitIds.Clear();
+
+        selectedGender = CharacterGender.Male;
+        selectedCharacterName = "";
+        selectedAppearance = CharacterAppearanceData.CreateDefault();
+
+        NotifySelectionChanged();
+    }
+
     public bool CanCreateCharacter(
         out string errorMessage)
     {

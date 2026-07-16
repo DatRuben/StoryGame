@@ -31,6 +31,8 @@ public class CharacterCreatorPanelNavigationUI : MonoBehaviour
     [SerializeField] private Button backButton;
     [SerializeField] private Button nextButton;
 
+    [SerializeField] private CharacterCreator characterCreator;
+
     private CreatorPanel currentPanel;
 
     private enum CreatorPanel
@@ -46,6 +48,9 @@ public class CharacterCreatorPanelNavigationUI : MonoBehaviour
         switch (currentPanel)
         {
             case CreatorPanel.Race:
+                if (characterCreator != null)
+                    characterCreator.ResetCreator();
+
                 if (menus != null)
                     menus.ShowCharacterSelect();
                 break;
