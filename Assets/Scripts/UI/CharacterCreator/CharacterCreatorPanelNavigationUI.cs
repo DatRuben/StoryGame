@@ -25,6 +25,56 @@ public class CharacterCreatorPanelNavigationUI : MonoBehaviour
     [SerializeField] private GameObject finalizeLeftPanel;
     [SerializeField] private GameObject finalizeRightPanel;
 
+    [SerializeField] private Button backButton;
+    [SerializeField] private Button nextButton;
+
+    private CreatorPanel currentPanel;
+
+    private enum CreatorPanel
+    {
+        Race,
+        Appearance,
+        Traits,
+        Finalize
+    }
+
+    public void ShowPreviousPanel()
+    {
+        switch (currentPanel)
+        {
+            case CreatorPanel.Appearance:
+                ShowRacePanels();
+                break;
+
+            case CreatorPanel.Traits:
+                ShowAppearancePanels();
+                break;
+        }
+    }
+
+    public void ShowNextPanel()
+    {
+        switch (currentPanel)
+        {
+            case CreatorPanel.Race:
+                ShowAppearancePanels();
+                break;
+
+            case CreatorPanel.Appearance:
+                ShowTraitsPanels();
+                break;
+        }
+    }
+
+    private void RefreshFlowButtons()
+    {
+        if (backButton != null)
+            backButton.interactable = currentPanel != CreatorPanel.Race;
+
+        if (nextButton != null)
+            nextButton.interactable = currentPanel != CreatorPanel.Traits;
+    }
+
     private void OnEnable()
     {
         HookButtons();
@@ -42,6 +92,8 @@ public class CharacterCreatorPanelNavigationUI : MonoBehaviour
         AddButtonListener(appearanceButton, ShowAppearancePanels);
         AddButtonListener(traitsButton, ShowTraitsPanels);
         AddButtonListener(finalizeButton, ShowFinalizePanels);
+        AddButtonListener(backButton, ShowPreviousPanel);
+        AddButtonListener(nextButton, ShowNextPanel);
     }
 
     private void UnhookButtons()
@@ -50,6 +102,8 @@ public class CharacterCreatorPanelNavigationUI : MonoBehaviour
         RemoveButtonListener(appearanceButton, ShowAppearancePanels);
         RemoveButtonListener(traitsButton, ShowTraitsPanels);
         RemoveButtonListener(finalizeButton, ShowFinalizePanels);
+        RemoveButtonListener(backButton, ShowPreviousPanel);
+        RemoveButtonListener(nextButton, ShowNextPanel);
     }
 
     public void ShowRacePanels()
