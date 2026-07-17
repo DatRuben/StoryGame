@@ -15,6 +15,8 @@ public class CharacterCreator : MonoBehaviour
     [SerializeField] private string selectedCharacterName = "";
     [SerializeField] private CharacterAppearanceData selectedAppearance = CharacterAppearanceData.CreateDefault();
 
+    public const int MaxTraits = 2;
+
     public string SelectedRaceId => selectedRaceId;
     public string SelectedSubraceId => selectedSubraceId;
     public IReadOnlyList<string> SelectedLineageIds => selectedLineageIds;
@@ -289,6 +291,12 @@ public class CharacterCreator : MonoBehaviour
             selectedTraitIds.Remove(traitDefinition.traitId);
             NotifySelectionChanged();
             return true;
+        }
+
+        if (selectedTraitIds.Count >= MaxTraits)
+        {
+            errorMessage = $"Only {MaxTraits} traits can be selected.";
+            return false;
         }
 
         selectedTraitIds.Add(traitDefinition.traitId);
@@ -623,6 +631,12 @@ public class CharacterCreator : MonoBehaviour
         out string errorMessage)
     {
         errorMessage = "";
+
+        if (selectedTraitIds.Count > MaxTraits)
+        {
+            errorMessage = $"Only {MaxTraits} traits can be selected.";
+            return false;
+        }
 
         List<TraitDefinition> traitDefinitions = new();
 

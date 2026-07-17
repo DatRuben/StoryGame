@@ -256,6 +256,12 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
             return false;
         }
 
+        if (characterCreator.SelectedTraitIds.Count >= CharacterCreator.MaxTraits &&
+            !IsTraitSelected(traitId))
+        {
+            return false;
+        }
+
         foreach (string selectedTraitId in characterCreator.SelectedTraitIds)
         {
             if (!characterDataLibrary.TryGetTraitDefinition(
