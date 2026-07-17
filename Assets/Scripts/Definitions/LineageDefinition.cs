@@ -21,7 +21,6 @@ public class LineageDefinition : ScriptableObject
     public string displayName;
     public LineageType lineageType;
 
-    [Header("Hybrid Ancestry Source")]
     [Tooltip(
         "For Hybrid Ancestry, this subrace supplies " +
         "the lineage's attribute shape."
@@ -31,13 +30,11 @@ public class LineageDefinition : ScriptableObject
     [TextArea]
     public string description;
 
-    [Header("Main Race")]
     [Tooltip(
         "The main race that is allowed to select this lineage."
     )]
     public RaceDefinition allowedRace;
 
-    [Header("Animal Species Attribute Modifiers")]
     [Tooltip(
         "Used by Animal Species lineages. " +
         "Hybrid Ancestry uses Source Subrace instead."
@@ -45,7 +42,6 @@ public class LineageDefinition : ScriptableObject
     public CharacterAttributeModifiers modifiers =
         CharacterAttributeModifiers.CreateZero();
 
-    [Header("Skill / Theme")]
     public string skillTheme;
 
     [TextArea]
@@ -208,15 +204,21 @@ public class LineageDefinitionEditor : Editor
         EditorGUILayout.Space();
 
         EditorGUILayout.PropertyField(
-            allowedRaces,
-            new GUIContent("Allowed Main Races"),
-            true
+            allowedRace,
+            new GUIContent("Main Race")
         );
 
         EditorGUILayout.Space();
 
-        EditorGUILayout.PropertyField(skillTheme);
-        EditorGUILayout.PropertyField(skillTreeTheme);
+        EditorGUILayout.PropertyField(
+            skillTheme,
+            new GUIContent("Skill Theme")
+        );
+
+        EditorGUILayout.PropertyField(
+            skillTreeTheme,
+            new GUIContent("Skill Tree Theme")
+        );
     }
 }
 #endif
