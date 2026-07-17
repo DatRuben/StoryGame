@@ -34,17 +34,17 @@ public class CharacterAppearanceOptionDefinition :
 
     public CharacterAppearanceOptionCategory category;
 
-    [TextArea]
-    public string description;
-
-    [Header("Creator Display")]
-    public Sprite previewImage;
-
+    [Header("Button Display")]
     [Tooltip(
-        "Optional visual prefab for the finished model. " +
-        "This is not used by the temporary capsule yet."
+        "The 2D image shown on this option's character creator button."
     )]
-    public GameObject visualPrefab;
+    public Sprite optionImage;
+
+    [Header("Character Model")]
+    [Tooltip(
+        "The actual 3D cosmetic prefab used on the character."
+    )]
+    public GameObject modelPrefab;
 
     [Header("Race Visibility")]
     [Tooltip(
@@ -203,7 +203,7 @@ public class CharacterAppearanceOptionDefinition :
         if (string.IsNullOrWhiteSpace(displayName))
             displayName = name;
 
-        optionId = MakeId(displayName);
+        optionId = MakeId(name);
     }
 
     private string MakeId(
