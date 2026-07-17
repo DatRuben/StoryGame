@@ -10,14 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 746448876e7b0334d94f8f8f3e811a98, type: 3}
-  m_Name: Inlander Lineage
+  m_Name: Drakken Feline Lineage
   m_EditorClassIdentifier: Assembly-CSharp::LineageDefinition
-  lineageId: inlander
-  displayName: Inlander
-  lineageType: 1
+  lineageId: drakken_feline
+  displayName: Drakken Feline
+  lineageType: 0
   description: 
-  allowedRaces:
-  - {fileID: 11400000, guid: 8518a5df7a2504f419e63f8b4b096beb, type: 2}
+  allowedRaces: []
   modifiers:
     strength: 0
     dexterity: 0
