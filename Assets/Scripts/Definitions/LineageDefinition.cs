@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 
@@ -32,8 +31,11 @@ public class LineageDefinition : ScriptableObject
     [TextArea]
     public string description;
 
-    [Header("Allowed Main Races")]
-    public List<RaceDefinition> allowedRaces = new();
+    [Header("Main Race")]
+    [Tooltip(
+        "The main race that is allowed to select this lineage."
+    )]
+    public RaceDefinition allowedRace;
 
     [Header("Animal Species Attribute Modifiers")]
     [Tooltip(
@@ -52,16 +54,14 @@ public class LineageDefinition : ScriptableObject
     public bool IsAllowedForRace(
         RaceDefinition race)
     {
-        if (race == null)
-            return false;
-
-        if (allowedRaces == null ||
-            allowedRaces.Count == 0)
+        if (race == null ||
+            allowedRace == null)
         {
             return false;
         }
 
-        return allowedRaces.Contains(race);
+        return allowedRace == race ||
+               allowedRace.raceId == race.raceId;
     }
 
     private void OnValidate()
@@ -108,7 +108,7 @@ public class LineageDefinitionEditor : Editor
     private SerializedProperty lineageType;
     private SerializedProperty sourceSubrace;
     private SerializedProperty description;
-    private SerializedProperty allowedRaces;
+    private SerializedProperty allowedRace;
     private SerializedProperty modifiers;
     private SerializedProperty skillTheme;
     private SerializedProperty skillTreeTheme;
@@ -127,8 +127,8 @@ public class LineageDefinitionEditor : Editor
         description =
             serializedObject.FindProperty("description");
 
-        allowedRaces =
-            serializedObject.FindProperty("allowedRaces");
+        allowedRace =
+            serializedObject.FindProperty("allowedRace");
 
         modifiers =
             serializedObject.FindProperty("modifiers");
@@ -143,6 +143,8 @@ public class LineageDefinitionEditor : Editor
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
+
+        EditorGUILayout.Space(6f);
 
         DrawIdentity();
         DrawLineageData();
@@ -180,43 +182,19 @@ public class LineageDefinitionEditor : Editor
 
     private void DrawHybridAncestry()
     {
-        EditorGUILayout.LabelField(
-            "Hybrid Ancestry Source",
-            EditorStyles.boldLabel
+        EditorGUILayout.PropertyField(
+            sourceSubrace,
+            new GUIContent("Source Subrace")
         );
-
-        EditorGUILayout.PropertyField(sourceSubrace);
-
-        if (sourceSubrace.objectReferenceValue == null)
-        {
-            EditorGUILayout.HelpBox(
-                "Assign the subrace that supplies this " +
-                "lineage's attributes.",
-                MessageType.Warning
-            );
-        }
-        else
-        {
-            EditorGUILayout.HelpBox(
-                "This lineage inherits its attribute shape " +
-                "directly from the selected subrace. The " +
-                "attributes cannot be edited here.",
-                MessageType.Info
-            );
-        }
 
         EditorGUILayout.Space();
     }
 
     private void DrawAnimalSpecies()
     {
-        EditorGUILayout.LabelField(
-            "Animal Species Attribute Modifiers",
-            EditorStyles.boldLabel
-        );
-
         EditorGUILayout.PropertyField(
             modifiers,
+            new GUIContent("Attribute Modifiers"),
             true
         );
 
@@ -225,31 +203,17 @@ public class LineageDefinitionEditor : Editor
 
     private void DrawSharedData()
     {
-        EditorGUILayout.LabelField(
-            "Details",
-            EditorStyles.boldLabel
-        );
-
         EditorGUILayout.PropertyField(description);
 
         EditorGUILayout.Space();
 
-        EditorGUILayout.LabelField(
-            "Allowed Main Races",
-            EditorStyles.boldLabel
-        );
-
         EditorGUILayout.PropertyField(
             allowedRaces,
+            new GUIContent("Allowed Main Races"),
             true
         );
 
         EditorGUILayout.Space();
-
-        EditorGUILayout.LabelField(
-            "Skill / Theme",
-            EditorStyles.boldLabel
-        );
 
         EditorGUILayout.PropertyField(skillTheme);
         EditorGUILayout.PropertyField(skillTreeTheme);
