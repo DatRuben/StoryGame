@@ -46,6 +46,7 @@ MonoBehaviour:
   totalAttributePointsPreview: 90
   size: 8
   bodyType: 2
+  previewPrefab: {fileID: 0}
   canHoldItemInMouth: 1
   canUseMouthWeapons: 1
   canEquipSaddles: 1

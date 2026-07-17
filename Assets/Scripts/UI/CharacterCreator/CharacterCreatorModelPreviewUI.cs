@@ -1,13 +1,32 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class CharacterCreatorModelPreviewUI : MonoBehaviour
 {
+    [Serializable]
+    private class RaceSizePreviewTransform
+    {
+        public RaceSize raceSize;
+
+        public Vector3 localPosition;
+        public Vector3 localEulerAngles;
+
+        public Vector3 localScale =
+            Vector3.one;
+    }
+
     [Header("Data")]
+    [SerializeField] private CharacterDataLibrary characterDataLibrary;
     [SerializeField] private CharacterCreator characterCreator;
 
-    [Header("Preview Model")]
-    [SerializeField] private Transform modelRoot;
-    [SerializeField] private Renderer[] skinRenderers;
+    [Header("Preview")]
+    [SerializeField] private Transform previewParent;
+    [SerializeField] private GameObject defaultPreviewPrefab;
+
+    [Header("Capsule Race Size Transforms")]
+    [SerializeField]
+    private List<RaceSizePreviewTransform> raceSizeTransforms = new();
 
     private static readonly int BaseColorId =
         Shader.PropertyToID("_BaseColor");
@@ -15,8 +34,14 @@ public class CharacterCreatorModelPreviewUI : MonoBehaviour
     private static readonly int ColorId =
         Shader.PropertyToID("_Color");
 
-    private Vector3 originalScale;
-    private bool hasOriginalScale;
+    private GameObject currentPreview;
+    private GameObject currentSourcePrefab;
+
+    private Vector3 prefabPosition;
+    private Quaternion prefabRotation;
+    private Vector3 prefabScale;
+
+    private Renderer[] currentRenderers;
 
     private MaterialPropertyBlock propertyBlock;
 
@@ -24,13 +49,10 @@ public class CharacterCreatorModelPreviewUI : MonoBehaviour
     {
         propertyBlock =
             new MaterialPropertyBlock();
-
-        CaptureOriginalScale();
     }
 
     private void OnEnable()
     {
-        CaptureOriginalScale();
         SubscribeToCreator();
         Refresh();
     }
@@ -38,18 +60,6 @@ public class CharacterCreatorModelPreviewUI : MonoBehaviour
     private void OnDisable()
     {
         UnsubscribeFromCreator();
-    }
-
-    private void CaptureOriginalScale()
-    {
-        if (hasOriginalScale ||
-            modelRoot == null)
-        {
-            return;
-        }
-
-        originalScale = modelRoot.localScale;
-        hasOriginalScale = true;
     }
 
     private void SubscribeToCreator()
@@ -71,89 +81,257 @@ public class CharacterCreatorModelPreviewUI : MonoBehaviour
 
     private void Refresh()
     {
-        if (characterCreator == null)
+        if (characterCreator == null ||
+            characterDataLibrary == null ||
+            previewParent == null ||
+            defaultPreviewPrefab == null)
+        {
+            return;
+        }
+
+        SubraceDefinition subraceDefinition =
+            GetSelectedSubrace();
+
+        GameObject desiredPrefab =
+            GetPreviewPrefab(subraceDefinition);
+
+        if (currentPreview == null ||
+            currentSourcePrefab != desiredPrefab)
+        {
+            SpawnPreview(desiredPrefab);
+        }
+
+        if (currentPreview == null)
             return;
 
         CharacterAppearanceData appearance =
             characterCreator.SelectedAppearance;
 
-        ApplyScale(appearance);
-        ApplySkinColor(appearance);
+        bool usingDefaultPrefab =
+            desiredPrefab == defaultPreviewPrefab;
+
+        if (usingDefaultPrefab)
+        {
+            RaceSize raceSize =
+                subraceDefinition != null
+                    ? subraceDefinition.size
+                    : RaceSize.Size2;
+
+            ApplyCapsuleTransform(
+                raceSize,
+                appearance
+            );
+        }
+        else
+        {
+            ApplyPrefabTransform(appearance);
+        }
+
+        ApplyColor(appearance);
     }
 
-    private void ApplyScale(
+    private SubraceDefinition GetSelectedSubrace()
+    {
+        if (string.IsNullOrWhiteSpace(
+            characterCreator.SelectedSubraceId))
+        {
+            return null;
+        }
+
+        characterDataLibrary.TryGetSubraceDefinition(
+            characterCreator.SelectedSubraceId,
+            out SubraceDefinition subraceDefinition
+        );
+
+        return subraceDefinition;
+    }
+
+    private GameObject GetPreviewPrefab(
+        SubraceDefinition subraceDefinition)
+    {
+        if (subraceDefinition != null &&
+            subraceDefinition.previewPrefab != null)
+        {
+            return subraceDefinition.previewPrefab;
+        }
+
+        return defaultPreviewPrefab;
+    }
+
+    private void SpawnPreview(
+        GameObject previewPrefab)
+    {
+        if (currentPreview != null)
+            Destroy(currentPreview);
+
+        if (previewPrefab == null)
+            return;
+
+        currentPreview =
+            Instantiate(
+                previewPrefab,
+                previewParent,
+                false
+            );
+
+        currentSourcePrefab = previewPrefab;
+
+        Transform previewTransform =
+            currentPreview.transform;
+
+        prefabPosition =
+            previewTransform.localPosition;
+
+        prefabRotation =
+            previewTransform.localRotation;
+
+        prefabScale =
+            previewTransform.localScale;
+
+        currentRenderers =
+            currentPreview.GetComponentsInChildren<Renderer>(
+                true
+            );
+    }
+
+    private void ApplyCapsuleTransform(
+        RaceSize raceSize,
         CharacterAppearanceData appearance)
     {
-        if (modelRoot == null ||
-            appearance == null ||
-            !hasOriginalScale)
+        if (currentPreview == null ||
+            appearance == null)
         {
             return;
         }
 
-        modelRoot.localScale =
-            originalScale * appearance.bodyScale;
+        RaceSizePreviewTransform raceTransform =
+            GetRaceSizeTransform(raceSize);
+
+        Transform previewTransform =
+            currentPreview.transform;
+
+        if (raceTransform == null)
+        {
+            previewTransform.localPosition =
+                prefabPosition;
+
+            previewTransform.localRotation =
+                prefabRotation;
+
+            previewTransform.localScale =
+                prefabScale * appearance.bodyScale;
+
+            return;
+        }
+
+        previewTransform.localPosition =
+            raceTransform.localPosition;
+
+        previewTransform.localRotation =
+            Quaternion.Euler(
+                raceTransform.localEulerAngles
+            );
+
+        previewTransform.localScale =
+            raceTransform.localScale *
+            appearance.bodyScale;
     }
 
-    private void ApplySkinColor(
+    private void ApplyPrefabTransform(
         CharacterAppearanceData appearance)
     {
-        if (appearance == null)
+        if (currentPreview == null ||
+            appearance == null)
+        {
             return;
+        }
 
-        Color skinColor =
+        Transform previewTransform =
+            currentPreview.transform;
+
+        previewTransform.localPosition =
+            prefabPosition;
+
+        previewTransform.localRotation =
+            prefabRotation;
+
+        previewTransform.localScale =
+            prefabScale * appearance.bodyScale;
+    }
+
+    private RaceSizePreviewTransform GetRaceSizeTransform(
+        RaceSize raceSize)
+    {
+        foreach (RaceSizePreviewTransform raceTransform
+                 in raceSizeTransforms)
+        {
+            if (raceTransform != null &&
+                raceTransform.raceSize == raceSize)
+            {
+                return raceTransform;
+            }
+        }
+
+        return null;
+    }
+
+    private void ApplyColor(
+        CharacterAppearanceData appearance)
+    {
+        if (appearance == null ||
+            currentRenderers == null)
+        {
+            return;
+        }
+
+        Color color =
             Color.HSVToRGB(
                 appearance.hue,
                 appearance.saturation,
                 appearance.value
             );
 
-        ApplyColor(
-            skinRenderers,
-            skinColor
-        );
+        foreach (Renderer targetRenderer
+                 in currentRenderers)
+        {
+            ApplyColor(targetRenderer, color);
+        }
     }
 
     private void ApplyColor(
-        Renderer[] renderers,
+        Renderer targetRenderer,
         Color color)
     {
-        if (renderers == null)
+        if (targetRenderer == null)
             return;
 
-        foreach (Renderer targetRenderer in renderers)
+        Material material =
+            targetRenderer.sharedMaterial;
+
+        if (material == null)
+            return;
+
+        targetRenderer.GetPropertyBlock(
+            propertyBlock
+        );
+
+        if (material.HasProperty(BaseColorId))
         {
-            if (targetRenderer == null)
-                continue;
-
-            Material material =
-                targetRenderer.sharedMaterial;
-
-            if (material == null)
-                continue;
-
-            targetRenderer.GetPropertyBlock(
-                propertyBlock
-            );
-
-            if (material.HasProperty(BaseColorId))
-            {
-                propertyBlock.SetColor(
-                    BaseColorId,
-                    color
-                );
-            }
-            else if (material.HasProperty(ColorId))
-            {
-                propertyBlock.SetColor(
-                    ColorId,
-                    color
-                );
-            }
-
-            targetRenderer.SetPropertyBlock(
-                propertyBlock
+            propertyBlock.SetColor(
+                BaseColorId,
+                color
             );
         }
+        else if (material.HasProperty(ColorId))
+        {
+            propertyBlock.SetColor(
+                ColorId,
+                color
+            );
+        }
+
+        targetRenderer.SetPropertyBlock(
+            propertyBlock
+        );
     }
 }

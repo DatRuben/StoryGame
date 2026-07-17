@@ -26767,6 +26767,13 @@ MonoBehaviour:
     hue: 0
     saturation: 0.75
     value: 0.9
+    hairHue: 0
+    hairSaturation: 0.75
+    hairValue: 0.9
+    eyeHue: 0
+    eyeSaturation: 0.75
+    eyeValue: 0.9
+    headType: 0
 --- !u!1 &1655536987
 GameObject:
   m_ObjectHideFlags: 0
@@ -28251,7 +28258,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 875874960}
   m_Direction: 2
   m_Value: 1
-  m_Size: 0.4340692
+  m_Size: 0.43387192
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -28416,7 +28423,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1726303412}
   - component: {fileID: 1726303414}
-  - component: {fileID: 1726303415}
+  - component: {fileID: 1726303416}
   m_Layer: 5
   m_Name: CharacterPreview
   m_TagString: Untagged
@@ -28435,11 +28442,12 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1949704277}
   m_Father: {fileID: 1133515381}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.35, y: 0.05}
-  m_AnchorMax: {x: 0.65, y: 0.85}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -28451,7 +28459,7 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1726303411}
   m_CullTransparentMesh: 1
---- !u!114 &1726303415
+--- !u!114 &1726303416
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -28460,24 +28468,50 @@ MonoBehaviour:
   m_GameObject: {fileID: 1726303411}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1344c3c82d62a2a41a3576d8abb8e3ea, type: 3}
+  m_Script: {fileID: 11500000, guid: 8a032c32bfb369740893938408f004a9, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.RawImage
-  m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_Texture: {fileID: 2800000, guid: aeb46db50c4ae7a4f944246d92a0589a, type: 3}
-  m_UVRect:
-    serializedVersion: 2
-    x: 0
-    y: 0
-    width: 1
-    height: 1
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterCreatorModelPreviewUI
+  characterDataLibrary: {fileID: 11400000, guid: c1acf6bd8c47e7e46a8bb26e72e63560, type: 2}
+  characterCreator: {fileID: 1655067621}
+  previewParent: {fileID: 1949704277}
+  defaultPreviewPrefab: {fileID: 7970501562150971857, guid: a8bbc21a44f1a8d42876fc33e3963bd3, type: 3}
+  raceSizeTransforms:
+  - raceSize: 0
+    localPosition: {x: 0, y: 0, z: 0}
+    localEulerAngles: {x: 0, y: 0, z: 0}
+    localScale: {x: 0.7, y: 0.7, z: 0.7}
+  - raceSize: 1
+    localPosition: {x: 0, y: 0, z: 0}
+    localEulerAngles: {x: 0, y: 0, z: 0}
+    localScale: {x: 1, y: 1, z: 1}
+  - raceSize: 2
+    localPosition: {x: 0, y: 0, z: 0}
+    localEulerAngles: {x: 0, y: 0, z: 0}
+    localScale: {x: 1, y: 1.2, z: 1}
+  - raceSize: 3
+    localPosition: {x: 0, y: 0, z: 0}
+    localEulerAngles: {x: 0, y: 0, z: 0}
+    localScale: {x: 1.3, y: 1.3, z: 1.3}
+  - raceSize: 4
+    localPosition: {x: 0, y: 0, z: 0}
+    localEulerAngles: {x: 0, y: 0, z: 0}
+    localScale: {x: 0.5, y: 0.5, z: 1.2}
+  - raceSize: 5
+    localPosition: {x: 0, y: 0, z: 0}
+    localEulerAngles: {x: 0, y: 0, z: 0}
+    localScale: {x: 1, y: 1, z: 2.4}
+  - raceSize: 6
+    localPosition: {x: 0, y: 0, z: 0}
+    localEulerAngles: {x: 0, y: 0, z: 0}
+    localScale: {x: 1.5, y: 1.5, z: 3.6}
+  - raceSize: 7
+    localPosition: {x: 0, y: 0, z: 0}
+    localEulerAngles: {x: 0, y: 0, z: 0}
+    localScale: {x: 1.75, y: 1.75, z: 4.2}
+  - raceSize: 8
+    localPosition: {x: 0, y: 0, z: 0}
+    localEulerAngles: {x: 0, y: 0, z: 0}
+    localScale: {x: 2, y: 2, z: 4.8}
 --- !u!1 &1733655545
 GameObject:
   m_ObjectHideFlags: 0
@@ -32258,6 +32292,41 @@ Transform:
   - {fileID: 1626743101}
   m_Father: {fileID: 1145009791}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1949704276
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1949704277}
+  m_Layer: 5
+  m_Name: PreviewSpawnPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1949704277
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1949704276}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1726303412}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1963445035
 GameObject:
   m_ObjectHideFlags: 0
