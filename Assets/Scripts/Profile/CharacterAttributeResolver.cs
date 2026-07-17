@@ -220,6 +220,15 @@ public static class CharacterAttributeResolver
         if (lineage == null)
             return CharacterAttributes.CreateDefault(10);
 
+        if (lineage.lineageType == LineageType.HybridAncestry &&
+            lineage.sourceSubrace != null &&
+            lineage.sourceSubrace.FinalAttributesPreview != null)
+        {
+            return CharacterAttributes.Copy(
+                lineage.sourceSubrace.FinalAttributesPreview
+            );
+        }
+
         return CharacterAttributes.AddModifiers(
             CharacterAttributes.CreateDefault(10),
             lineage.modifiers

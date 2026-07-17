@@ -16,13 +16,24 @@ public class LineageDefinition : ScriptableObject
     public string displayName;
     public LineageType lineageType;
 
+    [Header("Hybrid Ancestry Source")]
+    [Tooltip(
+        "For Hybrid Ancestry, this subrace supplies " +
+        "the lineage's attribute shape."
+    )]
+    public SubraceDefinition sourceSubrace;
+
     [TextArea]
     public string description;
 
     [Header("Allowed Main Races")]
     public List<RaceDefinition> allowedRaces = new();
 
-    [Header("Attribute Shape Modifiers")]
+    [Header("Animal Species Attribute Modifiers")]
+    [Tooltip(
+        "Used by Animal Species lineages. " +
+        "Hybrid Ancestry uses Source Subrace instead."
+    )]
     public CharacterAttributeModifiers modifiers =
         CharacterAttributeModifiers.CreateZero();
 

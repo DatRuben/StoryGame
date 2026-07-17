@@ -68,7 +68,8 @@ public class RaceDefinition : ScriptableObject
             return false;
 
         if (selectedSubrace != null &&
-            lineage.lineageId == selectedSubrace.subraceId)
+            lineage.lineageType == LineageType.HybridAncestry &&
+            lineage.sourceSubrace == selectedSubrace)
         {
             return false;
         }
