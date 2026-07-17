@@ -39,6 +39,9 @@ public class SubraceDefinition : ScriptableObject
     public RaceSize size;
     public BodyType bodyType;
 
+    [Header("Character Preview")]
+    public GameObject previewPrefab;
+
     [Header("Equipment / Holding Rules")]
     public bool canHoldItemInMouth;
     public bool canUseMouthWeapons;

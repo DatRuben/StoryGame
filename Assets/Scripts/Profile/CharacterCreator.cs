@@ -97,6 +97,69 @@ public class CharacterCreator : MonoBehaviour
         NotifySelectionChanged();
     }
 
+    public void SetHairHue(
+    float hue)
+    {
+        selectedAppearance.hairHue =
+            Mathf.Repeat(hue, 1f);
+
+        NotifySelectionChanged();
+    }
+
+    public void SetHairSaturation(
+        float saturation)
+    {
+        selectedAppearance.hairSaturation =
+            Mathf.Clamp01(saturation);
+
+        NotifySelectionChanged();
+    }
+
+    public void SetHairValue(
+        float value)
+    {
+        selectedAppearance.hairValue =
+            Mathf.Clamp01(value);
+
+        NotifySelectionChanged();
+    }
+
+    public void SetEyeHue(
+        float hue)
+    {
+        selectedAppearance.eyeHue =
+            Mathf.Repeat(hue, 1f);
+
+        NotifySelectionChanged();
+    }
+
+    public void SetEyeSaturation(
+        float saturation)
+    {
+        selectedAppearance.eyeSaturation =
+            Mathf.Clamp01(saturation);
+
+        NotifySelectionChanged();
+    }
+
+    public void SetEyeValue(
+        float value)
+    {
+        selectedAppearance.eyeValue =
+            Mathf.Clamp01(value);
+
+        NotifySelectionChanged();
+    }
+
+    public void SetHeadType(
+        int headType)
+    {
+        selectedAppearance.headType =
+            Mathf.Max(0, headType);
+
+        NotifySelectionChanged();
+    }
+
     private void NotifySelectionChanged()
     {
         if (SelectionChanged != null)
@@ -727,6 +790,44 @@ public class CharacterCreator : MonoBehaviour
         selectedAppearance.value =
             Mathf.Clamp01(
                 selectedAppearance.value
+            );
+
+        selectedAppearance.hairHue =
+            Mathf.Repeat(
+                selectedAppearance.hairHue,
+                1f
+            );
+
+        selectedAppearance.hairSaturation =
+            Mathf.Clamp01(
+                selectedAppearance.hairSaturation
+            );
+
+        selectedAppearance.hairValue =
+            Mathf.Clamp01(
+                selectedAppearance.hairValue
+            );
+
+        selectedAppearance.eyeHue =
+            Mathf.Repeat(
+                selectedAppearance.eyeHue,
+                1f
+            );
+
+        selectedAppearance.eyeSaturation =
+            Mathf.Clamp01(
+                selectedAppearance.eyeSaturation
+            );
+
+        selectedAppearance.eyeValue =
+            Mathf.Clamp01(
+                selectedAppearance.eyeValue
+            );
+
+        selectedAppearance.headType =
+            Mathf.Max(
+                0,
+                selectedAppearance.headType
             );
     }
 
