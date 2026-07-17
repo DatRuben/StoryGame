@@ -16,11 +16,20 @@ public class CharacterDataLibrary : ScriptableObject
     [SerializeField] private BackgroundDefinition defaultBackgroundDefinition;
     [SerializeField] private List<TraitDefinition> traitDefinitions = new();
 
+    [Header("Appearance Data")]
+    [SerializeField]
+    private List<CharacterAppearanceOptionDefinition>
+    appearanceOptionDefinitions = new();
+
     public IReadOnlyList<RaceDefinition> RaceDefinitions => raceDefinitions;
     public IReadOnlyList<SubraceDefinition> SubraceDefinitions => subraceDefinitions;
     public IReadOnlyList<LineageDefinition> LineageDefinitions => lineageDefinitions;
     public IReadOnlyList<BackgroundDefinition> BackgroundDefinitions => backgroundDefinitions;
     public IReadOnlyList<TraitDefinition> TraitDefinitions => traitDefinitions;
+
+    public IReadOnlyList<CharacterAppearanceOptionDefinition>
+    AppearanceOptionDefinitions =>
+        appearanceOptionDefinitions;
 
     public bool TryGetRaceDefinition(
         string raceId,
@@ -269,6 +278,7 @@ public class CharacterDataLibrary : ScriptableObject
         RebuildLineageDefinitions();
         RebuildBackgroundDefinitions();
         RebuildTraitDefinitions();
+        RebuildAppearanceOptionDefinitions();
 
         RecalculateDefinitionPreviews();
 
@@ -401,6 +411,33 @@ public class CharacterDataLibrary : ScriptableObject
         }
     }
 
+    private void RebuildAppearanceOptionDefinitions()
+    {
+        appearanceOptionDefinitions.Clear();
+
+        string[] guids =
+            AssetDatabase.FindAssets(
+                "t:CharacterAppearanceOptionDefinition"
+            );
+
+        foreach (string guid in guids)
+        {
+            string path =
+                AssetDatabase.GUIDToAssetPath(guid);
+
+            CharacterAppearanceOptionDefinition definition =
+                AssetDatabase.LoadAssetAtPath<
+                    CharacterAppearanceOptionDefinition
+                >(path);
+
+            if (definition != null &&
+                !appearanceOptionDefinitions.Contains(definition))
+            {
+                appearanceOptionDefinitions.Add(definition);
+            }
+        }
+    }
+
     private void RecalculateDefinitionPreviews()
     {
         foreach (RaceDefinition definition in raceDefinitions)
@@ -487,7 +524,8 @@ public class CharacterDataLibraryAutoRebuilder : AssetPostprocessor
                 asset is SubraceDefinition ||
                 asset is LineageDefinition ||
                 asset is BackgroundDefinition ||
-                asset is TraitDefinition)
+                asset is TraitDefinition ||
+                asset is CharacterAppearanceOptionDefinition)
             {
                 return true;
             }
