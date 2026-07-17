@@ -9,8 +9,9 @@ public class CharacterCreatorFinalizeUI : MonoBehaviour
     [SerializeField] private CharacterDataLibrary characterDataLibrary;
     [SerializeField] private CharacterCreator characterCreator;
 
-    [Header("Output")]
-    [SerializeField] private TMP_Text summaryText;
+    [Header("Right Panel")]
+    [SerializeField] private TMP_Text finalAttributesText;
+    [SerializeField] private TMP_Text finalStatsText;
 
     private void OnEnable()
     {
@@ -42,179 +43,168 @@ public class CharacterCreatorFinalizeUI : MonoBehaviour
 
     private void Refresh()
     {
-        if (summaryText == null)
+        if (!TryResolveStats(
+            out ResolvedCharacterStats resolvedStats))
+        {
+            ShowMissingData();
             return;
+        }
+
+        ShowFinalAttributes(resolvedStats.finalAttributes);
+        ShowFinalStats(resolvedStats);
+    }
+
+    private bool TryResolveStats(
+        out ResolvedCharacterStats resolvedStats)
+    {
+        resolvedStats = null;
 
         if (characterCreator == null ||
             characterDataLibrary == null)
         {
-            summaryText.text =
-                "Finalize\n\nCharacterCreator or CharacterDataLibrary is missing.";
+            return false;
+        }
+
+        if (!characterDataLibrary.TryGetRaceDefinition(
+            characterCreator.SelectedRaceId,
+            out RaceDefinition raceDefinition))
+        {
+            return false;
+        }
+
+        if (!characterDataLibrary.TryGetSubraceDefinition(
+            characterCreator.SelectedSubraceId,
+            out SubraceDefinition subraceDefinition))
+        {
+            return false;
+        }
+
+        List<string> lineageIds =
+            new(characterCreator.SelectedLineageIds);
+
+        List<LineageDefinition> lineages =
+            characterDataLibrary.GetLineageDefinitions(lineageIds);
+
+        characterDataLibrary.TryGetBackgroundDefinition(
+            characterCreator.SelectedBackgroundId,
+            out BackgroundDefinition backgroundDefinition
+        );
+
+        List<string> traitIds =
+            new(characterCreator.SelectedTraitIds);
+
+        List<TraitDefinition> traits =
+            characterDataLibrary.GetTraitDefinitions(traitIds);
+
+        resolvedStats =
+            CharacterStatsResolver.ResolveCharacter(
+                raceDefinition,
+                subraceDefinition,
+                lineages,
+                backgroundDefinition,
+                traits
+            );
+
+        return resolvedStats != null;
+    }
+
+    private void ShowFinalAttributes(
+        CharacterAttributes attributes)
+    {
+        if (finalAttributesText == null)
+            return;
+
+        if (attributes == null)
+        {
+            finalAttributesText.text =
+                "FINAL ATTRIBUTES\n\nUnavailable";
 
             return;
         }
 
-        StringBuilder summary = new();
+        StringBuilder text = new();
 
-        summary.AppendLine("Finalize");
-        summary.AppendLine();
-        summary.AppendLine("This page does not create the character yet.");
-        summary.AppendLine();
+        text.AppendLine("FINAL ATTRIBUTES");
+        text.AppendLine();
 
-        summary.AppendLine($"Name: {GetNameText()}");
-        summary.AppendLine($"Gender: {characterCreator.SelectedGender}");
-        summary.AppendLine();
+        AddValue(text, "Strength", attributes.strength);
+        AddValue(text, "Dexterity", attributes.dexterity);
+        AddValue(text, "Agility", attributes.agility);
+        AddValue(text, "Vitality", attributes.vitality);
+        AddValue(text, "Endurance", attributes.endurance);
+        AddValue(text, "Intelligence", attributes.intelligence);
+        AddValue(text, "Willpower", attributes.willpower);
+        AddValue(text, "Spirit", attributes.spirit);
+        AddValue(text, "Perception", attributes.perception);
 
-        summary.AppendLine($"Race: {GetRaceText()}");
-        summary.AppendLine($"Subrace: {GetSubraceText()}");
-        summary.AppendLine($"Lineage: {GetLineageText()}");
-        summary.AppendLine();
-
-        summary.AppendLine($"Background: {GetBackgroundText()}");
-        summary.AppendLine($"Traits: {GetTraitText()}");
-        summary.AppendLine();
-
-        CharacterAppearanceData appearance =
-            characterCreator.SelectedAppearance;
-
-        summary.AppendLine("Appearance");
-        summary.AppendLine($"Body Scale: {appearance.bodyScale:0.00}");
-        summary.AppendLine($"Hue: {appearance.hue:0.00}");
-        summary.AppendLine($"Saturation: {appearance.saturation:0.00}");
-        summary.AppendLine($"Value: {appearance.value:0.00}");
-
-        summaryText.text = summary.ToString();
+        finalAttributesText.text = text.ToString();
     }
 
-    private string GetNameText()
+    private void ShowFinalStats(
+        ResolvedCharacterStats resolvedStats)
     {
-        if (string.IsNullOrWhiteSpace(characterCreator.SelectedCharacterName))
-            return "Unnamed";
+        if (finalStatsText == null)
+            return;
 
-        return characterCreator.SelectedCharacterName;
-    }
+        FinalCharacterStats stats =
+            resolvedStats.finalStats;
 
-    private string GetRaceText()
-    {
-        if (characterDataLibrary.TryGetRaceDefinition(
-            characterCreator.SelectedRaceId,
-            out RaceDefinition raceDefinition))
+        CharacterBaseStats baseStats =
+            resolvedStats.totalBaseStats;
+
+        if (stats == null ||
+            baseStats == null)
         {
-            return GetDisplayName(
-                raceDefinition.displayName,
-                raceDefinition.raceId
-            );
+            finalStatsText.text =
+                "FINAL STATS\n\nUnavailable";
+
+            return;
         }
 
-        return "None selected";
+        StringBuilder text = new();
+
+        text.AppendLine("FINAL STATS");
+        text.AppendLine();
+
+        AddValue(text, "Health", stats.maxHealth);
+        AddValue(text, "Soul Barrier", stats.maxSoulBarrier);
+        AddValue(text, "Stamina", stats.maxStamina);
+        AddValue(text, "Aether", stats.maxAether);
+        AddValue(text, "Mass", stats.mass);
+        AddValue(text, "Poise", stats.poise);
+        AddValue(text, "Carry Weight", baseStats.carryWeight);
+
+        finalStatsText.text = text.ToString();
     }
 
-    private string GetSubraceText()
+    private void AddValue(
+        StringBuilder text,
+        string label,
+        int value)
     {
-        if (characterDataLibrary.TryGetSubraceDefinition(
-            characterCreator.SelectedSubraceId,
-            out SubraceDefinition subraceDefinition))
+        text.AppendLine($"{label}: {value}");
+    }
+
+    private void AddValue(
+        StringBuilder text,
+        string label,
+        float value)
+    {
+        text.AppendLine($"{label}: {value:0.##}");
+    }
+
+    private void ShowMissingData()
+    {
+        if (finalAttributesText != null)
         {
-            return GetDisplayName(
-                subraceDefinition.displayName,
-                subraceDefinition.subraceId
-            );
+            finalAttributesText.text =
+                "FINAL ATTRIBUTES\n\nUnavailable";
         }
 
-        return "None selected";
-    }
-
-    private string GetLineageText()
-    {
-        IReadOnlyList<string> lineageIds =
-            characterCreator.SelectedLineageIds;
-
-        if (lineageIds.Count == 0)
-            return "None";
-
-        List<string> names = new();
-
-        foreach (string lineageId in lineageIds)
+        if (finalStatsText != null)
         {
-            if (!characterDataLibrary.TryGetLineageDefinition(
-                lineageId,
-                out LineageDefinition lineageDefinition))
-            {
-                continue;
-            }
-
-            names.Add(
-                GetDisplayName(
-                    lineageDefinition.displayName,
-                    lineageDefinition.lineageId
-                )
-            );
+            finalStatsText.text =
+                "FINAL STATS\n\nUnavailable";
         }
-
-        if (names.Count == 0)
-            return "None";
-
-        return string.Join(", ", names);
-    }
-
-    private string GetBackgroundText()
-    {
-        if (characterDataLibrary.TryGetBackgroundDefinition(
-            characterCreator.SelectedBackgroundId,
-            out BackgroundDefinition backgroundDefinition))
-        {
-            return GetDisplayName(
-                backgroundDefinition.displayName,
-                backgroundDefinition.backgroundId
-            );
-        }
-
-        return "None selected";
-    }
-
-    private string GetTraitText()
-    {
-        IReadOnlyList<string> traitIds =
-            characterCreator.SelectedTraitIds;
-
-        if (traitIds.Count == 0)
-            return "None";
-
-        List<string> names = new();
-
-        foreach (string traitId in traitIds)
-        {
-            if (!characterDataLibrary.TryGetTraitDefinition(
-                traitId,
-                out TraitDefinition traitDefinition))
-            {
-                continue;
-            }
-
-            names.Add(
-                GetDisplayName(
-                    traitDefinition.displayName,
-                    traitDefinition.traitId
-                )
-            );
-        }
-
-        if (names.Count == 0)
-            return "None";
-
-        return string.Join(", ", names);
-    }
-
-    private string GetDisplayName(
-        string displayName,
-        string fallbackId)
-    {
-        if (!string.IsNullOrWhiteSpace(displayName))
-            return displayName;
-
-        if (!string.IsNullOrWhiteSpace(fallbackId))
-            return fallbackId;
-
-        return "Unknown";
     }
 }
