@@ -15,8 +15,9 @@ MonoBehaviour:
   lineageId: drakken_feline
   displayName: Drakken Feline
   lineageType: 0
+  sourceSubrace: {fileID: 0}
   description: 
-  allowedRaces: []
+  allowedRace: {fileID: 0}
   modifiers:
     strength: 0
     dexterity: 0

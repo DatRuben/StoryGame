@@ -43,8 +43,6 @@ public class LineageDefinition : ScriptableObject
         CharacterAttributeModifiers.CreateZero();
 
     public string skillTheme;
-
-    [TextArea]
     public string skillTreeTheme;
 
     public bool IsAllowedForRace(
@@ -215,10 +213,13 @@ public class LineageDefinitionEditor : Editor
             new GUIContent("Skill Theme")
         );
 
-        EditorGUILayout.PropertyField(
-            skillTreeTheme,
-            new GUIContent("Skill Tree Theme")
-        );
+        EditorGUILayout.LabelField("Skill Tree Theme");
+
+        skillTreeTheme.stringValue =
+            EditorGUILayout.TextArea(
+                skillTreeTheme.stringValue,
+                GUILayout.MinHeight(48f)
+            );
     }
 }
 #endif
