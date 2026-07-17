@@ -1,190 +1,193 @@
-using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.Events;
+
+public enum CharacterAppearanceCategory
+{
+    Body,
+    Head,
+    Hair,
+    Eyes,
+    Skin
+}
 
 public class CharacterCreatorAppearanceUI : MonoBehaviour
 {
-    [Header("Data")]
-    [SerializeField] private CharacterCreator characterCreator;
+    [Header("Details")]
+    [SerializeField]
+    private CharacterCreatorAppearanceDetailsUI appearanceDetailsUI;
 
-    [Header("Body Scale")]
-    [SerializeField] private Slider bodyScaleSlider;
+    [Header("Category Buttons")]
+    [SerializeField] private CharacterOptionButtonUI bodyButton;
+    [SerializeField] private CharacterOptionButtonUI headButton;
+    [SerializeField] private CharacterOptionButtonUI hairButton;
+    [SerializeField] private CharacterOptionButtonUI eyesButton;
+    [SerializeField] private CharacterOptionButtonUI skinButton;
 
-    [Header("Color")]
-    [SerializeField] private Slider hueSlider;
-    [SerializeField] private Slider saturationSlider;
-    [SerializeField] private Slider valueSlider;
-
-    [Header("Output")]
-    [SerializeField] private TMP_Text previewText;
+    private CharacterAppearanceCategory selectedCategory =
+        CharacterAppearanceCategory.Body;
 
     private void OnEnable()
     {
-        HookSliders();
-        SubscribeToCreator();
-        Refresh();
+        HookButtons();
+        SelectCategory(selectedCategory);
     }
 
     private void OnDisable()
     {
-        UnhookSliders();
-        UnsubscribeFromCreator();
+        UnhookButtons();
     }
 
-    private void HookSliders()
+    private void HookButtons()
     {
-        if (bodyScaleSlider != null)
-        {
-            bodyScaleSlider.onValueChanged.RemoveListener(
-                OnBodyScaleChanged
-            );
+        HookButton(
+            bodyButton,
+            "Body",
+            SelectBody
+        );
 
-            bodyScaleSlider.onValueChanged.AddListener(
-                OnBodyScaleChanged
-            );
-        }
+        HookButton(
+            headButton,
+            "Head",
+            SelectHead
+        );
 
-        if (hueSlider != null)
-        {
-            hueSlider.onValueChanged.RemoveListener(
-                OnHueChanged
-            );
+        HookButton(
+            hairButton,
+            "Hair",
+            SelectHair
+        );
 
-            hueSlider.onValueChanged.AddListener(
-                OnHueChanged
-            );
-        }
+        HookButton(
+            eyesButton,
+            "Eyes",
+            SelectEyes
+        );
 
-        if (saturationSlider != null)
-        {
-            saturationSlider.onValueChanged.RemoveListener(
-                OnSaturationChanged
-            );
-
-            saturationSlider.onValueChanged.AddListener(
-                OnSaturationChanged
-            );
-        }
-
-        if (valueSlider != null)
-        {
-            valueSlider.onValueChanged.RemoveListener(
-                OnValueChanged
-            );
-
-            valueSlider.onValueChanged.AddListener(
-                OnValueChanged
-            );
-        }
+        HookButton(
+            skinButton,
+            "Skin",
+            SelectSkin
+        );
     }
 
-    private void UnhookSliders()
+    private void UnhookButtons()
     {
-        if (bodyScaleSlider != null)
-            bodyScaleSlider.onValueChanged.RemoveListener(OnBodyScaleChanged);
-
-        if (hueSlider != null)
-            hueSlider.onValueChanged.RemoveListener(OnHueChanged);
-
-        if (saturationSlider != null)
-            saturationSlider.onValueChanged.RemoveListener(OnSaturationChanged);
-
-        if (valueSlider != null)
-            valueSlider.onValueChanged.RemoveListener(OnValueChanged);
+        UnhookButton(bodyButton, SelectBody);
+        UnhookButton(headButton, SelectHead);
+        UnhookButton(hairButton, SelectHair);
+        UnhookButton(eyesButton, SelectEyes);
+        UnhookButton(skinButton, SelectSkin);
     }
 
-    private void SubscribeToCreator()
+    private void HookButton(
+        CharacterOptionButtonUI button,
+        string label,
+        UnityAction action)
     {
-        if (characterCreator == null)
+        if (button == null)
             return;
 
-        characterCreator.SelectionChanged -= Refresh;
-        characterCreator.SelectionChanged += Refresh;
-    }
+        button.SetText(label);
+        button.SetInteractable(true);
 
-    private void UnsubscribeFromCreator()
-    {
-        if (characterCreator == null)
+        if (button.Button == null)
             return;
 
-        characterCreator.SelectionChanged -= Refresh;
+        button.Button.onClick.RemoveListener(action);
+        button.Button.onClick.AddListener(action);
     }
 
-    private void Refresh()
+    private void UnhookButton(
+        CharacterOptionButtonUI button,
+        UnityAction action)
     {
-        if (characterCreator == null)
+        if (button == null ||
+            button.Button == null)
         {
-            ShowPreview("CharacterCreator is missing.");
             return;
         }
 
-        CharacterAppearanceData appearance =
-            characterCreator.SelectedAppearance;
+        button.Button.onClick.RemoveListener(action);
+    }
 
-        SetSliderWithoutNotify(
-            bodyScaleSlider,
-            appearance.bodyScale
-        );
-
-        SetSliderWithoutNotify(
-            hueSlider,
-            appearance.hue
-        );
-
-        SetSliderWithoutNotify(
-            saturationSlider,
-            appearance.saturation
-        );
-
-        SetSliderWithoutNotify(
-            valueSlider,
-            appearance.value
-        );
-
-        ShowPreview(
-            $"Body Scale: {appearance.bodyScale:0.00}\n" +
-            $"Hue: {appearance.hue:0.00}\n" +
-            $"Saturation: {appearance.saturation:0.00}\n" +
-            $"Value: {appearance.value:0.00}"
+    private void SelectBody()
+    {
+        SelectCategory(
+            CharacterAppearanceCategory.Body
         );
     }
 
-    private void SetSliderWithoutNotify(
-        Slider slider,
-        float value)
+    private void SelectHead()
     {
-        if (slider != null)
-            slider.SetValueWithoutNotify(value);
+        SelectCategory(
+            CharacterAppearanceCategory.Head
+        );
     }
 
-    private void OnBodyScaleChanged(float value)
+    private void SelectHair()
     {
-        if (characterCreator != null)
-            characterCreator.SetBodyScale(value);
+        SelectCategory(
+            CharacterAppearanceCategory.Hair
+        );
     }
 
-    private void OnHueChanged(float value)
+    private void SelectEyes()
     {
-        if (characterCreator != null)
-            characterCreator.SetHue(value);
+        SelectCategory(
+            CharacterAppearanceCategory.Eyes
+        );
     }
 
-    private void OnSaturationChanged(float value)
+    private void SelectSkin()
     {
-        if (characterCreator != null)
-            characterCreator.SetSaturation(value);
+        SelectCategory(
+            CharacterAppearanceCategory.Skin
+        );
     }
 
-    private void OnValueChanged(float value)
+    private void SelectCategory(
+        CharacterAppearanceCategory category)
     {
-        if (characterCreator != null)
-            characterCreator.SetValue(value);
+        selectedCategory = category;
+
+        SetSelected(
+            bodyButton,
+            category == CharacterAppearanceCategory.Body
+        );
+
+        SetSelected(
+            headButton,
+            category == CharacterAppearanceCategory.Head
+        );
+
+        SetSelected(
+            hairButton,
+            category == CharacterAppearanceCategory.Hair
+        );
+
+        SetSelected(
+            eyesButton,
+            category == CharacterAppearanceCategory.Eyes
+        );
+
+        SetSelected(
+            skinButton,
+            category == CharacterAppearanceCategory.Skin
+        );
+
+        if (appearanceDetailsUI != null)
+        {
+            appearanceDetailsUI.ShowCategory(
+                category
+            );
+        }
     }
 
-    private void ShowPreview(
-        string message)
+    private void SetSelected(
+        CharacterOptionButtonUI button,
+        bool selected)
     {
-        if (previewText != null)
-            previewText.text = message;
+        if (button != null)
+            button.SetSelected(selected);
     }
 }
