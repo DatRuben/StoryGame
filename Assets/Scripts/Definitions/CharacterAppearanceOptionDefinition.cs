@@ -30,7 +30,6 @@ public enum CharacterAppearanceOptionAvailability
 public class CharacterAppearanceOptionDefinition :
     ScriptableObject
 {
-    [Header("Identity")]
     [HideInInspector]
     public string optionId;
 
@@ -38,35 +37,30 @@ public class CharacterAppearanceOptionDefinition :
 
     public CharacterAppearanceOptionCategory category;
 
-    [Header("Button Display")]
     [Tooltip(
         "The 2D image shown on this option's character creator button."
     )]
     public Sprite optionImage;
 
-    [Header("Character Model")]
     [Tooltip(
         "The actual 3D cosmetic prefab used on the character."
     )]
     public GameObject modelPrefab;
 
-    [Header("Race")]
     [Tooltip(
         "The race this appearance option belongs to."
     )]
     public RaceDefinition race;
 
-    [Header("Subrace Or Lineage Requirement")]
     [Tooltip(
         "Leave both requirement lists empty to make " +
         "the option available to every subrace and " +
-        "lineage of the shown races."
+        "lineage of the selected race."
     )]
     public List<SubraceDefinition> allowedSubraces = new();
 
     public List<LineageDefinition> allowedLineages = new();
 
-    [Header("Defaults")]
     [Tooltip(
         "Used as a fallback when the previously selected " +
         "option is no longer available."
@@ -230,7 +224,7 @@ public class CharacterAppearanceOptionDefinitionEditor : Editor
     private SerializedProperty category;
     private SerializedProperty optionImage;
     private SerializedProperty modelPrefab;
-    private SerializedProperty shownForRaces;
+    private SerializedProperty race;
     private SerializedProperty allowedSubraces;
     private SerializedProperty allowedLineages;
     private SerializedProperty isDefaultOption;
@@ -249,8 +243,8 @@ public class CharacterAppearanceOptionDefinitionEditor : Editor
         modelPrefab =
             serializedObject.FindProperty("modelPrefab");
 
-        shownForRaces =
-            serializedObject.FindProperty("shownForRaces");
+        race =
+            serializedObject.FindProperty("race");
 
         allowedSubraces =
             serializedObject.FindProperty("allowedSubraces");
@@ -268,9 +262,9 @@ public class CharacterAppearanceOptionDefinitionEditor : Editor
 
         EditorGUILayout.Space(6f);
 
+        DrawRace();
         DrawIdentity();
         DrawVisuals();
-        DrawRaces();
 
         RemoveInvalidRequirements();
         DrawRequirements();
@@ -320,17 +314,11 @@ public class CharacterAppearanceOptionDefinitionEditor : Editor
         EditorGUILayout.Space();
     }
 
-    private void DrawRaces()
+    private void DrawRace()
     {
-        EditorGUILayout.LabelField(
-            "Race Visibility",
-            EditorStyles.boldLabel
-        );
-
         EditorGUILayout.PropertyField(
-            shownForRaces,
-            new GUIContent("Shown For Races"),
-            true
+            race,
+            new GUIContent("Race")
         );
 
         EditorGUILayout.Space();
@@ -349,7 +337,7 @@ public class CharacterAppearanceOptionDefinitionEditor : Editor
         if (races.Count == 0)
         {
             EditorGUILayout.LabelField(
-                "Select at least one shown race first."
+                "Select a race first."
             );
 
             EditorGUILayout.Space();
@@ -472,22 +460,12 @@ public class CharacterAppearanceOptionDefinitionEditor : Editor
     {
         List<RaceDefinition> races = new();
 
-        for (int i = 0;
-             i < shownForRaces.arraySize;
-             i++)
-        {
-            RaceDefinition race =
-                shownForRaces
-                    .GetArrayElementAtIndex(i)
-                    .objectReferenceValue
-                as RaceDefinition;
+        RaceDefinition selectedRace =
+            race.objectReferenceValue
+            as RaceDefinition;
 
-            if (race != null &&
-                !races.Contains(race))
-            {
-                races.Add(race);
-            }
-        }
+        if (selectedRace != null)
+            races.Add(selectedRace);
 
         return races;
     }
