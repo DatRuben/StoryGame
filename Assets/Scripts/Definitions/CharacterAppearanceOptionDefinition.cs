@@ -2,6 +2,10 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 public enum CharacterAppearanceOptionCategory
 {
     Head,
@@ -46,12 +50,11 @@ public class CharacterAppearanceOptionDefinition :
     )]
     public GameObject modelPrefab;
 
-    [Header("Race Visibility")]
+    [Header("Race")]
     [Tooltip(
-        "The option is hidden when the selected race " +
-        "is not in this list."
+        "The race this appearance option belongs to."
     )]
-    public List<RaceDefinition> shownForRaces = new();
+    public RaceDefinition race;
 
     [Header("Subrace Or Lineage Requirement")]
     [Tooltip(
@@ -102,27 +105,13 @@ public class CharacterAppearanceOptionDefinition :
         RaceDefinition selectedRace)
     {
         if (selectedRace == null ||
-            shownForRaces == null ||
-            shownForRaces.Count == 0)
+            race == null)
         {
             return false;
         }
 
-        foreach (RaceDefinition raceDefinition
-                 in shownForRaces)
-        {
-            if (raceDefinition == null)
-                continue;
-
-            if (raceDefinition == selectedRace ||
-                raceDefinition.raceId ==
-                selectedRace.raceId)
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return race == selectedRace ||
+               race.raceId == selectedRace.raceId;
     }
 
     private bool HasAncestryRequirements()
@@ -232,3 +221,508 @@ public class CharacterAppearanceOptionDefinition :
         return builder.ToString().Trim('_');
     }
 }
+
+#if UNITY_EDITOR
+[CustomEditor(typeof(CharacterAppearanceOptionDefinition))]
+public class CharacterAppearanceOptionDefinitionEditor : Editor
+{
+    private SerializedProperty displayName;
+    private SerializedProperty category;
+    private SerializedProperty optionImage;
+    private SerializedProperty modelPrefab;
+    private SerializedProperty shownForRaces;
+    private SerializedProperty allowedSubraces;
+    private SerializedProperty allowedLineages;
+    private SerializedProperty isDefaultOption;
+
+    private void OnEnable()
+    {
+        displayName =
+            serializedObject.FindProperty("displayName");
+
+        category =
+            serializedObject.FindProperty("category");
+
+        optionImage =
+            serializedObject.FindProperty("optionImage");
+
+        modelPrefab =
+            serializedObject.FindProperty("modelPrefab");
+
+        shownForRaces =
+            serializedObject.FindProperty("shownForRaces");
+
+        allowedSubraces =
+            serializedObject.FindProperty("allowedSubraces");
+
+        allowedLineages =
+            serializedObject.FindProperty("allowedLineages");
+
+        isDefaultOption =
+            serializedObject.FindProperty("isDefaultOption");
+    }
+
+    public override void OnInspectorGUI()
+    {
+        serializedObject.Update();
+
+        EditorGUILayout.Space(6f);
+
+        DrawIdentity();
+        DrawVisuals();
+        DrawRaces();
+
+        RemoveInvalidRequirements();
+        DrawRequirements();
+
+        DrawDefaults();
+
+        serializedObject.ApplyModifiedProperties();
+    }
+
+    private void DrawIdentity()
+    {
+        EditorGUILayout.LabelField(
+            "Identity",
+            EditorStyles.boldLabel
+        );
+
+        EditorGUILayout.PropertyField(displayName);
+        EditorGUILayout.PropertyField(category);
+
+        EditorGUILayout.Space();
+    }
+
+    private void DrawVisuals()
+    {
+        EditorGUILayout.LabelField(
+            "Button Display",
+            EditorStyles.boldLabel
+        );
+
+        EditorGUILayout.PropertyField(
+            optionImage,
+            new GUIContent("Option Image")
+        );
+
+        EditorGUILayout.Space();
+
+        EditorGUILayout.LabelField(
+            "Character Model",
+            EditorStyles.boldLabel
+        );
+
+        EditorGUILayout.PropertyField(
+            modelPrefab,
+            new GUIContent("Model Prefab")
+        );
+
+        EditorGUILayout.Space();
+    }
+
+    private void DrawRaces()
+    {
+        EditorGUILayout.LabelField(
+            "Race Visibility",
+            EditorStyles.boldLabel
+        );
+
+        EditorGUILayout.PropertyField(
+            shownForRaces,
+            new GUIContent("Shown For Races"),
+            true
+        );
+
+        EditorGUILayout.Space();
+    }
+
+    private void DrawRequirements()
+    {
+        EditorGUILayout.LabelField(
+            "Ancestry Requirements",
+            EditorStyles.boldLabel
+        );
+
+        List<RaceDefinition> races =
+            GetSelectedRaces();
+
+        if (races.Count == 0)
+        {
+            EditorGUILayout.LabelField(
+                "Select at least one shown race first."
+            );
+
+            EditorGUILayout.Space();
+            return;
+        }
+
+        DrawSubraceOptions(races);
+        EditorGUILayout.Space();
+        DrawLineageOptions(races);
+
+        EditorGUILayout.Space();
+    }
+
+    private void DrawSubraceOptions(
+        List<RaceDefinition> races)
+    {
+        EditorGUILayout.LabelField(
+            "Allowed Subraces",
+            EditorStyles.boldLabel
+        );
+
+        List<SubraceDefinition> definitions =
+            GetValidSubraces(races);
+
+        if (definitions.Count == 0)
+        {
+            EditorGUILayout.LabelField(
+                "No connected subraces found."
+            );
+
+            return;
+        }
+
+        foreach (SubraceDefinition definition
+                 in definitions)
+        {
+            bool selected =
+                ContainsReference(
+                    allowedSubraces,
+                    definition
+                );
+
+            bool nextSelected =
+                EditorGUILayout.ToggleLeft(
+                    definition.displayName,
+                    selected
+                );
+
+            if (nextSelected != selected)
+            {
+                SetReferenceSelected(
+                    allowedSubraces,
+                    definition,
+                    nextSelected
+                );
+            }
+        }
+    }
+
+    private void DrawLineageOptions(
+        List<RaceDefinition> races)
+    {
+        EditorGUILayout.LabelField(
+            "Allowed Lineages",
+            EditorStyles.boldLabel
+        );
+
+        List<LineageDefinition> definitions =
+            GetValidLineages(races);
+
+        if (definitions.Count == 0)
+        {
+            EditorGUILayout.LabelField(
+                "No connected lineages found."
+            );
+
+            return;
+        }
+
+        foreach (LineageDefinition definition
+                 in definitions)
+        {
+            bool selected =
+                ContainsReference(
+                    allowedLineages,
+                    definition
+                );
+
+            bool nextSelected =
+                EditorGUILayout.ToggleLeft(
+                    definition.displayName,
+                    selected
+                );
+
+            if (nextSelected != selected)
+            {
+                SetReferenceSelected(
+                    allowedLineages,
+                    definition,
+                    nextSelected
+                );
+            }
+        }
+    }
+
+    private void DrawDefaults()
+    {
+        EditorGUILayout.LabelField(
+            "Defaults",
+            EditorStyles.boldLabel
+        );
+
+        EditorGUILayout.PropertyField(
+            isDefaultOption,
+            new GUIContent("Is Default Option")
+        );
+    }
+
+    private List<RaceDefinition> GetSelectedRaces()
+    {
+        List<RaceDefinition> races = new();
+
+        for (int i = 0;
+             i < shownForRaces.arraySize;
+             i++)
+        {
+            RaceDefinition race =
+                shownForRaces
+                    .GetArrayElementAtIndex(i)
+                    .objectReferenceValue
+                as RaceDefinition;
+
+            if (race != null &&
+                !races.Contains(race))
+            {
+                races.Add(race);
+            }
+        }
+
+        return races;
+    }
+
+    private List<SubraceDefinition> GetValidSubraces(
+        List<RaceDefinition> races)
+    {
+        List<SubraceDefinition> definitions = new();
+
+        string[] guids =
+            AssetDatabase.FindAssets(
+                "t:SubraceDefinition"
+            );
+
+        foreach (string guid in guids)
+        {
+            string path =
+                AssetDatabase.GUIDToAssetPath(guid);
+
+            SubraceDefinition definition =
+                AssetDatabase.LoadAssetAtPath<
+                    SubraceDefinition
+                >(path);
+
+            if (definition == null ||
+                !IsSelectedRace(
+                    definition.race,
+                    races
+                ))
+            {
+                continue;
+            }
+
+            definitions.Add(definition);
+        }
+
+        definitions.Sort(
+            (a, b) =>
+                string.Compare(
+                    a.displayName,
+                    b.displayName,
+                    System.StringComparison.OrdinalIgnoreCase
+                )
+        );
+
+        return definitions;
+    }
+
+    private List<LineageDefinition> GetValidLineages(
+        List<RaceDefinition> races)
+    {
+        List<LineageDefinition> definitions = new();
+
+        string[] guids =
+            AssetDatabase.FindAssets(
+                "t:LineageDefinition"
+            );
+
+        foreach (string guid in guids)
+        {
+            string path =
+                AssetDatabase.GUIDToAssetPath(guid);
+
+            LineageDefinition definition =
+                AssetDatabase.LoadAssetAtPath<
+                    LineageDefinition
+                >(path);
+
+            if (definition == null ||
+                !IsSelectedRace(
+                    definition.allowedRace,
+                    races
+                ))
+            {
+                continue;
+            }
+
+            definitions.Add(definition);
+        }
+
+        definitions.Sort(
+            (a, b) =>
+                string.Compare(
+                    a.displayName,
+                    b.displayName,
+                    System.StringComparison.OrdinalIgnoreCase
+                )
+        );
+
+        return definitions;
+    }
+
+    private bool IsSelectedRace(
+        RaceDefinition race,
+        List<RaceDefinition> selectedRaces)
+    {
+        if (race == null ||
+            selectedRaces == null)
+        {
+            return false;
+        }
+
+        foreach (RaceDefinition selectedRace
+                 in selectedRaces)
+        {
+            if (selectedRace == null)
+                continue;
+
+            if (selectedRace == race ||
+                selectedRace.raceId == race.raceId)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool ContainsReference(
+        SerializedProperty list,
+        UnityEngine.Object value)
+    {
+        for (int i = 0;
+             i < list.arraySize;
+             i++)
+        {
+            if (list
+                .GetArrayElementAtIndex(i)
+                .objectReferenceValue == value)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void SetReferenceSelected(
+        SerializedProperty list,
+        UnityEngine.Object value,
+        bool selected)
+    {
+        if (selected)
+        {
+            if (ContainsReference(list, value))
+                return;
+
+            int index = list.arraySize;
+
+            list.InsertArrayElementAtIndex(index);
+
+            list
+                .GetArrayElementAtIndex(index)
+                .objectReferenceValue = value;
+
+            return;
+        }
+
+        for (int i = list.arraySize - 1;
+             i >= 0;
+             i--)
+        {
+            if (list
+                .GetArrayElementAtIndex(i)
+                .objectReferenceValue != value)
+            {
+                continue;
+            }
+
+            RemoveElement(list, i);
+        }
+    }
+
+    private void RemoveInvalidRequirements()
+    {
+        List<RaceDefinition> races =
+            GetSelectedRaces();
+
+        for (int i = allowedSubraces.arraySize - 1;
+             i >= 0;
+             i--)
+        {
+            SubraceDefinition definition =
+                allowedSubraces
+                    .GetArrayElementAtIndex(i)
+                    .objectReferenceValue
+                as SubraceDefinition;
+
+            if (definition == null ||
+                !IsSelectedRace(
+                    definition.race,
+                    races
+                ))
+            {
+                RemoveElement(
+                    allowedSubraces,
+                    i
+                );
+            }
+        }
+
+        for (int i = allowedLineages.arraySize - 1;
+             i >= 0;
+             i--)
+        {
+            LineageDefinition definition =
+                allowedLineages
+                    .GetArrayElementAtIndex(i)
+                    .objectReferenceValue
+                as LineageDefinition;
+
+            if (definition == null ||
+                !IsSelectedRace(
+                    definition.allowedRace,
+                    races
+                ))
+            {
+                RemoveElement(
+                    allowedLineages,
+                    i
+                );
+            }
+        }
+    }
+
+    private void RemoveElement(
+        SerializedProperty list,
+        int index)
+    {
+        int oldSize = list.arraySize;
+
+        list.DeleteArrayElementAtIndex(index);
+
+        if (list.arraySize == oldSize)
+            list.DeleteArrayElementAtIndex(index);
+    }
+}
+#endif

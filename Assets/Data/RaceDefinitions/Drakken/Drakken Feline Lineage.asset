@@ -17,7 +17,7 @@ MonoBehaviour:
   lineageType: 0
   sourceSubrace: {fileID: 0}
   description: 
-  allowedRace: {fileID: 0}
+  allowedRace: {fileID: 11400000, guid: 4163000ff3c63644db2f76c943545857, type: 2}
   modifiers:
     strength: 0
     dexterity: 0
