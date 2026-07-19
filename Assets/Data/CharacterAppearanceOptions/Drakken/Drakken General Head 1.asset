@@ -17,8 +17,7 @@ MonoBehaviour:
   category: 0
   optionImage: {fileID: 0}
   modelPrefab: {fileID: 0}
-  shownForRaces:
-  - {fileID: 0}
+  race: {fileID: 11400000, guid: 4163000ff3c63644db2f76c943545857, type: 2}
   allowedSubraces: []
   allowedLineages: []
   isDefaultOption: 1

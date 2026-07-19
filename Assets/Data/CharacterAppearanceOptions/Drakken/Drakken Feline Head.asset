@@ -12,14 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2722568d2dc4ca64ca826ea61b1ba2ad, type: 3}
   m_Name: Drakken Feline Head
   m_EditorClassIdentifier: Assembly-CSharp::CharacterAppearanceOptionDefinition
-  optionId: feline_head
+  optionId: drakken_feline_head
   displayName: Drakken Feline Head
   category: 0
-  description: 
-  previewImage: {fileID: 0}
-  visualPrefab: {fileID: 0}
-  shownForRaces:
-  - {fileID: 0}
+  optionImage: {fileID: 0}
+  modelPrefab: {fileID: 0}
+  race: {fileID: 11400000, guid: 4163000ff3c63644db2f76c943545857, type: 2}
   allowedSubraces: []
   allowedLineages: []
   isDefaultOption: 0
