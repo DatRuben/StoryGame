@@ -423,7 +423,7 @@ public class CharacterCreator : MonoBehaviour
             CharacterStatsResolver.ResolveCharacter(
                 selectedDefinitions.raceDefinition,
                 selectedDefinitions.subraceDefinition,
-                selectedDefinitions.lineageDefinitions,
+                selectedDefinitions.lineageSelections,
                 selectedDefinitions.backgroundDefinition,
                 selectedDefinitions.traitDefinitions
             );
@@ -433,7 +433,7 @@ public class CharacterCreator : MonoBehaviour
             selectedGender,
             selectedDefinitions.raceDefinition,
             selectedDefinitions.subraceDefinition,
-            selectedDefinitions.lineageDefinitions,
+            selectedDefinitions.lineageSelections,
             selectedDefinitions.backgroundDefinition,
             selectedDefinitions.traitDefinitions,
             CharacterAppearanceData.Copy(selectedAppearance),
