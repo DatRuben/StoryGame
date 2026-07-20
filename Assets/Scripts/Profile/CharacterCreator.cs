@@ -31,7 +31,7 @@ public class CharacterCreator : MonoBehaviour
     {
         public RaceDefinition raceDefinition;
         public SubraceDefinition subraceDefinition;
-        public List<LineageDefinition> lineageDefinitions;
+        public List<LineageSelection> lineageSelections;
         public BackgroundDefinition backgroundDefinition;
         public List<TraitDefinition> traitDefinitions;
     }
@@ -236,12 +236,13 @@ public class CharacterCreator : MonoBehaviour
     }
 
     public bool ToggleLineage(
-        string lineageId,
+        string selectionId,
         out string errorMessage)
     {
         errorMessage = "";
 
-        if (!TryGetSelectedSubrace(out SubraceDefinition subraceDefinition))
+        if (!TryGetSelectedSubrace(
+            out SubraceDefinition subraceDefinition))
         {
             errorMessage = "No subrace is selected.";
             return false;
@@ -258,39 +259,52 @@ public class CharacterCreator : MonoBehaviour
         RaceDefinition raceDefinition =
             subraceDefinition.race;
 
-        if (!TryGetLineageDefinition(
-            lineageId,
-            out LineageDefinition lineageDefinition,
+        if (!TryGetLineageSelection(
+            selectionId,
+            out LineageSelection selection,
             out errorMessage))
         {
             return false;
         }
 
-        if (selectedLineageIds.Contains(lineageDefinition.lineageId))
+        string resolvedSelectionId =
+            selection.SelectionId;
+
+        if (selectedLineageIds.Contains(
+            resolvedSelectionId))
         {
-            selectedLineageIds.Remove(lineageDefinition.lineageId);
+            selectedLineageIds.Remove(
+                resolvedSelectionId
+            );
+
             NotifySelectionChanged();
             return true;
         }
 
         if (!raceDefinition.IsLineageAllowed(
-            lineageDefinition,
+            selection,
             subraceDefinition))
         {
             errorMessage =
-                $"{raceDefinition.displayName} cannot use lineage {lineageDefinition.displayName}.";
+                $"{raceDefinition.displayName} cannot use lineage " +
+                $"{selection.DisplayName}.";
 
             return false;
         }
 
-        selectedLineageIds.Add(lineageDefinition.lineageId);
+        selectedLineageIds.Add(
+            resolvedSelectionId
+        );
 
         if (!AreSelectedLineagesValid(
             raceDefinition,
             subraceDefinition,
             out errorMessage))
         {
-            selectedLineageIds.Remove(lineageDefinition.lineageId);
+            selectedLineageIds.Remove(
+                resolvedSelectionId
+            );
+
             return false;
         }
 
@@ -530,26 +544,28 @@ public class CharacterCreator : MonoBehaviour
         return true;
     }
 
-    private bool TryGetLineageDefinition(
-        string lineageId,
-        out LineageDefinition lineageDefinition,
+    private bool TryGetLineageSelection(
+        string selectionId,
+        out LineageSelection selection,
         out string errorMessage)
     {
-        lineageDefinition = null;
+        selection = null;
         errorMessage = "";
 
         if (characterDataLibrary == null)
         {
-            errorMessage = "CharacterDataLibrary is missing.";
+            errorMessage =
+                "CharacterDataLibrary is missing.";
+
             return false;
         }
 
-        if (!characterDataLibrary.TryGetLineageDefinition(
-            lineageId,
-            out lineageDefinition))
+        if (!characterDataLibrary.TryGetLineageSelection(
+            selectionId,
+            out selection))
         {
             errorMessage =
-                $"LineageDefinition '{lineageId}' was not found.";
+                $"Lineage selection '{selectionId}' was not found.";
 
             return false;
         }
@@ -645,9 +661,12 @@ public class CharacterCreator : MonoBehaviour
         );
     }
 
-    private List<LineageDefinition> GetSelectedLineageDefinitions()
+    private List<LineageSelection> GetSelectedLineageSelections()
     {
-        return characterDataLibrary.GetLineageDefinitions(
+        if (characterDataLibrary == null)
+            return new List<LineageSelection>();
+
+        return characterDataLibrary.GetLineageSelections(
             selectedLineageIds
         );
     }
@@ -683,9 +702,9 @@ public class CharacterCreator : MonoBehaviour
         SubraceDefinition subraceDefinition,
         out string errorMessage)
     {
-        return raceDefinition.AreLineagesValid(
+        return raceDefinition.AreLineageSelectionsValid(
             subraceDefinition,
-            GetSelectedLineageDefinitions(),
+            GetSelectedLineageSelections(),
             out errorMessage
         );
     }
@@ -736,29 +755,37 @@ public class CharacterCreator : MonoBehaviour
         SubraceDefinition subraceDefinition)
     {
         if (raceDefinition == null ||
-            !raceDefinition.CanUseLineages())
+            !raceDefinition.CanUseLineages() ||
+            characterDataLibrary == null)
         {
             selectedLineageIds.Clear();
             return;
         }
 
-        for (int i = selectedLineageIds.Count - 1; i >= 0; i--)
+        for (int i =
+                 selectedLineageIds.Count - 1;
+             i >= 0;
+             i--)
         {
-            if (!characterDataLibrary.TryGetLineageDefinition(
-                selectedLineageIds[i],
-                out LineageDefinition lineageDefinition))
+            if (!characterDataLibrary
+                .TryGetLineageSelection(
+                    selectedLineageIds[i],
+                    out LineageSelection selection))
             {
                 selectedLineageIds.RemoveAt(i);
                 continue;
             }
 
             if (!raceDefinition.IsLineageAllowed(
-                lineageDefinition,
+                selection,
                 subraceDefinition))
+            {
                 selectedLineageIds.RemoveAt(i);
+            }
         }
 
-        while (selectedLineageIds.Count > raceDefinition.maxLineages)
+        while (selectedLineageIds.Count >
+               raceDefinition.maxLineages)
         {
             selectedLineageIds.RemoveAt(
                 selectedLineageIds.Count - 1
@@ -902,7 +929,7 @@ public class CharacterCreator : MonoBehaviour
             CharacterStatsResolver.ResolveCharacter(
                 selectedDefinitions.raceDefinition,
                 selectedDefinitions.subraceDefinition,
-                selectedDefinitions.lineageDefinitions,
+                selectedDefinitions.lineageSelections,
                 selectedDefinitions.backgroundDefinition,
                 selectedDefinitions.traitDefinitions
             );
@@ -965,7 +992,7 @@ public class CharacterCreator : MonoBehaviour
             {
                 raceDefinition = raceDefinition,
                 subraceDefinition = subraceDefinition,
-                lineageDefinitions = GetSelectedLineageDefinitions(),
+                lineageSelections = GetSelectedLineageSelections(),
                 backgroundDefinition = backgroundDefinition,
                 traitDefinitions = GetSelectedTraitDefinitions()
             };

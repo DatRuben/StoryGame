@@ -82,8 +82,10 @@ public class CharacterCreatorFinalizeUI : MonoBehaviour
         List<string> lineageIds =
             new(characterCreator.SelectedLineageIds);
 
-        List<LineageDefinition> lineages =
-            characterDataLibrary.GetLineageDefinitions(lineageIds);
+        List<LineageSelection> lineages =
+            characterDataLibrary.GetLineageSelections(
+                lineageIds
+            );
 
         characterDataLibrary.TryGetBackgroundDefinition(
             characterCreator.SelectedBackgroundId,
