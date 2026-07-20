@@ -332,6 +332,21 @@ public class RaceDefinitionEditor : Editor
             serializedObject.FindProperty(
                 "defaultLineage"
             );
+
+        modifiersFromHuman =
+            serializedObject.FindProperty(
+                "modifiersFromHuman"
+            );
+
+        finalAttributesPreview =
+            serializedObject.FindProperty(
+                "finalAttributesPreview"
+            );
+
+        totalAttributePointsPreview =
+            serializedObject.FindProperty(
+                "totalAttributePointsPreview"
+            );
     }
 
     public override void OnInspectorGUI()
@@ -388,7 +403,23 @@ public class RaceDefinitionEditor : Editor
             }
         }
 
-        serializedObject.ApplyModifiedProperties();
+        bool changed =
+            serializedObject.ApplyModifiedProperties();
+
+        if (changed)
+        {
+            RaceDefinition raceDefinition =
+                target as RaceDefinition;
+
+            if (raceDefinition != null)
+            {
+                raceDefinition.RecalculatePreview();
+                EditorUtility.SetDirty(raceDefinition);
+
+                serializedObject.Update();
+                Repaint();
+            }
+        }
     }
 
     private void DrawAttributes()
