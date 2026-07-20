@@ -329,8 +329,7 @@ public class SubraceDefinitionEditor : Editor
                 : options[nextIndex - 1];
     }
 
-    private List<SubraceDefinition>
-        GetComparisonOptions()
+    private List<SubraceDefinition> GetComparisonOptions()
     {
         List<SubraceDefinition> options = new();
 
@@ -376,8 +375,13 @@ public class SubraceDefinitionEditor : Editor
                     System.StringComparison.OrdinalIgnoreCase
                 );
 
-            if (sameRace)
+            if (sameRace &&
+                !CreatesComparisonCycle(
+                    definition,
+                    editedSubrace))
+            {
                 options.Add(definition);
+            }
         }
 
         options.Sort(
@@ -390,6 +394,34 @@ public class SubraceDefinitionEditor : Editor
         );
 
         return options;
+    }
+
+    private static bool CreatesComparisonCycle(
+    SubraceDefinition candidate,
+    SubraceDefinition editedSubrace)
+    {
+        if (candidate == null ||
+            editedSubrace == null)
+        {
+            return false;
+        }
+
+        HashSet<SubraceDefinition> visited = new();
+
+        SubraceDefinition current = candidate;
+
+        while (current != null)
+        {
+            if (current == editedSubrace)
+                return true;
+
+            if (!visited.Add(current))
+                return true;
+
+            current = current.compareToSubrace;
+        }
+
+        return false;
     }
 
     private void DrawPreview()

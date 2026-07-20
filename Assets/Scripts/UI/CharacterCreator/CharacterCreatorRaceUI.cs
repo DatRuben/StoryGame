@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
@@ -764,9 +764,214 @@ public class CharacterCreatorRaceUI : MonoBehaviour
         if (subraceDefinition == null)
             return "";
 
-        if (!string.IsNullOrWhiteSpace(subraceDefinition.description))
-            return subraceDefinition.description;
+        string text =
+            !string.IsNullOrWhiteSpace(
+                subraceDefinition.description)
+                    ? subraceDefinition.description
+                    : GetSubraceButtonText(
+                        subraceDefinition
+                    );
 
-        return GetSubraceButtonText(subraceDefinition);
+        string comparisonName =
+            GetComparisonName(
+                subraceDefinition
+            );
+
+        List<string> differences = new();
+
+        AddAttributeDifferences(
+            differences,
+            subraceDefinition.modifiersFromComparison
+        );
+
+        AddBodyDifferences(
+            differences,
+            subraceDefinition
+        );
+
+        text +=
+            $"\n\nCompared to {comparisonName}:";
+
+        if (differences.Count == 0)
+        {
+            text += "\nNo differences.";
+        }
+        else
+        {
+            text +=
+                $"\n{string.Join("\n", differences)}";
+        }
+
+        return text;
+    }
+
+    private string GetComparisonName(
+    SubraceDefinition subraceDefinition)
+    {
+        if (subraceDefinition.compareToSubrace != null)
+        {
+            return GetSubraceButtonText(
+                subraceDefinition.compareToSubrace
+            );
+        }
+
+        if (subraceDefinition.race != null)
+        {
+            return
+                $"{GetRaceButtonText(subraceDefinition.race)} " +
+                "race attributes";
+        }
+
+        return "race attributes";
+    }
+
+    private void AddAttributeDifferences(
+        List<string> differences,
+        CharacterAttributeModifiers modifiers)
+    {
+        if (differences == null ||
+            modifiers == null)
+        {
+            return;
+        }
+
+        AddDifference(
+            differences,
+            "Strength",
+            modifiers.strength
+        );
+
+        AddDifference(
+            differences,
+            "Dexterity",
+            modifiers.dexterity
+        );
+
+        AddDifference(
+            differences,
+            "Agility",
+            modifiers.agility
+        );
+
+        AddDifference(
+            differences,
+            "Vitality",
+            modifiers.vitality
+        );
+
+        AddDifference(
+            differences,
+            "Endurance",
+            modifiers.endurance
+        );
+
+        AddDifference(
+            differences,
+            "Intelligence",
+            modifiers.intelligence
+        );
+
+        AddDifference(
+            differences,
+            "Willpower",
+            modifiers.willpower
+        );
+
+        AddDifference(
+            differences,
+            "Spirit",
+            modifiers.spirit
+        );
+
+        AddDifference(
+            differences,
+            "Perception",
+            modifiers.perception
+        );
+    }
+
+    private void AddDifference(
+        List<string> differences,
+        string label,
+        int value)
+    {
+        if (differences == null ||
+            value == 0)
+        {
+            return;
+        }
+
+        string sign =
+            value > 0
+                ? "+"
+                : "";
+
+        differences.Add(
+            $"{label}: {sign}{value}"
+        );
+    }
+
+    private void AddBodyDifferences(
+        List<string> differences,
+        SubraceDefinition subraceDefinition)
+    {
+        if (differences == null ||
+            subraceDefinition == null ||
+            subraceDefinition.compareToSubrace == null)
+        {
+            return;
+        }
+
+        SubraceDefinition comparison =
+            subraceDefinition.compareToSubrace;
+
+        if (comparison.size != subraceDefinition.size)
+        {
+            differences.Add(
+                $"Size: {GetSizeName(comparison.size)} → " +
+                $"{GetSizeName(subraceDefinition.size)}"
+            );
+        }
+
+        if (comparison.bodyType !=
+            subraceDefinition.bodyType)
+        {
+            differences.Add(
+                $"Body: {GetBodyName(comparison.bodyType)} → " +
+                $"{GetBodyName(subraceDefinition.bodyType)}"
+            );
+        }
+    }
+
+    private string GetSizeName(
+        RaceSize size)
+    {
+        return size switch
+        {
+            RaceSize.Size1 => "Size 1",
+            RaceSize.Size2 => "Size 2",
+            RaceSize.TallerSize2 => "Taller Size 2",
+            RaceSize.Size3 => "Size 3",
+            RaceSize.Size1Feral => "Size 1 Feral",
+            RaceSize.Size2Feral => "Size 2 Feral",
+            RaceSize.Size3Feral => "Size 3 Feral",
+            RaceSize.Dragon => "Dragon",
+            RaceSize.BigDragon => "Big Dragon",
+            _ => size.ToString()
+        };
+    }
+
+    private string GetBodyName(
+        BodyType bodyType)
+    {
+        return bodyType switch
+        {
+            BodyType.Humanoid => "Humanoid",
+            BodyType.Quadruped => "Quadruped",
+            BodyType.StanceSwitching =>
+                "Stance Switching",
+
+            _ => bodyType.ToString()
+        };
     }
 }
