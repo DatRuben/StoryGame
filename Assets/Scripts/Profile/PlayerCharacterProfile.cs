@@ -5,7 +5,7 @@ public class PlayerCharacterProfile : MonoBehaviour
     public CharacterProfileData ProfileData { get; private set; }
     public RaceDefinition RaceDefinition { get; private set; }
     public SubraceDefinition SubraceDefinition { get; private set; }
-    public LineageDefinition[] LineageDefinitions { get; private set; }
+    public LineageSelection[] LineageSelections { get; private set; }
     public CharacterAttributes FinalAttributes { get; private set; }
     public FinalCharacterStats FinalStats { get; private set; }
     public FinalMovementStats FinalMovementStats { get; private set; }
@@ -14,12 +14,12 @@ public class PlayerCharacterProfile : MonoBehaviour
         CharacterProfileData profileData,
         RaceDefinition raceDefinition,
         SubraceDefinition subraceDefinition,
-        LineageDefinition[] lineageDefinitions)
+        LineageSelection[] lineageSelections)
     {
         ProfileData = profileData;
         RaceDefinition = raceDefinition;
         SubraceDefinition = subraceDefinition;
-        LineageDefinitions = lineageDefinitions;
+        LineageSelections = lineageSelections;
 
         FinalAttributes =
             CharacterAttributes.ClampMinimum(

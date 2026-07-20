@@ -51,7 +51,7 @@ public class PlayerSpawner : MonoBehaviour
             profile,
             out RaceDefinition raceDefinition,
             out SubraceDefinition subraceDefinition,
-            out LineageDefinition[] lineageDefinitions))
+            out LineageSelection[] lineageSelections))
         {
             return false;
         }
@@ -83,7 +83,7 @@ public class PlayerSpawner : MonoBehaviour
             profile,
             raceDefinition,
             subraceDefinition,
-            lineageDefinitions
+            lineageSelections
         );
 
         return true;
@@ -132,7 +132,7 @@ public class PlayerSpawner : MonoBehaviour
                 CharacterStatsResolver.ResolveCharacter(
                     defaultRaceDefinition,
                     defaultRaceDefinition.standardSubrace,
-                    new List<LineageDefinition>()
+                    new List<LineageSelection>()
                 );
 
         profile =
@@ -156,11 +156,11 @@ public class PlayerSpawner : MonoBehaviour
         CharacterProfileData profile,
         out RaceDefinition raceDefinition,
         out SubraceDefinition subraceDefinition,
-        out LineageDefinition[] lineageDefinitions)
+        out LineageSelection[] lineageSelections)
     {
         raceDefinition = null;
         subraceDefinition = null;
-        lineageDefinitions = null;
+        lineageSelections = null;
 
         if (profile == null)
             return false;
@@ -189,13 +189,13 @@ public class PlayerSpawner : MonoBehaviour
             return false;
         }
 
-        List<LineageDefinition> lineageDefinitionList =
-            characterDataLibrary.GetLineageDefinitions(
+        List<LineageSelection> selectionList =
+            characterDataLibrary.GetLineageSelections(
                 profile.lineageIds
             );
 
-        lineageDefinitions =
-            lineageDefinitionList.ToArray();
+        lineageSelections =
+            selectionList.ToArray();
 
         return true;
     }
