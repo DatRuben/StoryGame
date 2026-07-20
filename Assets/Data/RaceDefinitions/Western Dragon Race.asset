@@ -46,4 +46,4 @@ MonoBehaviour:
   totalAttributePointsPreview: 90
   allowedLineageType: 1
   minLineages: 0
-  maxLineages: 0
+  maxLineages: 1
