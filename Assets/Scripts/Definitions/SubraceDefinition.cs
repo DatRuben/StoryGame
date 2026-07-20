@@ -1,5 +1,10 @@
+using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 [CreateAssetMenu(menuName = "Game/Subrace Definition")]
 public class SubraceDefinition : ScriptableObject
@@ -104,3 +109,353 @@ public class SubraceDefinition : ScriptableObject
         return builder.ToString().Trim('_');
     }
 }
+
+#if UNITY_EDITOR
+[CustomEditor(typeof(SubraceDefinition))]
+public class SubraceDefinitionEditor : Editor
+{
+    private SerializedProperty displayName;
+    private SerializedProperty race;
+    private SerializedProperty description;
+    private SerializedProperty baseStatModifiers;
+    private SerializedProperty compareToSubrace;
+    private SerializedProperty modifiersFromComparison;
+    private SerializedProperty finalAttributesPreview;
+    private SerializedProperty totalAttributePointsPreview;
+    private SerializedProperty size;
+    private SerializedProperty bodyType;
+    private SerializedProperty previewPrefab;
+    private SerializedProperty canHoldItemInMouth;
+    private SerializedProperty canUseMouthWeapons;
+    private SerializedProperty canEquipSaddles;
+
+    private void OnEnable()
+    {
+        displayName =
+            serializedObject.FindProperty(
+                "displayName"
+            );
+
+        race =
+            serializedObject.FindProperty(
+                "race"
+            );
+
+        description =
+            serializedObject.FindProperty(
+                "description"
+            );
+
+        baseStatModifiers =
+            serializedObject.FindProperty(
+                "baseStatModifiers"
+            );
+
+        compareToSubrace =
+            serializedObject.FindProperty(
+                "compareToSubrace"
+            );
+
+        modifiersFromComparison =
+            serializedObject.FindProperty(
+                "modifiersFromComparison"
+            );
+
+        finalAttributesPreview =
+            serializedObject.FindProperty(
+                "finalAttributesPreview"
+            );
+
+        totalAttributePointsPreview =
+            serializedObject.FindProperty(
+                "totalAttributePointsPreview"
+            );
+
+        size =
+            serializedObject.FindProperty(
+                "size"
+            );
+
+        bodyType =
+            serializedObject.FindProperty(
+                "bodyType"
+            );
+
+        previewPrefab =
+            serializedObject.FindProperty(
+                "previewPrefab"
+            );
+
+        canHoldItemInMouth =
+            serializedObject.FindProperty(
+                "canHoldItemInMouth"
+            );
+
+        canUseMouthWeapons =
+            serializedObject.FindProperty(
+                "canUseMouthWeapons"
+            );
+
+        canEquipSaddles =
+            serializedObject.FindProperty(
+                "canEquipSaddles"
+            );
+    }
+
+    public override void OnInspectorGUI()
+    {
+        serializedObject.Update();
+
+        EditorGUILayout.Space(6f);
+
+        DrawRace();
+        DrawIdentity();
+        DrawCombatStats();
+        DrawComparison();
+        DrawPreview();
+        DrawBody();
+        DrawEquipmentRules();
+
+        serializedObject.ApplyModifiedProperties();
+    }
+
+    private void DrawRace()
+    {
+        EditorGUILayout.LabelField(
+            "Race",
+            EditorStyles.boldLabel
+        );
+
+        EditorGUILayout.PropertyField(
+            race,
+            new GUIContent("Race")
+        );
+
+        EditorGUILayout.Space();
+    }
+
+    private void DrawIdentity()
+    {
+        EditorGUILayout.LabelField(
+            "Identity",
+            EditorStyles.boldLabel
+        );
+
+        EditorGUILayout.PropertyField(
+            displayName
+        );
+
+        EditorGUILayout.PropertyField(
+            description
+        );
+
+        EditorGUILayout.Space();
+    }
+
+    private void DrawCombatStats()
+    {
+        EditorGUILayout.LabelField(
+            "Base Combat Stat Modifiers",
+            EditorStyles.boldLabel
+        );
+
+        EditorGUILayout.PropertyField(
+            baseStatModifiers,
+            true
+        );
+
+        EditorGUILayout.Space();
+    }
+
+    private void DrawComparison()
+    {
+        EditorGUILayout.LabelField(
+            "Attribute Comparison",
+            EditorStyles.boldLabel
+        );
+
+        DrawComparisonDropdown();
+
+        EditorGUILayout.PropertyField(
+            modifiersFromComparison,
+            true
+        );
+
+        EditorGUILayout.Space();
+    }
+
+    private void DrawComparisonDropdown()
+    {
+        List<SubraceDefinition> options =
+            GetComparisonOptions();
+
+        string[] labels =
+            new string[options.Count + 1];
+
+        labels[0] =
+            "Race Base (No Comparison)";
+
+        for (int i = 0; i < options.Count; i++)
+        {
+            labels[i + 1] =
+                options[i].displayName;
+        }
+
+        SubraceDefinition current =
+            compareToSubrace.objectReferenceValue
+            as SubraceDefinition;
+
+        int currentIndex = 0;
+
+        for (int i = 0; i < options.Count; i++)
+        {
+            if (options[i] == current)
+            {
+                currentIndex = i + 1;
+                break;
+            }
+        }
+
+        int nextIndex =
+            EditorGUILayout.Popup(
+                "Compare To",
+                currentIndex,
+                labels
+            );
+
+        compareToSubrace.objectReferenceValue =
+            nextIndex == 0
+                ? null
+                : options[nextIndex - 1];
+    }
+
+    private List<SubraceDefinition>
+        GetComparisonOptions()
+    {
+        List<SubraceDefinition> options = new();
+
+        RaceDefinition selectedRace =
+            race.objectReferenceValue
+            as RaceDefinition;
+
+        SubraceDefinition editedSubrace =
+            target as SubraceDefinition;
+
+        if (selectedRace == null)
+            return options;
+
+        string[] guids =
+            AssetDatabase.FindAssets(
+                "t:SubraceDefinition"
+            );
+
+        foreach (string guid in guids)
+        {
+            string path =
+                AssetDatabase.GUIDToAssetPath(
+                    guid
+                );
+
+            SubraceDefinition definition =
+                AssetDatabase.LoadAssetAtPath<
+                    SubraceDefinition
+                >(path);
+
+            if (definition == null ||
+                definition == editedSubrace ||
+                definition.race == null)
+            {
+                continue;
+            }
+
+            bool sameRace =
+                definition.race == selectedRace ||
+                string.Equals(
+                    definition.race.raceId,
+                    selectedRace.raceId,
+                    System.StringComparison.OrdinalIgnoreCase
+                );
+
+            if (sameRace)
+                options.Add(definition);
+        }
+
+        options.Sort(
+            (first, second) =>
+                string.Compare(
+                    first.displayName,
+                    second.displayName,
+                    System.StringComparison.OrdinalIgnoreCase
+                )
+        );
+
+        return options;
+    }
+
+    private void DrawPreview()
+    {
+        EditorGUILayout.LabelField(
+            "Calculated Preview",
+            EditorStyles.boldLabel
+        );
+
+        using (new EditorGUI.DisabledScope(true))
+        {
+            EditorGUILayout.PropertyField(
+                finalAttributesPreview,
+                true
+            );
+
+            EditorGUILayout.PropertyField(
+                totalAttributePointsPreview
+            );
+        }
+
+        EditorGUILayout.Space();
+    }
+
+    private void DrawBody()
+    {
+        EditorGUILayout.LabelField(
+            "Body",
+            EditorStyles.boldLabel
+        );
+
+        EditorGUILayout.PropertyField(size);
+        EditorGUILayout.PropertyField(bodyType);
+
+        EditorGUILayout.Space();
+
+        EditorGUILayout.LabelField(
+            "Character Preview",
+            EditorStyles.boldLabel
+        );
+
+        EditorGUILayout.PropertyField(
+            previewPrefab
+        );
+
+        EditorGUILayout.Space();
+    }
+
+    private void DrawEquipmentRules()
+    {
+        EditorGUILayout.LabelField(
+            "Equipment / Holding Rules",
+            EditorStyles.boldLabel
+        );
+
+        EditorGUILayout.PropertyField(
+            canHoldItemInMouth
+        );
+
+        EditorGUILayout.PropertyField(
+            canUseMouthWeapons
+        );
+
+        EditorGUILayout.PropertyField(
+            canEquipSaddles
+        );
+    }
+}
+#endif
