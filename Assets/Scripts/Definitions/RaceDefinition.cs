@@ -213,10 +213,16 @@ public class RaceDefinition : ScriptableObject
 
     public void RecalculatePreview()
     {
-        finalAttributesPreview =
-            CharacterAttributes.AddModifiers(
-                CharacterAttributes.CreateDefault(10),
-                modifiersFromHuman
+        if (finalAttributesPreview == null)
+        {
+            finalAttributesPreview =
+                CharacterAttributes.CreateDefault(10);
+        }
+
+        modifiersFromHuman =
+            CharacterAttributeModifiers.FromDifference(
+                finalAttributesPreview,
+                CharacterAttributes.CreateDefault(10)
             );
 
         totalAttributePointsPreview =
@@ -301,6 +307,9 @@ public class RaceDefinitionEditor : Editor
     private SerializedProperty minLineages;
     private SerializedProperty maxLineages;
     private SerializedProperty defaultLineage;
+    private SerializedProperty modifiersFromHuman;
+    private SerializedProperty finalAttributesPreview;
+    private SerializedProperty totalAttributePointsPreview;
 
     private void OnEnable()
     {
@@ -338,6 +347,25 @@ public class RaceDefinitionEditor : Editor
         {
             enterChildren = false;
 
+            if (property.propertyPath ==
+                "modifiersFromHuman")
+            {
+                continue;
+            }
+
+            if (property.propertyPath ==
+                "finalAttributesPreview")
+            {
+                DrawAttributes();
+                continue;
+            }
+
+            if (property.propertyPath ==
+                "totalAttributePointsPreview")
+            {
+                continue;
+            }
+
             if (property.propertyPath == "defaultLineage")
                 continue;
 
@@ -361,6 +389,53 @@ public class RaceDefinitionEditor : Editor
         }
 
         serializedObject.ApplyModifiedProperties();
+    }
+
+    private void DrawAttributes()
+    {
+        EditorGUILayout.LabelField(
+            "Final Ancestry Attributes",
+            EditorStyles.boldLabel
+        );
+
+        EditorGUILayout.PropertyField(
+            finalAttributesPreview,
+            new GUIContent("Attributes"),
+            true
+        );
+
+        EditorGUILayout.Space();
+
+        EditorGUILayout.LabelField(
+            "Compared To Human",
+            EditorStyles.boldLabel
+        );
+
+        using (new EditorGUI.DisabledScope(true))
+        {
+            EditorGUILayout.PropertyField(
+                modifiersFromHuman,
+                new GUIContent("Attribute Differences"),
+                true
+            );
+
+            EditorGUILayout.PropertyField(
+                totalAttributePointsPreview,
+                new GUIContent("Total Attribute Points")
+            );
+        }
+
+        if (totalAttributePointsPreview.intValue != 90)
+        {
+            EditorGUILayout.HelpBox(
+                $"Attribute total is " +
+                $"{totalAttributePointsPreview.intValue}. " +
+                "Expected 90.",
+                MessageType.Warning
+            );
+        }
+
+        EditorGUILayout.Space();
     }
 
     private void DrawLineageDropdowns()

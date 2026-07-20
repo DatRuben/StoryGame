@@ -65,6 +65,62 @@ public class CharacterAttributeModifiers
         };
     }
 
+    public static CharacterAttributeModifiers FromDifference(
+    CharacterAttributes value,
+    CharacterAttributes comparison)
+    {
+        if (value == null)
+        {
+            value =
+                CharacterAttributes.CreateDefault(0);
+        }
+
+        if (comparison == null)
+        {
+            comparison =
+                CharacterAttributes.CreateDefault(0);
+        }
+
+        return new CharacterAttributeModifiers
+        {
+            strength =
+                value.strength -
+                comparison.strength,
+
+            dexterity =
+                value.dexterity -
+                comparison.dexterity,
+
+            agility =
+                value.agility -
+                comparison.agility,
+
+            vitality =
+                value.vitality -
+                comparison.vitality,
+
+            endurance =
+                value.endurance -
+                comparison.endurance,
+
+            intelligence =
+                value.intelligence -
+                comparison.intelligence,
+
+            willpower =
+                value.willpower -
+                comparison.willpower,
+
+            spirit =
+                value.spirit -
+                comparison.spirit,
+
+            perception =
+                value.perception -
+                comparison.perception
+        };
+    }
+
     public int Total()
     {
         return strength +
