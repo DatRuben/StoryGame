@@ -21,12 +21,6 @@ public class LineageDefinition : ScriptableObject
     public string displayName;
     public LineageType lineageType;
 
-    [Tooltip(
-        "For Hybrid Ancestry, this subrace supplies " +
-        "the lineage's attribute shape."
-    )]
-    public SubraceDefinition sourceSubrace;
-
     [TextArea]
     public string description;
 
@@ -36,8 +30,8 @@ public class LineageDefinition : ScriptableObject
     public RaceDefinition allowedRace;
 
     [Tooltip(
-        "Used by Animal Species lineages. " +
-        "Hybrid Ancestry uses Source Subrace instead."
+        "The attribute shape for this custom lineage. " +
+        "Playable subrace ancestry uses its SubraceDefinition instead."
     )]
     public CharacterAttributeModifiers modifiers =
         CharacterAttributeModifiers.CreateZero();
@@ -55,7 +49,11 @@ public class LineageDefinition : ScriptableObject
         }
 
         return allowedRace == race ||
-               allowedRace.raceId == race.raceId;
+               string.Equals(
+                   allowedRace.raceId,
+                   race.raceId,
+                   System.StringComparison.OrdinalIgnoreCase
+               );
     }
 
     private void OnValidate()
@@ -100,7 +98,6 @@ public class LineageDefinitionEditor : Editor
 {
     private SerializedProperty displayName;
     private SerializedProperty lineageType;
-    private SerializedProperty sourceSubrace;
     private SerializedProperty description;
     private SerializedProperty allowedRace;
     private SerializedProperty modifiers;
@@ -114,9 +111,6 @@ public class LineageDefinitionEditor : Editor
 
         lineageType =
             serializedObject.FindProperty("lineageType");
-
-        sourceSubrace =
-            serializedObject.FindProperty("sourceSubrace");
 
         description =
             serializedObject.FindProperty("description");
@@ -165,30 +159,24 @@ public class LineageDefinitionEditor : Editor
         LineageType selectedType =
             (LineageType)lineageType.enumValueIndex;
 
-        if (selectedType == LineageType.HybridAncestry)
+        if (selectedType ==
+            LineageType.HybridAncestry)
         {
-            DrawHybridAncestry();
-            return;
+            EditorGUILayout.HelpBox(
+                "Playable subraces are included automatically. " +
+                "Create a Hybrid Ancestry asset only for ancestry " +
+                "that has no playable subrace, such as Giant.",
+                MessageType.Info
+            );
+
+            EditorGUILayout.Space();
         }
 
-        DrawAnimalSpecies();
-    }
-
-    private void DrawHybridAncestry()
-    {
-        EditorGUILayout.PropertyField(
-            sourceSubrace,
-            new GUIContent("Source Subrace")
-        );
-
-        EditorGUILayout.Space();
-    }
-
-    private void DrawAnimalSpecies()
-    {
         EditorGUILayout.PropertyField(
             modifiers,
-            new GUIContent("Attribute Modifiers"),
+            new GUIContent(
+                "Custom Attribute Modifiers"
+            ),
             true
         );
 
@@ -213,7 +201,9 @@ public class LineageDefinitionEditor : Editor
             new GUIContent("Skill Theme")
         );
 
-        EditorGUILayout.LabelField("Skill Tree Theme");
+        EditorGUILayout.LabelField(
+            "Skill Tree Theme"
+        );
 
         skillTreeTheme.stringValue =
             EditorGUILayout.TextArea(

@@ -354,12 +354,6 @@ public class CharacterDataLibrary : ScriptableObject
                 continue;
             }
 
-            // A LineageDefinition that references a
-            // playable subrace is an old duplicate and
-            // is not a valid custom lineage option.
-            if (lineage.sourceSubrace != null)
-                continue;
-
             AddLineageOption(
                 options,
                 usedSelectionIds,
