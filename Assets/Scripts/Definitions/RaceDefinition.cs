@@ -250,6 +250,9 @@ public class RaceDefinition : ScriptableObject
             lineageLimit
         );
 
+        if (maxLineages < minLineages)
+            maxLineages = minLineages;
+
         if (allowedLineageType !=
                 LineageType.AnimalSpecies ||
             !CanUseLineages())
@@ -261,9 +264,6 @@ public class RaceDefinition : ScriptableObject
         {
             defaultLineage = null;
         }
-
-        if (maxLineages < minLineages)
-            maxLineages = minLineages;
     }
 
     private string MakeId(

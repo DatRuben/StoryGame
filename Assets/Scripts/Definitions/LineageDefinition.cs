@@ -200,17 +200,6 @@ public class LineageDefinitionEditor : Editor
 
     private void DrawSharedData()
     {
-        EditorGUILayout.PropertyField(description);
-
-        EditorGUILayout.Space();
-
-        EditorGUILayout.PropertyField(
-            allowedRace,
-            new GUIContent("Main Race")
-        );
-
-        EditorGUILayout.Space();
-
         EditorGUILayout.PropertyField(
             skillTheme,
             new GUIContent("Skill Theme")

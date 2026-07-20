@@ -53,20 +53,6 @@ public sealed class LineageSelection
         }
     }
 
-    public LineageType Type
-    {
-        get
-        {
-            if (Subrace != null)
-                return LineageType.HybridAncestry;
-
-            if (CustomLineage != null)
-                return CustomLineage.lineageType;
-
-            return LineageType.HybridAncestry;
-        }
-    }
-
     private LineageSelection(
         SubraceDefinition subrace,
         LineageDefinition customLineage)
@@ -200,6 +186,10 @@ public bool IsAllowedFor(
         }
 
         return first == second ||
-               first.subraceId == second.subraceId;
+               string.Equals(
+                   first.subraceId,
+                   second.subraceId,
+                   StringComparison.OrdinalIgnoreCase
+               );
     }
 }
