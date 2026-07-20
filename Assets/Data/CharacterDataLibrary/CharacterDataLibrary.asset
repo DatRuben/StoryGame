@@ -27,9 +27,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: fdf2bdf5c7475b1459048f51b0a3c550, type: 2}
   lineageDefinitions:
   - {fileID: 11400000, guid: 859eb4e370d11e24da259978b34e9f5e, type: 2}
-  - {fileID: 11400000, guid: 1380c3f0cdfd8c545b84b3459b686ec3, type: 2}
   - {fileID: 11400000, guid: 51f5ca8e394e7604f961c9cfaa86fd26, type: 2}
-  - {fileID: 11400000, guid: 78aa257596a733f4e9f714f374fed6ed, type: 2}
   backgroundDefinitions:
   - {fileID: 11400000, guid: 2b8fbd16e73c4e74d83088c6d7471356, type: 2}
   - {fileID: 11400000, guid: ba9a3e9e0ce01c04a8dff777ac29daec, type: 2}

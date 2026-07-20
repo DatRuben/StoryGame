@@ -19,8 +19,15 @@ public class CharacterCreatorRaceUI : MonoBehaviour
     [SerializeField] private Transform subraceButtonParent;
     [SerializeField] private TMP_Text subraceDescriptionText;
 
+    [Header("Lineage UI")]
+    [SerializeField] private Transform lineageButtonParent;
+    [SerializeField]
+    private TMP_Text lineageDescriptionText;
+
     private readonly List<CharacterOptionButtonUI> raceButtons = new();
     private readonly List<CharacterOptionButtonUI> subraceButtons = new();
+    private readonly List<CharacterOptionButtonUI> lineageButtons = new();
+    private readonly List<string> lineageButtonIds = new();
 
     private string selectedRaceId;
     private string selectedSubraceId;
@@ -46,12 +53,17 @@ public class CharacterCreatorRaceUI : MonoBehaviour
     {
         ClearButtons(raceButtons);
         ClearButtons(subraceButtons);
+        ClearButtons(lineageButtons);
+
+        lineageButtonIds.Clear();
     }
 
     public void BuildRaceButtons()
     {
         ClearButtons(raceButtons);
         ClearButtons(subraceButtons);
+        ClearButtons(lineageButtons);
+        lineageButtonIds.Clear();
 
         if (!HasRequiredReferences())
             return;
@@ -93,6 +105,7 @@ public class CharacterCreatorRaceUI : MonoBehaviour
         {
             ShowBaseRaceDescription("No race definitions found.");
             ShowSubraceDescription("");
+            ShowLineageDescription("");
         }
     }
 
@@ -190,6 +203,227 @@ public class CharacterCreatorRaceUI : MonoBehaviour
 
         RefreshSelectedSubrace(selectedButton);
         ShowSubraceDescription(GetSubraceDescription(subraceDefinition));
+        BuildLineageButtons(
+            subraceDefinition.race,
+            subraceDefinition
+        );
+    }
+
+    private void BuildLineageButtons(
+    RaceDefinition raceDefinition,
+    SubraceDefinition selectedSubrace)
+    {
+        ClearButtons(lineageButtons);
+        lineageButtonIds.Clear();
+
+        if (raceDefinition == null ||
+            selectedSubrace == null)
+        {
+            ShowLineageDescription("");
+            return;
+        }
+
+        if (!raceDefinition.CanUseLineages())
+        {
+            ShowLineageDescription(
+                "This race does not use lineages."
+            );
+
+            return;
+        }
+
+        List<LineageSelection> lineageOptions =
+            characterDataLibrary.GetLineageOptionsForRace(
+                raceDefinition,
+                selectedSubrace
+            );
+
+        foreach (LineageSelection lineage
+                 in lineageOptions)
+        {
+            if (lineage == null ||
+                !lineage.IsValid)
+            {
+                continue;
+            }
+
+            CharacterOptionButtonUI button =
+                Instantiate(
+                    optionButtonPrefab,
+                    lineageButtonParent
+                );
+
+            string selectionId =
+                lineage.SelectionId;
+
+            button.name =
+                $"{selectionId}LineageButton";
+
+            button.SetText(
+                lineage.DisplayName
+            );
+
+            button.SetSelected(false);
+            button.SetInteractable(true);
+
+            LineageSelection capturedLineage =
+                lineage;
+
+            button.Button.onClick.RemoveAllListeners();
+
+            button.Button.onClick.AddListener(() =>
+                ToggleLineage(capturedLineage)
+            );
+
+            lineageButtons.Add(button);
+            lineageButtonIds.Add(selectionId);
+        }
+
+        if (lineageOptions.Count == 0)
+        {
+            ShowLineageDescription(
+                "No lineage options are available."
+            );
+        }
+        else
+        {
+            ShowLineageDescription(
+                "Select a lineage."
+            );
+        }
+
+        RefreshLineageButtons();
+    }
+
+    private void ToggleLineage(
+        LineageSelection lineage)
+    {
+        if (lineage == null ||
+            !lineage.IsValid ||
+            characterCreator == null)
+        {
+            return;
+        }
+
+        if (!characterCreator.ToggleLineage(
+            lineage.SelectionId,
+            out string errorMessage))
+        {
+            ShowLineageDescription(
+                errorMessage
+            );
+
+            RefreshLineageButtons();
+            return;
+        }
+
+        ShowLineageDescription(
+            GetLineageDescription(lineage)
+        );
+
+        RefreshLineageButtons();
+    }
+
+    private void RefreshLineageButtons()
+    {
+        for (int i = 0;
+             i < lineageButtons.Count;
+             i++)
+        {
+            CharacterOptionButtonUI button =
+                lineageButtons[i];
+
+            if (button == null)
+                continue;
+
+            string selectionId =
+                i < lineageButtonIds.Count
+                    ? lineageButtonIds[i]
+                    : "";
+
+            bool selected =
+                IsLineageSelected(selectionId);
+
+            button.SetSelected(selected);
+
+            button.SetInteractable(
+                selected ||
+                CanSelectAnotherLineage()
+            );
+        }
+    }
+
+    private bool IsLineageSelected(
+        string selectionId)
+    {
+        if (characterCreator == null ||
+            string.IsNullOrWhiteSpace(selectionId))
+        {
+            return false;
+        }
+
+        foreach (string selectedId
+                 in characterCreator.SelectedLineageIds)
+        {
+            if (string.Equals(
+                selectedId,
+                selectionId,
+                System.StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool CanSelectAnotherLineage()
+    {
+        if (characterCreator == null ||
+            characterDataLibrary == null)
+        {
+            return false;
+        }
+
+        if (!characterDataLibrary.TryGetRaceDefinition(
+            characterCreator.SelectedRaceId,
+            out RaceDefinition raceDefinition))
+        {
+            return false;
+        }
+
+        return characterCreator.SelectedLineageIds.Count <
+               raceDefinition.maxLineages;
+    }
+
+    private string GetLineageDescription(
+        LineageSelection lineage)
+    {
+        if (lineage == null)
+            return "";
+
+        string text =
+            lineage.DisplayName;
+
+        if (lineage.IsSubrace &&
+            lineage.Subrace != null &&
+            !string.IsNullOrWhiteSpace(
+                lineage.Subrace.description))
+        {
+            text +=
+                $"\n\n{lineage.Subrace.description}";
+        }
+
+        if (lineage.IsCustomLineage &&
+            lineage.CustomLineage != null &&
+            !string.IsNullOrWhiteSpace(
+                lineage.CustomLineage.description))
+        {
+            text +=
+                $"\n\n{lineage.CustomLineage.description}";
+        }
+
+        return text;
     }
 
     private bool HasRequiredReferences()
@@ -221,6 +455,15 @@ public class CharacterCreatorRaceUI : MonoBehaviour
         if (subraceButtonParent == null)
         {
             ShowSubraceDescription("SubraceSelection is missing.");
+            return false;
+        }
+
+        if (lineageButtonParent == null)
+        {
+            ShowLineageDescription(
+                "LineageSelection is missing."
+            );
+
             return false;
         }
 
@@ -410,6 +653,13 @@ public class CharacterCreatorRaceUI : MonoBehaviour
     {
         if (subraceDescriptionText != null)
             subraceDescriptionText.text = message;
+    }
+
+    private void ShowLineageDescription(
+    string message)
+    {
+        if (lineageDescriptionText != null)
+            lineageDescriptionText.text = message;
     }
 
     private string GetRaceButtonText(
