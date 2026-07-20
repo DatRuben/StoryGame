@@ -70,7 +70,7 @@ public class CharacterAppearanceOptionDefinition :
     public CharacterAppearanceOptionAvailability GetAvailability(
         RaceDefinition selectedRace,
         SubraceDefinition selectedSubrace,
-        List<LineageDefinition> selectedLineages)
+        List<LineageSelection> selectedLineages)
     {
         if (!IsShownForRace(selectedRace))
         {
@@ -149,32 +149,59 @@ public class CharacterAppearanceOptionDefinition :
     }
 
     private bool IsAllowedForAnyLineage(
-        List<LineageDefinition> selectedLineages)
+        List<LineageSelection> selectedLineages)
     {
-        if (selectedLineages == null ||
+        if (selectedLineages == null)
+            return false;
+
+        foreach (LineageSelection lineage
+                 in selectedLineages)
+        {
+            if (lineage == null ||
+                !lineage.IsValid)
+            {
+                continue;
+            }
+
+            if (lineage.IsSubrace &&
+                IsAllowedForSubrace(lineage.Subrace))
+            {
+                return true;
+            }
+
+            if (lineage.IsCustomLineage &&
+                IsAllowedForCustomLineage(
+                    lineage.CustomLineage))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool IsAllowedForCustomLineage(
+    LineageDefinition selectedLineage)
+    {
+        if (selectedLineage == null ||
             allowedLineages == null)
         {
             return false;
         }
 
-        foreach (LineageDefinition selectedLineage
-                 in selectedLineages)
+        foreach (LineageDefinition allowedLineage
+                 in allowedLineages)
         {
-            if (selectedLineage == null)
+            if (allowedLineage == null)
                 continue;
 
-            foreach (LineageDefinition allowedLineage
-                     in allowedLineages)
+            if (allowedLineage == selectedLineage ||
+                string.Equals(
+                    allowedLineage.lineageId,
+                    selectedLineage.lineageId,
+                    System.StringComparison.OrdinalIgnoreCase))
             {
-                if (allowedLineage == null)
-                    continue;
-
-                if (allowedLineage == selectedLineage ||
-                    allowedLineage.lineageId ==
-                    selectedLineage.lineageId)
-                {
-                    return true;
-                }
+                return true;
             }
         }
 
@@ -355,7 +382,7 @@ public class CharacterAppearanceOptionDefinitionEditor : Editor
         List<RaceDefinition> races)
     {
         EditorGUILayout.LabelField(
-            "Allowed Subraces",
+            "Allowed Subraces / Subrace Lineages",
             EditorStyles.boldLabel
         );
 
@@ -401,7 +428,7 @@ public class CharacterAppearanceOptionDefinitionEditor : Editor
         List<RaceDefinition> races)
     {
         EditorGUILayout.LabelField(
-            "Allowed Lineages",
+            "Allowed Custom Lineages",
             EditorStyles.boldLabel
         );
 

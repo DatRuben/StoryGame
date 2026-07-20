@@ -16,7 +16,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 06eab789c3374b544a0a50dd9c0b58b4, type: 2}
   - {fileID: 11400000, guid: 4163000ff3c63644db2f76c943545857, type: 2}
   - {fileID: 11400000, guid: 04996e97c0750844d95f7836e2af77e0, type: 2}
-  - {fileID: 11400000, guid: d7a9f4b0ea5e81241949f634f4fd991f, type: 2}
   - {fileID: 11400000, guid: 8518a5df7a2504f419e63f8b4b096beb, type: 2}
   subraceDefinitions:
   - {fileID: 11400000, guid: ea62e3cf94c7de245b36d84fc8aea762, type: 2}
@@ -24,10 +23,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 5fdc2e4338fbbaf4f9ffeb47e349c79c, type: 2}
   - {fileID: 11400000, guid: 479ce3a3f5eba2a429ca98e97b02a597, type: 2}
   - {fileID: 11400000, guid: e5a75990c0f7ed14691ff7adba7a5edc, type: 2}
-  - {fileID: 11400000, guid: fdf2bdf5c7475b1459048f51b0a3c550, type: 2}
   lineageDefinitions:
   - {fileID: 11400000, guid: 859eb4e370d11e24da259978b34e9f5e, type: 2}
-  - {fileID: 11400000, guid: 51f5ca8e394e7604f961c9cfaa86fd26, type: 2}
   backgroundDefinitions:
   - {fileID: 11400000, guid: 2b8fbd16e73c4e74d83088c6d7471356, type: 2}
   - {fileID: 11400000, guid: ba9a3e9e0ce01c04a8dff777ac29daec, type: 2}

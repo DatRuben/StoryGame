@@ -44,6 +44,6 @@ MonoBehaviour:
     spirit: 10
     perception: 10
   totalAttributePointsPreview: 90
-  allowedLineageType: 1
-  minLineages: 0
-  maxLineages: 0
+  allowedLineageType: 0
+  minLineages: 1
+  maxLineages: 3
