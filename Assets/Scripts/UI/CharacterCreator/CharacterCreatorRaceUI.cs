@@ -116,18 +116,31 @@ public class CharacterCreatorRaceUI : MonoBehaviour
         if (raceDefinition == null)
             return;
 
-        if (!characterCreator.SelectRace(
-            raceDefinition.raceId,
-            out string errorMessage))
+        bool alreadySelected =
+            characterCreator != null &&
+            string.Equals(
+                characterCreator.SelectedRaceId,
+                raceDefinition.raceId,
+                System.StringComparison.OrdinalIgnoreCase
+            );
+
+        if (!alreadySelected)
         {
-            ShowBaseRaceDescription(errorMessage);
-            return;
+            if (!characterCreator.SelectRace(
+                raceDefinition.raceId,
+                out string errorMessage))
+            {
+                ShowBaseRaceDescription(errorMessage);
+                return;
+            }
         }
 
         selectedRaceId = raceDefinition.raceId;
 
         RefreshSelectedRace(selectedButton);
-        ShowBaseRaceDescription(GetRaceDescription(raceDefinition));
+        ShowBaseRaceDescription(
+            GetRaceDescription(raceDefinition)
+        );
 
         BuildSubraceButtons(raceDefinition);
     }
@@ -530,7 +543,28 @@ public class CharacterCreatorRaceUI : MonoBehaviour
     private RaceDefinition GetStartingRaceDefinition(
         List<RaceDefinition> raceDefinitions)
     {
-        foreach (RaceDefinition raceDefinition in raceDefinitions)
+        if (characterCreator != null &&
+            !string.IsNullOrWhiteSpace(
+                characterCreator.SelectedRaceId))
+        {
+            foreach (RaceDefinition raceDefinition
+                     in raceDefinitions)
+            {
+                if (raceDefinition == null)
+                    continue;
+
+                if (string.Equals(
+                    raceDefinition.raceId,
+                    characterCreator.SelectedRaceId,
+                    System.StringComparison.OrdinalIgnoreCase))
+                {
+                    return raceDefinition;
+                }
+            }
+        }
+
+        foreach (RaceDefinition raceDefinition
+                 in raceDefinitions)
         {
             if (raceDefinition != null &&
                 raceDefinition.baseRace == BaseRace.Human)
@@ -546,23 +580,49 @@ public class CharacterCreatorRaceUI : MonoBehaviour
         RaceDefinition raceDefinition,
         List<SubraceDefinition> subraceDefinitions)
     {
-        if (raceDefinition != null &&
-            raceDefinition.standardSubrace != null)
+        if (characterCreator != null &&
+            !string.IsNullOrWhiteSpace(
+                characterCreator.SelectedSubraceId))
         {
-            foreach (SubraceDefinition subraceDefinition in subraceDefinitions)
+            foreach (SubraceDefinition subraceDefinition
+                     in subraceDefinitions)
             {
                 if (subraceDefinition == null)
                     continue;
 
-                if (subraceDefinition == raceDefinition.standardSubrace ||
-                    subraceDefinition.subraceId == raceDefinition.standardSubrace.subraceId)
+                if (string.Equals(
+                    subraceDefinition.subraceId,
+                    characterCreator.SelectedSubraceId,
+                    System.StringComparison.OrdinalIgnoreCase))
                 {
                     return subraceDefinition;
                 }
             }
         }
 
-        foreach (SubraceDefinition subraceDefinition in subraceDefinitions)
+        if (raceDefinition != null &&
+            raceDefinition.standardSubrace != null)
+        {
+            foreach (SubraceDefinition subraceDefinition
+                     in subraceDefinitions)
+            {
+                if (subraceDefinition == null)
+                    continue;
+
+                if (subraceDefinition ==
+                        raceDefinition.standardSubrace ||
+                    string.Equals(
+                        subraceDefinition.subraceId,
+                        raceDefinition.standardSubrace.subraceId,
+                        System.StringComparison.OrdinalIgnoreCase))
+                {
+                    return subraceDefinition;
+                }
+            }
+        }
+
+        foreach (SubraceDefinition subraceDefinition
+                 in subraceDefinitions)
         {
             if (subraceDefinition != null)
                 return subraceDefinition;

@@ -99,39 +99,56 @@ public static class CharacterAttributeResolver
         List<LineageSelection> validLineages =
             GetValidLineages(lineages);
 
-        bool lineageRequired =
-            raceDefinition != null &&
-            raceDefinition.minLineages > 0;
-
-        if (lineageRequired &&
-            validLineages.Count > 0)
+        if (validLineages.Count == 0)
         {
-            return BlendRequiredLineages(
-                validLineages
+            return GetBaseAncestryTarget(
+                raceDefinition,
+                subraceDefinition
             );
         }
 
-        if (!lineageRequired &&
-            validLineages.Count > 0)
+        if (validLineages.Count == 1)
         {
-            return BlendOptionalLineages(
+            return BlendMainAndLineages(
                 raceDefinition,
                 subraceDefinition,
-                validLineages
+                validLineages,
+                3
             );
         }
 
-        return GetBaseAncestryTarget(
-            raceDefinition,
-            subraceDefinition
+        if (validLineages.Count == 2)
+        {
+            return BlendMainAndLineages(
+                raceDefinition,
+                subraceDefinition,
+                validLineages,
+                2
+            );
+        }
+
+        return BlendLineagesOnly(
+            validLineages
         );
     }
 
-    private static CharacterAttributes BlendRequiredLineages(
-        List<LineageSelection> lineages)
+    private static CharacterAttributes BlendMainAndLineages(
+        RaceDefinition raceDefinition,
+        SubraceDefinition subraceDefinition,
+        List<LineageSelection> lineages,
+        int mainWeight)
     {
         List<CharacterAttributes> targets = new();
         List<int> weights = new();
+
+        targets.Add(
+            GetBaseAncestryTarget(
+                raceDefinition,
+                subraceDefinition
+            )
+        );
+
+        weights.Add(mainWeight);
 
         foreach (LineageSelection lineage in lineages)
         {
@@ -155,22 +172,11 @@ public static class CharacterAttributeResolver
         );
     }
 
-    private static CharacterAttributes BlendOptionalLineages(
-        RaceDefinition raceDefinition,
-        SubraceDefinition subraceDefinition,
+    private static CharacterAttributes BlendLineagesOnly(
         List<LineageSelection> lineages)
     {
         List<CharacterAttributes> targets = new();
         List<int> weights = new();
-
-        targets.Add(
-            GetBaseAncestryTarget(
-                raceDefinition,
-                subraceDefinition
-            )
-        );
-
-        weights.Add(lineages.Count);
 
         foreach (LineageSelection lineage in lineages)
         {

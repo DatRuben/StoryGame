@@ -2,6 +2,10 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 [CreateAssetMenu(menuName = "Game/Race Definition")]
 public class RaceDefinition : ScriptableObject
 {
@@ -204,6 +208,24 @@ public class RaceDefinition : ScriptableObject
 
         RecalculatePreview();
 
+        int lineageLimit =
+            allowedLineageType ==
+            LineageType.HybridAncestry
+                ? 2
+                : 3;
+
+        minLineages = Mathf.Clamp(
+            minLineages,
+            0,
+            lineageLimit
+        );
+
+        maxLineages = Mathf.Clamp(
+            maxLineages,
+            0,
+            lineageLimit
+        );
+
         if (maxLineages < minLineages)
             maxLineages = minLineages;
     }
@@ -234,3 +256,139 @@ public class RaceDefinition : ScriptableObject
         return builder.ToString().Trim('_');
     }
 }
+
+#if UNITY_EDITOR
+[CustomEditor(typeof(RaceDefinition))]
+public class RaceDefinitionEditor : Editor
+{
+    private SerializedProperty allowedLineageType;
+    private SerializedProperty minLineages;
+    private SerializedProperty maxLineages;
+
+    private void OnEnable()
+    {
+        allowedLineageType =
+            serializedObject.FindProperty(
+                "allowedLineageType"
+            );
+
+        minLineages =
+            serializedObject.FindProperty(
+                "minLineages"
+            );
+
+        maxLineages =
+            serializedObject.FindProperty(
+                "maxLineages"
+            );
+    }
+
+    public override void OnInspectorGUI()
+    {
+        serializedObject.Update();
+
+        SerializedProperty property =
+            serializedObject.GetIterator();
+
+        bool enterChildren = true;
+
+        while (property.NextVisible(enterChildren))
+        {
+            enterChildren = false;
+
+            if (property.propertyPath == "minLineages")
+            {
+                DrawLineageDropdowns();
+                continue;
+            }
+
+            if (property.propertyPath == "maxLineages")
+                continue;
+
+            using (new EditorGUI.DisabledScope(
+                property.propertyPath == "m_Script"))
+            {
+                EditorGUILayout.PropertyField(
+                    property,
+                    true
+                );
+            }
+        }
+
+        serializedObject.ApplyModifiedProperties();
+    }
+
+    private void DrawLineageDropdowns()
+    {
+        LineageType lineageType =
+            (LineageType)allowedLineageType.intValue;
+
+        int limit =
+            lineageType == LineageType.AnimalSpecies
+                ? 3
+                : 2;
+
+        int minimum =
+            Mathf.Clamp(
+                minLineages.intValue,
+                0,
+                limit
+            );
+
+        int[] minimumValues =
+            MakeValues(0, limit);
+
+        minimum = EditorGUILayout.IntPopup(
+            "Minimum Lineages",
+            minimum,
+            MakeLabels(minimumValues),
+            minimumValues
+        );
+
+        int maximum =
+            Mathf.Clamp(
+                maxLineages.intValue,
+                minimum,
+                limit
+            );
+
+        int[] maximumValues =
+            MakeValues(minimum, limit);
+
+        maximum = EditorGUILayout.IntPopup(
+            "Maximum Lineages",
+            maximum,
+            MakeLabels(maximumValues),
+            maximumValues
+        );
+
+        minLineages.intValue = minimum;
+        maxLineages.intValue = maximum;
+    }
+
+    private static int[] MakeValues(
+        int minimum,
+        int maximum)
+    {
+        int[] values =
+            new int[maximum - minimum + 1];
+
+        for (int i = 0; i < values.Length; i++)
+            values[i] = minimum + i;
+
+        return values;
+    }
+
+    private static string[] MakeLabels(
+        int[] values)
+    {
+        string[] labels =
+            new string[values.Length];
+
+        for (int i = 0; i < values.Length; i++)
+            labels[i] = values[i].ToString();
+
+        return labels;
+    }
+}
+#endif
