@@ -99,41 +99,46 @@ public sealed class LineageSelection
         );
     }
 
-    public bool IsAllowedFor(
-        RaceDefinition mainRace,
-        SubraceDefinition mainSubrace,
-        LineageType allowedType)
+public bool IsAllowedFor(
+    RaceDefinition mainRace,
+    SubraceDefinition mainSubrace)
+{
+    if (!IsValid ||
+        mainRace == null)
     {
-        if (!IsValid ||
-            mainRace == null ||
-            Type != allowedType)
+        return false;
+    }
+
+    if (Subrace != null)
+    {
+        if (mainRace.allowedLineageType !=
+            LineageType.HybridAncestry)
         {
             return false;
         }
 
-        if (Subrace != null)
+        if (!SameRace(
+            Subrace.race,
+            mainRace))
         {
-            if (!SameRace(
-                Subrace.race,
-                mainRace))
-            {
-                return false;
-            }
-
-            if (SameSubrace(
-                Subrace,
-                mainSubrace))
-            {
-                return false;
-            }
-
-            return true;
+            return false;
         }
 
-        return CustomLineage.IsAllowedForRace(
-            mainRace
-        );
+        if (SameSubrace(
+            Subrace,
+            mainSubrace))
+        {
+            return false;
+        }
+
+        return true;
     }
+
+    return CustomLineage != null &&
+           CustomLineage.IsAllowedForRace(
+               mainRace
+           );
+}
 
     public CharacterAttributes GetAttributeShape()
     {
@@ -177,7 +182,11 @@ public sealed class LineageSelection
         }
 
         return first == second ||
-               first.raceId == second.raceId;
+                string.Equals(
+                    first.raceId,
+                    second.raceId,
+                    StringComparison.OrdinalIgnoreCase
+                );
     }
 
     private static bool SameSubrace(

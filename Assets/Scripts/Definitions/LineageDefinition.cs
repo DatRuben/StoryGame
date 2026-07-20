@@ -5,12 +5,6 @@ using UnityEngine;
 using UnityEditor;
 #endif
 
-public enum LineageType
-{
-    AnimalSpecies,
-    HybridAncestry
-}
-
 [CreateAssetMenu(menuName = "Game/Lineage Definition")]
 public class LineageDefinition : ScriptableObject
 {
@@ -19,7 +13,6 @@ public class LineageDefinition : ScriptableObject
     public string lineageId;
 
     public string displayName;
-    public LineageType lineageType;
 
     [TextArea]
     public string description;
@@ -97,7 +90,6 @@ public class LineageDefinition : ScriptableObject
 public class LineageDefinitionEditor : Editor
 {
     private SerializedProperty displayName;
-    private SerializedProperty lineageType;
     private SerializedProperty description;
     private SerializedProperty allowedRace;
     private SerializedProperty modifiers;
@@ -108,9 +100,6 @@ public class LineageDefinitionEditor : Editor
     {
         displayName =
             serializedObject.FindProperty("displayName");
-
-        lineageType =
-            serializedObject.FindProperty("lineageType");
 
         description =
             serializedObject.FindProperty("description");
@@ -134,11 +123,35 @@ public class LineageDefinitionEditor : Editor
 
         EditorGUILayout.Space(6f);
 
+        DrawRace();
         DrawIdentity();
         DrawLineageData();
         DrawSharedData();
 
         serializedObject.ApplyModifiedProperties();
+    }
+
+    private void DrawRace()
+    {
+        EditorGUILayout.LabelField(
+            "Race",
+            EditorStyles.boldLabel
+        );
+
+        EditorGUILayout.PropertyField(
+            allowedRace,
+            new GUIContent("Race")
+        );
+
+        if (allowedRace.objectReferenceValue == null)
+        {
+            EditorGUILayout.HelpBox(
+                "Select the race that owns this lineage.",
+                MessageType.Warning
+            );
+        }
+
+        EditorGUILayout.Space();
     }
 
     private void DrawIdentity()
@@ -149,23 +162,25 @@ public class LineageDefinitionEditor : Editor
         );
 
         EditorGUILayout.PropertyField(displayName);
-        EditorGUILayout.PropertyField(lineageType);
+        EditorGUILayout.PropertyField(description);
 
         EditorGUILayout.Space();
     }
 
     private void DrawLineageData()
     {
-        LineageType selectedType =
-            (LineageType)lineageType.enumValueIndex;
+        RaceDefinition selectedRace =
+            allowedRace.objectReferenceValue
+            as RaceDefinition;
 
-        if (selectedType ==
+        if (selectedRace != null &&
+            selectedRace.allowedLineageType ==
             LineageType.HybridAncestry)
         {
             EditorGUILayout.HelpBox(
                 "Playable subraces are included automatically. " +
-                "Create a Hybrid Ancestry asset only for ancestry " +
-                "that has no playable subrace, such as Giant.",
+                "Create a custom lineage asset only for ancestry " +
+                "without a playable subrace, such as Giant.",
                 MessageType.Info
             );
 

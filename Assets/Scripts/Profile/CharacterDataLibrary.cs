@@ -348,12 +348,6 @@ public class CharacterDataLibrary : ScriptableObject
             if (lineage == null)
                 continue;
 
-            if (lineage.lineageType !=
-                raceDefinition.allowedLineageType)
-            {
-                continue;
-            }
-
             AddLineageOption(
                 options,
                 usedSelectionIds,
@@ -383,8 +377,7 @@ public class CharacterDataLibrary : ScriptableObject
 
         if (!selection.IsAllowedFor(
             raceDefinition,
-            selectedSubrace,
-            raceDefinition.allowedLineageType))
+            selectedSubrace))
         {
             return;
         }

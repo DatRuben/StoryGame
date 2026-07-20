@@ -22,7 +22,7 @@ MonoBehaviour:
     mana: 0
     staggerResist: 0
     carryWeight: 0
-  compareToSubrace: {fileID: 11400000}
+  compareToSubrace: {fileID: 0}
   modifiersFromComparison:
     strength: 0
     dexterity: 0

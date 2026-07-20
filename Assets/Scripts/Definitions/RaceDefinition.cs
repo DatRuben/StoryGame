@@ -5,6 +5,11 @@ using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
+public enum LineageType
+{
+    AnimalSpecies,
+    HybridAncestry
+}
 
 [CreateAssetMenu(menuName = "Game/Race Definition")]
 public class RaceDefinition : ScriptableObject
@@ -48,6 +53,11 @@ public class RaceDefinition : ScriptableObject
     public LineageType allowedLineageType =
         LineageType.HybridAncestry;
 
+    [Tooltip(
+        "The lineage initially selected for an Animal Species race."
+    )]
+    public LineageDefinition defaultLineage;
+
     [Min(0)]
     public int minLineages = 0;
 
@@ -71,8 +81,22 @@ public class RaceDefinition : ScriptableObject
 
         return lineage.IsAllowedFor(
             this,
-            selectedSubrace,
-            allowedLineageType
+            selectedSubrace
+        );
+    }
+
+    public LineageSelection GetDefaultLineageSelection()
+    {
+        if (allowedLineageType !=
+                LineageType.AnimalSpecies ||
+            defaultLineage == null ||
+            !defaultLineage.IsAllowedForRace(this))
+        {
+            return null;
+        }
+
+        return LineageSelection.FromCustomLineage(
+            defaultLineage
         );
     }
 
@@ -226,6 +250,18 @@ public class RaceDefinition : ScriptableObject
             lineageLimit
         );
 
+        if (allowedLineageType !=
+                LineageType.AnimalSpecies ||
+            !CanUseLineages())
+        {
+            defaultLineage = null;
+        }
+        else if (defaultLineage != null &&
+                 !defaultLineage.IsAllowedForRace(this))
+        {
+            defaultLineage = null;
+        }
+
         if (maxLineages < minLineages)
             maxLineages = minLineages;
     }
@@ -264,6 +300,7 @@ public class RaceDefinitionEditor : Editor
     private SerializedProperty allowedLineageType;
     private SerializedProperty minLineages;
     private SerializedProperty maxLineages;
+    private SerializedProperty defaultLineage;
 
     private void OnEnable()
     {
@@ -281,6 +318,11 @@ public class RaceDefinitionEditor : Editor
             serializedObject.FindProperty(
                 "maxLineages"
             );
+
+        defaultLineage =
+            serializedObject.FindProperty(
+                "defaultLineage"
+            );
     }
 
     public override void OnInspectorGUI()
@@ -295,6 +337,9 @@ public class RaceDefinitionEditor : Editor
         while (property.NextVisible(enterChildren))
         {
             enterChildren = false;
+
+            if (property.propertyPath == "defaultLineage")
+                continue;
 
             if (property.propertyPath == "minLineages")
             {
@@ -364,6 +409,55 @@ public class RaceDefinitionEditor : Editor
 
         minLineages.intValue = minimum;
         maxLineages.intValue = maximum;
+
+        DrawDefaultLineage();
+    }
+
+    private void DrawDefaultLineage()
+    {
+        LineageType lineageType =
+            (LineageType)allowedLineageType.enumValueIndex;
+
+        if (lineageType !=
+                LineageType.AnimalSpecies ||
+            maxLineages.intValue <= 0)
+        {
+            return;
+        }
+
+        EditorGUILayout.Space();
+
+        EditorGUILayout.PropertyField(
+            defaultLineage,
+            new GUIContent("Default Lineage")
+        );
+
+        RaceDefinition raceDefinition =
+            target as RaceDefinition;
+
+        LineageDefinition selectedDefault =
+            defaultLineage.objectReferenceValue
+            as LineageDefinition;
+
+        if (selectedDefault == null)
+        {
+            EditorGUILayout.HelpBox(
+                "Animal Species races need a default lineage.",
+                MessageType.Warning
+            );
+
+            return;
+        }
+
+        if (raceDefinition != null &&
+            !selectedDefault.IsAllowedForRace(
+                raceDefinition))
+        {
+            EditorGUILayout.HelpBox(
+                "The default lineage must belong to this race.",
+                MessageType.Error
+            );
+        }
     }
 
     private static int[] MakeValues(
