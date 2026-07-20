@@ -410,27 +410,6 @@ public class CharacterDataLibrary : ScriptableObject
         options.Add(selection);
     }
 
-    public List<LineageDefinition> GetLineageDefinitions(
-        List<string> lineageIds)
-    {
-        List<LineageDefinition> foundDefinitions = new();
-
-        if (lineageIds == null)
-            return foundDefinitions;
-
-        foreach (string lineageId in lineageIds)
-        {
-            if (TryGetLineageDefinition(
-                lineageId,
-                out LineageDefinition definition))
-            {
-                foundDefinitions.Add(definition);
-            }
-        }
-
-        return foundDefinitions;
-    }
-
     public RaceDefinition GetDefaultRaceDefinition()
     {
         foreach (RaceDefinition definition in raceDefinitions)

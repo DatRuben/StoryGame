@@ -355,46 +355,6 @@ public static class CharacterStatsResolver
     public static ResolvedCharacterStats ResolveCharacter(
         RaceDefinition race,
         SubraceDefinition subrace,
-        List<LineageDefinition> lineages)
-    {
-        return ResolveCharacter(
-            race,
-            subrace,
-            lineages,
-            null,
-            null
-        );
-    }
-
-    public static ResolvedCharacterStats ResolveCharacter(
-        RaceDefinition race,
-        SubraceDefinition subrace,
-        List<LineageDefinition> lineages,
-        BackgroundDefinition background,
-        List<TraitDefinition> traits)
-    {
-        if (lineages == null)
-            lineages = new List<LineageDefinition>();
-
-        CharacterAttributePreview attributePreview =
-            CharacterAttributeResolver.CreatePreview(
-                race,
-                subrace,
-                lineages,
-                background,
-                traits
-            );
-
-        return ResolveCharacterFromPreview(
-            race,
-            subrace,
-            attributePreview
-        );
-    }
-
-    public static ResolvedCharacterStats ResolveCharacter(
-        RaceDefinition race,
-        SubraceDefinition subrace,
         List<LineageSelection> lineages)
     {
         return ResolveCharacter(

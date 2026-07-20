@@ -7,36 +7,6 @@ public static class CharacterAttributeResolver
     public static CharacterAttributePreview CreatePreview(
         RaceDefinition raceDefinition,
         SubraceDefinition subraceDefinition,
-        List<LineageDefinition> lineages)
-    {
-        return CreatePreview(
-            raceDefinition,
-            subraceDefinition,
-            ConvertLineages(lineages),
-            null,
-            null
-        );
-    }
-
-    public static CharacterAttributePreview CreatePreview(
-        RaceDefinition raceDefinition,
-        SubraceDefinition subraceDefinition,
-        List<LineageDefinition> lineages,
-        BackgroundDefinition backgroundDefinition,
-        List<TraitDefinition> traitDefinitions)
-    {
-        return CreatePreview(
-            raceDefinition,
-            subraceDefinition,
-            ConvertLineages(lineages),
-            backgroundDefinition,
-            traitDefinitions
-        );
-    }
-
-    public static CharacterAttributePreview CreatePreview(
-        RaceDefinition raceDefinition,
-        SubraceDefinition subraceDefinition,
         List<LineageSelection> lineages)
     {
         return CreatePreview(
@@ -242,48 +212,6 @@ public static class CharacterAttributeResolver
         }
 
         return validLineages;
-    }
-
-    private static List<LineageSelection> ConvertLineages(
-        List<LineageDefinition> lineages)
-    {
-        List<LineageSelection> converted = new();
-
-        if (lineages == null)
-            return converted;
-
-        foreach (LineageDefinition lineage in lineages)
-        {
-            if (lineage == null)
-                continue;
-
-            LineageSelection selection;
-
-            if (lineage.lineageType ==
-                    LineageType.HybridAncestry &&
-                lineage.sourceSubrace != null)
-            {
-                selection =
-                    LineageSelection.FromSubrace(
-                        lineage.sourceSubrace
-                    );
-            }
-            else
-            {
-                selection =
-                    LineageSelection.FromCustomLineage(
-                        lineage
-                    );
-            }
-
-            if (selection != null &&
-                selection.IsValid)
-            {
-                converted.Add(selection);
-            }
-        }
-
-        return converted;
     }
 
     private static CharacterAttributes GetBaseAncestryTarget(
