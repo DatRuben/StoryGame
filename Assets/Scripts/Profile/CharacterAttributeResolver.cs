@@ -4,11 +4,40 @@ public static class CharacterAttributeResolver
 {
     private const int AncestryAttributeTotal = 90;
 
-
     public static CharacterAttributePreview CreatePreview(
         RaceDefinition raceDefinition,
         SubraceDefinition subraceDefinition,
         List<LineageDefinition> lineages)
+    {
+        return CreatePreview(
+            raceDefinition,
+            subraceDefinition,
+            ConvertLineages(lineages),
+            null,
+            null
+        );
+    }
+
+    public static CharacterAttributePreview CreatePreview(
+        RaceDefinition raceDefinition,
+        SubraceDefinition subraceDefinition,
+        List<LineageDefinition> lineages,
+        BackgroundDefinition backgroundDefinition,
+        List<TraitDefinition> traitDefinitions)
+    {
+        return CreatePreview(
+            raceDefinition,
+            subraceDefinition,
+            ConvertLineages(lineages),
+            backgroundDefinition,
+            traitDefinitions
+        );
+    }
+
+    public static CharacterAttributePreview CreatePreview(
+        RaceDefinition raceDefinition,
+        SubraceDefinition subraceDefinition,
+        List<LineageSelection> lineages)
     {
         return CreatePreview(
             raceDefinition,
@@ -22,7 +51,7 @@ public static class CharacterAttributeResolver
     public static CharacterAttributePreview CreatePreview(
         RaceDefinition raceDefinition,
         SubraceDefinition subraceDefinition,
-        List<LineageDefinition> lineages,
+        List<LineageSelection> lineages,
         BackgroundDefinition backgroundDefinition,
         List<TraitDefinition> traitDefinitions)
     {
@@ -34,10 +63,14 @@ public static class CharacterAttributeResolver
             );
 
         CharacterAttributeModifiers backgroundModifiers =
-            GetBackgroundModifiers(backgroundDefinition);
+            GetBackgroundModifiers(
+                backgroundDefinition
+            );
 
         CharacterAttributeModifiers traitModifiers =
-            GetTraitModifiers(traitDefinitions);
+            GetTraitModifiers(
+                traitDefinitions
+            );
 
         CharacterAttributeModifiers racialPassiveModifiers =
             CharacterAttributeModifiers.CreateZero();
@@ -51,10 +84,12 @@ public static class CharacterAttributeResolver
     }
 
     private static CharacterAttributeModifiers GetBackgroundModifiers(
-    BackgroundDefinition backgroundDefinition)
+        BackgroundDefinition backgroundDefinition)
     {
         if (backgroundDefinition == null)
+        {
             return CharacterAttributeModifiers.CreateZero();
+        }
 
         return CharacterAttributeModifiers.Copy(
             backgroundDefinition.modifiers
@@ -70,7 +105,8 @@ public static class CharacterAttributeResolver
         if (traitDefinitions == null)
             return totalModifiers;
 
-        foreach (TraitDefinition traitDefinition in traitDefinitions)
+        foreach (TraitDefinition traitDefinition
+                 in traitDefinitions)
         {
             if (traitDefinition == null)
                 continue;
@@ -88,9 +124,9 @@ public static class CharacterAttributeResolver
     private static CharacterAttributes CalculateAncestryAttributes(
         RaceDefinition raceDefinition,
         SubraceDefinition subraceDefinition,
-        List<LineageDefinition> lineages)
+        List<LineageSelection> lineages)
     {
-        List<LineageDefinition> validLineages =
+        List<LineageSelection> validLineages =
             GetValidLineages(lineages);
 
         bool lineageRequired =
@@ -100,7 +136,9 @@ public static class CharacterAttributeResolver
         if (lineageRequired &&
             validLineages.Count > 0)
         {
-            return BlendRequiredLineages(validLineages);
+            return BlendRequiredLineages(
+                validLineages
+            );
         }
 
         if (!lineageRequired &&
@@ -120,17 +158,23 @@ public static class CharacterAttributeResolver
     }
 
     private static CharacterAttributes BlendRequiredLineages(
-        List<LineageDefinition> lineages)
+        List<LineageSelection> lineages)
     {
         List<CharacterAttributes> targets = new();
         List<int> weights = new();
 
-        foreach (LineageDefinition lineage in lineages)
+        foreach (LineageSelection lineage in lineages)
         {
-            if (lineage == null)
+            if (lineage == null ||
+                !lineage.IsValid)
+            {
                 continue;
+            }
 
-            targets.Add(GetLineageAttributeShape(lineage));
+            targets.Add(
+                lineage.GetAttributeShape()
+            );
+
             weights.Add(1);
         }
 
@@ -144,7 +188,7 @@ public static class CharacterAttributeResolver
     private static CharacterAttributes BlendOptionalLineages(
         RaceDefinition raceDefinition,
         SubraceDefinition subraceDefinition,
-        List<LineageDefinition> lineages)
+        List<LineageSelection> lineages)
     {
         List<CharacterAttributes> targets = new();
         List<int> weights = new();
@@ -158,12 +202,18 @@ public static class CharacterAttributeResolver
 
         weights.Add(lineages.Count);
 
-        foreach (LineageDefinition lineage in lineages)
+        foreach (LineageSelection lineage in lineages)
         {
-            if (lineage == null)
+            if (lineage == null ||
+                !lineage.IsValid)
+            {
                 continue;
+            }
 
-            targets.Add(GetLineageAttributeShape(lineage));
+            targets.Add(
+                lineage.GetAttributeShape()
+            );
+
             weights.Add(1);
         }
 
@@ -174,21 +224,66 @@ public static class CharacterAttributeResolver
         );
     }
 
-    private static List<LineageDefinition> GetValidLineages(
-        List<LineageDefinition> lineages)
+    private static List<LineageSelection> GetValidLineages(
+        List<LineageSelection> lineages)
     {
-        List<LineageDefinition> validLineages = new();
+        List<LineageSelection> validLineages = new();
 
         if (lineages == null)
             return validLineages;
 
-        foreach (LineageDefinition lineage in lineages)
+        foreach (LineageSelection lineage in lineages)
         {
-            if (lineage != null)
+            if (lineage != null &&
+                lineage.IsValid)
+            {
                 validLineages.Add(lineage);
+            }
         }
 
         return validLineages;
+    }
+
+    private static List<LineageSelection> ConvertLineages(
+        List<LineageDefinition> lineages)
+    {
+        List<LineageSelection> converted = new();
+
+        if (lineages == null)
+            return converted;
+
+        foreach (LineageDefinition lineage in lineages)
+        {
+            if (lineage == null)
+                continue;
+
+            LineageSelection selection;
+
+            if (lineage.lineageType ==
+                    LineageType.HybridAncestry &&
+                lineage.sourceSubrace != null)
+            {
+                selection =
+                    LineageSelection.FromSubrace(
+                        lineage.sourceSubrace
+                    );
+            }
+            else
+            {
+                selection =
+                    LineageSelection.FromCustomLineage(
+                        lineage
+                    );
+            }
+
+            if (selection != null &&
+                selection.IsValid)
+            {
+                converted.Add(selection);
+            }
+        }
+
+        return converted;
     }
 
     private static CharacterAttributes GetBaseAncestryTarget(
@@ -212,27 +307,6 @@ public static class CharacterAttributeResolver
         }
 
         return CharacterAttributes.CreateDefault(10);
-    }
-
-    private static CharacterAttributes GetLineageAttributeShape(
-        LineageDefinition lineage)
-    {
-        if (lineage == null)
-            return CharacterAttributes.CreateDefault(10);
-
-        if (lineage.lineageType == LineageType.HybridAncestry &&
-            lineage.sourceSubrace != null &&
-            lineage.sourceSubrace.FinalAttributesPreview != null)
-        {
-            return CharacterAttributes.Copy(
-                lineage.sourceSubrace.FinalAttributesPreview
-            );
-        }
-
-        return CharacterAttributes.AddModifiers(
-            CharacterAttributes.CreateDefault(10),
-            lineage.modifiers
-        );
     }
 
     private static CharacterAttributes BlendWeightedTargets(
@@ -267,8 +341,11 @@ public static class CharacterAttributeResolver
 
         for (int i = 0; i < count; i++)
         {
-            CharacterAttributes target = targets[i];
-            int weight = weights[i];
+            CharacterAttributes target =
+                targets[i];
+
+            int weight =
+                weights[i];
 
             if (target == null ||
                 weight <= 0)
@@ -278,45 +355,117 @@ public static class CharacterAttributeResolver
 
             totalWeight += weight;
 
-            strength += target.strength * weight;
-            dexterity += target.dexterity * weight;
-            agility += target.agility * weight;
-            vitality += target.vitality * weight;
-            endurance += target.endurance * weight;
-            intelligence += target.intelligence * weight;
-            willpower += target.willpower * weight;
-            spirit += target.spirit * weight;
-            perception += target.perception * weight;
+            strength +=
+                target.strength * weight;
+
+            dexterity +=
+                target.dexterity * weight;
+
+            agility +=
+                target.agility * weight;
+
+            vitality +=
+                target.vitality * weight;
+
+            endurance +=
+                target.endurance * weight;
+
+            intelligence +=
+                target.intelligence * weight;
+
+            willpower +=
+                target.willpower * weight;
+
+            spirit +=
+                target.spirit * weight;
+
+            perception +=
+                target.perception * weight;
         }
 
         if (totalWeight <= 0)
-            return CharacterAttributes.CreateDefault(10);
-
-        CharacterAttributes result = new CharacterAttributes
         {
-            strength = strength / totalWeight,
-            dexterity = dexterity / totalWeight,
-            agility = agility / totalWeight,
-            vitality = vitality / totalWeight,
-            endurance = endurance / totalWeight,
-            intelligence = intelligence / totalWeight,
-            willpower = willpower / totalWeight,
-            spirit = spirit / totalWeight,
-            perception = perception / totalWeight
-        };
+            return CharacterAttributes.CreateDefault(10);
+        }
+
+        CharacterAttributes result =
+            new CharacterAttributes
+            {
+                strength =
+                    strength / totalWeight,
+
+                dexterity =
+                    dexterity / totalWeight,
+
+                agility =
+                    agility / totalWeight,
+
+                vitality =
+                    vitality / totalWeight,
+
+                endurance =
+                    endurance / totalWeight,
+
+                intelligence =
+                    intelligence / totalWeight,
+
+                willpower =
+                    willpower / totalWeight,
+
+                spirit =
+                    spirit / totalWeight,
+
+                perception =
+                    perception / totalWeight
+            };
 
         List<AttributeRemainder> remainders = new()
-    {
-        new AttributeRemainder(0, strength % totalWeight),
-        new AttributeRemainder(1, dexterity % totalWeight),
-        new AttributeRemainder(2, agility % totalWeight),
-        new AttributeRemainder(3, vitality % totalWeight),
-        new AttributeRemainder(4, endurance % totalWeight),
-        new AttributeRemainder(5, intelligence % totalWeight),
-        new AttributeRemainder(6, willpower % totalWeight),
-        new AttributeRemainder(7, spirit % totalWeight),
-        new AttributeRemainder(8, perception % totalWeight)
-    };
+        {
+            new AttributeRemainder(
+                0,
+                strength % totalWeight
+            ),
+
+            new AttributeRemainder(
+                1,
+                dexterity % totalWeight
+            ),
+
+            new AttributeRemainder(
+                2,
+                agility % totalWeight
+            ),
+
+            new AttributeRemainder(
+                3,
+                vitality % totalWeight
+            ),
+
+            new AttributeRemainder(
+                4,
+                endurance % totalWeight
+            ),
+
+            new AttributeRemainder(
+                5,
+                intelligence % totalWeight
+            ),
+
+            new AttributeRemainder(
+                6,
+                willpower % totalWeight
+            ),
+
+            new AttributeRemainder(
+                7,
+                spirit % totalWeight
+            ),
+
+            new AttributeRemainder(
+                8,
+                perception % totalWeight
+            )
+        };
 
         int pointDifference =
             targetTotal - result.BasePoints();
@@ -354,14 +503,21 @@ public static class CharacterAttributeResolver
         }
 
         remainders.Sort(
-            (a, b) => b.remainder.CompareTo(a.remainder)
+            (first, second) =>
+                second.remainder.CompareTo(
+                    first.remainder
+                )
         );
 
-        for (int i = 0; i < pointsToAdd; i++)
+        for (int i = 0;
+             i < pointsToAdd;
+             i++)
         {
             AddToAttribute(
                 attributes,
-                remainders[i % remainders.Count].attributeIndex,
+                remainders[
+                    i % remainders.Count
+                ].attributeIndex,
                 1
             );
         }
@@ -380,14 +536,21 @@ public static class CharacterAttributeResolver
         }
 
         remainders.Sort(
-            (a, b) => a.remainder.CompareTo(b.remainder)
+            (first, second) =>
+                first.remainder.CompareTo(
+                    second.remainder
+                )
         );
 
-        for (int i = 0; i < pointsToRemove; i++)
+        for (int i = 0;
+             i < pointsToRemove;
+             i++)
         {
             AddToAttribute(
                 attributes,
-                remainders[i % remainders.Count].attributeIndex,
+                remainders[
+                    i % remainders.Count
+                ].attributeIndex,
                 -1
             );
         }
@@ -403,27 +566,35 @@ public static class CharacterAttributeResolver
             case 0:
                 attributes.strength += amount;
                 break;
+
             case 1:
                 attributes.dexterity += amount;
                 break;
+
             case 2:
                 attributes.agility += amount;
                 break;
+
             case 3:
                 attributes.vitality += amount;
                 break;
+
             case 4:
                 attributes.endurance += amount;
                 break;
+
             case 5:
                 attributes.intelligence += amount;
                 break;
+
             case 6:
                 attributes.willpower += amount;
                 break;
+
             case 7:
                 attributes.spirit += amount;
                 break;
+
             case 8:
                 attributes.perception += amount;
                 break;
@@ -439,8 +610,11 @@ public static class CharacterAttributeResolver
             int attributeIndex,
             int remainder)
         {
-            this.attributeIndex = attributeIndex;
-            this.remainder = remainder;
+            this.attributeIndex =
+                attributeIndex;
+
+            this.remainder =
+                remainder;
         }
     }
 }
