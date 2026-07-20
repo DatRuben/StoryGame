@@ -385,6 +385,58 @@ public static class CharacterStatsResolver
                 traits
             );
 
+        return ResolveCharacterFromPreview(
+            race,
+            subrace,
+            attributePreview
+        );
+    }
+
+    public static ResolvedCharacterStats ResolveCharacter(
+        RaceDefinition race,
+        SubraceDefinition subrace,
+        List<LineageSelection> lineages)
+    {
+        return ResolveCharacter(
+            race,
+            subrace,
+            lineages,
+            null,
+            null
+        );
+    }
+
+    public static ResolvedCharacterStats ResolveCharacter(
+        RaceDefinition race,
+        SubraceDefinition subrace,
+        List<LineageSelection> lineages,
+        BackgroundDefinition background,
+        List<TraitDefinition> traits)
+    {
+        if (lineages == null)
+            lineages = new List<LineageSelection>();
+
+        CharacterAttributePreview attributePreview =
+            CharacterAttributeResolver.CreatePreview(
+                race,
+                subrace,
+                lineages,
+                background,
+                traits
+            );
+
+        return ResolveCharacterFromPreview(
+            race,
+            subrace,
+            attributePreview
+        );
+    }
+
+    private static ResolvedCharacterStats ResolveCharacterFromPreview(
+        RaceDefinition race,
+        SubraceDefinition subrace,
+        CharacterAttributePreview attributePreview)
+    {
         CharacterAttributes finalAttributes =
             CharacterAttributes.ClampMinimum(
                 CharacterAttributes.Copy(
