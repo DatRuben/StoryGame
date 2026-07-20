@@ -8,6 +8,12 @@ using UnityEditor;
 [CreateAssetMenu(menuName = "Game/Character Data Library")]
 public class CharacterDataLibrary : ScriptableObject
 {
+    private const string SubraceLineagePrefix =
+    "subrace:";
+
+    private const string CustomLineagePrefix =
+        "lineage:";
+
     [Header("Race Data")]
     [SerializeField] private List<RaceDefinition> raceDefinitions = new();
     [SerializeField] private List<SubraceDefinition> subraceDefinitions = new();
@@ -211,6 +217,197 @@ public class CharacterDataLibrary : ScriptableObject
         }
 
         return found;
+    }
+
+    public bool TryGetLineageSelection(
+    string selectionId,
+    out LineageSelection selection)
+    {
+        selection = null;
+
+        if (string.IsNullOrWhiteSpace(selectionId))
+            return false;
+
+        if (selectionId.StartsWith(
+            SubraceLineagePrefix,
+            System.StringComparison.OrdinalIgnoreCase))
+        {
+            string subraceId =
+                selectionId.Substring(
+                    SubraceLineagePrefix.Length
+                );
+
+            if (!TryGetSubraceDefinition(
+                subraceId,
+                out SubraceDefinition subrace))
+            {
+                return false;
+            }
+
+            selection =
+                LineageSelection.FromSubrace(
+                    subrace
+                );
+
+            return selection != null &&
+                   selection.IsValid;
+        }
+
+        if (selectionId.StartsWith(
+            CustomLineagePrefix,
+            System.StringComparison.OrdinalIgnoreCase))
+        {
+            string lineageId =
+                selectionId.Substring(
+                    CustomLineagePrefix.Length
+                );
+
+            if (!TryGetLineageDefinition(
+                lineageId,
+                out LineageDefinition lineage))
+            {
+                return false;
+            }
+
+            selection =
+                LineageSelection.FromCustomLineage(
+                    lineage
+                );
+
+            return selection != null &&
+                   selection.IsValid;
+        }
+
+        return false;
+    }
+
+    public List<LineageSelection> GetLineageSelections(
+        List<string> selectionIds)
+    {
+        List<LineageSelection> selections = new();
+
+        if (selectionIds == null)
+            return selections;
+
+        foreach (string selectionId in selectionIds)
+        {
+            if (TryGetLineageSelection(
+                selectionId,
+                out LineageSelection selection))
+            {
+                selections.Add(selection);
+            }
+        }
+
+        return selections;
+    }
+
+    public List<LineageSelection> GetLineageOptionsForRace(
+        RaceDefinition raceDefinition,
+        SubraceDefinition selectedSubrace)
+    {
+        List<LineageSelection> options = new();
+
+        HashSet<string> usedSelectionIds =
+            new HashSet<string>(
+                System.StringComparer.OrdinalIgnoreCase
+            );
+
+        if (raceDefinition == null ||
+            !raceDefinition.CanUseLineages())
+        {
+            return options;
+        }
+
+        if (raceDefinition.allowedLineageType ==
+            LineageType.HybridAncestry)
+        {
+            List<SubraceDefinition> raceSubraces =
+                GetSubraceDefinitionsForRace(
+                    raceDefinition
+                );
+
+            foreach (SubraceDefinition subrace
+                     in raceSubraces)
+            {
+                AddLineageOption(
+                    options,
+                    usedSelectionIds,
+                    LineageSelection.FromSubrace(
+                        subrace
+                    ),
+                    raceDefinition,
+                    selectedSubrace
+                );
+            }
+        }
+
+        foreach (LineageDefinition lineage
+                 in lineageDefinitions)
+        {
+            if (lineage == null)
+                continue;
+
+            if (lineage.lineageType !=
+                raceDefinition.allowedLineageType)
+            {
+                continue;
+            }
+
+            // A LineageDefinition that references a
+            // playable subrace is an old duplicate and
+            // is not a valid custom lineage option.
+            if (lineage.sourceSubrace != null)
+                continue;
+
+            AddLineageOption(
+                options,
+                usedSelectionIds,
+                LineageSelection.FromCustomLineage(
+                    lineage
+                ),
+                raceDefinition,
+                selectedSubrace
+            );
+        }
+
+        return options;
+    }
+
+    private static void AddLineageOption(
+        List<LineageSelection> options,
+        HashSet<string> usedSelectionIds,
+        LineageSelection selection,
+        RaceDefinition raceDefinition,
+        SubraceDefinition selectedSubrace)
+    {
+        if (selection == null ||
+            !selection.IsValid)
+        {
+            return;
+        }
+
+        if (!selection.IsAllowedFor(
+            raceDefinition,
+            selectedSubrace,
+            raceDefinition.allowedLineageType))
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(
+            selection.SelectionId))
+        {
+            return;
+        }
+
+        if (!usedSelectionIds.Add(
+            selection.SelectionId))
+        {
+            return;
+        }
+
+        options.Add(selection);
     }
 
     public List<LineageDefinition> GetLineageDefinitions(
