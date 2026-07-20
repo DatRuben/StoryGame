@@ -6,7 +6,9 @@ using UnityEngine;
 public class RaceDefinition : ScriptableObject
 {
     [Header("Identity")]
-    [HideInInspector] public string raceId;
+    [HideInInspector]
+    public string raceId;
+
     public string displayName;
     public BaseRace baseRace;
 
@@ -29,7 +31,8 @@ public class RaceDefinition : ScriptableObject
     private CharacterAttributes finalAttributesPreview =
         CharacterAttributes.CreateDefault(10);
 
-    [SerializeField] private int totalAttributePointsPreview;
+    [SerializeField]
+    private int totalAttributePointsPreview;
 
     public CharacterAttributes FinalAttributesPreview =>
         finalAttributesPreview;
@@ -38,7 +41,8 @@ public class RaceDefinition : ScriptableObject
         totalAttributePointsPreview;
 
     [Header("Lineage Rules")]
-    public LineageType allowedLineageType = LineageType.HybridAncestry;
+    public LineageType allowedLineageType =
+        LineageType.HybridAncestry;
 
     [Min(0)]
     public int minLineages = 0;
@@ -61,15 +65,20 @@ public class RaceDefinition : ScriptableObject
         if (!CanUseLineages())
             return false;
 
-        if (lineage.lineageType != allowedLineageType)
+        if (lineage.lineageType !=
+            allowedLineageType)
+        {
             return false;
+        }
 
         if (!lineage.IsAllowedForRace(this))
             return false;
 
         if (selectedSubrace != null &&
-            lineage.lineageType == LineageType.HybridAncestry &&
-            lineage.sourceSubrace == selectedSubrace)
+            lineage.lineageType ==
+                LineageType.HybridAncestry &&
+            lineage.sourceSubrace ==
+                selectedSubrace)
         {
             return false;
         }
@@ -77,17 +86,169 @@ public class RaceDefinition : ScriptableObject
         return true;
     }
 
+    public bool IsLineageAllowed(
+        LineageSelection lineage,
+        SubraceDefinition selectedSubrace)
+    {
+        if (lineage == null ||
+            !CanUseLineages())
+        {
+            return false;
+        }
+
+        return lineage.IsAllowedFor(
+            this,
+            selectedSubrace,
+            allowedLineageType
+        );
+    }
+
     public bool AreLineagesValid(
         SubraceDefinition subraceDefinition,
         List<LineageDefinition> lineages,
         out string errorMessage)
     {
-        errorMessage = "";
-
         int count =
             lineages == null
                 ? 0
                 : lineages.Count;
+
+        if (!IsLineageCountValid(
+            count,
+            out errorMessage))
+        {
+            return false;
+        }
+
+        if (lineages == null)
+            return true;
+
+        HashSet<string> usedLineageIds =
+            new HashSet<string>(
+                System.StringComparer.OrdinalIgnoreCase
+            );
+
+        foreach (LineageDefinition lineage
+                 in lineages)
+        {
+            if (lineage == null)
+            {
+                errorMessage =
+                    "Missing lineage definition.";
+
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(
+                lineage.lineageId))
+            {
+                errorMessage =
+                    $"{lineage.displayName} has no lineage ID.";
+
+                return false;
+            }
+
+            if (!usedLineageIds.Add(
+                lineage.lineageId))
+            {
+                errorMessage =
+                    $"{lineage.displayName} was selected more than once.";
+
+                return false;
+            }
+
+            if (!IsLineageAllowed(
+                lineage,
+                subraceDefinition))
+            {
+                errorMessage =
+                    $"{displayName} cannot use lineage " +
+                    $"{lineage.displayName}.";
+
+                return false;
+            }
+        }
+
+        errorMessage = "";
+        return true;
+    }
+
+    public bool AreLineageSelectionsValid(
+        SubraceDefinition subraceDefinition,
+        List<LineageSelection> lineages,
+        out string errorMessage)
+    {
+        int count =
+            lineages == null
+                ? 0
+                : lineages.Count;
+
+        if (!IsLineageCountValid(
+            count,
+            out errorMessage))
+        {
+            return false;
+        }
+
+        if (lineages == null)
+            return true;
+
+        HashSet<string> usedSelectionIds =
+            new HashSet<string>(
+                System.StringComparer.OrdinalIgnoreCase
+            );
+
+        foreach (LineageSelection lineage
+                 in lineages)
+        {
+            if (lineage == null ||
+                !lineage.IsValid)
+            {
+                errorMessage =
+                    "Missing or invalid lineage selection.";
+
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(
+                lineage.SelectionId))
+            {
+                errorMessage =
+                    $"{lineage.DisplayName} has no lineage selection ID.";
+
+                return false;
+            }
+
+            if (!usedSelectionIds.Add(
+                lineage.SelectionId))
+            {
+                errorMessage =
+                    $"{lineage.DisplayName} was selected more than once.";
+
+                return false;
+            }
+
+            if (!IsLineageAllowed(
+                lineage,
+                subraceDefinition))
+            {
+                errorMessage =
+                    $"{displayName} cannot use lineage " +
+                    $"{lineage.DisplayName}.";
+
+                return false;
+            }
+        }
+
+        errorMessage = "";
+        return true;
+    }
+
+    private bool IsLineageCountValid(
+        int count,
+        out string errorMessage)
+    {
+        errorMessage = "";
 
         if (!CanUseLineages())
         {
@@ -105,7 +266,8 @@ public class RaceDefinition : ScriptableObject
         if (count < minLineages)
         {
             errorMessage =
-                $"{displayName} requires at least {minLineages} lineage.";
+                $"{displayName} requires at least " +
+                $"{minLineages} lineage.";
 
             return false;
         }
@@ -113,51 +275,10 @@ public class RaceDefinition : ScriptableObject
         if (count > maxLineages)
         {
             errorMessage =
-                $"{displayName} can only use up to {maxLineages} lineages.";
+                $"{displayName} can only use up to " +
+                $"{maxLineages} lineages.";
 
             return false;
-        }
-
-        if (lineages == null)
-            return true;
-
-        HashSet<string> usedLineageIds = new();
-
-        foreach (LineageDefinition lineage in lineages)
-        {
-            if (lineage == null)
-            {
-                errorMessage =
-                    "Missing lineage definition.";
-
-                return false;
-            }
-
-            if (string.IsNullOrWhiteSpace(lineage.lineageId))
-            {
-                errorMessage =
-                    $"{lineage.displayName} has no lineage ID.";
-
-                return false;
-            }
-
-            if (!usedLineageIds.Add(lineage.lineageId))
-            {
-                errorMessage =
-                    $"{lineage.displayName} was selected more than once.";
-
-                return false;
-            }
-
-            if (!IsLineageAllowed(
-                lineage,
-                subraceDefinition))
-            {
-                errorMessage =
-                    $"{displayName} cannot use lineage {lineage.displayName}.";
-
-                return false;
-            }
         }
 
         return true;
@@ -188,7 +309,8 @@ public class RaceDefinition : ScriptableObject
             maxLineages = minLineages;
     }
 
-    private string MakeId(string value)
+    private string MakeId(
+        string value)
     {
         if (string.IsNullOrWhiteSpace(value))
             return "";
@@ -199,7 +321,9 @@ public class RaceDefinition : ScriptableObject
         {
             if (char.IsLetterOrDigit(character))
             {
-                builder.Append(char.ToLowerInvariant(character));
+                builder.Append(
+                    char.ToLowerInvariant(character)
+                );
             }
             else if (builder.Length > 0 &&
                      builder[^1] != '_')
