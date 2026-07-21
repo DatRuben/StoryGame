@@ -224,8 +224,6 @@ public class SubraceDefinitionEditor : Editor
         DrawBody();
         DrawEquipmentRules();
 
-        serializedObject.ApplyModifiedProperties();
-
         bool changed =
             serializedObject.ApplyModifiedProperties();
 
@@ -423,22 +421,34 @@ public class SubraceDefinitionEditor : Editor
         return options;
     }
 
-    private void DrawPreview()
+    private void DrawAttributes()
     {
         EditorGUILayout.LabelField(
-            "Calculated Preview",
+            "Final Ancestry Attributes",
             EditorStyles.boldLabel
+        );
+
+        EditorGUILayout.PropertyField(
+            finalAttributesPreview,
+            new GUIContent("Attributes"),
+            true
         );
 
         using (new EditorGUI.DisabledScope(true))
         {
             EditorGUILayout.PropertyField(
-                finalAttributesPreview,
-                true
+                totalAttributePointsPreview,
+                new GUIContent("Total Attribute Points")
             );
+        }
 
-            EditorGUILayout.PropertyField(
-                totalAttributePointsPreview
+        if (totalAttributePointsPreview.intValue != 90)
+        {
+            EditorGUILayout.HelpBox(
+                $"Attribute total is " +
+                $"{totalAttributePointsPreview.intValue}. " +
+                "Expected 90.",
+                MessageType.Warning
             );
         }
 
