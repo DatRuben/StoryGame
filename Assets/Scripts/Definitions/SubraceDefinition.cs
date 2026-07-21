@@ -54,22 +54,30 @@ public class SubraceDefinition : ScriptableObject
 
     public void RecalculatePreview()
     {
-        CharacterAttributes baseAttributes =
-            race != null
+        if (finalAttributesPreview == null)
+        {
+            finalAttributesPreview =
+                CharacterAttributes.CreateDefault(10);
+        }
+
+        CharacterAttributes comparisonAttributes =
+            race != null &&
+            race.FinalAttributesPreview != null
                 ? race.FinalAttributesPreview
                 : CharacterAttributes.CreateDefault(10);
 
         if (compareToSubrace != null &&
-            compareToSubrace != this)
+            compareToSubrace != this &&
+            compareToSubrace.FinalAttributesPreview != null)
         {
-            baseAttributes =
+            comparisonAttributes =
                 compareToSubrace.FinalAttributesPreview;
         }
 
-        finalAttributesPreview =
-            CharacterAttributes.AddModifiers(
-                baseAttributes,
-                modifiersFromComparison
+        modifiersFromComparison =
+            CharacterAttributeModifiers.FromDifference(
+                finalAttributesPreview,
+                comparisonAttributes
             );
 
         totalAttributePointsPreview =
@@ -211,12 +219,30 @@ public class SubraceDefinitionEditor : Editor
         DrawRace();
         DrawIdentity();
         DrawCombatStats();
+        DrawAttributes();
         DrawComparison();
-        DrawPreview();
         DrawBody();
         DrawEquipmentRules();
 
         serializedObject.ApplyModifiedProperties();
+
+        bool changed =
+            serializedObject.ApplyModifiedProperties();
+
+        if (changed)
+        {
+            SubraceDefinition subraceDefinition =
+                target as SubraceDefinition;
+
+            if (subraceDefinition != null)
+            {
+                subraceDefinition.RecalculatePreview();
+                EditorUtility.SetDirty(subraceDefinition);
+
+                serializedObject.Update();
+                Repaint();
+            }
+        }
     }
 
     private void DrawRace()
@@ -276,10 +302,14 @@ public class SubraceDefinitionEditor : Editor
 
         DrawComparisonDropdown();
 
-        EditorGUILayout.PropertyField(
-            modifiersFromComparison,
-            true
-        );
+        using (new EditorGUI.DisabledScope(true))
+        {
+            EditorGUILayout.PropertyField(
+                modifiersFromComparison,
+                new GUIContent("Differences From Target"),
+                true
+            );
+        }
 
         EditorGUILayout.Space();
     }
@@ -375,10 +405,7 @@ public class SubraceDefinitionEditor : Editor
                     System.StringComparison.OrdinalIgnoreCase
                 );
 
-            if (sameRace &&
-                !CreatesComparisonCycle(
-                    definition,
-                    editedSubrace))
+            if (sameRace)
             {
                 options.Add(definition);
             }
@@ -394,34 +421,6 @@ public class SubraceDefinitionEditor : Editor
         );
 
         return options;
-    }
-
-    private static bool CreatesComparisonCycle(
-    SubraceDefinition candidate,
-    SubraceDefinition editedSubrace)
-    {
-        if (candidate == null ||
-            editedSubrace == null)
-        {
-            return false;
-        }
-
-        HashSet<SubraceDefinition> visited = new();
-
-        SubraceDefinition current = candidate;
-
-        while (current != null)
-        {
-            if (current == editedSubrace)
-                return true;
-
-            if (!visited.Add(current))
-                return true;
-
-            current = current.compareToSubrace;
-        }
-
-        return false;
     }
 
     private void DrawPreview()

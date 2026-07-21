@@ -612,16 +612,14 @@ public class CharacterDataLibrary : ScriptableObject
             EditorUtility.SetDirty(definition);
         }
 
-        for (int pass = 0; pass < subraceDefinitions.Count; pass++)
+        foreach (SubraceDefinition definition
+                 in subraceDefinitions)
         {
-            foreach (SubraceDefinition definition in subraceDefinitions)
-            {
-                if (definition == null)
-                    continue;
+            if (definition == null)
+                continue;
 
-                definition.RecalculatePreview();
-                EditorUtility.SetDirty(definition);
-            }
+            definition.RecalculatePreview();
+            EditorUtility.SetDirty(definition);
         }
     }
 #endif

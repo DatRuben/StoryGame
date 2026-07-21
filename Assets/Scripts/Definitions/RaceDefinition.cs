@@ -435,21 +435,8 @@ public class RaceDefinitionEditor : Editor
             true
         );
 
-        EditorGUILayout.Space();
-
-        EditorGUILayout.LabelField(
-            "Compared To Human",
-            EditorStyles.boldLabel
-        );
-
         using (new EditorGUI.DisabledScope(true))
         {
-            EditorGUILayout.PropertyField(
-                modifiersFromHuman,
-                new GUIContent("Attribute Differences"),
-                true
-            );
-
             EditorGUILayout.PropertyField(
                 totalAttributePointsPreview,
                 new GUIContent("Total Attribute Points")
