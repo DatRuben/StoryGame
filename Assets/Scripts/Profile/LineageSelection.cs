@@ -85,66 +85,45 @@ public sealed class LineageSelection
         );
     }
 
-public bool IsAllowedFor(
-    RaceDefinition mainRace,
-    SubraceDefinition mainSubrace)
-{
-    if (!IsValid ||
-        mainRace == null)
+    public bool IsAllowedFor(
+        RaceDefinition mainRace,
+        SubraceDefinition mainSubrace)
     {
-        return false;
-    }
-
-    if (Subrace != null)
-    {
-        if (mainRace.allowedLineageType !=
-            LineageType.HybridAncestry)
+        if (!IsValid ||
+            mainRace == null)
         {
             return false;
         }
 
-        if (!SameRace(
-            Subrace.race,
-            mainRace))
+        if (Subrace != null)
         {
-            return false;
+            if (mainRace.allowedLineageType !=
+                LineageType.HybridAncestry)
+            {
+                return false;
+            }
+
+            if (!SameRace(
+                Subrace.race,
+                mainRace))
+            {
+                return false;
+            }
+
+            if (SameSubrace(
+                Subrace,
+                mainSubrace))
+            {
+                return false;
+            }
+
+            return true;
         }
 
-        if (SameSubrace(
-            Subrace,
-            mainSubrace))
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    return CustomLineage != null &&
-           CustomLineage.IsAllowedForRace(
-               mainRace
-           );
-}
-
-    public CharacterAttributes GetAttributeShape()
-    {
-        if (Subrace != null &&
-            Subrace.FinalAttributesPreview != null)
-        {
-            return CharacterAttributes.Copy(
-                Subrace.FinalAttributesPreview
+        return CustomLineage != null &&
+            CustomLineage.IsAllowedForRace(
+                mainRace
             );
-        }
-
-        if (CustomLineage != null)
-        {
-            return CharacterAttributes.AddModifiers(
-                CharacterAttributes.CreateDefault(10),
-                CustomLineage.modifiers
-            );
-        }
-
-        return CharacterAttributes.CreateDefault(10);
     }
 
     public bool MatchesId(

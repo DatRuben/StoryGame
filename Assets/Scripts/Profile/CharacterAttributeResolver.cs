@@ -99,37 +99,45 @@ public static class CharacterAttributeResolver
         List<LineageSelection> validLineages =
             GetValidLineages(lineages);
 
-        if (validLineages.Count == 0)
+        List<LineageSelection> subraceLineages =
+            GetSubraceLineages(validLineages);
+
+        CharacterAttributes result;
+
+        if (subraceLineages.Count == 0)
         {
-            return GetBaseAncestryTarget(
-                raceDefinition,
-                subraceDefinition
-            );
+            result =
+                GetBaseAncestryTarget(
+                    raceDefinition,
+                    subraceDefinition
+                );
+        }
+        else
+        {
+            int mainWeight =
+                subraceLineages.Count == 1
+                    ? 3
+                    : 2;
+
+            result =
+                BlendMainAndLineages(
+                    raceDefinition,
+                    subraceDefinition,
+                    subraceLineages,
+                    mainWeight
+                );
         }
 
-        if (validLineages.Count == 1)
-        {
-            return BlendMainAndLineages(
-                raceDefinition,
-                subraceDefinition,
-                validLineages,
-                3
-            );
-        }
+        CharacterAttributeModifiers customModifiers =
+            GetCustomModifiers(validLineages);
 
-        if (validLineages.Count == 2)
-        {
-            return BlendMainAndLineages(
-                raceDefinition,
-                subraceDefinition,
-                validLineages,
-                2
+        result =
+            CharacterAttributes.AddModifiers(
+                result,
+                customModifiers
             );
-        }
 
-        return BlendLineagesOnly(
-            validLineages
-        );
+        return CharacterAttributes.ClampMinimum(result);
     }
 
     private static CharacterAttributes BlendMainAndLineages(
@@ -152,14 +160,16 @@ public static class CharacterAttributeResolver
 
         foreach (LineageSelection lineage in lineages)
         {
-            if (lineage == null ||
-                !lineage.IsValid)
-            {
+            CharacterAttributes lineageAttributes =
+                lineage?.Subrace?.FinalAttributesPreview;
+
+            if (lineageAttributes == null)
                 continue;
-            }
 
             targets.Add(
-                lineage.GetAttributeShape()
+                CharacterAttributes.Copy(
+                    lineageAttributes
+                )
             );
 
             weights.Add(1);
@@ -172,32 +182,48 @@ public static class CharacterAttributeResolver
         );
     }
 
-    private static CharacterAttributes BlendLineagesOnly(
+    private static List<LineageSelection> GetSubraceLineages(
         List<LineageSelection> lineages)
     {
-        List<CharacterAttributes> targets = new();
-        List<int> weights = new();
+        List<LineageSelection> found = new();
+
+        if (lineages == null)
+            return found;
 
         foreach (LineageSelection lineage in lineages)
         {
-            if (lineage == null ||
-                !lineage.IsValid)
+            if (lineage != null &&
+                lineage.IsSubrace)
             {
-                continue;
+                found.Add(lineage);
             }
-
-            targets.Add(
-                lineage.GetAttributeShape()
-            );
-
-            weights.Add(1);
         }
 
-        return BlendWeightedTargets(
-            targets,
-            weights,
-            AncestryAttributeTotal
-        );
+        return found;
+    }
+
+    private static CharacterAttributeModifiers GetCustomModifiers(
+        List<LineageSelection> lineages)
+    {
+        CharacterAttributeModifiers total =
+            CharacterAttributeModifiers.CreateZero();
+
+        if (lineages == null)
+            return total;
+
+        foreach (LineageSelection lineage in lineages)
+        {
+            if (lineage?.CustomLineage == null)
+                continue;
+
+            total =
+                CharacterAttributeModifiers.Add(
+                    total,
+                    lineage.CustomLineage.modifiers
+                );
+        }
+
+        return total;
     }
 
     private static List<LineageSelection> GetValidLineages(
