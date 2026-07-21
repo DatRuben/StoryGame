@@ -45,5 +45,6 @@ MonoBehaviour:
     perception: 10
   totalAttributePointsPreview: 90
   allowedLineageType: 0
+  defaultLineage: {fileID: 11400000, guid: 859eb4e370d11e24da259978b34e9f5e, type: 2}
   minLineages: 1
   maxLineages: 1

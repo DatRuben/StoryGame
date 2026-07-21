@@ -45,5 +45,6 @@ MonoBehaviour:
     perception: 10
   totalAttributePointsPreview: 90
   allowedLineageType: 0
+  defaultLineage: {fileID: 0}
   minLineages: 1
   maxLineages: 3

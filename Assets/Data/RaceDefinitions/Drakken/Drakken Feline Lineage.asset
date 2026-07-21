@@ -14,11 +14,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LineageDefinition
   lineageId: drakken_feline
   displayName: Drakken Feline
-  lineageType: 0
-  sourceSubrace: {fileID: 0}
   description: 
   allowedRace: {fileID: 11400000, guid: 4163000ff3c63644db2f76c943545857, type: 2}
-  modifiers:
+  hybridAttributeShape:
+    strength: 10
+    dexterity: 10
+    agility: 10
+    vitality: 10
+    endurance: 10
+    intelligence: 10
+    willpower: 10
+    spirit: 10
+    perception: 10
+  animalSpeciesModifiers:
     strength: 0
     dexterity: 0
     agility: 0
