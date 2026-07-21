@@ -99,79 +99,69 @@ public static class CharacterAttributeResolver
         List<LineageSelection> validLineages =
             GetValidLineages(lineages);
 
-        List<LineageSelection> subraceLineages =
-            GetSubraceLineages(validLineages);
-
         CharacterAttributes result;
 
-        if (subraceLineages.Count == 0)
+        if (raceDefinition != null &&
+            raceDefinition.allowedLineageType ==
+            LineageType.AnimalSpecies)
         {
             result =
-                GetBaseAncestryTarget(
+                ResolveAnimalSpecies(
                     raceDefinition,
-                    subraceDefinition
+                    subraceDefinition,
+                    validLineages
                 );
         }
         else
         {
-            int mainWeight =
-                subraceLineages.Count == 1
-                    ? 3
-                    : 2;
-
             result =
-                BlendMainAndLineages(
+                ResolveHybridAncestry(
                     raceDefinition,
                     subraceDefinition,
-                    subraceLineages,
-                    mainWeight
+                    validLineages
                 );
         }
 
-        CharacterAttributeModifiers customModifiers =
-            GetCustomModifiers(validLineages);
-
-        result =
-            CharacterAttributes.AddModifiers(
-                result,
-                customModifiers
-            );
-
-        return CharacterAttributes.ClampMinimum(result);
+        return CharacterAttributes.ClampMinimum(
+            result
+        );
     }
 
-    private static CharacterAttributes BlendMainAndLineages(
+    private static CharacterAttributes ResolveHybridAncestry(
         RaceDefinition raceDefinition,
         SubraceDefinition subraceDefinition,
-        List<LineageSelection> lineages,
-        int mainWeight)
+        List<LineageSelection> lineages)
     {
-        List<CharacterAttributes> targets = new();
-        List<int> weights = new();
-
-        targets.Add(
+        CharacterAttributes mainShape =
             GetBaseAncestryTarget(
                 raceDefinition,
                 subraceDefinition
-            )
-        );
-
-        weights.Add(mainWeight);
-
-        foreach (LineageSelection lineage in lineages)
-        {
-            CharacterAttributes lineageAttributes =
-                lineage?.Subrace?.FinalAttributesPreview;
-
-            if (lineageAttributes == null)
-                continue;
-
-            targets.Add(
-                CharacterAttributes.Copy(
-                    lineageAttributes
-                )
             );
 
+        List<CharacterAttributes> lineageShapes =
+            GetHybridLineageShapes(lineages);
+
+        if (lineageShapes.Count == 0)
+        {
+            return mainShape;
+        }
+
+        List<CharacterAttributes> targets = new()
+    {
+        mainShape
+    };
+
+        List<int> weights = new()
+    {
+        lineageShapes.Count == 1
+            ? 3
+            : 2
+    };
+
+        foreach (CharacterAttributes lineageShape
+                 in lineageShapes)
+        {
+            targets.Add(lineageShape);
             weights.Add(1);
         }
 
@@ -182,48 +172,97 @@ public static class CharacterAttributeResolver
         );
     }
 
-    private static List<LineageSelection> GetSubraceLineages(
-        List<LineageSelection> lineages)
+    private static List<CharacterAttributes>
+        GetHybridLineageShapes(
+            List<LineageSelection> lineages)
     {
-        List<LineageSelection> found = new();
+        List<CharacterAttributes> shapes = new();
 
         if (lineages == null)
-            return found;
+            return shapes;
 
-        foreach (LineageSelection lineage in lineages)
+        foreach (LineageSelection lineage
+                 in lineages)
         {
-            if (lineage != null &&
-                lineage.IsSubrace)
+            CharacterAttributes shape = null;
+
+            if (lineage?.Subrace != null)
             {
-                found.Add(lineage);
+                shape =
+                    lineage
+                        .Subrace
+                        .FinalAttributesPreview;
+            }
+            else if (lineage?.CustomLineage != null)
+            {
+                shape =
+                    lineage
+                        .CustomLineage
+                        .hybridAttributeShape;
+            }
+
+            if (shape == null)
+                continue;
+
+            shapes.Add(
+                CharacterAttributes.Copy(shape)
+            );
+        }
+
+        return shapes;
+    }
+
+    private static CharacterAttributes ResolveAnimalSpecies(
+        RaceDefinition raceDefinition,
+        SubraceDefinition subraceDefinition,
+        List<LineageSelection> lineages)
+    {
+        CharacterAttributes baseShape =
+            GetBaseAncestryTarget(
+                raceDefinition,
+                subraceDefinition
+            );
+
+        List<CharacterAttributes> speciesTargets =
+            new();
+
+        List<int> weights = new();
+
+        if (lineages != null)
+        {
+            foreach (LineageSelection lineage
+                     in lineages)
+            {
+                LineageDefinition species =
+                    lineage?.CustomLineage;
+
+                if (species == null)
+                    continue;
+
+                CharacterAttributes speciesTarget =
+                    CharacterAttributes.AddModifiers(
+                        baseShape,
+                        species.animalSpeciesModifiers
+                    );
+
+                speciesTargets.Add(
+                    speciesTarget
+                );
+
+                weights.Add(1);
             }
         }
 
-        return found;
-    }
-
-    private static CharacterAttributeModifiers GetCustomModifiers(
-        List<LineageSelection> lineages)
-    {
-        CharacterAttributeModifiers total =
-            CharacterAttributeModifiers.CreateZero();
-
-        if (lineages == null)
-            return total;
-
-        foreach (LineageSelection lineage in lineages)
+        if (speciesTargets.Count == 0)
         {
-            if (lineage?.CustomLineage == null)
-                continue;
-
-            total =
-                CharacterAttributeModifiers.Add(
-                    total,
-                    lineage.CustomLineage.modifiers
-                );
+            return baseShape;
         }
 
-        return total;
+        return BlendWeightedTargets(
+            speciesTargets,
+            weights,
+            AncestryAttributeTotal
+        );
     }
 
     private static List<LineageSelection> GetValidLineages(

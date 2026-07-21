@@ -23,10 +23,17 @@ public class LineageDefinition : ScriptableObject
     public RaceDefinition allowedRace;
 
     [Tooltip(
-        "The attribute shape for this custom lineage. " +
-        "Playable subrace ancestry uses its SubraceDefinition instead."
+        "Complete ancestry attribute shape used when " +
+        "the owning race uses Hybrid Ancestry."
     )]
-    public CharacterAttributeModifiers modifiers =
+    public CharacterAttributes hybridAttributeShape =
+        CharacterAttributes.CreateDefault(10);
+
+    [Tooltip(
+        "Attribute changes used when the owning race " +
+        "uses Animal Species."
+    )]
+    public CharacterAttributeModifiers animalSpeciesModifiers =
         CharacterAttributeModifiers.CreateZero();
 
     public string skillTheme;
@@ -92,7 +99,8 @@ public class LineageDefinitionEditor : Editor
     private SerializedProperty displayName;
     private SerializedProperty description;
     private SerializedProperty allowedRace;
-    private SerializedProperty modifiers;
+    private SerializedProperty hybridAttributeShape;
+    private SerializedProperty animalSpeciesModifiers;
     private SerializedProperty skillTheme;
     private SerializedProperty skillTreeTheme;
 
@@ -107,8 +115,15 @@ public class LineageDefinitionEditor : Editor
         allowedRace =
             serializedObject.FindProperty("allowedRace");
 
-        modifiers =
-            serializedObject.FindProperty("modifiers");
+        hybridAttributeShape =
+            serializedObject.FindProperty(
+                "hybridAttributeShape"
+            );
+
+        animalSpeciesModifiers =
+            serializedObject.FindProperty(
+                "animalSpeciesModifiers"
+            );
 
         skillTheme =
             serializedObject.FindProperty("skillTheme");
@@ -128,7 +143,16 @@ public class LineageDefinitionEditor : Editor
         DrawLineageData();
         DrawSharedData();
 
-        serializedObject.ApplyModifiedProperties();
+        bool changed =
+            serializedObject.ApplyModifiedProperties();
+
+        if (changed)
+        {
+            EditorUtility.SetDirty(target);
+
+            serializedObject.Update();
+            Repaint();
+        }
     }
 
     private void DrawRace()
@@ -173,27 +197,100 @@ public class LineageDefinitionEditor : Editor
             allowedRace.objectReferenceValue
             as RaceDefinition;
 
-        if (selectedRace != null &&
-            selectedRace.allowedLineageType ==
+        if (selectedRace == null)
+            return;
+
+        LineageDefinition definition =
+            target as LineageDefinition;
+
+        if (selectedRace.allowedLineageType ==
             LineageType.HybridAncestry)
         {
             EditorGUILayout.HelpBox(
-                "Playable subraces are included automatically. " +
-                "Create a custom lineage asset only for ancestry " +
-                "without a playable subrace, such as Giant.",
+                "This lineage contributes a complete " +
+                "attribute shape to ancestry blending.",
                 MessageType.Info
             );
 
-            EditorGUILayout.Space();
-        }
+            EditorGUILayout.LabelField(
+                "Hybrid Ancestry Shape",
+                EditorStyles.boldLabel
+            );
 
-        EditorGUILayout.PropertyField(
-            modifiers,
-            new GUIContent(
-                "Custom Attribute Modifiers"
-            ),
-            true
-        );
+            EditorGUILayout.PropertyField(
+                hybridAttributeShape,
+                new GUIContent("Attributes"),
+                true
+            );
+
+            int total =
+                definition?.hybridAttributeShape != null
+                    ? definition
+                        .hybridAttributeShape
+                        .BasePoints()
+                    : 0;
+
+            using (new EditorGUI.DisabledScope(true))
+            {
+                EditorGUILayout.IntField(
+                    "Total Attribute Points",
+                    total
+                );
+            }
+
+            if (total != 90)
+            {
+                EditorGUILayout.HelpBox(
+                    $"Attribute total is {total}. " +
+                    "Expected 90.",
+                    MessageType.Warning
+                );
+            }
+        }
+        else
+        {
+            EditorGUILayout.HelpBox(
+                "This lineage modifies the selected " +
+                "race and subrace attribute baseline.",
+                MessageType.Info
+            );
+
+            EditorGUILayout.LabelField(
+                "Animal Species Modifiers",
+                EditorStyles.boldLabel
+            );
+
+            EditorGUILayout.PropertyField(
+                animalSpeciesModifiers,
+                new GUIContent("Attribute Modifiers"),
+                true
+            );
+
+            int total =
+                definition?.animalSpeciesModifiers != null
+                    ? definition
+                        .animalSpeciesModifiers
+                        .Total()
+                    : 0;
+
+            using (new EditorGUI.DisabledScope(true))
+            {
+                EditorGUILayout.IntField(
+                    "Modifier Total",
+                    total
+                );
+            }
+
+            if (total != 0)
+            {
+                EditorGUILayout.HelpBox(
+                    $"Modifier total is {total}. " +
+                    "Animal Species modifiers should " +
+                    "normally total 0.",
+                    MessageType.Warning
+                );
+            }
+        }
 
         EditorGUILayout.Space();
     }
