@@ -251,7 +251,8 @@ public class CharacterCreator : MonoBehaviour
         if (subraceDefinition.race == null)
         {
             errorMessage =
-                $"{subraceDefinition.displayName} has no RaceDefinition assigned.";
+                $"{subraceDefinition.displayName} " +
+                "has no RaceDefinition assigned.";
 
             return false;
         }
@@ -270,11 +271,25 @@ public class CharacterCreator : MonoBehaviour
         string resolvedSelectionId =
             selection.SelectionId;
 
-        if (selectedLineageIds.Contains(
-            resolvedSelectionId))
-        {
-            selectedLineageIds.Remove(
+        int selectedIndex =
+            FindSelectedLineageIndex(
                 resolvedSelectionId
+            );
+
+        if (selectedIndex >= 0)
+        {
+            if (selectedLineageIds.Count <=
+                raceDefinition.minLineages)
+            {
+                errorMessage =
+                    $"{raceDefinition.displayName} requires " +
+                    $"at least {raceDefinition.minLineages} lineage.";
+
+                return false;
+            }
+
+            selectedLineageIds.RemoveAt(
+                selectedIndex
             );
 
             NotifySelectionChanged();
@@ -286,8 +301,42 @@ public class CharacterCreator : MonoBehaviour
             subraceDefinition))
         {
             errorMessage =
-                $"{raceDefinition.displayName} cannot use lineage " +
-                $"{selection.DisplayName}.";
+                $"{raceDefinition.displayName} cannot use " +
+                $"lineage {selection.DisplayName}.";
+
+            return false;
+        }
+
+        if (selectedLineageIds.Count >=
+            raceDefinition.maxLineages)
+        {
+            if (raceDefinition.maxLineages == 1 &&
+                selectedLineageIds.Count == 1)
+            {
+                string previousSelectionId =
+                    selectedLineageIds[0];
+
+                selectedLineageIds[0] =
+                    resolvedSelectionId;
+
+                if (!AreSelectedLineagesValid(
+                    raceDefinition,
+                    subraceDefinition,
+                    out errorMessage))
+                {
+                    selectedLineageIds[0] =
+                        previousSelectionId;
+
+                    return false;
+                }
+
+                NotifySelectionChanged();
+                return true;
+            }
+
+            errorMessage =
+                $"{raceDefinition.displayName} can only use " +
+                $"up to {raceDefinition.maxLineages} lineages.";
 
             return false;
         }
@@ -301,8 +350,8 @@ public class CharacterCreator : MonoBehaviour
             subraceDefinition,
             out errorMessage))
         {
-            selectedLineageIds.Remove(
-                resolvedSelectionId
+            selectedLineageIds.RemoveAt(
+                selectedLineageIds.Count - 1
             );
 
             return false;
@@ -791,6 +840,68 @@ public class CharacterCreator : MonoBehaviour
                 selectedLineageIds.Count - 1
             );
         }
+
+        EnsureDefaultLineage(
+            raceDefinition,
+            subraceDefinition
+        );
+    }
+
+    private int FindSelectedLineageIndex(
+        string selectionId)
+    {
+        if (string.IsNullOrWhiteSpace(selectionId))
+            return -1;
+
+        for (int i = 0;
+             i < selectedLineageIds.Count;
+             i++)
+        {
+            if (string.Equals(
+                selectedLineageIds[i],
+                selectionId,
+                System.StringComparison.OrdinalIgnoreCase))
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    private void EnsureDefaultLineage(
+    RaceDefinition raceDefinition,
+    SubraceDefinition subraceDefinition)
+    {
+        if (raceDefinition == null ||
+            selectedLineageIds.Count >=
+            raceDefinition.minLineages)
+        {
+            return;
+        }
+
+        LineageSelection defaultSelection =
+            raceDefinition.GetDefaultLineageSelection();
+
+        if (defaultSelection == null ||
+            !defaultSelection.IsValid ||
+            !raceDefinition.IsLineageAllowed(
+                defaultSelection,
+                subraceDefinition))
+        {
+            return;
+        }
+
+        string selectionId =
+            defaultSelection.SelectionId;
+
+        if (string.IsNullOrWhiteSpace(selectionId) ||
+            FindSelectedLineageIndex(selectionId) >= 0)
+        {
+            return;
+        }
+
+        selectedLineageIds.Add(selectionId);
     }
 
     private void ClampSelectedAppearance()

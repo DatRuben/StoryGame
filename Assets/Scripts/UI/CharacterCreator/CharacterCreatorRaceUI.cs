@@ -405,8 +405,17 @@ public class CharacterCreatorRaceUI : MonoBehaviour
             return false;
         }
 
-        return characterCreator.SelectedLineageIds.Count <
-               raceDefinition.maxLineages;
+        int selectedCount =
+            characterCreator.SelectedLineageIds.Count;
+
+        if (selectedCount <
+            raceDefinition.maxLineages)
+        {
+            return true;
+        }
+
+        return raceDefinition.maxLineages == 1 &&
+               selectedCount == 1;
     }
 
     private string GetLineageDescription(
