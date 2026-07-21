@@ -149,6 +149,10 @@ public class CharacterCreatorRaceUI : MonoBehaviour
         RaceDefinition raceDefinition)
     {
         ClearButtons(subraceButtons);
+        ClearButtons(lineageButtons);
+
+        lineageButtonIds.Clear();
+        ShowLineageDescription("");
 
         if (raceDefinition == null)
         {
@@ -181,7 +185,14 @@ public class CharacterCreatorRaceUI : MonoBehaviour
 
         if (subraceDefinitions.Count == 0)
         {
-            ShowSubraceDescription("No subraces available.");
+            ShowSubraceDescription(
+                "No subraces available."
+            );
+
+            ShowLineageDescription(
+                "Select a race with an available subrace."
+            );
+
             return;
         }
 
