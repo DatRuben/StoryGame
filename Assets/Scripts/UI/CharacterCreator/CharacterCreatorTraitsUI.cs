@@ -146,10 +146,6 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
             return;
         }
 
-        ShowBackgroundDescription(
-            GetBackgroundDescription(backgroundDefinition)
-        );
-
         RefreshUI();
     }
 
@@ -187,6 +183,7 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
     private void RefreshUI()
     {
         RefreshBackgroundButtons();
+        RefreshBackgroundDescription();
         RefreshTraitButtons();
         RefreshRacialPassiveText();
     }
@@ -210,11 +207,44 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
                     ? backgroundButtonIds[i]
                     : "";
 
-            button.SetSelected(backgroundId == selectedBackgroundId);
+            button.SetSelected(
+                string.Equals(
+                    backgroundId,
+                    selectedBackgroundId,
+                    System.StringComparison.OrdinalIgnoreCase
+                )
+            );
             button.SetInteractable(true);
         }
     }
 
+    private void RefreshBackgroundDescription()
+    {
+        if (characterCreator == null ||
+            characterDataLibrary == null)
+        {
+            ShowBackgroundDescription("");
+            return;
+        }
+
+        string backgroundId =
+            characterCreator.SelectedBackgroundId;
+
+        if (string.IsNullOrWhiteSpace(backgroundId) ||
+            !characterDataLibrary.TryGetBackgroundDefinition(
+                backgroundId,
+                out BackgroundDefinition backgroundDefinition))
+        {
+            ShowBackgroundDescription("");
+            return;
+        }
+
+        ShowBackgroundDescription(
+            GetBackgroundDescription(
+                backgroundDefinition
+            )
+        );
+    }
     private void RefreshTraitButtons()
     {
         for (int i = 0; i < traitButtons.Count; i++)
