@@ -792,8 +792,8 @@ public class CharacterCreatorRaceUI : MonoBehaviour
                         subraceDefinition
                     );
 
-        string comparisonName =
-            GetComparisonName(
+        string baselineName =
+            GetSubraceBaselineName(
                 subraceDefinition
             );
 
@@ -801,7 +801,8 @@ public class CharacterCreatorRaceUI : MonoBehaviour
 
         AddAttributeDifferences(
             differences,
-            subraceDefinition.modifiersFromDefaultSubrace
+            subraceDefinition
+                .modifiersFromDefaultSubrace
         );
 
         AddBodyDifferences(
@@ -810,7 +811,7 @@ public class CharacterCreatorRaceUI : MonoBehaviour
         );
 
         text +=
-            $"\n\nCompared to {comparisonName}:";
+            $"\n\nDifferences from {baselineName}:";
 
         if (differences.Count == 0)
         {
@@ -825,17 +826,32 @@ public class CharacterCreatorRaceUI : MonoBehaviour
         return text;
     }
 
-    private RaceSize GetBaselineSize(
+    private string GetSubraceBaselineName(
         SubraceDefinition subraceDefinition)
     {
+        if (subraceDefinition == null)
+            return "race attributes";
+
         SubraceDefinition baselineSubrace =
             GetSubraceBaseline(
                 subraceDefinition
             );
 
-        return baselineSubrace != null
-            ? baselineSubrace.size
-            : subraceDefinition.size;
+        if (baselineSubrace != null)
+        {
+            return GetSubraceButtonText(
+                baselineSubrace
+            );
+        }
+
+        if (subraceDefinition.race != null)
+        {
+            return
+                $"{GetRaceButtonText(subraceDefinition.race)} " +
+                "race attributes";
+        }
+
+        return "race attributes";
     }
 
     private void AddAttributeDifferences(
@@ -929,28 +945,35 @@ public class CharacterCreatorRaceUI : MonoBehaviour
         SubraceDefinition subraceDefinition)
     {
         if (differences == null ||
-            subraceDefinition == null ||
-            subraceDefinition.compareToSubrace == null)
+            subraceDefinition == null)
         {
             return;
         }
 
-        SubraceDefinition comparison =
-            subraceDefinition.compareToSubrace;
+        SubraceDefinition baselineSubrace =
+            GetSubraceBaseline(
+                subraceDefinition
+            );
 
-        if (comparison.size != subraceDefinition.size)
+        if (baselineSubrace == null)
+            return;
+
+        if (baselineSubrace.size !=
+            subraceDefinition.size)
         {
             differences.Add(
-                $"Size: {GetSizeName(comparison.size)} → " +
+                $"Size: " +
+                $"{GetSizeName(baselineSubrace.size)} → " +
                 $"{GetSizeName(subraceDefinition.size)}"
             );
         }
 
-        if (comparison.bodyType !=
+        if (baselineSubrace.bodyType !=
             subraceDefinition.bodyType)
         {
             differences.Add(
-                $"Body: {GetBodyName(comparison.bodyType)} → " +
+                $"Body: " +
+                $"{GetBodyName(baselineSubrace.bodyType)} → " +
                 $"{GetBodyName(subraceDefinition.bodyType)}"
             );
         }
