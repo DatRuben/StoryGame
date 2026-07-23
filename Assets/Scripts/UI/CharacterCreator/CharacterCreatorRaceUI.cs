@@ -802,7 +802,7 @@ public class CharacterCreatorRaceUI : MonoBehaviour
         AddAttributeDifferences(
             differences,
             subraceDefinition
-                .modifiersFromDefaultSubrace
+                .attributeDifferences
         );
 
         AddBodyDifferences(
@@ -988,7 +988,7 @@ public class CharacterCreatorRaceUI : MonoBehaviour
         if (subraceDefinition.IsDefaultSubrace())
             return null;
 
-        return subraceDefinition.GetDefaultSubrace();
+        return subraceDefinition.GetBaseSubrace();
     }
 
     private string GetSizeName(

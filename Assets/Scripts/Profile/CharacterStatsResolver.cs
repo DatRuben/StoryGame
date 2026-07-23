@@ -306,20 +306,19 @@ public static class CharacterStatsResolver
         RaceDefinition raceDefinition,
         SubraceDefinition subraceDefinition)
     {
-        CharacterBaseStats raceBaseStats =
-            raceDefinition != null
-                ? raceDefinition.baseStats
-                : CharacterBaseStats.CreateHumanDefault();
+        if (subraceDefinition != null)
+        {
+            return subraceDefinition.ResolveBaseStats();
+        }
 
-        CharacterBaseStats subraceModifiers =
-            subraceDefinition != null
-                ? subraceDefinition.baseStatModifiers
-                : CharacterBaseStats.CreateZero();
+        if (raceDefinition != null)
+        {
+            return CharacterBaseStats.Copy(
+                raceDefinition.baseStats
+            );
+        }
 
-        return CharacterBaseStats.Add(
-            raceBaseStats,
-            subraceModifiers
-        );
+        return CharacterBaseStats.CreateHumanDefault();
     }
 
     public static CharacterBaseStats ResolveAttributeStatBonuses(

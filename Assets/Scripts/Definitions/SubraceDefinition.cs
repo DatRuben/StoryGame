@@ -17,20 +17,36 @@ public class SubraceDefinition : ScriptableObject
     [TextArea]
     public string description;
 
-    [Header("Base Combat Stat Modifiers")]
+    [Header("Inheritance")]
+    [Tooltip(
+        "Optional Subrace inheritance override. " +
+        "Leave empty to inherit from the Race's standard Subrace. " +
+        "The standard Subrace always inherits directly from the Race."
+    )]
+    public SubraceDefinition baseSubrace;
+
+    [Header("Base Combat Stat Differences")]
     public CharacterBaseStats baseStatModifiers =
         CharacterBaseStats.CreateZero();
 
-    [Header("Attributes")]
-    public CharacterAttributeModifiers modifiersFromDefaultSubrace =
+    [Header("Attribute Differences")]
+    public CharacterAttributeModifiers attributeDifferences =
         CharacterAttributeModifiers.CreateZero();
 
     [Header("Calculated Preview")]
     [SerializeField]
+    private CharacterBaseStats finalBaseStatsPreview =
+        CharacterBaseStats.CreateHumanDefault();
+
+    [SerializeField]
     private CharacterAttributes finalAttributesPreview =
         CharacterAttributes.CreateDefault(10);
 
-    [SerializeField] private int totalAttributePointsPreview;
+    [SerializeField]
+    private int totalAttributePointsPreview;
+
+    public CharacterBaseStats FinalBaseStatsPreview =>
+        finalBaseStatsPreview;
 
     public CharacterAttributes FinalAttributesPreview =>
         finalAttributesPreview;
@@ -62,31 +78,189 @@ public class SubraceDefinition : ScriptableObject
         return GetDefaultSubrace() == this;
     }
 
-    public void RecalculatePreview()
+    public SubraceDefinition GetBaseSubrace()
     {
-        CharacterAttributes baseAttributes =
+        if (IsDefaultSubrace())
+            return null;
+
+        if (baseSubrace != null &&
+            baseSubrace != this &&
+            IsSameRace(baseSubrace))
+        {
+            return baseSubrace;
+        }
+
+        return GetDefaultSubrace();
+    }
+
+    private bool IsSameRace(
+        SubraceDefinition other)
+    {
+        if (other == null ||
+            race == null ||
+            other.race == null)
+        {
+            return false;
+        }
+
+        return race == other.race ||
+               string.Equals(
+                   race.raceId,
+                   other.race.raceId,
+                   System.StringComparison.OrdinalIgnoreCase
+               );
+    }
+
+    private bool WouldCreateCycle(
+        SubraceDefinition candidate)
+    {
+        if (candidate == null)
+            return false;
+
+        HashSet<SubraceDefinition> visited = new()
+    {
+        this
+    };
+
+        SubraceDefinition current = candidate;
+
+        while (current != null)
+        {
+            if (!visited.Add(current))
+                return true;
+
+            current = current.GetBaseSubrace();
+        }
+
+        return false;
+    }
+
+    public bool HasInheritanceCycle()
+    {
+        return WouldCreateCycle(
+            GetBaseSubrace()
+        );
+    }
+
+    public CharacterAttributes ResolveFinalAttributes()
+    {
+        return ResolveFinalAttributes(
+            new HashSet<SubraceDefinition>()
+        );
+    }
+
+    private CharacterAttributes ResolveFinalAttributes(
+        HashSet<SubraceDefinition> visited)
+    {
+        CharacterAttributes raceAttributes =
             race != null &&
             race.FinalAttributesPreview != null
-                ? race.FinalAttributesPreview
+                ? CharacterAttributes.Copy(
+                    race.FinalAttributesPreview
+                )
                 : CharacterAttributes.CreateDefault(10);
 
-        if (modifiersFromDefaultSubrace == null)
+        if (!visited.Add(this))
+            return raceAttributes;
+
+        SubraceDefinition resolvedBase =
+            GetBaseSubrace();
+
+        CharacterAttributes inheritedAttributes =
+            resolvedBase != null
+                ? resolvedBase.ResolveFinalAttributes(
+                    visited
+                )
+                : raceAttributes;
+
+        visited.Remove(this);
+
+        CharacterAttributeModifiers differences =
+            IsDefaultSubrace()
+                ? CharacterAttributeModifiers.CreateZero()
+                : attributeDifferences ??
+                  CharacterAttributeModifiers.CreateZero();
+
+        return CharacterAttributes.AddModifiers(
+            inheritedAttributes,
+            differences
+        );
+    }
+
+    public CharacterBaseStats ResolveBaseStats()
+    {
+        return ResolveBaseStats(
+            new HashSet<SubraceDefinition>()
+        );
+    }
+
+    private CharacterBaseStats ResolveBaseStats(
+        HashSet<SubraceDefinition> visited)
+    {
+        CharacterBaseStats raceBaseStats =
+            race != null
+                ? CharacterBaseStats.Copy(
+                    race.baseStats
+                )
+                : CharacterBaseStats.CreateHumanDefault();
+
+        if (!visited.Add(this))
+            return raceBaseStats;
+
+        SubraceDefinition resolvedBase =
+            GetBaseSubrace();
+
+        CharacterBaseStats inheritedStats =
+            resolvedBase != null
+                ? resolvedBase.ResolveBaseStats(
+                    visited
+                )
+                : raceBaseStats;
+
+        visited.Remove(this);
+
+        CharacterBaseStats differences =
+            IsDefaultSubrace()
+                ? CharacterBaseStats.CreateZero()
+                : baseStatModifiers ??
+                  CharacterBaseStats.CreateZero();
+
+        return CharacterBaseStats.Add(
+            inheritedStats,
+            differences
+        );
+    }
+
+    public void RecalculatePreview()
+    {
+        if (attributeDifferences == null)
         {
-            modifiersFromDefaultSubrace =
+            attributeDifferences =
                 CharacterAttributeModifiers.CreateZero();
+        }
+
+        if (baseStatModifiers == null)
+        {
+            baseStatModifiers =
+                CharacterBaseStats.CreateZero();
         }
 
         if (IsDefaultSubrace())
         {
-            modifiersFromDefaultSubrace =
+            baseSubrace = null;
+
+            attributeDifferences =
                 CharacterAttributeModifiers.CreateZero();
+
+            baseStatModifiers =
+                CharacterBaseStats.CreateZero();
         }
 
+        finalBaseStatsPreview =
+            ResolveBaseStats();
+
         finalAttributesPreview =
-            CharacterAttributes.AddModifiers(
-                baseAttributes,
-                modifiersFromDefaultSubrace
-            );
+            ResolveFinalAttributes();
 
         totalAttributePointsPreview =
             finalAttributesPreview.BasePoints();
@@ -98,6 +272,14 @@ public class SubraceDefinition : ScriptableObject
             displayName = name;
 
         subraceId = MakeId(displayName);
+
+        if (baseSubrace != null &&
+            (baseSubrace == this ||
+             !IsSameRace(baseSubrace) ||
+             WouldCreateCycle(baseSubrace)))
+        {
+            baseSubrace = null;
+        }
 
         RecalculatePreview();
     }
@@ -133,8 +315,10 @@ public class SubraceDefinitionEditor : Editor
     private SerializedProperty displayName;
     private SerializedProperty race;
     private SerializedProperty description;
+    private SerializedProperty baseSubrace;
     private SerializedProperty baseStatModifiers;
-    private SerializedProperty modifiersFromDefaultSubrace;
+    private SerializedProperty attributeDifferences;
+    private SerializedProperty finalBaseStatsPreview;
     private SerializedProperty finalAttributesPreview;
     private SerializedProperty totalAttributePointsPreview;
     private SerializedProperty size;
@@ -161,14 +345,24 @@ public class SubraceDefinitionEditor : Editor
                 "description"
             );
 
+        baseSubrace =
+            serializedObject.FindProperty(
+                "baseSubrace"
+            );
+
         baseStatModifiers =
             serializedObject.FindProperty(
                 "baseStatModifiers"
             );
 
-        modifiersFromDefaultSubrace =
+        attributeDifferences =
             serializedObject.FindProperty(
-                "modifiersFromDefaultSubrace"
+                "attributeDifferences"
+            );
+
+        finalBaseStatsPreview =
+            serializedObject.FindProperty(
+                "finalBaseStatsPreview"
             );
 
         finalAttributesPreview =
@@ -220,6 +414,7 @@ public class SubraceDefinitionEditor : Editor
 
         DrawRace();
         DrawIdentity();
+        DrawInheritance();
         DrawCombatStats();
         DrawAttributeInheritance();
         DrawBody();
@@ -277,17 +472,102 @@ public class SubraceDefinitionEditor : Editor
         EditorGUILayout.Space();
     }
 
-    private void DrawCombatStats()
+    private void DrawInheritance()
     {
         EditorGUILayout.LabelField(
-            "Base Combat Stat Modifiers",
+            "Subrace Inheritance",
             EditorStyles.boldLabel
         );
 
-        EditorGUILayout.PropertyField(
-            baseStatModifiers,
-            true
-        );
+        SubraceDefinition definition =
+            target as SubraceDefinition;
+
+        RaceDefinition selectedRace =
+            race.objectReferenceValue
+            as RaceDefinition;
+
+        if (selectedRace == null)
+        {
+            EditorGUILayout.HelpBox(
+                "Assign a Race before configuring inheritance.",
+                MessageType.Warning
+            );
+
+            EditorGUILayout.Space();
+            return;
+        }
+
+        SubraceDefinition standardSubrace =
+            selectedRace.standardSubrace;
+
+        using (new EditorGUI.DisabledScope(true))
+        {
+            EditorGUILayout.ObjectField(
+                "Standard Subrace",
+                standardSubrace,
+                typeof(SubraceDefinition),
+                false
+            );
+        }
+
+        bool isStandard =
+            definition != null &&
+            definition.IsDefaultSubrace();
+
+        if (isStandard)
+        {
+            EditorGUILayout.HelpBox(
+                "This is the Race's standard Subrace. " +
+                "It inherits directly from the Race and " +
+                "cannot have stat or attribute differences.",
+                MessageType.Info
+            );
+        }
+        else
+        {
+            EditorGUILayout.PropertyField(
+                baseSubrace,
+                new GUIContent(
+                    "Base Subrace Override"
+                )
+            );
+
+            EditorGUILayout.HelpBox(
+                "Leave the override empty to inherit from " +
+                "the Race's standard Subrace.",
+                MessageType.Info
+            );
+
+            SubraceDefinition resolvedBase =
+                definition?.GetBaseSubrace();
+
+            using (new EditorGUI.DisabledScope(true))
+            {
+                EditorGUILayout.ObjectField(
+                    "Resolved Base Subrace",
+                    resolvedBase,
+                    typeof(SubraceDefinition),
+                    false
+                );
+            }
+
+            if (resolvedBase == null)
+            {
+                EditorGUILayout.HelpBox(
+                    "No valid base Subrace could be resolved.",
+                    MessageType.Warning
+                );
+            }
+        }
+
+        if (definition != null &&
+            definition.HasInheritanceCycle())
+        {
+            EditorGUILayout.HelpBox(
+                "This inheritance relationship creates a cycle.",
+                MessageType.Error
+            );
+        }
 
         EditorGUILayout.Space();
     }
@@ -319,7 +599,7 @@ public class SubraceDefinitionEditor : Editor
     private void DrawAttributeInheritance()
     {
         EditorGUILayout.LabelField(
-            "Attribute Inheritance",
+            "Attributes",
             EditorStyles.boldLabel
         );
 
@@ -341,71 +621,44 @@ public class SubraceDefinitionEditor : Editor
             return;
         }
 
-        SubraceDefinition defaultSubrace =
-            selectedRace.standardSubrace;
+        bool isStandard =
+            definition != null &&
+            definition.IsDefaultSubrace();
 
-        using (new EditorGUI.DisabledScope(true))
-        {
-            EditorGUILayout.ObjectField(
-                "Default Subrace",
-                defaultSubrace,
-                typeof(SubraceDefinition),
-                false
-            );
-        }
+        string baseName =
+            GetBaseName(definition);
 
-        if (defaultSubrace == null)
+        if (isStandard)
         {
             EditorGUILayout.HelpBox(
-                $"{selectedRace.displayName} has no default " +
-                "Subrace assigned.",
-                MessageType.Warning
-            );
-        }
-
-        bool isDefault =
-            defaultSubrace != null &&
-            defaultSubrace == definition;
-
-        if (isDefault)
-        {
-            EditorGUILayout.HelpBox(
-                "This is the Race's default Subrace. " +
-                "Its attribute differences are fixed at zero.",
+                "The standard Subrace uses the Race's " +
+                "attributes with no differences.",
                 MessageType.Info
             );
         }
         else
         {
-            string defaultName =
-                defaultSubrace != null
-                    ? defaultSubrace.displayName
-                    : selectedRace.displayName;
-
             EditorGUILayout.HelpBox(
-                $"These values are the differences from " +
-                $"{defaultName}.",
+                $"These values are the attribute " +
+                $"differences from {baseName}.",
                 MessageType.Info
             );
         }
 
-        using (new EditorGUI.DisabledScope(isDefault))
+        using (new EditorGUI.DisabledScope(isStandard))
         {
             EditorGUILayout.PropertyField(
-                modifiersFromDefaultSubrace,
+                attributeDifferences,
                 new GUIContent(
-                    "Differences From Default Subrace"
+                    "Differences From Base"
                 ),
                 true
             );
         }
 
-        SubraceDefinition currentDefinition =
-            target as SubraceDefinition;
-
         int modifierTotal =
-            currentDefinition
-                ?.modifiersFromDefaultSubrace
+            definition
+                ?.attributeDifferences
                 ?.Total() ?? 0;
 
         using (new EditorGUI.DisabledScope(true))
@@ -431,7 +684,8 @@ public class SubraceDefinitionEditor : Editor
             );
         }
 
-        if (!isDefault && modifierTotal != 0)
+        if (!isStandard &&
+            modifierTotal != 0)
         {
             EditorGUILayout.HelpBox(
                 $"Difference total is {modifierTotal}. " +
@@ -451,6 +705,35 @@ public class SubraceDefinitionEditor : Editor
         }
 
         EditorGUILayout.Space();
+    }
+
+    private string GetBaseName(
+        SubraceDefinition definition)
+    {
+        if (definition == null)
+            return "the Race";
+
+        if (definition.IsDefaultSubrace())
+        {
+            return definition.race != null
+                ? $"{definition.race.displayName} Race"
+                : "the Race";
+        }
+
+        SubraceDefinition resolvedBase =
+            definition.GetBaseSubrace();
+
+        if (resolvedBase != null)
+        {
+            return !string.IsNullOrWhiteSpace(
+                resolvedBase.displayName)
+                    ? resolvedBase.displayName
+                    : resolvedBase.name;
+        }
+
+        return definition.race != null
+            ? $"{definition.race.displayName} Race"
+            : "the Race";
     }
 
     private void DrawEquipmentRules()
