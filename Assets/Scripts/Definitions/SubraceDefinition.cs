@@ -572,6 +572,65 @@ public class SubraceDefinitionEditor : Editor
         EditorGUILayout.Space();
     }
 
+    private void DrawCombatStats()
+    {
+        EditorGUILayout.LabelField(
+            "Base Combat Stats",
+            EditorStyles.boldLabel
+        );
+
+        SubraceDefinition definition =
+            target as SubraceDefinition;
+
+        bool isStandard =
+            definition != null &&
+            definition.IsDefaultSubrace();
+
+        string baseName =
+            GetBaseName(definition);
+
+        if (isStandard)
+        {
+            EditorGUILayout.HelpBox(
+                "The standard Subrace uses the Race's " +
+                "base combat stats with no differences.",
+                MessageType.Info
+            );
+        }
+        else
+        {
+            EditorGUILayout.HelpBox(
+                $"These values are the combat-stat " +
+                $"differences from {baseName}.",
+                MessageType.Info
+            );
+        }
+
+        using (new EditorGUI.DisabledScope(isStandard))
+        {
+            EditorGUILayout.PropertyField(
+                baseStatModifiers,
+                new GUIContent(
+                    "Differences From Base"
+                ),
+                true
+            );
+        }
+
+        using (new EditorGUI.DisabledScope(true))
+        {
+            EditorGUILayout.PropertyField(
+                finalBaseStatsPreview,
+                new GUIContent(
+                    "Final Base Combat Stats"
+                ),
+                true
+            );
+        }
+
+        EditorGUILayout.Space();
+    }
+
     private void DrawBody()
     {
         EditorGUILayout.LabelField(
