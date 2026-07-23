@@ -21,10 +21,8 @@ public class SubraceDefinition : ScriptableObject
     public CharacterBaseStats baseStatModifiers =
         CharacterBaseStats.CreateZero();
 
-    [Header("Comparison")]
-    public SubraceDefinition compareToSubrace;
-
-    public CharacterAttributeModifiers modifiersFromComparison =
+    [Header("Attributes")]
+    public CharacterAttributeModifiers modifiersFromDefaultSubrace =
         CharacterAttributeModifiers.CreateZero();
 
     [Header("Calculated Preview")]
@@ -52,32 +50,42 @@ public class SubraceDefinition : ScriptableObject
     public bool canUseMouthWeapons;
     public bool canEquipSaddles;
 
+    public SubraceDefinition GetDefaultSubrace()
+    {
+        return race != null
+            ? race.standardSubrace
+            : null;
+    }
+
+    public bool IsDefaultSubrace()
+    {
+        return GetDefaultSubrace() == this;
+    }
+
     public void RecalculatePreview()
     {
-        if (finalAttributesPreview == null)
-        {
-            finalAttributesPreview =
-                CharacterAttributes.CreateDefault(10);
-        }
-
-        CharacterAttributes comparisonAttributes =
+        CharacterAttributes baseAttributes =
             race != null &&
             race.FinalAttributesPreview != null
                 ? race.FinalAttributesPreview
                 : CharacterAttributes.CreateDefault(10);
 
-        if (compareToSubrace != null &&
-            compareToSubrace != this &&
-            compareToSubrace.FinalAttributesPreview != null)
+        if (modifiersFromDefaultSubrace == null)
         {
-            comparisonAttributes =
-                compareToSubrace.FinalAttributesPreview;
+            modifiersFromDefaultSubrace =
+                CharacterAttributeModifiers.CreateZero();
         }
 
-        modifiersFromComparison =
-            CharacterAttributeModifiers.FromDifference(
-                finalAttributesPreview,
-                comparisonAttributes
+        if (IsDefaultSubrace())
+        {
+            modifiersFromDefaultSubrace =
+                CharacterAttributeModifiers.CreateZero();
+        }
+
+        finalAttributesPreview =
+            CharacterAttributes.AddModifiers(
+                baseAttributes,
+                modifiersFromDefaultSubrace
             );
 
         totalAttributePointsPreview =
@@ -126,8 +134,7 @@ public class SubraceDefinitionEditor : Editor
     private SerializedProperty race;
     private SerializedProperty description;
     private SerializedProperty baseStatModifiers;
-    private SerializedProperty compareToSubrace;
-    private SerializedProperty modifiersFromComparison;
+    private SerializedProperty modifiersFromDefaultSubrace;
     private SerializedProperty finalAttributesPreview;
     private SerializedProperty totalAttributePointsPreview;
     private SerializedProperty size;
@@ -159,14 +166,9 @@ public class SubraceDefinitionEditor : Editor
                 "baseStatModifiers"
             );
 
-        compareToSubrace =
+        modifiersFromDefaultSubrace =
             serializedObject.FindProperty(
-                "compareToSubrace"
-            );
-
-        modifiersFromComparison =
-            serializedObject.FindProperty(
-                "modifiersFromComparison"
+                "modifiersFromDefaultSubrace"
             );
 
         finalAttributesPreview =
@@ -219,8 +221,7 @@ public class SubraceDefinitionEditor : Editor
         DrawRace();
         DrawIdentity();
         DrawCombatStats();
-        DrawAttributes();
-        DrawComparison();
+        DrawAttributeInheritance();
         DrawBody();
         DrawEquipmentRules();
 
@@ -291,170 +292,6 @@ public class SubraceDefinitionEditor : Editor
         EditorGUILayout.Space();
     }
 
-    private void DrawComparison()
-    {
-        EditorGUILayout.LabelField(
-            "Attribute Comparison",
-            EditorStyles.boldLabel
-        );
-
-        DrawComparisonDropdown();
-
-        using (new EditorGUI.DisabledScope(true))
-        {
-            EditorGUILayout.PropertyField(
-                modifiersFromComparison,
-                new GUIContent("Differences From Target"),
-                true
-            );
-        }
-
-        EditorGUILayout.Space();
-    }
-
-    private void DrawComparisonDropdown()
-    {
-        List<SubraceDefinition> options =
-            GetComparisonOptions();
-
-        string[] labels =
-            new string[options.Count + 1];
-
-        labels[0] =
-            "Race Base (No Comparison)";
-
-        for (int i = 0; i < options.Count; i++)
-        {
-            labels[i + 1] =
-                options[i].displayName;
-        }
-
-        SubraceDefinition current =
-            compareToSubrace.objectReferenceValue
-            as SubraceDefinition;
-
-        int currentIndex = 0;
-
-        for (int i = 0; i < options.Count; i++)
-        {
-            if (options[i] == current)
-            {
-                currentIndex = i + 1;
-                break;
-            }
-        }
-
-        int nextIndex =
-            EditorGUILayout.Popup(
-                "Compare To",
-                currentIndex,
-                labels
-            );
-
-        compareToSubrace.objectReferenceValue =
-            nextIndex == 0
-                ? null
-                : options[nextIndex - 1];
-    }
-
-    private List<SubraceDefinition> GetComparisonOptions()
-    {
-        List<SubraceDefinition> options = new();
-
-        RaceDefinition selectedRace =
-            race.objectReferenceValue
-            as RaceDefinition;
-
-        SubraceDefinition editedSubrace =
-            target as SubraceDefinition;
-
-        if (selectedRace == null)
-            return options;
-
-        string[] guids =
-            AssetDatabase.FindAssets(
-                "t:SubraceDefinition"
-            );
-
-        foreach (string guid in guids)
-        {
-            string path =
-                AssetDatabase.GUIDToAssetPath(
-                    guid
-                );
-
-            SubraceDefinition definition =
-                AssetDatabase.LoadAssetAtPath<
-                    SubraceDefinition
-                >(path);
-
-            if (definition == null ||
-                definition == editedSubrace ||
-                definition.race == null)
-            {
-                continue;
-            }
-
-            bool sameRace =
-                definition.race == selectedRace ||
-                string.Equals(
-                    definition.race.raceId,
-                    selectedRace.raceId,
-                    System.StringComparison.OrdinalIgnoreCase
-                );
-
-            if (sameRace)
-            {
-                options.Add(definition);
-            }
-        }
-
-        options.Sort(
-            (first, second) =>
-                string.Compare(
-                    first.displayName,
-                    second.displayName,
-                    System.StringComparison.OrdinalIgnoreCase
-                )
-        );
-
-        return options;
-    }
-
-    private void DrawAttributes()
-    {
-        EditorGUILayout.LabelField(
-            "Final Ancestry Attributes",
-            EditorStyles.boldLabel
-        );
-
-        EditorGUILayout.PropertyField(
-            finalAttributesPreview,
-            new GUIContent("Attributes"),
-            true
-        );
-
-        using (new EditorGUI.DisabledScope(true))
-        {
-            EditorGUILayout.PropertyField(
-                totalAttributePointsPreview,
-                new GUIContent("Total Attribute Points")
-            );
-        }
-
-        if (totalAttributePointsPreview.intValue != 90)
-        {
-            EditorGUILayout.HelpBox(
-                $"Attribute total is " +
-                $"{totalAttributePointsPreview.intValue}. " +
-                "Expected 90.",
-                MessageType.Warning
-            );
-        }
-
-        EditorGUILayout.Space();
-    }
-
     private void DrawBody()
     {
         EditorGUILayout.LabelField(
@@ -475,6 +312,143 @@ public class SubraceDefinitionEditor : Editor
         EditorGUILayout.PropertyField(
             previewPrefab
         );
+
+        EditorGUILayout.Space();
+    }
+
+    private void DrawAttributeInheritance()
+    {
+        EditorGUILayout.LabelField(
+            "Attribute Inheritance",
+            EditorStyles.boldLabel
+        );
+
+        SubraceDefinition definition =
+            target as SubraceDefinition;
+
+        RaceDefinition selectedRace =
+            race.objectReferenceValue
+            as RaceDefinition;
+
+        if (selectedRace == null)
+        {
+            EditorGUILayout.HelpBox(
+                "Assign a Race before configuring attributes.",
+                MessageType.Warning
+            );
+
+            EditorGUILayout.Space();
+            return;
+        }
+
+        SubraceDefinition defaultSubrace =
+            selectedRace.standardSubrace;
+
+        using (new EditorGUI.DisabledScope(true))
+        {
+            EditorGUILayout.ObjectField(
+                "Default Subrace",
+                defaultSubrace,
+                typeof(SubraceDefinition),
+                false
+            );
+        }
+
+        if (defaultSubrace == null)
+        {
+            EditorGUILayout.HelpBox(
+                $"{selectedRace.displayName} has no default " +
+                "Subrace assigned.",
+                MessageType.Warning
+            );
+        }
+
+        bool isDefault =
+            defaultSubrace != null &&
+            defaultSubrace == definition;
+
+        if (isDefault)
+        {
+            EditorGUILayout.HelpBox(
+                "This is the Race's default Subrace. " +
+                "Its attribute differences are fixed at zero.",
+                MessageType.Info
+            );
+        }
+        else
+        {
+            string defaultName =
+                defaultSubrace != null
+                    ? defaultSubrace.displayName
+                    : selectedRace.displayName;
+
+            EditorGUILayout.HelpBox(
+                $"These values are the differences from " +
+                $"{defaultName}.",
+                MessageType.Info
+            );
+        }
+
+        using (new EditorGUI.DisabledScope(isDefault))
+        {
+            EditorGUILayout.PropertyField(
+                modifiersFromDefaultSubrace,
+                new GUIContent(
+                    "Differences From Default Subrace"
+                ),
+                true
+            );
+        }
+
+        SubraceDefinition currentDefinition =
+            target as SubraceDefinition;
+
+        int modifierTotal =
+            currentDefinition
+                ?.modifiersFromDefaultSubrace
+                ?.Total() ?? 0;
+
+        using (new EditorGUI.DisabledScope(true))
+        {
+            EditorGUILayout.IntField(
+                "Difference Total",
+                modifierTotal
+            );
+
+            EditorGUILayout.PropertyField(
+                finalAttributesPreview,
+                new GUIContent(
+                    "Final Ancestry Attributes"
+                ),
+                true
+            );
+
+            EditorGUILayout.PropertyField(
+                totalAttributePointsPreview,
+                new GUIContent(
+                    "Total Attribute Points"
+                )
+            );
+        }
+
+        if (!isDefault && modifierTotal != 0)
+        {
+            EditorGUILayout.HelpBox(
+                $"Difference total is {modifierTotal}. " +
+                "Expected 0.",
+                MessageType.Warning
+            );
+        }
+
+        if (totalAttributePointsPreview.intValue != 90)
+        {
+            EditorGUILayout.HelpBox(
+                $"Attribute total is " +
+                $"{totalAttributePointsPreview.intValue}. " +
+                "Expected 90.",
+                MessageType.Warning
+            );
+        }
 
         EditorGUILayout.Space();
     }
