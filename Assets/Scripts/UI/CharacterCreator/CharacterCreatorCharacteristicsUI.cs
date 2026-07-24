@@ -397,11 +397,11 @@ public class CharacterCreatorCharacteristicsUI : MonoBehaviour
             builder.AppendLine(
                 "<size=75%><b>" +
                 "Attribute" +
-                "<pos=27%>Base Race" +
-                "<pos=42%>Subrace" +
+                "<pos=30%>Base" +
+                "<pos=40%>Subrace" +
                 "<pos=55%>Lineage" +
-                "<pos=68%>Background/Traits" +
-                "<pos=93%>Final" +
+                "<pos=70%>Background/Traits" +
+                "<pos=90%>Final" +
                 "</b></size>"
             );
 
@@ -411,10 +411,10 @@ public class CharacterCreatorCharacteristicsUI : MonoBehaviour
         builder.AppendLine(
             "<size=80%><b>" +
             "Attribute" +
-            "<pos=33%>Base Race" +
-            "<pos=52%>Subrace" +
+            "<pos=30%>Base" +
+            "<pos=50%>Subrace" +
             "<pos=70%>Lineage" +
-            "<pos=93%>Final" +
+            "<pos=90%>Final" +
             "</b></size>"
         );
     }
@@ -438,11 +438,11 @@ public class CharacterCreatorCharacteristicsUI : MonoBehaviour
         if (showPostAncestry)
         {
             builder.Append(
-                $"<pos=27%>{baseValue}"
+                $"<pos=30%>{baseValue}"
             );
 
             builder.Append(
-                $"<pos=42%>{GetModifierText(subraceValue)}"
+                $"<pos=40%>{GetModifierText(subraceValue)}"
             );
 
             builder.Append(
@@ -450,21 +450,21 @@ public class CharacterCreatorCharacteristicsUI : MonoBehaviour
             );
 
             builder.Append(
-                $"<pos=68%>{GetModifierText(postAncestryValue)}"
+                $"<pos=70%>{GetModifierText(postAncestryValue)}"
             );
 
             builder.Append(
-                $"<pos=93%>{finalValue}"
+                $"<pos=90%>{finalValue}"
             );
         }
         else
         {
             builder.Append(
-                $"<pos=33%>{baseValue}"
+                $"<pos=30%>{baseValue}"
             );
 
             builder.Append(
-                $"<pos=52%>{GetModifierText(subraceValue)}"
+                $"<pos=50%>{GetModifierText(subraceValue)}"
             );
 
             builder.Append(
@@ -472,7 +472,7 @@ public class CharacterCreatorCharacteristicsUI : MonoBehaviour
             );
 
             builder.Append(
-                $"<pos=93%>{finalValue}"
+                $"<pos=90%>{finalValue}"
             );
         }
 
