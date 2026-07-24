@@ -73,6 +73,54 @@ public static class CharacterAttributeResolver
         );
     }
 
+    private static List<AttributeModifierPreview>
+        BuildModifierSources(
+            BackgroundDefinition backgroundDefinition,
+            List<TraitDefinition> traitDefinitions)
+    {
+        List<AttributeModifierPreview> sources =
+            new();
+
+        if (backgroundDefinition != null &&
+            backgroundDefinition.modifiers != null &&
+            backgroundDefinition.modifiers.HasAny())
+        {
+            sources.Add(
+                AttributeModifierPreview.Create(
+                    AttributeModifierSourceType.Background,
+                    backgroundDefinition.backgroundId,
+                    backgroundDefinition.displayName,
+                    backgroundDefinition.modifiers
+                )
+            );
+        }
+
+        if (traitDefinitions == null)
+            return sources;
+
+        foreach (TraitDefinition traitDefinition
+                 in traitDefinitions)
+        {
+            if (traitDefinition == null ||
+                traitDefinition.modifiers == null ||
+                !traitDefinition.modifiers.HasAny())
+            {
+                continue;
+            }
+
+            sources.Add(
+                AttributeModifierPreview.Create(
+                    AttributeModifierSourceType.Trait,
+                    traitDefinition.traitId,
+                    traitDefinition.displayName,
+                    traitDefinition.modifiers
+                )
+            );
+        }
+
+        return sources;
+    }
+
     private static CharacterAttributes CalculateAncestryAttributes(
         RaceDefinition raceDefinition,
         SubraceDefinition subraceDefinition,
