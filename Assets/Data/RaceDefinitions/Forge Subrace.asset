@@ -16,32 +16,38 @@ MonoBehaviour:
   displayName: Forge
   race: {fileID: 11400000, guid: 8518a5df7a2504f419e63f8b4b096beb, type: 2}
   description: 
+  baseSubrace: {fileID: 0}
   baseStatModifiers:
     health: 0
     stamina: 0
     mana: 0
     staggerResist: 0
     carryWeight: 0
-  compareToSubrace: {fileID: 11400000, guid: e5a75990c0f7ed14691ff7adba7a5edc, type: 2}
-  modifiersFromComparison:
-    strength: 2
-    dexterity: 4
+  attributeDifferences:
+    strength: 0
+    dexterity: 0
     agility: 0
     vitality: 0
-    endurance: -2
+    endurance: 0
     intelligence: 0
     willpower: 0
-    spirit: -4
+    spirit: 0
     perception: 0
+  finalBaseStatsPreview:
+    health: 100
+    stamina: 100
+    mana: 50
+    staggerResist: 50
+    carryWeight: 50
   finalAttributesPreview:
-    strength: 14
-    dexterity: 8
+    strength: 12
+    dexterity: 4
     agility: 4
     vitality: 14
-    endurance: 10
+    endurance: 12
     intelligence: 14
     willpower: 12
-    spirit: 10
+    spirit: 14
     perception: 4
   totalAttributePointsPreview: 90
   size: 8

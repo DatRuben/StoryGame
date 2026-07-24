@@ -33,6 +33,7 @@ MonoBehaviour:
   traitDefinitions:
   - {fileID: 11400000, guid: 178aede27c7ccc745a66fb037afbd273, type: 2}
   - {fileID: 11400000, guid: 6f941135647b8044ab756a3ed44d62b1, type: 2}
+  - {fileID: 11400000, guid: 0c7354cff6d8ef64aa9a08e8294caa09, type: 2}
   appearanceOptionDefinitions:
   - {fileID: 11400000, guid: ba52e97eba12d9849a985b893f83ca4a, type: 2}
   - {fileID: 11400000, guid: 759d9e9492e99114cba8612ff0ae5613, type: 2}

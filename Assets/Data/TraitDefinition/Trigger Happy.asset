@@ -12,17 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b4f38750408f30544a01852387b489c6, type: 3}
   m_Name: Trigger Happy
   m_EditorClassIdentifier: Assembly-CSharp::TraitDefinition
-  traitId: 
-  displayName: 
+  traitId: trigger_happy
+  displayName: Trigger Happy
   description: 
   modifiers:
     strength: 0
-    dexterity: 0
+    dexterity: -2
     agility: 0
     vitality: 0
     endurance: 0
     intelligence: 0
     willpower: 0
     spirit: 0
-    perception: 0
+    perception: 2
   mutuallyExclusiveTraits: []

@@ -16,14 +16,14 @@ MonoBehaviour:
   displayName: Inlander
   race: {fileID: 11400000, guid: 8518a5df7a2504f419e63f8b4b096beb, type: 2}
   description: 
+  baseSubrace: {fileID: 0}
   baseStatModifiers:
     health: 0
     stamina: 0
     mana: 0
     staggerResist: 0
     carryWeight: 0
-  compareToSubrace: {fileID: 0}
-  modifiersFromComparison:
+  attributeDifferences:
     strength: 0
     dexterity: 0
     agility: 0
@@ -33,6 +33,12 @@ MonoBehaviour:
     willpower: 0
     spirit: 0
     perception: 0
+  finalBaseStatsPreview:
+    health: 100
+    stamina: 100
+    mana: 50
+    staggerResist: 50
+    carryWeight: 50
   finalAttributesPreview:
     strength: 12
     dexterity: 4
