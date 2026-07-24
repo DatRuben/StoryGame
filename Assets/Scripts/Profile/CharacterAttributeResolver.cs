@@ -118,9 +118,6 @@ public static class CharacterAttributeResolver
         SubraceDefinition subraceDefinition,
         List<LineageSelection> lineages)
     {
-        List<LineageSelection> validLineages =
-            GetValidLineages(lineages);
-
         CharacterAttributes result;
 
         if (raceDefinition != null &&
@@ -131,7 +128,7 @@ public static class CharacterAttributeResolver
                 ResolveAnimalSpecies(
                     raceDefinition,
                     subraceDefinition,
-                    validLineages
+                    lineages
                 );
         }
         else
@@ -140,7 +137,7 @@ public static class CharacterAttributeResolver
                 ResolveHybridAncestry(
                     raceDefinition,
                     subraceDefinition,
-                    validLineages
+                    lineages
                 );
         }
 
@@ -206,22 +203,8 @@ public static class CharacterAttributeResolver
         foreach (LineageSelection lineage
                  in lineages)
         {
-            CharacterAttributes shape = null;
-
-            if (lineage?.Subrace != null)
-            {
-                shape =
-                    lineage
-                        .Subrace
-                        .FinalAttributesPreview;
-            }
-            else if (lineage?.CustomLineage != null)
-            {
-                shape =
-                    lineage
-                        .CustomLineage
-                        .hybridAttributeShape;
-            }
+            CharacterAttributes shape =
+                GetHybridLineageShape(lineage);
 
             if (shape == null)
                 continue;

@@ -1023,6 +1023,68 @@ public class CharacterCreator : MonoBehaviour
         }
     }
 
+    public bool TryGetAncestryPreview(
+        out CharacterAttributePreview preview,
+        out string errorMessage)
+    {
+        preview = null;
+        errorMessage = "";
+
+        if (!TryGetSelectedRace(
+            out RaceDefinition raceDefinition))
+        {
+            errorMessage = "No race is selected.";
+            return false;
+        }
+
+        SubraceDefinition subraceDefinition = null;
+
+        if (!string.IsNullOrWhiteSpace(
+                selectedSubraceId) &&
+            !TryGetSelectedSubrace(
+                out subraceDefinition))
+        {
+            errorMessage =
+                $"SubraceDefinition " +
+                $"'{selectedSubraceId}' was not found.";
+
+            return false;
+        }
+
+        if (subraceDefinition != null &&
+            (subraceDefinition.race == null ||
+             subraceDefinition.race.raceId !=
+             raceDefinition.raceId))
+        {
+            errorMessage =
+                $"{subraceDefinition.displayName} " +
+                $"does not belong to " +
+                $"{raceDefinition.displayName}.";
+
+            return false;
+        }
+
+        List<LineageSelection> lineages =
+            GetSelectedLineageSelections();
+
+        if (!raceDefinition.AreLineageSelectionsValid(
+            subraceDefinition,
+            lineages,
+            out errorMessage))
+        {
+            return false;
+        }
+
+        preview =
+            CharacterAttributeResolver.CreatePreview(
+                raceDefinition,
+                subraceDefinition,
+                lineages
+            );
+
+        return true;
+    }
+
     public bool TryGetResolvedStats(
         out ResolvedCharacterStats resolvedStats,
         out string errorMessage)
