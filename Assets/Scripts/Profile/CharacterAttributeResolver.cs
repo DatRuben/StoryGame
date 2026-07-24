@@ -30,6 +30,17 @@ public static class CharacterAttributeResolver
                 lineages
             );
 
+        CharacterAttributes baseRaceAttributes =
+            GetRaceAncestryTarget(
+                raceDefinition
+            );
+
+        CharacterAttributes subraceAttributes =
+            GetBaseAncestryTarget(
+                raceDefinition,
+                subraceDefinition
+            );
+
         CharacterAttributes ancestryAttributes =
             CalculateAncestryAttributes(
                 raceDefinition,
@@ -37,80 +48,29 @@ public static class CharacterAttributeResolver
                 validLineages
             );
 
-        CharacterAttributes baseAncestryAttributes =
-            GetBaseAncestryTarget(
-                raceDefinition,
-                subraceDefinition
-            );
-
         List<LineageInfluencePreview> lineageInfluences =
             BuildLineageInfluences(
                 raceDefinition,
-                baseAncestryAttributes,
+                subraceAttributes,
                 ancestryAttributes,
                 validLineages,
                 out float mainAncestryInfluence
             );
 
-        CharacterAttributeModifiers backgroundModifiers =
-            GetBackgroundModifiers(
-                backgroundDefinition
-            );
-
-        CharacterAttributeModifiers traitModifiers =
-            GetTraitModifiers(
+        List<AttributeModifierPreview> modifierSources =
+            BuildModifierSources(
+                backgroundDefinition,
                 traitDefinitions
             );
 
-        CharacterAttributeModifiers racialPassiveModifiers =
-            CharacterAttributeModifiers.CreateZero();
-
         return CharacterAttributePreview.Create(
+            baseRaceAttributes,
+            subraceAttributes,
             ancestryAttributes,
-            backgroundModifiers,
-            traitModifiers,
-            racialPassiveModifiers,
             mainAncestryInfluence,
-            lineageInfluences
+            lineageInfluences,
+            modifierSources
         );
-    }
-
-    private static CharacterAttributeModifiers GetBackgroundModifiers(
-        BackgroundDefinition backgroundDefinition)
-    {
-        if (backgroundDefinition == null)
-        {
-            return CharacterAttributeModifiers.CreateZero();
-        }
-
-        return CharacterAttributeModifiers.Copy(
-            backgroundDefinition.modifiers
-        );
-    }
-
-    private static CharacterAttributeModifiers GetTraitModifiers(
-        List<TraitDefinition> traitDefinitions)
-    {
-        CharacterAttributeModifiers totalModifiers =
-            CharacterAttributeModifiers.CreateZero();
-
-        if (traitDefinitions == null)
-            return totalModifiers;
-
-        foreach (TraitDefinition traitDefinition
-                 in traitDefinitions)
-        {
-            if (traitDefinition == null)
-                continue;
-
-            totalModifiers =
-                CharacterAttributeModifiers.Add(
-                    totalModifiers,
-                    traitDefinition.modifiers
-                );
-        }
-
-        return totalModifiers;
     }
 
     private static CharacterAttributes CalculateAncestryAttributes(
@@ -579,6 +539,20 @@ public static class CharacterAttributeResolver
         }
     }
 
+    private static CharacterAttributes GetRaceAncestryTarget(
+        RaceDefinition raceDefinition)
+    {
+        if (raceDefinition != null &&
+            raceDefinition.FinalAttributesPreview != null)
+        {
+            return CharacterAttributes.Copy(
+                raceDefinition.FinalAttributesPreview
+            );
+        }
+
+        return CharacterAttributes.CreateDefault(10);
+    }
+
     private static CharacterAttributes GetBaseAncestryTarget(
         RaceDefinition raceDefinition,
         SubraceDefinition subraceDefinition)
@@ -591,15 +565,9 @@ public static class CharacterAttributeResolver
             );
         }
 
-        if (raceDefinition != null &&
-            raceDefinition.FinalAttributesPreview != null)
-        {
-            return CharacterAttributes.Copy(
-                raceDefinition.FinalAttributesPreview
-            );
-        }
-
-        return CharacterAttributes.CreateDefault(10);
+        return GetRaceAncestryTarget(
+            raceDefinition
+        );
     }
 
     private static CharacterAttributes BlendWeightedTargets(

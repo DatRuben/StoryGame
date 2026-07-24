@@ -85,21 +85,6 @@ public class CharacterAttributePreview
         get { return ancestryTotal; }
     }
 
-    public int BackgroundModifierTotal
-    {
-        get { return backgroundModifierTotal; }
-    }
-
-    public int TraitModifierTotal
-    {
-        get { return traitModifierTotal; }
-    }
-
-    public int RacialPassiveModifierTotal
-    {
-        get { return racialPassiveModifierTotal; }
-    }
-
     public int LevelOneTotal
     {
         get { return levelOneTotal; }
@@ -108,7 +93,9 @@ public class CharacterAttributePreview
     public void Recalculate()
     {
         CharacterAttributes result =
-            CharacterAttributes.Copy(ancestryAttributes);
+            CharacterAttributes.Copy(
+                ancestryAttributes
+            );
 
         modifierTotal = 0;
 
@@ -131,8 +118,17 @@ public class CharacterAttributePreview
             }
         }
 
+        levelOneAttributes = result;
+
+        ancestryTotal =
+            GetAttributeTotal(
+                ancestryAttributes
+            );
+
         levelOneTotal =
-            GetAttributeTotal(levelOneAttributes);
+            GetAttributeTotal(
+                levelOneAttributes
+            );
     }
 
     public static CharacterAttributePreview CreateEmpty()
@@ -192,14 +188,5 @@ public class CharacterAttributePreview
             return 0;
 
         return attributes.BasePoints();
-    }
-
-    private static int GetModifierTotal(
-        CharacterAttributeModifiers modifiers)
-    {
-        if (modifiers == null)
-            return 0;
-
-        return modifiers.Total();
     }
 }
