@@ -227,37 +227,404 @@ public class CharacterCreatorCharacteristicsUI : MonoBehaviour
         if (attributePreview == null)
             return "";
 
+        CharacterAttributes baseRace =
+            attributePreview.baseRaceAttributes;
+
+        CharacterAttributeModifiers subrace =
+            attributePreview.SubraceModifiers;
+
+        CharacterAttributeModifiers lineage =
+            attributePreview.LineageModifiers;
+
+        CharacterAttributeModifiers postAncestry =
+            attributePreview.PostAncestryModifiers;
+
+        CharacterAttributes finalAttributes =
+            attributePreview.levelOneAttributes;
+
+        if (baseRace == null ||
+            subrace == null ||
+            lineage == null ||
+            postAncestry == null ||
+            finalAttributes == null)
+        {
+            return "Attribute preview is incomplete.";
+        }
+
+        bool showPostAncestry =
+            postAncestry.HasAny();
+
         StringBuilder builder =
             new StringBuilder();
 
         builder.AppendLine(
-            $"Ancestry Total: {attributePreview.AncestryTotal}"
+            "<b>Attribute Calculation</b>"
         );
 
         builder.AppendLine(
-            $"Background: {GetSignedNumber(attributePreview.BackgroundModifierTotal)}"
+            $"Ancestry Total: " +
+            $"{attributePreview.AncestryTotal}"
         );
 
         builder.AppendLine(
-            $"Traits: {GetSignedNumber(attributePreview.TraitModifierTotal)}"
-        );
-
-        builder.AppendLine(
-            $"Racial Passive: {GetSignedNumber(attributePreview.RacialPassiveModifierTotal)}"
-        );
-
-        builder.AppendLine(
-            $"Level 1 Total: {attributePreview.LevelOneTotal}"
+            $"Level 1 Total: " +
+            $"{attributePreview.LevelOneTotal}"
         );
 
         builder.AppendLine();
 
-        AppendAttributes(
+        AppendAttributeHeader(
             builder,
-            attributePreview.levelOneAttributes
+            showPostAncestry
+        );
+
+        AppendAttributeRow(
+            builder,
+            "Strength",
+            baseRace.strength,
+            subrace.strength,
+            lineage.strength,
+            postAncestry.strength,
+            finalAttributes.strength,
+            showPostAncestry
+        );
+
+        AppendAttributeRow(
+            builder,
+            "Dexterity",
+            baseRace.dexterity,
+            subrace.dexterity,
+            lineage.dexterity,
+            postAncestry.dexterity,
+            finalAttributes.dexterity,
+            showPostAncestry
+        );
+
+        AppendAttributeRow(
+            builder,
+            "Agility",
+            baseRace.agility,
+            subrace.agility,
+            lineage.agility,
+            postAncestry.agility,
+            finalAttributes.agility,
+            showPostAncestry
+        );
+
+        AppendAttributeRow(
+            builder,
+            "Vitality",
+            baseRace.vitality,
+            subrace.vitality,
+            lineage.vitality,
+            postAncestry.vitality,
+            finalAttributes.vitality,
+            showPostAncestry
+        );
+
+        AppendAttributeRow(
+            builder,
+            "Endurance",
+            baseRace.endurance,
+            subrace.endurance,
+            lineage.endurance,
+            postAncestry.endurance,
+            finalAttributes.endurance,
+            showPostAncestry
+        );
+
+        AppendAttributeRow(
+            builder,
+            "Intelligence",
+            baseRace.intelligence,
+            subrace.intelligence,
+            lineage.intelligence,
+            postAncestry.intelligence,
+            finalAttributes.intelligence,
+            showPostAncestry
+        );
+
+        AppendAttributeRow(
+            builder,
+            "Willpower",
+            baseRace.willpower,
+            subrace.willpower,
+            lineage.willpower,
+            postAncestry.willpower,
+            finalAttributes.willpower,
+            showPostAncestry
+        );
+
+        AppendAttributeRow(
+            builder,
+            "Spirit",
+            baseRace.spirit,
+            subrace.spirit,
+            lineage.spirit,
+            postAncestry.spirit,
+            finalAttributes.spirit,
+            showPostAncestry
+        );
+
+        AppendAttributeRow(
+            builder,
+            "Perception",
+            baseRace.perception,
+            subrace.perception,
+            lineage.perception,
+            postAncestry.perception,
+            finalAttributes.perception,
+            showPostAncestry
+        );
+
+        AppendModifierSourceDetails(
+            builder,
+            attributePreview
         );
 
         return builder.ToString();
+    }
+
+    private void AppendAttributeHeader(
+        StringBuilder builder,
+        bool showPostAncestry)
+    {
+        if (builder == null)
+            return;
+
+        if (showPostAncestry)
+        {
+            builder.AppendLine(
+                "<size=75%><b>" +
+                "Attribute" +
+                "<pos=27%>Base Race" +
+                "<pos=42%>Subrace" +
+                "<pos=55%>Lineage" +
+                "<pos=68%>Background/Traits" +
+                "<pos=93%>Final" +
+                "</b></size>"
+            );
+
+            return;
+        }
+
+        builder.AppendLine(
+            "<size=80%><b>" +
+            "Attribute" +
+            "<pos=33%>Base Race" +
+            "<pos=52%>Subrace" +
+            "<pos=70%>Lineage" +
+            "<pos=93%>Final" +
+            "</b></size>"
+        );
+    }
+
+    private void AppendAttributeRow(
+        StringBuilder builder,
+        string label,
+        int baseValue,
+        int subraceValue,
+        int lineageValue,
+        int postAncestryValue,
+        int finalValue,
+        bool showPostAncestry)
+    {
+        if (builder == null)
+            return;
+
+        builder.Append("<size=90%>");
+        builder.Append(label);
+
+        if (showPostAncestry)
+        {
+            builder.Append(
+                $"<pos=27%>{baseValue}"
+            );
+
+            builder.Append(
+                $"<pos=42%>{GetModifierText(subraceValue)}"
+            );
+
+            builder.Append(
+                $"<pos=55%>{GetModifierText(lineageValue)}"
+            );
+
+            builder.Append(
+                $"<pos=68%>{GetModifierText(postAncestryValue)}"
+            );
+
+            builder.Append(
+                $"<pos=93%>{finalValue}"
+            );
+        }
+        else
+        {
+            builder.Append(
+                $"<pos=33%>{baseValue}"
+            );
+
+            builder.Append(
+                $"<pos=52%>{GetModifierText(subraceValue)}"
+            );
+
+            builder.Append(
+                $"<pos=70%>{GetModifierText(lineageValue)}"
+            );
+
+            builder.Append(
+                $"<pos=93%>{finalValue}"
+            );
+        }
+
+        builder.AppendLine("</size>");
+    }
+
+    private void AppendModifierSourceDetails(
+        StringBuilder builder,
+        CharacterAttributePreview attributePreview)
+    {
+        if (builder == null ||
+            attributePreview?.modifierSources == null)
+        {
+            return;
+        }
+
+        bool addedHeader = false;
+
+        foreach (AttributeModifierPreview source
+                 in attributePreview.modifierSources)
+        {
+            if (source == null ||
+                source.modifiers == null ||
+                !source.modifiers.HasAny())
+            {
+                continue;
+            }
+
+            if (!addedHeader)
+            {
+                builder.AppendLine();
+                builder.AppendLine(
+                    "<b>Background / Trait Details</b>"
+                );
+
+                addedHeader = true;
+            }
+
+            string sourceName =
+                !string.IsNullOrWhiteSpace(
+                    source.displayName)
+                    ? source.displayName
+                    : source.sourceId;
+
+            builder.AppendLine(
+                $"{GetModifierSourceLabel(source.sourceType)}: " +
+                $"{sourceName}"
+            );
+
+            AppendModifierDetail(
+                builder,
+                "Strength",
+                source.modifiers.strength
+            );
+
+            AppendModifierDetail(
+                builder,
+                "Dexterity",
+                source.modifiers.dexterity
+            );
+
+            AppendModifierDetail(
+                builder,
+                "Agility",
+                source.modifiers.agility
+            );
+
+            AppendModifierDetail(
+                builder,
+                "Vitality",
+                source.modifiers.vitality
+            );
+
+            AppendModifierDetail(
+                builder,
+                "Endurance",
+                source.modifiers.endurance
+            );
+
+            AppendModifierDetail(
+                builder,
+                "Intelligence",
+                source.modifiers.intelligence
+            );
+
+            AppendModifierDetail(
+                builder,
+                "Willpower",
+                source.modifiers.willpower
+            );
+
+            AppendModifierDetail(
+                builder,
+                "Spirit",
+                source.modifiers.spirit
+            );
+
+            AppendModifierDetail(
+                builder,
+                "Perception",
+                source.modifiers.perception
+            );
+
+            builder.AppendLine();
+        }
+    }
+
+    private void AppendModifierDetail(
+        StringBuilder builder,
+        string label,
+        int value)
+    {
+        if (builder == null ||
+            value == 0)
+        {
+            return;
+        }
+
+        builder.AppendLine(
+            $"  {label}: {GetModifierText(value)}"
+        );
+    }
+
+    private string GetModifierSourceLabel(
+        AttributeModifierSourceType sourceType)
+    {
+        switch (sourceType)
+        {
+            case AttributeModifierSourceType.Background:
+                return "Background";
+
+            case AttributeModifierSourceType.Trait:
+                return "Trait";
+
+            case AttributeModifierSourceType.RacialPassive:
+                return "Racial Passive";
+
+            default:
+                return "Modifier";
+        }
+    }
+
+    private string GetModifierText(
+        int value)
+    {
+        if (value > 0)
+            return $"+{value}";
+
+        if (value < 0)
+            return value.ToString();
+
+        return "—";
     }
 
     private void AppendAttributes(
