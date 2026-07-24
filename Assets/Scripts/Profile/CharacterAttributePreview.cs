@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 [Serializable]
@@ -9,6 +10,13 @@ public class CharacterAttributePreview
         CharacterAttributes.CreateDefault(10);
 
     [SerializeField] private int ancestryTotal;
+
+    [Header("Lineage Influence")]
+    [Range(0f, 1f)]
+    public float mainAncestryInfluence = 1f;
+
+    public List<LineageInfluencePreview> lineageInfluences =
+        new();
 
     [Header("Background Modifiers")]
     public CharacterAttributeModifiers backgroundModifiers =
@@ -116,6 +124,24 @@ public class CharacterAttributePreview
         CharacterAttributeModifiers traits,
         CharacterAttributeModifiers racialPassive)
     {
+        return Create(
+            ancestry,
+            background,
+            traits,
+            racialPassive,
+            1f,
+            null
+        );
+    }
+
+    public static CharacterAttributePreview Create(
+        CharacterAttributes ancestry,
+        CharacterAttributeModifiers background,
+        CharacterAttributeModifiers traits,
+        CharacterAttributeModifiers racialPassive,
+        float mainAncestryInfluence,
+        List<LineageInfluencePreview> lineageInfluences)
+    {
         CharacterAttributePreview preview =
             new CharacterAttributePreview();
 
@@ -124,18 +150,34 @@ public class CharacterAttributePreview
 
         preview.backgroundModifiers =
             background != null
-                ? background
+                ? CharacterAttributeModifiers.Copy(
+                    background
+                )
                 : CharacterAttributeModifiers.CreateZero();
 
         preview.traitModifiers =
             traits != null
-                ? traits
+                ? CharacterAttributeModifiers.Copy(
+                    traits
+                )
                 : CharacterAttributeModifiers.CreateZero();
 
         preview.racialPassiveModifiers =
             racialPassive != null
-                ? racialPassive
+                ? CharacterAttributeModifiers.Copy(
+                    racialPassive
+                )
                 : CharacterAttributeModifiers.CreateZero();
+
+        preview.mainAncestryInfluence =
+            Mathf.Clamp01(
+                mainAncestryInfluence
+            );
+
+        preview.lineageInfluences =
+            lineageInfluences != null
+                ? lineageInfluences
+                : new List<LineageInfluencePreview>();
 
         preview.Recalculate();
 
