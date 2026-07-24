@@ -5,6 +5,13 @@ using UnityEngine;
 [Serializable]
 public class CharacterAttributePreview
 {
+    [Header("Calculation Stages")]
+    public CharacterAttributes baseRaceAttributes =
+        CharacterAttributes.CreateDefault(10);
+
+    public CharacterAttributes subraceAttributes =
+        CharacterAttributes.CreateDefault(10);
+
     [Header("Ancestry Attributes")]
     public CharacterAttributes ancestryAttributes =
         CharacterAttributes.CreateDefault(10);
@@ -18,29 +25,60 @@ public class CharacterAttributePreview
     public List<LineageInfluencePreview> lineageInfluences =
         new();
 
-    [Header("Background Modifiers")]
-    public CharacterAttributeModifiers backgroundModifiers =
-        CharacterAttributeModifiers.CreateZero();
+    [Header("Post-Ancestry Modifiers")]
+    public List<AttributeModifierPreview> modifierSources =
+        new();
 
-    [SerializeField] private int backgroundModifierTotal;
-
-    [Header("Trait / Quirk Modifiers")]
-    public CharacterAttributeModifiers traitModifiers =
-        CharacterAttributeModifiers.CreateZero();
-
-    [SerializeField] private int traitModifierTotal;
-
-    [Header("Racial Passive / Starting Skill Modifiers")]
-    public CharacterAttributeModifiers racialPassiveModifiers =
-        CharacterAttributeModifiers.CreateZero();
-
-    [SerializeField] private int racialPassiveModifierTotal;
+    [SerializeField]
+    private int modifierTotal;
 
     [Header("Level 1 Starting Attributes")]
     public CharacterAttributes levelOneAttributes =
         CharacterAttributes.CreateDefault(10);
 
     [SerializeField] private int levelOneTotal;
+
+    public int ModifierTotal =>
+    modifierTotal;
+
+    public CharacterAttributeModifiers SubraceModifiers =>
+        CharacterAttributeModifiers.FromDifference(
+            subraceAttributes,
+            baseRaceAttributes
+        );
+
+    public CharacterAttributeModifiers LineageModifiers =>
+        CharacterAttributeModifiers.FromDifference(
+            ancestryAttributes,
+            subraceAttributes
+        );
+
+    public CharacterAttributeModifiers PostAncestryModifiers
+    {
+        get
+        {
+            CharacterAttributeModifiers total =
+                CharacterAttributeModifiers.CreateZero();
+
+            if (modifierSources == null)
+                return total;
+
+            foreach (AttributeModifierPreview source
+                     in modifierSources)
+            {
+                if (source?.modifiers == null)
+                    continue;
+
+                total =
+                    CharacterAttributeModifiers.Add(
+                        total,
+                        source.modifiers
+                    );
+            }
+
+            return total;
+        }
+    }
 
     public int AncestryTotal
     {
@@ -72,37 +110,26 @@ public class CharacterAttributePreview
         CharacterAttributes result =
             CharacterAttributes.Copy(ancestryAttributes);
 
-        result =
-            CharacterAttributes.AddModifiers(
-                result,
-                backgroundModifiers
-            );
+        modifierTotal = 0;
 
-        result =
-            CharacterAttributes.AddModifiers(
-                result,
-                traitModifiers
-            );
+        if (modifierSources != null)
+        {
+            foreach (AttributeModifierPreview source
+                     in modifierSources)
+            {
+                if (source?.modifiers == null)
+                    continue;
 
-        result =
-            CharacterAttributes.AddModifiers(
-                result,
-                racialPassiveModifiers
-            );
+                result =
+                    CharacterAttributes.AddModifiers(
+                        result,
+                        source.modifiers
+                    );
 
-        levelOneAttributes = result;
-
-        ancestryTotal =
-            GetAttributeTotal(ancestryAttributes);
-
-        backgroundModifierTotal =
-            GetModifierTotal(backgroundModifiers);
-
-        traitModifierTotal =
-            GetModifierTotal(traitModifiers);
-
-        racialPassiveModifierTotal =
-            GetModifierTotal(racialPassiveModifiers);
+                modifierTotal +=
+                    source.modifiers.Total();
+            }
+        }
 
         levelOneTotal =
             GetAttributeTotal(levelOneAttributes);
@@ -119,55 +146,24 @@ public class CharacterAttributePreview
     }
 
     public static CharacterAttributePreview Create(
+        CharacterAttributes baseRace,
+        CharacterAttributes subrace,
         CharacterAttributes ancestry,
-        CharacterAttributeModifiers background,
-        CharacterAttributeModifiers traits,
-        CharacterAttributeModifiers racialPassive)
-    {
-        return Create(
-            ancestry,
-            background,
-            traits,
-            racialPassive,
-            1f,
-            null
-        );
-    }
-
-    public static CharacterAttributePreview Create(
-        CharacterAttributes ancestry,
-        CharacterAttributeModifiers background,
-        CharacterAttributeModifiers traits,
-        CharacterAttributeModifiers racialPassive,
         float mainAncestryInfluence,
-        List<LineageInfluencePreview> lineageInfluences)
+        List<LineageInfluencePreview> lineageInfluences,
+        List<AttributeModifierPreview> modifierSources)
     {
         CharacterAttributePreview preview =
             new CharacterAttributePreview();
 
+        preview.baseRaceAttributes =
+            CharacterAttributes.Copy(baseRace);
+
+        preview.subraceAttributes =
+            CharacterAttributes.Copy(subrace);
+
         preview.ancestryAttributes =
             CharacterAttributes.Copy(ancestry);
-
-        preview.backgroundModifiers =
-            background != null
-                ? CharacterAttributeModifiers.Copy(
-                    background
-                )
-                : CharacterAttributeModifiers.CreateZero();
-
-        preview.traitModifiers =
-            traits != null
-                ? CharacterAttributeModifiers.Copy(
-                    traits
-                )
-                : CharacterAttributeModifiers.CreateZero();
-
-        preview.racialPassiveModifiers =
-            racialPassive != null
-                ? CharacterAttributeModifiers.Copy(
-                    racialPassive
-                )
-                : CharacterAttributeModifiers.CreateZero();
 
         preview.mainAncestryInfluence =
             Mathf.Clamp01(
@@ -178,6 +174,11 @@ public class CharacterAttributePreview
             lineageInfluences != null
                 ? lineageInfluences
                 : new List<LineageInfluencePreview>();
+
+        preview.modifierSources =
+            modifierSources != null
+                ? modifierSources
+                : new List<AttributeModifierPreview>();
 
         preview.Recalculate();
 

@@ -121,6 +121,19 @@ public class CharacterAttributeModifiers
         };
     }
 
+    public bool HasAny()
+    {
+        return strength != 0 ||
+               dexterity != 0 ||
+               agility != 0 ||
+               vitality != 0 ||
+               endurance != 0 ||
+               intelligence != 0 ||
+               willpower != 0 ||
+               spirit != 0 ||
+               perception != 0;
+    }
+
     public int Total()
     {
         return strength +
