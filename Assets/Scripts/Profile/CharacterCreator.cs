@@ -151,7 +151,7 @@ public class CharacterCreator : MonoBehaviour
         NotifySelectionChanged();
     }
 
-    public bool SelectHeadOption(
+    public bool SelectAppearanceOption(
         string optionId,
         out string errorMessage)
     {
@@ -159,38 +159,45 @@ public class CharacterCreator : MonoBehaviour
 
         if (characterDataLibrary == null)
         {
-            errorMessage = "CharacterDataLibrary is missing.";
-            return false;
-        }
-
-        if (!characterDataLibrary.TryGetAppearanceOptionDefinition(
-            optionId,
-            out CharacterAppearanceOptionDefinition optionDefinition))
-        {
             errorMessage =
-                $"Head option '{optionId}' was not found.";
+                "CharacterDataLibrary is missing.";
 
             return false;
         }
 
-        if (optionDefinition.category !=
-            CharacterAppearanceOptionCategory.Head)
+        if (!characterDataLibrary
+            .TryGetAppearanceOptionDefinition(
+                optionId,
+                out CharacterAppearanceOptionDefinition
+                    optionDefinition))
         {
             errorMessage =
-                $"{optionDefinition.displayName} is not a Head option.";
+                $"Appearance option '{optionId}' was not found.";
+
+            return false;
+        }
+
+        if (optionDefinition.category ==
+            CharacterAppearanceOptionCategory.Markings)
+        {
+            errorMessage =
+                "Markings use multi-selection and cannot be " +
+                "selected through the single-option method.";
 
             return false;
         }
 
         CharacterAppearanceOptionAvailability availability =
-            GetAppearanceOptionAvailability(optionDefinition);
+            GetAppearanceOptionAvailability(
+                optionDefinition
+            );
 
         if (availability !=
             CharacterAppearanceOptionAvailability.Available)
         {
             errorMessage =
-                $"{optionDefinition.displayName} is not available " +
-                "for the selected ancestry.";
+                $"{optionDefinition.displayName} is not " +
+                "available for the selected ancestry.";
 
             return false;
         }
@@ -201,16 +208,29 @@ public class CharacterCreator : MonoBehaviour
                 CharacterAppearanceData.CreateDefault();
         }
 
+        string currentOptionId =
+            selectedAppearance.GetSingleOptionId(
+                optionDefinition.category
+            );
+
         if (string.Equals(
-            selectedAppearance.headOptionId,
+            currentOptionId,
             optionDefinition.optionId,
             System.StringComparison.OrdinalIgnoreCase))
         {
             return true;
         }
 
-        selectedAppearance.headOptionId =
-            optionDefinition.optionId;
+        if (!selectedAppearance.SetSingleOptionId(
+            optionDefinition.category,
+            optionDefinition.optionId))
+        {
+            errorMessage =
+                $"{optionDefinition.category} is not a " +
+                "supported single-selection appearance category.";
+
+            return false;
+        }
 
         NotifySelectionChanged();
         return true;
@@ -1049,77 +1069,117 @@ public class CharacterCreator : MonoBehaviour
                 selectedAppearance.eyeValue
             );
 
-        ClampSelectedHeadOption();
+        ClampSelectedSingleAppearanceOptions();
     }
 
-    private void ClampSelectedHeadOption()
+    private void ClampSelectedSingleAppearanceOptions()
+    {
+        ClampSelectedSingleAppearanceOption(
+            CharacterAppearanceOptionCategory.Head
+        );
+
+        ClampSelectedSingleAppearanceOption(
+            CharacterAppearanceOptionCategory.Ears
+        );
+
+        ClampSelectedSingleAppearanceOption(
+            CharacterAppearanceOptionCategory.Horns
+        );
+
+        ClampSelectedSingleAppearanceOption(
+            CharacterAppearanceOptionCategory.Tail
+        );
+
+        ClampSelectedSingleAppearanceOption(
+            CharacterAppearanceOptionCategory.Hair
+        );
+
+        ClampSelectedSingleAppearanceOption(
+            CharacterAppearanceOptionCategory.Eyes
+        );
+    }
+
+    private void ClampSelectedSingleAppearanceOption(
+        CharacterAppearanceOptionCategory category)
     {
         if (selectedAppearance == null)
             return;
 
         if (characterDataLibrary == null)
         {
-            selectedAppearance.headOptionId = "";
+            selectedAppearance.SetSingleOptionId(
+                category,
+                ""
+            );
+
             return;
         }
 
+        string selectedOptionId =
+            selectedAppearance.GetSingleOptionId(
+                category
+            );
+
         if (!string.IsNullOrWhiteSpace(
-                selectedAppearance.headOptionId) &&
-            characterDataLibrary.TryGetAppearanceOptionDefinition(
-                selectedAppearance.headOptionId,
-                out CharacterAppearanceOptionDefinition selectedOption) &&
-            selectedOption.category ==
-                CharacterAppearanceOptionCategory.Head &&
-            GetAppearanceOptionAvailability(selectedOption) ==
+                selectedOptionId) &&
+            characterDataLibrary
+                .TryGetAppearanceOptionDefinition(
+                    selectedOptionId,
+                    out CharacterAppearanceOptionDefinition
+                        selectedOption) &&
+            selectedOption.category == category &&
+            GetAppearanceOptionAvailability(
+                selectedOption
+            ) ==
                 CharacterAppearanceOptionAvailability.Available)
         {
-            selectedAppearance.headOptionId =
-                selectedOption.optionId;
+            selectedAppearance.SetSingleOptionId(
+                category,
+                selectedOption.optionId
+            );
 
             return;
         }
 
         CharacterAppearanceOptionDefinition defaultOption =
-            GetDefaultHeadOption();
+            GetDefaultAppearanceOption(
+                category
+            );
 
-        selectedAppearance.headOptionId =
+        selectedAppearance.SetSingleOptionId(
+            category,
             defaultOption != null
                 ? defaultOption.optionId
-                : "";
+                : ""
+        );
     }
 
-    private CharacterAppearanceOptionDefinition GetDefaultHeadOption()
+    private CharacterAppearanceOptionDefinition
+        GetDefaultAppearanceOption(
+            CharacterAppearanceOptionCategory category)
     {
         if (characterDataLibrary == null)
             return null;
 
-        CharacterAppearanceOptionDefinition firstAvailable =
-            null;
-
         foreach (CharacterAppearanceOptionDefinition option
-                 in characterDataLibrary.AppearanceOptionDefinitions)
+                 in characterDataLibrary
+                     .AppearanceOptionDefinitions)
         {
             if (option == null ||
-                option.category !=
-                    CharacterAppearanceOptionCategory.Head)
+                option.category != category ||
+                !option.isDefaultOption)
             {
                 continue;
             }
 
-            if (GetAppearanceOptionAvailability(option) !=
+            if (GetAppearanceOptionAvailability(option) ==
                 CharacterAppearanceOptionAvailability.Available)
             {
-                continue;
-            }
-
-            if (firstAvailable == null)
-                firstAvailable = option;
-
-            if (option.isDefaultOption)
                 return option;
+            }
         }
 
-        return firstAvailable;
+        return null;
     }
 
     private float ClampBodyScaleForSelectedRaceSize(

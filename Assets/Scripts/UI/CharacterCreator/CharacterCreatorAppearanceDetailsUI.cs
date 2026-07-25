@@ -318,9 +318,9 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
             return;
         }
 
-        if (!characterCreator.SelectHeadOption(
-            option.optionId,
-            out string errorMessage))
+        if (!characterCreator.SelectAppearanceOption(
+                option.optionId,
+                out string errorMessage))
         {
             Debug.LogWarning(
                 errorMessage,
@@ -391,7 +391,9 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
         );
 
         RefreshHeadButtons(
-            appearance.headOptionId
+            appearance.GetSingleOptionId(
+                CharacterAppearanceOptionCategory.Head
+            )
         );
     }
 
