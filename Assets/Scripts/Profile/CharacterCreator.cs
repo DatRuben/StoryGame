@@ -226,8 +226,7 @@ public class CharacterCreator : MonoBehaviour
         return true;
     }
 
-    public CharacterAppearanceOptionAvailability
-        GetAppearanceOptionAvailability(
+    public CharacterAppearanceOptionAvailability GetAppearanceOptionAvailability(
             CharacterAppearanceOptionDefinition optionDefinition)
     {
         if (optionDefinition == null)
@@ -291,6 +290,91 @@ public class CharacterCreator : MonoBehaviour
 
         NotifySelectionChanged();
         return true;
+    }
+
+    public bool HasShownAppearanceOptions(
+        CharacterAppearanceOptionCategory category)
+    {
+        if (characterDataLibrary == null)
+            return false;
+
+        foreach (CharacterAppearanceOptionDefinition option
+                 in characterDataLibrary
+                     .AppearanceOptionDefinitions)
+        {
+            if (option == null ||
+                option.category != category)
+            {
+                continue;
+            }
+
+            CharacterAppearanceOptionAvailability availability =
+                GetAppearanceOptionAvailability(
+                    option
+                );
+
+            if (availability !=
+                CharacterAppearanceOptionAvailability.Hidden)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public List<CharacterAppearanceOptionCategory>
+        GetShownAppearanceCategories()
+    {
+        List<CharacterAppearanceOptionCategory> categories =
+            new List<CharacterAppearanceOptionCategory>();
+
+        foreach (CharacterAppearanceOptionCategory category
+                 in System.Enum.GetValues(
+                     typeof(CharacterAppearanceOptionCategory)))
+        {
+            if (HasShownAppearanceOptions(category))
+                categories.Add(category);
+        }
+
+        return categories;
+    }
+
+    public List<CharacterAppearanceOptionDefinition>
+        GetShownAppearanceOptions(
+            CharacterAppearanceOptionCategory category)
+    {
+        List<CharacterAppearanceOptionDefinition> options =
+            new List<CharacterAppearanceOptionDefinition>();
+
+        if (characterDataLibrary == null)
+            return options;
+
+        foreach (CharacterAppearanceOptionDefinition option
+                 in characterDataLibrary
+                     .AppearanceOptionDefinitions)
+        {
+            if (option == null ||
+                option.category != category)
+            {
+                continue;
+            }
+
+            CharacterAppearanceOptionAvailability availability =
+                GetAppearanceOptionAvailability(
+                    option
+                );
+
+            if (availability ==
+                CharacterAppearanceOptionAvailability.Hidden)
+            {
+                continue;
+            }
+
+            options.Add(option);
+        }
+
+        return options;
     }
 
     public bool SelectSubrace(
