@@ -177,16 +177,6 @@ public class CharacterCreator : MonoBehaviour
             return false;
         }
 
-        if (optionDefinition.category ==
-            CharacterAppearanceOptionCategory.Markings)
-        {
-            errorMessage =
-                "Markings use multi-selection and cannot be " +
-                "selected through the single-option method.";
-
-            return false;
-        }
-
         CharacterAppearanceOptionAvailability availability =
             GetAppearanceOptionAvailability(
                 optionDefinition
@@ -1096,6 +1086,14 @@ public class CharacterCreator : MonoBehaviour
 
         ClampSelectedSingleAppearanceOption(
             CharacterAppearanceOptionCategory.Eyes
+        );
+
+        ClampSelectedSingleAppearanceOption(
+            CharacterAppearanceOptionCategory.Marking
+        );
+
+        ClampSelectedSingleAppearanceOption(
+            CharacterAppearanceOptionCategory.BodyPattern
         );
     }
 

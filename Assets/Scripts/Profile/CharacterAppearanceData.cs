@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 [Serializable]
@@ -46,9 +45,8 @@ public class CharacterAppearanceData
     public string tailOptionId = "";
     public string hairOptionId = "";
     public string eyeOptionId = "";
-
-    public List<string> markingOptionIds =
-        new List<string>();
+    public string markingOptionId = "";
+    public string bodyPatternOptionId = "";
 
     public string GetSingleOptionId(
         CharacterAppearanceOptionCategory category)
@@ -72,6 +70,12 @@ public class CharacterAppearanceData
 
             case CharacterAppearanceOptionCategory.Eyes:
                 return eyeOptionId;
+
+            case CharacterAppearanceOptionCategory.Marking:
+                return markingOptionId;
+
+            case CharacterAppearanceOptionCategory.BodyPattern:
+                return bodyPatternOptionId;
 
             default:
                 return "";
@@ -113,86 +117,17 @@ public class CharacterAppearanceData
                 eyeOptionId = optionId;
                 return true;
 
+            case CharacterAppearanceOptionCategory.Marking:
+                markingOptionId = optionId;
+                return true;
+
+            case CharacterAppearanceOptionCategory.BodyPattern:
+                bodyPatternOptionId = optionId;
+                return true;
+
             default:
                 return false;
         }
-    }
-
-    public bool IsMarkingSelected(
-        string optionId)
-    {
-        if (string.IsNullOrWhiteSpace(optionId) ||
-            markingOptionIds == null)
-        {
-            return false;
-        }
-
-        for (int i = 0;
-             i < markingOptionIds.Count;
-             i++)
-        {
-            if (string.Equals(
-                markingOptionIds[i],
-                optionId,
-                StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public bool AddMarkingOption(
-        string optionId)
-    {
-        if (string.IsNullOrWhiteSpace(optionId))
-            return false;
-
-        if (markingOptionIds == null)
-        {
-            markingOptionIds =
-                new List<string>();
-        }
-
-        if (IsMarkingSelected(optionId))
-            return false;
-
-        markingOptionIds.Add(optionId);
-        return true;
-    }
-
-    public bool RemoveMarkingOption(
-        string optionId)
-    {
-        if (string.IsNullOrWhiteSpace(optionId) ||
-            markingOptionIds == null)
-        {
-            return false;
-        }
-
-        for (int i = 0;
-             i < markingOptionIds.Count;
-             i++)
-        {
-            if (!string.Equals(
-                markingOptionIds[i],
-                optionId,
-                StringComparison.OrdinalIgnoreCase))
-            {
-                continue;
-            }
-
-            markingOptionIds.RemoveAt(i);
-            return true;
-        }
-
-        return false;
-    }
-
-    public void ClearMarkings()
-    {
-        markingOptionIds?.Clear();
     }
 
     public static CharacterAppearanceData CreateDefault()
@@ -206,38 +141,31 @@ public class CharacterAppearanceData
         if (source == null)
             return CreateDefault();
 
-        CharacterAppearanceData copy =
-            new CharacterAppearanceData
-            {
-                bodyScale = source.bodyScale,
-
-                hue = source.hue,
-                saturation = source.saturation,
-                value = source.value,
-
-                hairHue = source.hairHue,
-                hairSaturation = source.hairSaturation,
-                hairValue = source.hairValue,
-
-                eyeHue = source.eyeHue,
-                eyeSaturation = source.eyeSaturation,
-                eyeValue = source.eyeValue,
-
-                headOptionId = source.headOptionId,
-                earOptionId = source.earOptionId,
-                hornOptionId = source.hornOptionId,
-                tailOptionId = source.tailOptionId,
-                hairOptionId = source.hairOptionId,
-                eyeOptionId = source.eyeOptionId
-            };
-
-        if (source.markingOptionIds != null)
+        return new CharacterAppearanceData
         {
-            copy.markingOptionIds.AddRange(
-                source.markingOptionIds
-            );
-        }
+            bodyScale = source.bodyScale,
 
-        return copy;
+            hue = source.hue,
+            saturation = source.saturation,
+            value = source.value,
+
+            hairHue = source.hairHue,
+            hairSaturation = source.hairSaturation,
+            hairValue = source.hairValue,
+
+            eyeHue = source.eyeHue,
+            eyeSaturation = source.eyeSaturation,
+            eyeValue = source.eyeValue,
+
+            headOptionId = source.headOptionId,
+            earOptionId = source.earOptionId,
+            hornOptionId = source.hornOptionId,
+            tailOptionId = source.tailOptionId,
+            hairOptionId = source.hairOptionId,
+            eyeOptionId = source.eyeOptionId,
+            markingOptionId = source.markingOptionId,
+            bodyPatternOptionId =
+                source.bodyPatternOptionId
+        };
     }
 }

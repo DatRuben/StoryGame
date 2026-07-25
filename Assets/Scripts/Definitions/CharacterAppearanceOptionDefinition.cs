@@ -14,7 +14,8 @@ public enum CharacterAppearanceOptionCategory
     Tail,
     Hair,
     Eyes,
-    Markings
+    Marking,
+    BodyPattern
 }
 
 public enum CharacterAppearanceOptionAvailability
