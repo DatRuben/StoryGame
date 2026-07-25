@@ -38,9 +38,8 @@ public class CharacterAppearanceData
     [Range(0f, 1f)]
     public float eyeValue = 0.9f;
 
-    [Header("Placeholder Options")]
-    [Min(0)]
-    public int headType;
+    [Header("Selected Appearance Options")]
+    public string headOptionId = "";
 
     public static CharacterAppearanceData CreateDefault()
     {
@@ -69,7 +68,7 @@ public class CharacterAppearanceData
             eyeSaturation = source.eyeSaturation,
             eyeValue = source.eyeValue,
 
-            headType = source.headType
+            headOptionId = source.headOptionId
         };
     }
 }

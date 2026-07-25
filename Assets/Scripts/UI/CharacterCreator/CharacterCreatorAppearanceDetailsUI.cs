@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -5,7 +6,15 @@ using UnityEngine.UI;
 public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
 {
     [Header("Data")]
-    [SerializeField] private CharacterCreator characterCreator;
+    [SerializeField]
+    private CharacterDataLibrary characterDataLibrary;
+
+    [SerializeField]
+    private CharacterCreator characterCreator;
+
+    [Header("Option Prefab")]
+    [SerializeField]
+    private CharacterOptionButtonUI optionButtonPrefab;
 
     [Header("Category Panels")]
     [SerializeField] private GameObject bodyDetails;
@@ -18,8 +27,7 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
     [SerializeField] private Slider bodyScaleSlider;
 
     [Header("Head")]
-    [SerializeField]
-    private CharacterOptionButtonUI[] headTypeButtons;
+    [SerializeField] private Transform headButtonParent;
 
     [Header("Skin Color")]
     [SerializeField] private Slider skinHueSlider;
@@ -36,6 +44,12 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
     [SerializeField] private Slider eyeSaturationSlider;
     [SerializeField] private Slider eyeValueSlider;
 
+    private readonly List<CharacterOptionButtonUI>
+        headButtons = new();
+
+    private readonly List<CharacterAppearanceOptionDefinition>
+        headOptions = new();
+
     private CharacterAppearanceCategory selectedCategory =
         CharacterAppearanceCategory.Body;
 
@@ -44,6 +58,7 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
         HookUI();
         SubscribeToCreator();
 
+        BuildHeadButtons();
         ShowCategory(selectedCategory);
         Refresh();
     }
@@ -52,6 +67,7 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
     {
         UnhookUI();
         UnsubscribeFromCreator();
+        ClearHeadButtons();
     }
 
     public void ShowCategory(
@@ -138,8 +154,6 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
             eyeValueSlider,
             OnEyeValueChanged
         );
-
-        HookHeadTypeButtons();
     }
 
     private void UnhookUI()
@@ -193,8 +207,6 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
             eyeValueSlider,
             OnEyeValueChanged
         );
-
-        UnhookHeadTypeButtons();
     }
 
     private void HookSlider(
@@ -216,50 +228,6 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
             slider.onValueChanged.RemoveListener(action);
     }
 
-    private void HookHeadTypeButtons()
-    {
-        if (headTypeButtons == null)
-            return;
-
-        for (int i = 0; i < headTypeButtons.Length; i++)
-        {
-            CharacterOptionButtonUI button =
-                headTypeButtons[i];
-
-            if (button == null)
-                continue;
-
-            int headType = i;
-
-            button.SetText($"Head {i + 1}");
-            button.SetInteractable(true);
-
-            if (button.Button == null)
-                continue;
-
-            button.Button.onClick.RemoveAllListeners();
-            button.Button.onClick.AddListener(() =>
-                SelectHeadType(headType)
-            );
-        }
-    }
-
-    private void UnhookHeadTypeButtons()
-    {
-        if (headTypeButtons == null)
-            return;
-
-        foreach (CharacterOptionButtonUI button
-                 in headTypeButtons)
-        {
-            if (button != null &&
-                button.Button != null)
-            {
-                button.Button.onClick.RemoveAllListeners();
-            }
-        }
-    }
-
     private void SubscribeToCreator()
     {
         if (characterCreator == null)
@@ -275,6 +243,90 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
             return;
 
         characterCreator.SelectionChanged -= Refresh;
+    }
+
+    private void BuildHeadButtons()
+    {
+        ClearHeadButtons();
+
+        if (characterDataLibrary == null ||
+            optionButtonPrefab == null ||
+            headButtonParent == null)
+        {
+            return;
+        }
+
+        foreach (CharacterAppearanceOptionDefinition option
+                 in characterDataLibrary.AppearanceOptionDefinitions)
+        {
+            if (option == null ||
+                option.category !=
+                    CharacterAppearanceOptionCategory.Head)
+            {
+                continue;
+            }
+
+            CharacterOptionButtonUI button =
+                Instantiate(
+                    optionButtonPrefab,
+                    headButtonParent
+                );
+
+            button.name =
+                $"{option.optionId}HeadOptionButton";
+
+            button.SetText(option.displayName);
+            button.SetImage(option.optionImage);
+            button.SetSelected(false);
+
+            CharacterAppearanceOptionDefinition
+                capturedOption = option;
+
+            if (button.Button != null)
+            {
+                button.Button.onClick.RemoveAllListeners();
+
+                button.Button.onClick.AddListener(() =>
+                    SelectHeadOption(capturedOption)
+                );
+            }
+
+            headButtons.Add(button);
+            headOptions.Add(option);
+        }
+    }
+
+    private void ClearHeadButtons()
+    {
+        foreach (CharacterOptionButtonUI button
+                 in headButtons)
+        {
+            if (button != null)
+                Destroy(button.gameObject);
+        }
+
+        headButtons.Clear();
+        headOptions.Clear();
+    }
+
+    private void SelectHeadOption(
+        CharacterAppearanceOptionDefinition option)
+    {
+        if (characterCreator == null ||
+            option == null)
+        {
+            return;
+        }
+
+        if (!characterCreator.SelectHeadOption(
+            option.optionId,
+            out string errorMessage))
+        {
+            Debug.LogWarning(
+                errorMessage,
+                this
+            );
+        }
     }
 
     private void Refresh()
@@ -338,25 +390,60 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
             appearance.eyeValue
         );
 
-        RefreshHeadTypeButtons(
-            appearance.headType
+        RefreshHeadButtons(
+            appearance.headOptionId
         );
     }
 
-    private void RefreshHeadTypeButtons(
-        int selectedHeadType)
+    private void RefreshHeadButtons(
+        string selectedOptionId)
     {
-        if (headTypeButtons == null)
-            return;
-
-        for (int i = 0; i < headTypeButtons.Length; i++)
+        for (int i = 0;
+             i < headButtons.Count;
+             i++)
         {
-            if (headTypeButtons[i] != null)
+            CharacterOptionButtonUI button =
+                headButtons[i];
+
+            CharacterAppearanceOptionDefinition option =
+                i < headOptions.Count
+                    ? headOptions[i]
+                    : null;
+
+            if (button == null ||
+                option == null)
             {
-                headTypeButtons[i].SetSelected(
-                    i == selectedHeadType
-                );
+                continue;
             }
+
+            CharacterAppearanceOptionAvailability availability =
+                characterCreator.GetAppearanceOptionAvailability(
+                    option
+                );
+
+            bool shown =
+                availability !=
+                CharacterAppearanceOptionAvailability.Hidden;
+
+            button.gameObject.SetActive(shown);
+
+            if (!shown)
+                continue;
+
+            bool available =
+                availability ==
+                CharacterAppearanceOptionAvailability.Available;
+
+            bool selected =
+                available &&
+                string.Equals(
+                    selectedOptionId,
+                    option.optionId,
+                    System.StringComparison.OrdinalIgnoreCase
+                );
+
+            button.SetInteractable(available);
+            button.SetSelected(selected);
         }
     }
 
@@ -374,13 +461,6 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
     {
         if (target != null)
             target.SetActive(active);
-    }
-
-    private void SelectHeadType(
-        int headType)
-    {
-        if (characterCreator != null)
-            characterCreator.SetHeadType(headType);
     }
 
     private void OnBodyScaleChanged(

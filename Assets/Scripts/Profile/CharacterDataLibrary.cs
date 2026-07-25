@@ -172,6 +172,34 @@ public class CharacterDataLibrary : ScriptableObject
         return false;
     }
 
+    public bool TryGetAppearanceOptionDefinition(
+        string optionId,
+        out CharacterAppearanceOptionDefinition optionDefinition)
+    {
+        optionDefinition = null;
+
+        if (string.IsNullOrWhiteSpace(optionId))
+            return false;
+
+        foreach (CharacterAppearanceOptionDefinition definition
+                 in appearanceOptionDefinitions)
+        {
+            if (definition == null)
+                continue;
+
+            if (string.Equals(
+                definition.optionId,
+                optionId,
+                System.StringComparison.OrdinalIgnoreCase))
+            {
+                optionDefinition = definition;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public List<TraitDefinition> GetTraitDefinitions(
         List<string> traitIds)
     {
