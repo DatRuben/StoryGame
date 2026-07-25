@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using TMPro;
+using System.Text;
 using UnityEngine;
 
 public class CharacterCreatorRaceUI : MonoBehaviour
@@ -226,7 +227,12 @@ public class CharacterCreatorRaceUI : MonoBehaviour
         selectedSubraceId = subraceDefinition.subraceId;
 
         RefreshSelectedSubrace(selectedButton);
-        ShowSubraceDescription(GetSubraceDescription(subraceDefinition));
+        ShowSubraceDescription(
+            GetSubraceDescription(
+                subraceDefinition,
+                null
+            )
+        );
         BuildLineageButtons(
             subraceDefinition.race,
             subraceDefinition
@@ -249,6 +255,10 @@ public class CharacterCreatorRaceUI : MonoBehaviour
 
         if (!raceDefinition.CanUseLineages())
         {
+            RefreshAncestryDescriptions(
+                selectedSubrace
+            );
+
             ShowLineageDescription(
                 "This race does not use lineages."
             );
@@ -296,7 +306,10 @@ public class CharacterCreatorRaceUI : MonoBehaviour
             button.Button.onClick.RemoveAllListeners();
 
             button.Button.onClick.AddListener(() =>
-                ToggleLineage(capturedLineage)
+                ToggleLineage(
+                    capturedLineage,
+                    selectedSubrace
+                )
             );
 
             lineageButtons.Add(button);
@@ -305,22 +318,27 @@ public class CharacterCreatorRaceUI : MonoBehaviour
 
         if (lineageOptions.Count == 0)
         {
+            RefreshAncestryDescriptions(
+                selectedSubrace
+            );
+
             ShowLineageDescription(
                 "No lineage options are available."
             );
-        }
-        else
-        {
-            ShowLineageDescription(
-                "Select a lineage."
-            );
+
+            return;
         }
 
         RefreshLineageButtons();
+
+        RefreshAncestryDescriptions(
+            selectedSubrace
+        );
     }
 
     private void ToggleLineage(
-        LineageSelection lineage)
+        LineageSelection lineage,
+        SubraceDefinition selectedSubrace)
     {
         if (lineage == null ||
             !lineage.IsValid ||
@@ -341,11 +359,11 @@ public class CharacterCreatorRaceUI : MonoBehaviour
             return;
         }
 
-        ShowLineageDescription(
-            GetLineageDescription(lineage)
-        );
-
         RefreshLineageButtons();
+
+        RefreshAncestryDescriptions(
+            selectedSubrace
+        );
     }
 
     private void RefreshLineageButtons()
@@ -429,34 +447,126 @@ public class CharacterCreatorRaceUI : MonoBehaviour
                selectedCount == 1;
     }
 
-    private string GetLineageDescription(
-        LineageSelection lineage)
+    private void RefreshAncestryDescriptions(
+        SubraceDefinition selectedSubrace)
     {
-        if (lineage == null)
-            return "";
-
-        string text =
-            lineage.DisplayName;
-
-        if (lineage.IsSubrace &&
-            lineage.Subrace != null &&
-            !string.IsNullOrWhiteSpace(
-                lineage.Subrace.description))
+        if (selectedSubrace == null ||
+            characterCreator == null)
         {
-            text +=
-                $"\n\n{lineage.Subrace.description}";
+            ShowSubraceDescription("");
+            ShowLineageDescription("");
+            return;
         }
 
-        if (lineage.IsCustomLineage &&
-            lineage.CustomLineage != null &&
-            !string.IsNullOrWhiteSpace(
-                lineage.CustomLineage.description))
+        if (!characterCreator.TryGetAncestryPreview(
+            out CharacterAttributePreview preview,
+            out string errorMessage))
         {
-            text +=
-                $"\n\n{lineage.CustomLineage.description}";
+            ShowSubraceDescription(
+                GetSubraceDescription(
+                    selectedSubrace,
+                    null
+                )
+            );
+
+            ShowLineageDescription(
+                errorMessage
+            );
+
+            return;
         }
 
-        return text;
+        ShowSubraceDescription(
+            GetSubraceDescription(
+                selectedSubrace,
+                preview
+            )
+        );
+
+        ShowLineageDescription(
+            GetSelectedLineageDescription(
+                selectedSubrace.race,
+                preview
+            )
+        );
+    }
+
+    private string GetSelectedLineageDescription(
+        RaceDefinition raceDefinition,
+        CharacterAttributePreview preview)
+    {
+        if (preview?.lineageInfluences == null ||
+            preview.lineageInfluences.Count == 0)
+        {
+            return "No lineage selected.";
+        }
+
+        StringBuilder builder =
+            new StringBuilder();
+
+        bool animalSpecies =
+            raceDefinition != null &&
+            raceDefinition.allowedLineageType ==
+            LineageType.AnimalSpecies;
+
+        foreach (LineageInfluencePreview lineage
+                 in preview.lineageInfluences)
+        {
+            if (lineage == null)
+                continue;
+
+            int influencePercent =
+                Mathf.RoundToInt(
+                    lineage.influence * 100f
+                );
+
+            if (animalSpecies)
+            {
+                builder.AppendLine(
+                    $"{lineage.displayName} " +
+                    $"modifier share: " +
+                    $"{influencePercent}%"
+                );
+            }
+            else
+            {
+                builder.AppendLine(
+                    $"{lineage.displayName}: " +
+                    $"{influencePercent}%"
+                );
+            }
+
+            List<string> differences =
+                new();
+
+            AddAttributeDifferences(
+                differences,
+                lineage.effectiveModifiers
+            );
+
+            if (differences.Count == 0)
+            {
+                builder.AppendLine(
+                    "No effective attribute changes."
+                );
+            }
+            else
+            {
+                foreach (string difference
+                         in differences)
+                {
+                    builder.AppendLine(
+                        difference
+                    );
+                }
+            }
+
+            builder.AppendLine();
+        }
+
+        return builder
+            .ToString()
+            .TrimEnd();
     }
 
     private bool HasRequiredReferences()
@@ -779,51 +889,110 @@ public class CharacterCreatorRaceUI : MonoBehaviour
     }
 
     private string GetSubraceDescription(
-        SubraceDefinition subraceDefinition)
+        SubraceDefinition subraceDefinition,
+        CharacterAttributePreview preview)
     {
         if (subraceDefinition == null)
             return "";
 
-        string text =
+        StringBuilder builder =
+            new StringBuilder();
+
+        string description =
             !string.IsNullOrWhiteSpace(
                 subraceDefinition.description)
-                    ? subraceDefinition.description
-                    : GetSubraceButtonText(
-                        subraceDefinition
-                    );
+                ? subraceDefinition.description
+                : GetSubraceButtonText(
+                    subraceDefinition
+                );
 
-        string baselineName =
-            GetSubraceBaselineName(
-                subraceDefinition
+        builder.Append(description);
+
+        RaceDefinition raceDefinition =
+            subraceDefinition.race;
+
+        if (preview != null &&
+            raceDefinition != null &&
+            raceDefinition.allowedLineageType !=
+            LineageType.AnimalSpecies)
+        {
+            int influencePercent =
+                Mathf.RoundToInt(
+                    preview.mainAncestryInfluence *
+                    100f
+                );
+
+            builder.Append(
+                $"\n\nMain ancestry influence: " +
+                $"{influencePercent}%"
             );
+        }
 
-        List<string> differences = new();
+        CharacterAttributeModifiers modifiers =
+            preview != null
+                ? preview.SubraceModifiers
+                : subraceDefinition.attributeDifferences;
+
+        List<string> attributeDifferences =
+            new();
 
         AddAttributeDifferences(
-            differences,
-            subraceDefinition
-                .attributeDifferences
+            attributeDifferences,
+            modifiers
         );
 
-        AddBodyDifferences(
-            differences,
-            subraceDefinition
+        string raceName =
+            raceDefinition != null
+                ? GetRaceButtonText(raceDefinition)
+                : "base race";
+
+        builder.Append(
+            $"\n\nTotal attribute changes " +
+            $"from {raceName}:"
         );
 
-        text +=
-            $"\n\nDifferences from {baselineName}:";
-
-        if (differences.Count == 0)
+        if (attributeDifferences.Count == 0)
         {
-            text += "\nNo differences.";
+            builder.Append(
+                "\nNo attribute changes."
+            );
         }
         else
         {
-            text +=
-                $"\n{string.Join("\n", differences)}";
+            builder.Append("\n");
+            builder.Append(
+                string.Join(
+                    "\n",
+                    attributeDifferences
+                )
+            );
         }
 
-        return text;
+        List<string> bodyDifferences =
+            new();
+
+        AddBodyDifferences(
+            bodyDifferences,
+            subraceDefinition
+        );
+
+        if (bodyDifferences.Count > 0)
+        {
+            builder.Append(
+                $"\n\nBody differences from " +
+                $"{GetSubraceBaselineName(subraceDefinition)}:"
+            );
+
+            builder.Append("\n");
+            builder.Append(
+                string.Join(
+                    "\n",
+                    bodyDifferences
+                )
+            );
+        }
+
+        return builder.ToString();
     }
 
     private string GetSubraceBaselineName(
