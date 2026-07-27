@@ -1,14 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
 {
     [Header("Data")]
-    [SerializeField]
-    private CharacterDataLibrary characterDataLibrary;
-
     [SerializeField]
     private CharacterCreator characterCreator;
 
@@ -18,7 +16,8 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
 
     [Header("Category Panels")]
     [SerializeField] private GameObject bodyDetails;
-    [SerializeField] private GameObject headDetails;
+    [FormerlySerializedAs("headDetails")]
+    [SerializeField] private GameObject optionDetails;
     [SerializeField] private GameObject hairDetails;
     [SerializeField] private GameObject eyesDetails;
     [SerializeField] private GameObject skinDetails;
@@ -26,8 +25,9 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
     [Header("Body")]
     [SerializeField] private Slider bodyScaleSlider;
 
-    [Header("Head")]
-    [SerializeField] private Transform headButtonParent;
+    [Header("Appearance Options")]
+    [FormerlySerializedAs("headButtonParent")]
+    [SerializeField] private Transform optionButtonParent;
 
     [Header("Skin Color")]
     [SerializeField] private Slider skinHueSlider;
@@ -45,10 +45,14 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
     [SerializeField] private Slider eyeValueSlider;
 
     private readonly List<CharacterOptionButtonUI>
-        headButtons = new();
+        optionButtons = new();
 
     private readonly List<CharacterAppearanceOptionDefinition>
-        headOptions = new();
+        optionDefinitions = new();
+
+    private CharacterAppearanceOptionCategory
+        selectedOptionCategory =
+            CharacterAppearanceOptionCategory.Head;
 
     private CharacterAppearanceCategory selectedCategory =
         CharacterAppearanceCategory.Body;
@@ -57,22 +61,29 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
     {
         HookUI();
         SubscribeToCreator();
-
-        BuildHeadButtons();
         ShowCategory(selectedCategory);
-        Refresh();
     }
 
     private void OnDisable()
     {
         UnhookUI();
         UnsubscribeFromCreator();
-        ClearHeadButtons();
+        ClearOptionButtons();
     }
 
     public void ShowCategory(
         CharacterAppearanceCategory category)
     {
+        if (category ==
+            CharacterAppearanceCategory.Head)
+        {
+            ShowOptionCategory(
+                CharacterAppearanceOptionCategory.Head
+            );
+
+            return;
+        }
+
         selectedCategory = category;
 
         SetActive(
@@ -80,10 +91,7 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
             category == CharacterAppearanceCategory.Body
         );
 
-        SetActive(
-            headDetails,
-            category == CharacterAppearanceCategory.Head
-        );
+        SetActive(optionDetails, false);
 
         SetActive(
             hairDetails,
@@ -100,6 +108,24 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
             category == CharacterAppearanceCategory.Skin
         );
 
+        Refresh();
+    }
+
+    public void ShowOptionCategory(
+        CharacterAppearanceOptionCategory category)
+    {
+        selectedCategory =
+            CharacterAppearanceCategory.Head;
+
+        selectedOptionCategory = category;
+
+        SetActive(bodyDetails, false);
+        SetActive(optionDetails, true);
+        SetActive(hairDetails, false);
+        SetActive(eyesDetails, false);
+        SetActive(skinDetails, false);
+
+        BuildOptionButtons();
         Refresh();
     }
 
@@ -245,71 +271,72 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
         characterCreator.SelectionChanged -= Refresh;
     }
 
-    private void BuildHeadButtons()
+    private void BuildOptionButtons()
     {
-        ClearHeadButtons();
+        ClearOptionButtons();
 
-        if (characterDataLibrary == null ||
+        if (characterCreator == null ||
             optionButtonPrefab == null ||
-            headButtonParent == null)
+            optionButtonParent == null)
         {
             return;
         }
 
+        List<CharacterAppearanceOptionDefinition> shownOptions =
+            characterCreator.GetShownAppearanceOptions(
+                selectedOptionCategory
+            );
+
         foreach (CharacterAppearanceOptionDefinition option
-                 in characterDataLibrary.AppearanceOptionDefinitions)
+                 in shownOptions)
         {
-            if (option == null ||
-                option.category !=
-                    CharacterAppearanceOptionCategory.Head)
-            {
+            if (option == null)
                 continue;
-            }
 
             CharacterOptionButtonUI button =
                 Instantiate(
                     optionButtonPrefab,
-                    headButtonParent
+                    optionButtonParent
                 );
 
             button.name =
-                $"{option.optionId}HeadOptionButton";
+                $"{option.optionId}AppearanceOptionButton";
 
             button.SetText(option.displayName);
             button.SetImage(option.optionImage);
             button.SetSelected(false);
 
-            CharacterAppearanceOptionDefinition
-                capturedOption = option;
+            CharacterAppearanceOptionDefinition capturedOption =
+                option;
 
             if (button.Button != null)
             {
                 button.Button.onClick.RemoveAllListeners();
 
                 button.Button.onClick.AddListener(() =>
-                    SelectHeadOption(capturedOption)
+                    SelectOption(capturedOption)
                 );
             }
 
-            headButtons.Add(button);
-            headOptions.Add(option);
+            optionButtons.Add(button);
+            optionDefinitions.Add(option);
         }
     }
 
-    private void ClearHeadButtons()
+    private void ClearOptionButtons()
     {
         foreach (CharacterOptionButtonUI button
-                 in headButtons)
+                 in optionButtons)
         {
             if (button != null)
                 Destroy(button.gameObject);
         }
 
-        headButtons.Clear();
-        headOptions.Clear();
+        optionButtons.Clear();
+        optionDefinitions.Clear();
     }
 
-    private void SelectHeadOption(
+    private void SelectOption(
         CharacterAppearanceOptionDefinition option)
     {
         if (characterCreator == null ||
@@ -390,26 +417,26 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
             appearance.eyeValue
         );
 
-        RefreshHeadButtons(
+        RefreshOptionButtons(
             appearance.GetSingleOptionId(
-                CharacterAppearanceOptionCategory.Head
+                selectedOptionCategory
             )
         );
     }
 
-    private void RefreshHeadButtons(
+    private void RefreshOptionButtons(
         string selectedOptionId)
     {
         for (int i = 0;
-             i < headButtons.Count;
+             i < optionButtons.Count;
              i++)
         {
             CharacterOptionButtonUI button =
-                headButtons[i];
+                optionButtons[i];
 
             CharacterAppearanceOptionDefinition option =
-                i < headOptions.Count
-                    ? headOptions[i]
+                i < optionDefinitions.Count
+                    ? optionDefinitions[i]
                     : null;
 
             if (button == null ||
