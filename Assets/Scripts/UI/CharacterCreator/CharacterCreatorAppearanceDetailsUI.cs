@@ -57,6 +57,12 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
     private CharacterAppearanceCategory selectedCategory =
         CharacterAppearanceCategory.Body;
 
+    private string optionRaceId = "";
+    private string optionSubraceId = "";
+
+    private readonly List<string>
+        optionLineageIds = new();
+
     private void OnEnable()
     {
         HookUI();
@@ -287,6 +293,8 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
                 selectedOptionCategory
             );
 
+        CacheAncestry();
+
         foreach (CharacterAppearanceOptionDefinition option
                  in shownOptions)
         {
@@ -336,6 +344,86 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
         optionDefinitions.Clear();
     }
 
+    private bool AncestryChanged()
+    {
+        if (characterCreator == null)
+            return false;
+
+        if (!string.Equals(
+                optionRaceId,
+                characterCreator.SelectedRaceId,
+                System.StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        if (!string.Equals(
+                optionSubraceId,
+                characterCreator.SelectedSubraceId,
+                System.StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        IReadOnlyList<string> selectedLineageIds =
+            characterCreator.SelectedLineageIds;
+
+        if (selectedLineageIds == null)
+            return optionLineageIds.Count != 0;
+
+        if (optionLineageIds.Count !=
+            selectedLineageIds.Count)
+        {
+            return true;
+        }
+
+        for (int i = 0;
+             i < selectedLineageIds.Count;
+             i++)
+        {
+            if (!string.Equals(
+                    optionLineageIds[i],
+                    selectedLineageIds[i],
+                    System.StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void CacheAncestry()
+    {
+        optionRaceId = "";
+        optionSubraceId = "";
+        optionLineageIds.Clear();
+
+        if (characterCreator == null)
+            return;
+
+        optionRaceId =
+            characterCreator.SelectedRaceId;
+
+        optionSubraceId =
+            characterCreator.SelectedSubraceId;
+
+        IReadOnlyList<string> selectedLineageIds =
+            characterCreator.SelectedLineageIds;
+
+        if (selectedLineageIds == null)
+            return;
+
+        for (int i = 0;
+             i < selectedLineageIds.Count;
+             i++)
+        {
+            optionLineageIds.Add(
+                selectedLineageIds[i]
+            );
+        }
+    }
+
     private void SelectOption(
         CharacterAppearanceOptionDefinition option)
     {
@@ -360,6 +448,13 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
     {
         if (characterCreator == null)
             return;
+
+        if (selectedCategory ==
+                CharacterAppearanceCategory.Head &&
+            AncestryChanged())
+        {
+            BuildOptionButtons();
+        }
 
         CharacterAppearanceData appearance =
             characterCreator.SelectedAppearance;
