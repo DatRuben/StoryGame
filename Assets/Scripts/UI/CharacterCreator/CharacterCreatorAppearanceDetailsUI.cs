@@ -63,10 +63,22 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
     private readonly List<string>
         optionLineageIds = new();
 
+    private bool showingOptionCategory;
+
     private void OnEnable()
     {
         HookUI();
         SubscribeToCreator();
+
+        if (showingOptionCategory)
+        {
+            ShowOptionCategory(
+                selectedOptionCategory
+            );
+
+            return;
+        }
+
         ShowCategory(selectedCategory);
     }
 
@@ -80,16 +92,7 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
     public void ShowCategory(
         CharacterAppearanceCategory category)
     {
-        if (category ==
-            CharacterAppearanceCategory.Head)
-        {
-            ShowOptionCategory(
-                CharacterAppearanceOptionCategory.Head
-            );
-
-            return;
-        }
-
+        showingOptionCategory = false;
         selectedCategory = category;
 
         SetActive(
@@ -120,9 +123,7 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
     public void ShowOptionCategory(
         CharacterAppearanceOptionCategory category)
     {
-        selectedCategory =
-            CharacterAppearanceCategory.Head;
-
+        showingOptionCategory = true;
         selectedOptionCategory = category;
 
         SetActive(bodyDetails, false);
@@ -449,8 +450,7 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
         if (characterCreator == null)
             return;
 
-        if (selectedCategory ==
-                CharacterAppearanceCategory.Head &&
+        if (showingOptionCategory &&
             AncestryChanged())
         {
             BuildOptionButtons();

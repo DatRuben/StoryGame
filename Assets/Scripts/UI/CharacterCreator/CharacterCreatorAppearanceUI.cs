@@ -2,12 +2,10 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.Serialization;
 
 public enum CharacterAppearanceCategory
 {
     Body,
-    Head,
     Hair,
     Eyes,
     Skin
@@ -37,11 +35,13 @@ public class CharacterCreatorAppearanceUI : MonoBehaviour
     [SerializeField]
     private CharacterOptionButtonUI skinButton;
 
-    [Header("Option Category Template")]
-    [FormerlySerializedAs("headButton")]
+    [Header("Option Category Buttons")]
     [SerializeField]
     private CharacterOptionButtonUI
-        optionCategoryButtonTemplate;
+        optionCategoryButtonPrefab;
+
+    [SerializeField]
+    private Transform optionCategoryButtonParent;
 
     private readonly List<CharacterOptionButtonUI>
         optionCategoryButtons = new();
@@ -72,13 +72,6 @@ public class CharacterCreatorAppearanceUI : MonoBehaviour
             );
 
             return;
-        }
-
-        if (selectedCategory ==
-            CharacterAppearanceCategory.Head)
-        {
-            selectedCategory =
-                CharacterAppearanceCategory.Body;
         }
 
         SelectCategory(selectedCategory);
@@ -223,22 +216,11 @@ public class CharacterCreatorAppearanceUI : MonoBehaviour
     {
         ClearOptionCategoryButtons();
 
-        if (optionCategoryButtonTemplate == null)
+        if (optionCategoryButtonPrefab == null ||
+            optionCategoryButtonParent == null)
+        {
             return;
-
-        optionCategoryButtonTemplate
-            .gameObject.SetActive(false);
-
-        Transform buttonParent =
-            optionCategoryButtonTemplate
-                .transform.parent;
-
-        if (buttonParent == null)
-            return;
-
-        int firstSiblingIndex =
-            optionCategoryButtonTemplate
-                .transform.GetSiblingIndex();
+        }
 
         foreach (
             CharacterAppearanceOptionCategory category
@@ -246,16 +228,11 @@ public class CharacterCreatorAppearanceUI : MonoBehaviour
         {
             CharacterOptionButtonUI button =
                 Instantiate(
-                    optionCategoryButtonTemplate,
-                    buttonParent
+                    optionCategoryButtonPrefab,
+                    optionCategoryButtonParent
                 );
 
             button.gameObject.SetActive(true);
-
-            button.transform.SetSiblingIndex(
-                firstSiblingIndex +
-                optionCategoryButtons.Count
-            );
 
             button.name =
                 $"{category}AppearanceCategoryButton";
