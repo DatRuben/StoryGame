@@ -147,12 +147,11 @@ public class PlayerCharacterProfile : MonoBehaviour
             GetComponent<CharacterAppearanceApplier>();
 
         if (appearanceApplier == null)
-            appearanceApplier = gameObject.AddComponent<CharacterAppearanceApplier>();
-
-        CharacterAppearanceData appearance =
-            ProfileData != null
-                ? ProfileData.appearance
-                : CharacterAppearanceData.CreateDefault();
+        {
+            appearanceApplier =
+                gameObject.AddComponent<
+                    CharacterAppearanceApplier>();
+        }
 
         appearanceApplier.ApplyAppearance(
             Appearance

@@ -74,9 +74,7 @@ public class CharacterCreator : MonoBehaviour
         float hue)
     {
         selectedAppearance.hue =
-            Mathf.Clamp01(
-                selectedAppearance.hue
-            );
+            Mathf.Clamp01(hue);
 
         NotifySelectionChanged();
     }
@@ -100,12 +98,10 @@ public class CharacterCreator : MonoBehaviour
     }
 
     public void SetHairHue(
-    float hue)
+        float hue)
     {
         selectedAppearance.hairHue =
-            Mathf.Clamp01(
-                selectedAppearance.hairHue
-            );
+            Mathf.Clamp01(hue);
 
         NotifySelectionChanged();
     }
@@ -128,18 +124,16 @@ public class CharacterCreator : MonoBehaviour
         NotifySelectionChanged();
     }
 
-	public void SetTailHue(
-		float hue)
-	{
+    public void SetTailHue(
+        float hue)
+    {
         selectedAppearance.tailHue =
-            Mathf.Clamp01(
-                selectedAppearance.tailHue
-            );
+            Mathf.Clamp01(hue);
 
         NotifySelectionChanged();
-	}
+    }
 
-	public void SetTailSaturation(
+    public void SetTailSaturation(
 		float saturation)
 	{
 		selectedAppearance.tailSaturation =
@@ -157,13 +151,11 @@ public class CharacterCreator : MonoBehaviour
 		NotifySelectionChanged();
 	}
 
-	public void SetEyeHue(
+    public void SetEyeHue(
         float hue)
     {
         selectedAppearance.eyeHue =
-            Mathf.Clamp01(
-                selectedAppearance.eyeHue
-            );
+            Mathf.Clamp01(hue);
 
         NotifySelectionChanged();
     }
@@ -1130,13 +1122,12 @@ public class CharacterCreator : MonoBehaviour
                 selectedAppearance.bodyScale
             );
 
-		selectedAppearance.tailHue =
-			Mathf.Repeat(
-				selectedAppearance.tailHue,
-				1f
-			);
+        selectedAppearance.tailHue =
+            Mathf.Clamp01(
+                selectedAppearance.tailHue
+            );
 
-		selectedAppearance.tailSaturation =
+        selectedAppearance.tailSaturation =
 			Mathf.Clamp01(
 				selectedAppearance.tailSaturation
 			);
@@ -1146,10 +1137,9 @@ public class CharacterCreator : MonoBehaviour
 				selectedAppearance.tailValue
 			);
 
-		selectedAppearance.hue =
-            Mathf.Repeat(
-                selectedAppearance.hue,
-                1f
+        selectedAppearance.hue =
+            Mathf.Clamp01(
+                selectedAppearance.hue
             );
 
         selectedAppearance.saturation =
@@ -1163,9 +1153,8 @@ public class CharacterCreator : MonoBehaviour
             );
 
         selectedAppearance.hairHue =
-            Mathf.Repeat(
-                selectedAppearance.hairHue,
-                1f
+            Mathf.Clamp01(
+                selectedAppearance.hairHue
             );
 
         selectedAppearance.hairSaturation =
@@ -1179,9 +1168,8 @@ public class CharacterCreator : MonoBehaviour
             );
 
         selectedAppearance.eyeHue =
-            Mathf.Repeat(
-                selectedAppearance.eyeHue,
-                1f
+            Mathf.Clamp01(
+                selectedAppearance.eyeHue
             );
 
         selectedAppearance.eyeSaturation =
