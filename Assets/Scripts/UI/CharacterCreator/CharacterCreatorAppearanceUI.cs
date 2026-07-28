@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
-using UnityEngine.Events;
 
 public class CharacterCreatorAppearanceUI : MonoBehaviour
 {
@@ -14,102 +13,44 @@ public class CharacterCreatorAppearanceUI : MonoBehaviour
     private CharacterCreatorAppearanceDetailsUI
         appearanceDetailsUI;
 
-    [Header("Fixed Category Buttons")]
+    [Header("Category")]
     [SerializeField]
-    private CharacterOptionButtonUI bodyButton;
+    private CharacterAppearanceCategoryUI
+        categoryPrefab;
 
     [SerializeField]
-    private CharacterOptionButtonUI hairButton;
+    private Transform categoryParent;
 
-    [SerializeField]
-    private CharacterOptionButtonUI eyesButton;
-
-    [Header("Option Category Buttons")]
+    [Header("Option Button")]
     [SerializeField]
     private CharacterOptionButtonUI
-        optionCategoryButtonPrefab;
+        optionButtonPrefab;
 
-    [SerializeField]
-    private Transform optionCategoryButtonParent;
-
-    private readonly List<CharacterOptionButtonUI>
-        optionCategoryButtons = new();
+    private readonly List<CharacterAppearanceCategoryUI>
+        categoryUIs = new();
 
     private readonly List<CharacterAppearanceCategory>
-        optionCategories = new();
+        categories = new();
+
+    private readonly List<CharacterOptionButtonUI>
+        optionButtons = new();
+
+    private readonly List<CharacterAppearanceOptionDefinition>
+        optionDefinitions = new();
 
     private CharacterAppearanceCategory selectedCategory =
         CharacterAppearanceCategory.Body;
 
-    private CharacterAppearanceCategory
-        selectedOptionCategory =
-            CharacterAppearanceCategory.Head;
-
-    private bool showingOptionCategory;
-
     private void OnEnable()
     {
-        HookButtons();
         SubscribeToCreator();
-        RebuildOptionCategoryButtons();
-
-        if (showingOptionCategory &&
-            HasOptionCategory(selectedOptionCategory))
-        {
-            SelectOptionCategory(
-                selectedOptionCategory
-            );
-
-            return;
-        }
-
-        SelectCategory(selectedCategory);
+        RebuildCategories();
     }
 
     private void OnDisable()
     {
-        UnhookButtons();
         UnsubscribeFromCreator();
-        ClearOptionCategoryButtons();
-    }
-
-    private void HookButtons()
-    {
-        HookButton(
-            bodyButton,
-            "Body",
-            SelectBody
-        );
-
-        HookButton(
-            hairButton,
-            "Hair Color",
-            SelectHairColor
-        );
-
-        HookButton(
-            eyesButton,
-            "Eye Color",
-            SelectEyeColor
-        );
-    }
-
-    private void UnhookButtons()
-    {
-        UnhookButton(
-            bodyButton,
-            SelectBody
-        );
-
-        UnhookButton(
-            hairButton,
-            SelectHairColor
-        );
-
-        UnhookButton(
-            eyesButton,
-            SelectEyeColor
-        );
+        ClearCategories();
     }
 
     private void SubscribeToCreator()
@@ -118,10 +59,10 @@ public class CharacterCreatorAppearanceUI : MonoBehaviour
             return;
 
         characterCreator.SelectionChanged -=
-            RefreshOptionCategories;
+            RebuildCategories;
 
         characterCreator.SelectionChanged +=
-            RefreshOptionCategories;
+            RebuildCategories;
     }
 
     private void UnsubscribeFromCreator()
@@ -130,191 +71,316 @@ public class CharacterCreatorAppearanceUI : MonoBehaviour
             return;
 
         characterCreator.SelectionChanged -=
-            RefreshOptionCategories;
+            RebuildCategories;
     }
 
-    private void RefreshOptionCategories()
+    private void RebuildCategories()
+    {
+        ClearCategories();
+
+        if (categoryPrefab == null ||
+            categoryParent == null)
+        {
+            return;
+        }
+
+        List<CharacterAppearanceCategory>
+            shownCategories = GetShownCategories();
+
+        if (!ContainsCategory(
+                shownCategories,
+                selectedCategory))
+        {
+            selectedCategory =
+                CharacterAppearanceCategory.Body;
+        }
+
+        foreach (CharacterAppearanceCategory category
+                 in shownCategories)
+        {
+            BuildCategory(category);
+        }
+
+        RefreshCategories();
+        ShowDetails();
+    }
+
+    private List<CharacterAppearanceCategory>
+        GetShownCategories()
+    {
+        List<CharacterAppearanceCategory> shown =
+            new List<CharacterAppearanceCategory>
+            {
+                CharacterAppearanceCategory.Body
+            };
+
+        if (characterCreator == null)
+            return shown;
+
+        List<CharacterAppearanceCategory> optionCategories =
+            characterCreator.GetShownAppearanceCategories();
+
+        foreach (CharacterAppearanceCategory category
+                 in optionCategories)
+        {
+            if (!ContainsCategory(shown, category))
+                shown.Add(category);
+        }
+
+        return shown;
+    }
+
+    private void BuildCategory(
+        CharacterAppearanceCategory category)
+    {
+        List<CharacterAppearanceOptionDefinition> options =
+            characterCreator != null
+                ? characterCreator.GetShownAppearanceOptions(
+                    category
+                )
+                : new List<
+                    CharacterAppearanceOptionDefinition>();
+
+        CharacterAppearanceCategory capturedCategory =
+            category;
+
+        CharacterAppearanceCategoryUI categoryUI =
+            Instantiate(
+                categoryPrefab,
+                categoryParent
+            );
+
+        categoryUI.name =
+            $"{category}AppearanceCategory";
+
+        categoryUI.gameObject.SetActive(true);
+
+        categoryUI.Setup(
+            GetCategoryLabel(category),
+            options.Count > 0,
+            () => SelectCategory(capturedCategory)
+        );
+
+        categoryUIs.Add(categoryUI);
+        categories.Add(category);
+
+        foreach (CharacterAppearanceOptionDefinition option
+                 in options)
+        {
+            BuildOptionButton(
+                categoryUI,
+                option
+            );
+        }
+    }
+
+    private void BuildOptionButton(
+        CharacterAppearanceCategoryUI categoryUI,
+        CharacterAppearanceOptionDefinition option)
+    {
+        if (categoryUI == null ||
+            option == null ||
+            optionButtonPrefab == null ||
+            categoryUI.OptionButtonParent == null)
+        {
+            return;
+        }
+
+        CharacterOptionButtonUI button =
+            Instantiate(
+                optionButtonPrefab,
+                categoryUI.OptionButtonParent
+            );
+
+        button.name =
+            $"{option.optionId}AppearanceOptionButton";
+
+        button.gameObject.SetActive(true);
+        button.SetImage(option.optionImage);
+        button.SetSelected(false);
+
+        CharacterAppearanceOptionDefinition capturedOption =
+            option;
+
+        if (button.Button != null)
+        {
+            button.Button.onClick.RemoveAllListeners();
+
+            button.Button.onClick.AddListener(
+                () => SelectOption(capturedOption)
+            );
+        }
+
+        optionButtons.Add(button);
+        optionDefinitions.Add(option);
+    }
+
+    private void SelectCategory(
+        CharacterAppearanceCategory category)
+    {
+        selectedCategory = category;
+
+        RefreshCategories();
+        ShowDetails();
+    }
+
+    private void SelectOption(
+        CharacterAppearanceOptionDefinition option)
+    {
+        if (characterCreator == null ||
+            option == null)
+        {
+            return;
+        }
+
+        if (!characterCreator.SelectAppearanceOption(
+                option.optionId,
+                out string errorMessage))
+        {
+            Debug.LogWarning(
+                errorMessage,
+                this
+            );
+        }
+    }
+
+    private void RefreshCategories()
+    {
+        for (int i = 0;
+             i < categoryUIs.Count;
+             i++)
+        {
+            CharacterAppearanceCategoryUI categoryUI =
+                categoryUIs[i];
+
+            if (categoryUI == null ||
+                i >= categories.Count)
+            {
+                continue;
+            }
+
+            bool selected =
+                categories[i] == selectedCategory;
+
+            categoryUI.SetSelected(selected);
+            categoryUI.SetExpanded(selected);
+        }
+
+        RefreshOptionButtons();
+    }
+
+    private void RefreshOptionButtons()
     {
         if (characterCreator == null)
             return;
 
-        List<CharacterAppearanceCategory>
-            shownCategories =
-                characterCreator
-                    .GetShownAppearanceCategories();
+        CharacterAppearanceData appearance =
+            characterCreator.SelectedAppearance;
 
-        if (SameOptionCategories(shownCategories))
-        {
-            RefreshCategorySelection();
+        if (appearance == null)
             return;
-        }
 
-        bool selectedCategoryStillShown =
-            !showingOptionCategory ||
-            ContainsOptionCategory(
-                shownCategories,
-                selectedOptionCategory
-            );
-
-        RebuildOptionCategoryButtons(
-            shownCategories
-        );
-
-        if (showingOptionCategory &&
-            !selectedCategoryStillShown)
-        {
-            SelectCategory(
-                CharacterAppearanceCategory.Body
-            );
-
-            return;
-        }
-
-        RefreshCategorySelection();
-    }
-
-    private void RebuildOptionCategoryButtons()
-    {
-        List<CharacterAppearanceCategory>
-            shownCategories =
-                characterCreator != null
-                    ? characterCreator
-                        .GetShownAppearanceCategories()
-                    : new List<
-                        CharacterAppearanceCategory>();
-
-        RebuildOptionCategoryButtons(
-            shownCategories
-        );
-    }
-
-    private void RebuildOptionCategoryButtons(
-        List<CharacterAppearanceCategory>
-            shownCategories)
-    {
-        ClearOptionCategoryButtons();
-
-        if (optionCategoryButtonPrefab == null ||
-            optionCategoryButtonParent == null)
-        {
-            return;
-        }
-
-        foreach (
-            CharacterAppearanceCategory category
-            in shownCategories)
+        for (int i = 0;
+             i < optionButtons.Count;
+             i++)
         {
             CharacterOptionButtonUI button =
-                Instantiate(
-                    optionCategoryButtonPrefab,
-                    optionCategoryButtonParent
+                optionButtons[i];
+
+            CharacterAppearanceOptionDefinition option =
+                i < optionDefinitions.Count
+                    ? optionDefinitions[i]
+                    : null;
+
+            if (button == null ||
+                option == null)
+            {
+                continue;
+            }
+
+            CharacterAppearanceOptionAvailability availability =
+                characterCreator.GetAppearanceOptionAvailability(
+                    option
                 );
 
-            button.gameObject.SetActive(true);
+            bool shown =
+                availability !=
+                CharacterAppearanceOptionAvailability.Hidden;
 
-            button.name =
-                $"{category}AppearanceCategoryButton";
+            button.gameObject.SetActive(shown);
 
-            button.SetText(
-                GetOptionCategoryLabel(category)
+            if (!shown)
+                continue;
+
+            bool available =
+                availability ==
+                CharacterAppearanceOptionAvailability.Available;
+
+            string selectedOptionId =
+                appearance.GetSingleOptionId(
+                    option.category
+                );
+
+            bool selected =
+                available &&
+                string.Equals(
+                    selectedOptionId,
+                    option.optionId,
+                    System.StringComparison.OrdinalIgnoreCase
+                );
+
+            button.SetInteractable(available);
+            button.SetSelected(selected);
+        }
+    }
+
+    private void ShowDetails()
+    {
+        if (appearanceDetailsUI != null)
+        {
+            appearanceDetailsUI.ShowCategory(
+                selectedCategory
             );
-
-            button.SetImage(null);
-            button.SetInteractable(true);
-            button.SetSelected(false);
-
-            CharacterAppearanceCategory
-                capturedCategory = category;
-
-            if (button.Button != null)
-            {
-                button.Button.onClick
-                    .RemoveAllListeners();
-
-                button.Button.onClick.AddListener(
-                    () => SelectOptionCategory(
-                        capturedCategory
-                    )
-                );
-            }
-
-            optionCategoryButtons.Add(button);
-            optionCategories.Add(category);
         }
     }
 
-    private void ClearOptionCategoryButtons()
+    private void ClearCategories()
     {
-        foreach (CharacterOptionButtonUI button
-                 in optionCategoryButtons)
+        foreach (CharacterAppearanceCategoryUI categoryUI
+                 in categoryUIs)
         {
-            if (button != null)
-            {
-                button.gameObject.SetActive(false);
-                Destroy(button.gameObject);
-            }
+            if (categoryUI == null)
+                continue;
+
+            categoryUI.gameObject.SetActive(false);
+            Destroy(categoryUI.gameObject);
         }
 
-        optionCategoryButtons.Clear();
-        optionCategories.Clear();
+        categoryUIs.Clear();
+        categories.Clear();
+        optionButtons.Clear();
+        optionDefinitions.Clear();
     }
 
-    private bool SameOptionCategories(
-        List<CharacterAppearanceCategory>
-            shownCategories)
-    {
-        if (shownCategories == null)
-            return optionCategories.Count == 0;
-
-        if (optionCategories.Count !=
-            shownCategories.Count)
-        {
-            return false;
-        }
-
-        for (int i = 0;
-             i < shownCategories.Count;
-             i++)
-        {
-            if (optionCategories[i] !=
-                shownCategories[i])
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private bool HasOptionCategory(
+    private bool ContainsCategory(
+        IReadOnlyList<CharacterAppearanceCategory> list,
         CharacterAppearanceCategory category)
     {
-        return ContainsOptionCategory(
-            optionCategories,
-            category
-        );
-    }
-
-    private bool ContainsOptionCategory(
-        IReadOnlyList<
-            CharacterAppearanceCategory> categories,
-        CharacterAppearanceCategory category)
-    {
-        if (categories == null)
+        if (list == null)
             return false;
 
         for (int i = 0;
-             i < categories.Count;
+             i < list.Count;
              i++)
         {
-            if (categories[i] == category)
+            if (list[i] == category)
                 return true;
         }
 
         return false;
     }
 
-    private string GetOptionCategoryLabel(
+    private string GetCategoryLabel(
         CharacterAppearanceCategory category)
     {
         string categoryName =
@@ -340,158 +406,5 @@ public class CharacterCreatorAppearanceUI : MonoBehaviour
         }
 
         return label.ToString();
-    }
-
-    private void HookButton(
-        CharacterOptionButtonUI button,
-        string label,
-        UnityAction action)
-    {
-        if (button == null)
-            return;
-
-        button.SetText(label);
-        button.SetInteractable(true);
-
-        if (button.Button == null)
-            return;
-
-        button.Button.onClick
-            .RemoveListener(action);
-
-        button.Button.onClick
-            .AddListener(action);
-    }
-
-    private void UnhookButton(
-        CharacterOptionButtonUI button,
-        UnityAction action)
-    {
-        if (button == null ||
-            button.Button == null)
-        {
-            return;
-        }
-
-        button.Button.onClick
-            .RemoveListener(action);
-    }
-
-    private void SelectBody()
-    {
-        SelectCategory(
-            CharacterAppearanceCategory.Body
-        );
-    }
-
-    private void SelectHairColor()
-    {
-        SelectCategory(
-            CharacterAppearanceCategory.Hair
-        );
-    }
-
-    private void SelectEyeColor()
-    {
-        SelectCategory(
-            CharacterAppearanceCategory.Eyes
-        );
-    }
-
-    private void SelectCategory(
-        CharacterAppearanceCategory category)
-    {
-        showingOptionCategory = false;
-        selectedCategory = category;
-
-        SetSelected(
-            bodyButton,
-            category ==
-                CharacterAppearanceCategory.Body
-        );
-
-        SetSelected(
-            hairButton,
-            category ==
-                CharacterAppearanceCategory.Hair
-        );
-
-        SetSelected(
-            eyesButton,
-            category ==
-                CharacterAppearanceCategory.Eyes
-        );
-
-        RefreshOptionCategorySelection();
-
-        if (appearanceDetailsUI != null)
-        {
-            appearanceDetailsUI.ShowCategory(
-                category
-            );
-        }
-    }
-
-    private void SelectOptionCategory(
-        CharacterAppearanceCategory category)
-    {
-        if (!HasOptionCategory(category))
-            return;
-
-        showingOptionCategory = true;
-        selectedOptionCategory = category;
-
-        SetSelected(bodyButton, false);
-        SetSelected(hairButton, false);
-        SetSelected(eyesButton, false);
-
-        RefreshOptionCategorySelection();
-
-        if (appearanceDetailsUI != null)
-        {
-            appearanceDetailsUI.ShowOptionCategory(
-                category
-            );
-        }
-    }
-
-    private void RefreshCategorySelection()
-    {
-        if (showingOptionCategory)
-        {
-            SetSelected(bodyButton, false);
-            SetSelected(hairButton, false);
-            SetSelected(eyesButton, false);
-        }
-
-        RefreshOptionCategorySelection();
-    }
-
-    private void RefreshOptionCategorySelection()
-    {
-        for (int i = 0;
-             i < optionCategoryButtons.Count;
-             i++)
-        {
-            CharacterOptionButtonUI button =
-                optionCategoryButtons[i];
-
-            bool selected =
-                showingOptionCategory &&
-                i < optionCategories.Count &&
-                optionCategories[i] ==
-                    selectedOptionCategory;
-
-            if (button != null)
-                button.SetSelected(selected);
-        }
-    }
-
-    private void SetSelected(
-        CharacterOptionButtonUI button,
-        bool selected)
-    {
-        if (button != null)
-            button.SetSelected(selected);
     }
 }

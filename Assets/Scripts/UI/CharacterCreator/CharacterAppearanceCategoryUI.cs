@@ -25,6 +25,8 @@ public class CharacterAppearanceCategoryUI : MonoBehaviour
     [SerializeField]
     private Transform optionButtonParent;
 
+    private bool hasOptions;
+
     public Transform OptionButtonParent =>
         optionButtonParent;
 
@@ -32,8 +34,11 @@ public class CharacterAppearanceCategoryUI : MonoBehaviour
 
     public void Setup(
         string title,
+        bool containsOptions,
         UnityAction clicked)
     {
+        hasOptions = containsOptions;
+
         if (titleText != null)
             titleText.text = title;
 
@@ -49,20 +54,28 @@ public class CharacterAppearanceCategoryUI : MonoBehaviour
             }
         }
 
+        if (arrowText != null)
+            arrowText.gameObject.SetActive(hasOptions);
+
+        SetSelected(false);
         SetExpanded(false);
+    }
+
+    public void SetSelected(bool selected)
+    {
+        if (selectedObject != null)
+            selectedObject.SetActive(selected);
     }
 
     public void SetExpanded(bool expanded)
     {
+        expanded = hasOptions && expanded;
         IsExpanded = expanded;
 
         if (optionsContainer != null)
             optionsContainer.SetActive(expanded);
 
-        if (selectedObject != null)
-            selectedObject.SetActive(expanded);
-
-        if (arrowText != null)
+        if (arrowText != null && hasOptions)
         {
             arrowText.text =
                 expanded ? "v" : ">";
