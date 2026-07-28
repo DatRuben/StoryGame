@@ -20,19 +20,15 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
     [SerializeField] private GameObject optionDetails;
     [SerializeField] private GameObject hairDetails;
     [SerializeField] private GameObject eyesDetails;
-    [SerializeField] private GameObject skinDetails;
 
     [Header("Body")]
     [SerializeField] private Slider bodyScaleSlider;
-
-    [Header("Appearance Options")]
-    [FormerlySerializedAs("headButtonParent")]
-    [SerializeField] private Transform optionButtonParent;
-
-    [Header("Skin Color")]
     [SerializeField] private Slider skinHueSlider;
     [SerializeField] private Slider skinSaturationSlider;
     [SerializeField] private Slider skinValueSlider;
+
+    [Header("Appearance Options")]
+    [SerializeField] private Transform optionButtonParent;
 
     [Header("Hair Color")]
     [SerializeField] private Slider hairHueSlider;
@@ -125,7 +121,6 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
         SetActive(optionDetails, true);
         SetActive(hairDetails, false);
         SetActive(eyesDetails, false);
-        SetActive(skinDetails, false);
 
         BuildOptionButtons();
         Refresh();

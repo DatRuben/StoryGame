@@ -24,9 +24,6 @@ public class CharacterCreatorAppearanceUI : MonoBehaviour
     [SerializeField]
     private CharacterOptionButtonUI eyesButton;
 
-    [SerializeField]
-    private CharacterOptionButtonUI skinButton;
-
     [Header("Option Category Buttons")]
     [SerializeField]
     private CharacterOptionButtonUI
@@ -447,7 +444,6 @@ public class CharacterCreatorAppearanceUI : MonoBehaviour
         SetSelected(bodyButton, false);
         SetSelected(hairButton, false);
         SetSelected(eyesButton, false);
-        SetSelected(skinButton, false);
 
         RefreshOptionCategorySelection();
 
@@ -466,7 +462,6 @@ public class CharacterCreatorAppearanceUI : MonoBehaviour
             SetSelected(bodyButton, false);
             SetSelected(hairButton, false);
             SetSelected(eyesButton, false);
-            SetSelected(skinButton, false);
         }
 
         RefreshOptionCategorySelection();
