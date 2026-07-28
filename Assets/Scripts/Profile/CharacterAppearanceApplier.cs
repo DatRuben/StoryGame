@@ -38,7 +38,7 @@ public class CharacterAppearanceApplier : MonoBehaviour
     {
         Color color =
             Color.HSVToRGB(
-                Mathf.Repeat(appearance.hue, 1f),
+                Mathf.Clamp01(appearance.hue),
                 Mathf.Clamp01(appearance.saturation),
                 Mathf.Clamp01(appearance.value)
             );

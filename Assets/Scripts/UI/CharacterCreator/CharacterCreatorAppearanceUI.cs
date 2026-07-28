@@ -93,6 +93,7 @@ public class CharacterCreatorAppearanceUI : MonoBehaviour
 
     private void RebuildCategories()
     {
+        ClearCategories();
         CacheAncestry();
 
         if (categoryPrefab == null ||

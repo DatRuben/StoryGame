@@ -10,6 +10,13 @@ public class PlayerCharacterProfile : MonoBehaviour
     public FinalCharacterStats FinalStats { get; private set; }
     public FinalMovementStats FinalMovementStats { get; private set; }
 
+    public CharacterAppearanceData Appearance =>
+    ProfileData != null
+        ? CharacterAppearanceData.Copy(
+            ProfileData.appearance
+        )
+        : CharacterAppearanceData.CreateDefault();
+
     public void Initialize(
         CharacterProfileData profileData,
         RaceDefinition raceDefinition,
@@ -148,7 +155,7 @@ public class PlayerCharacterProfile : MonoBehaviour
                 : CharacterAppearanceData.CreateDefault();
 
         appearanceApplier.ApplyAppearance(
-            appearance
+            Appearance
         );
     }
 

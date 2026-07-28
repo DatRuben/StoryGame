@@ -74,7 +74,9 @@ public class CharacterCreator : MonoBehaviour
         float hue)
     {
         selectedAppearance.hue =
-            Mathf.Clamp01(hue);
+            Mathf.Clamp01(
+                selectedAppearance.hue
+            );
 
         NotifySelectionChanged();
     }
@@ -101,7 +103,9 @@ public class CharacterCreator : MonoBehaviour
     float hue)
     {
         selectedAppearance.hairHue =
-            Mathf.Clamp01(hue);
+            Mathf.Clamp01(
+                selectedAppearance.hairHue
+            );
 
         NotifySelectionChanged();
     }
@@ -127,10 +131,12 @@ public class CharacterCreator : MonoBehaviour
 	public void SetTailHue(
 		float hue)
 	{
-		selectedAppearance.tailHue =
-            Mathf.Clamp01(hue);
+        selectedAppearance.tailHue =
+            Mathf.Clamp01(
+                selectedAppearance.tailHue
+            );
 
-		NotifySelectionChanged();
+        NotifySelectionChanged();
 	}
 
 	public void SetTailSaturation(
@@ -155,7 +161,9 @@ public class CharacterCreator : MonoBehaviour
         float hue)
     {
         selectedAppearance.eyeHue =
-            Mathf.Clamp01(hue);
+            Mathf.Clamp01(
+                selectedAppearance.eyeHue
+            );
 
         NotifySelectionChanged();
     }
