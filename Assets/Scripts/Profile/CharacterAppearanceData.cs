@@ -18,7 +18,17 @@ public class CharacterAppearanceData
     [Range(0f, 1f)]
     public float value = 0.9f;
 
-    [Header("Hair Color")]
+	[Header("Tail Color")]
+	[Range(0f, 1f)]
+	public float tailHue = 0f;
+
+	[Range(0f, 1f)]
+	public float tailSaturation = 0.75f;
+
+	[Range(0f, 1f)]
+	public float tailValue = 0.9f;
+
+	[Header("Hair Color")]
     [Range(0f, 1f)]
     public float hairHue = 0f;
 
@@ -157,7 +167,11 @@ public class CharacterAppearanceData
             saturation = source.saturation,
             value = source.value,
 
-            hairHue = source.hairHue,
+			tailHue = source.tailHue,
+			tailSaturation = source.tailSaturation,
+			tailValue = source.tailValue,
+
+			hairHue = source.hairHue,
             hairSaturation = source.hairSaturation,
             hairValue = source.hairValue,
 

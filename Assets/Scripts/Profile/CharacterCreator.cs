@@ -124,7 +124,34 @@ public class CharacterCreator : MonoBehaviour
         NotifySelectionChanged();
     }
 
-    public void SetEyeHue(
+	public void SetTailHue(
+		float hue)
+	{
+		selectedAppearance.tailHue =
+			Mathf.Repeat(hue, 1f);
+
+		NotifySelectionChanged();
+	}
+
+	public void SetTailSaturation(
+		float saturation)
+	{
+		selectedAppearance.tailSaturation =
+			Mathf.Clamp01(saturation);
+
+		NotifySelectionChanged();
+	}
+
+	public void SetTailValue(
+		float value)
+	{
+		selectedAppearance.tailValue =
+			Mathf.Clamp01(value);
+
+		NotifySelectionChanged();
+	}
+
+	public void SetEyeHue(
         float hue)
     {
         selectedAppearance.eyeHue =
@@ -1095,7 +1122,23 @@ public class CharacterCreator : MonoBehaviour
                 selectedAppearance.bodyScale
             );
 
-        selectedAppearance.hue =
+		selectedAppearance.tailHue =
+			Mathf.Repeat(
+				selectedAppearance.tailHue,
+				1f
+			);
+
+		selectedAppearance.tailSaturation =
+			Mathf.Clamp01(
+				selectedAppearance.tailSaturation
+			);
+
+		selectedAppearance.tailValue =
+			Mathf.Clamp01(
+				selectedAppearance.tailValue
+			);
+
+		selectedAppearance.hue =
             Mathf.Repeat(
                 selectedAppearance.hue,
                 1f

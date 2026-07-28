@@ -174,6 +174,8 @@ public class CharacterCreatorAppearanceDetailsUI :
         return category ==
                    CharacterAppearanceCategory.Body ||
                category ==
+                   CharacterAppearanceCategory.Tail ||
+               category ==
                    CharacterAppearanceCategory.Hair ||
                category ==
                    CharacterAppearanceCategory.Eyes;
@@ -206,6 +208,14 @@ public class CharacterCreatorAppearanceDetailsUI :
                     appearance.hue,
                     appearance.saturation,
                     appearance.value
+                );
+                break;
+
+            case CharacterAppearanceCategory.Tail:
+                SetColorSliders(
+                    appearance.tailHue,
+                    appearance.tailSaturation,
+                    appearance.tailValue
                 );
                 break;
 
@@ -290,6 +300,10 @@ public class CharacterCreatorAppearanceDetailsUI :
                 characterCreator.SetHue(value);
                 break;
 
+            case CharacterAppearanceCategory.Tail:
+                characterCreator.SetTailHue(value);
+                break;
+
             case CharacterAppearanceCategory.Hair:
                 characterCreator.SetHairHue(value);
                 break;
@@ -312,6 +326,10 @@ public class CharacterCreatorAppearanceDetailsUI :
                 characterCreator.SetSaturation(value);
                 break;
 
+            case CharacterAppearanceCategory.Tail:
+                characterCreator.SetTailSaturation(value);
+                break;
+
             case CharacterAppearanceCategory.Hair:
                 characterCreator.SetHairSaturation(value);
                 break;
@@ -332,6 +350,10 @@ public class CharacterCreatorAppearanceDetailsUI :
         {
             case CharacterAppearanceCategory.Body:
                 characterCreator.SetValue(value);
+                break;
+
+            case CharacterAppearanceCategory.Tail:
+                characterCreator.SetTailValue(value);
                 break;
 
             case CharacterAppearanceCategory.Hair:
