@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2722568d2dc4ca64ca826ea61b1ba2ad, type: 3}
   m_Name: Tail test 1
   m_EditorClassIdentifier: Assembly-CSharp::CharacterAppearanceOptionDefinition
-  optionId: new_character_appearance_option_definition
+  optionId: tail_test_1
   displayName: New Character Appearance Option Definition
   category: 4
   optionImage: {fileID: 0}
@@ -20,4 +20,4 @@ MonoBehaviour:
   race: {fileID: 11400000, guid: 4163000ff3c63644db2f76c943545857, type: 2}
   allowedSubraces: []
   allowedLineages: []
-  isDefaultOption: 0
+  isDefaultOption: 1

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CharacterAppearanceOptionDefinition
   optionId: drakken_general_head_1
   displayName: Drakken General Head 1
-  category: 0
+  category: 1
   optionImage: {fileID: 0}
   modelPrefab: {fileID: 0}
   race: {fileID: 11400000, guid: 4163000ff3c63644db2f76c943545857, type: 2}

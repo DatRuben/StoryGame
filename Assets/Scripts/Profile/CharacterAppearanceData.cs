@@ -39,7 +39,8 @@ public class CharacterAppearanceData
     public float eyeValue = 0.9f;
 
     [Header("Selected Appearance Options")]
-    public string headOptionId = "";
+	public string bodyOptionId = "";
+	public string headOptionId = "";
     public string earOptionId = "";
     public string hornOptionId = "";
     public string tailOptionId = "";
@@ -53,7 +54,10 @@ public class CharacterAppearanceData
     {
         switch (category)
         {
-            case CharacterAppearanceCategory.Head:
+			case CharacterAppearanceCategory.Body:
+				return bodyOptionId;
+
+			case CharacterAppearanceCategory.Head:
                 return headOptionId;
 
             case CharacterAppearanceCategory.Ears:
@@ -93,7 +97,11 @@ public class CharacterAppearanceData
 
         switch (category)
         {
-            case CharacterAppearanceCategory.Head:
+			case CharacterAppearanceCategory.Body:
+				bodyOptionId = optionId;
+				return true;
+
+			case CharacterAppearanceCategory.Head:
                 headOptionId = optionId;
                 return true;
 
@@ -157,7 +165,8 @@ public class CharacterAppearanceData
             eyeSaturation = source.eyeSaturation,
             eyeValue = source.eyeValue,
 
-            headOptionId = source.headOptionId,
+			bodyOptionId = source.bodyOptionId,
+			headOptionId = source.headOptionId,
             earOptionId = source.earOptionId,
             hornOptionId = source.hornOptionId,
             tailOptionId = source.tailOptionId,

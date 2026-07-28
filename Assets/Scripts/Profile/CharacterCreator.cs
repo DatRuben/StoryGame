@@ -1148,7 +1148,11 @@ public class CharacterCreator : MonoBehaviour
 
     private void ClampSelectedSingleAppearanceOptions()
     {
-        ClampSelectedSingleAppearanceOption(
+		ClampSelectedSingleAppearanceOption(
+			CharacterAppearanceCategory.Body
+		);
+
+		ClampSelectedSingleAppearanceOption(
             CharacterAppearanceCategory.Head
         );
 

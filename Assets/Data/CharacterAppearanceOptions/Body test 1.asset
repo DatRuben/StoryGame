@@ -12,12 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2722568d2dc4ca64ca826ea61b1ba2ad, type: 3}
   m_Name: Body test 1
   m_EditorClassIdentifier: Assembly-CSharp::CharacterAppearanceOptionDefinition
-  optionId: 
-  displayName: 
+  optionId: body_test_1
+  displayName: Body Test 1
   category: 0
   optionImage: {fileID: 0}
   modelPrefab: {fileID: 0}
-  race: {fileID: 0}
-  allowedSubraces: []
-  allowedLineages: []
+  race: {fileID: 11400000, guid: 4163000ff3c63644db2f76c943545857, type: 2}
+  allowedSubraces:
+  - {fileID: 11400000, guid: 10ccb86a2d0cb24429be39083f24cf0e, type: 2}
+  allowedLineages:
+  - {fileID: 11400000, guid: 859eb4e370d11e24da259978b34e9f5e, type: 2}
   isDefaultOption: 0
