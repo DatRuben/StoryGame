@@ -20,6 +20,9 @@ public class CharacterCreatorAppearanceDetailsUI :
     [SerializeField]
     private GameObject colorControls;
 
+    [SerializeField]
+    private Image colorPreviewImage;
+
     [Header("Shared Sliders")]
     [SerializeField]
     private Slider bodyScaleSlider;
@@ -242,9 +245,23 @@ public class CharacterCreatorAppearanceDetailsUI :
         float saturation,
         float value)
     {
+        hue = Mathf.Clamp01(hue);
+        saturation = Mathf.Clamp01(saturation);
+        value = Mathf.Clamp01(value);
+
         SetSlider(hueSlider, hue);
         SetSlider(saturationSlider, saturation);
         SetSlider(valueSlider, value);
+
+        if (colorPreviewImage != null)
+        {
+            colorPreviewImage.color =
+                Color.HSVToRGB(
+                    hue,
+                    saturation,
+                    value
+                );
+        }
     }
 
     private void SetSlider(
