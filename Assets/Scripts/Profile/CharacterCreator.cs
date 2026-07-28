@@ -74,7 +74,7 @@ public class CharacterCreator : MonoBehaviour
         float hue)
     {
         selectedAppearance.hue =
-            Mathf.Repeat(hue, 1f);
+            Mathf.Clamp01(hue);
 
         NotifySelectionChanged();
     }
@@ -101,7 +101,7 @@ public class CharacterCreator : MonoBehaviour
     float hue)
     {
         selectedAppearance.hairHue =
-            Mathf.Repeat(hue, 1f);
+            Mathf.Clamp01(hue);
 
         NotifySelectionChanged();
     }
@@ -128,7 +128,7 @@ public class CharacterCreator : MonoBehaviour
 		float hue)
 	{
 		selectedAppearance.tailHue =
-			Mathf.Repeat(hue, 1f);
+            Mathf.Clamp01(hue);
 
 		NotifySelectionChanged();
 	}
@@ -155,7 +155,7 @@ public class CharacterCreator : MonoBehaviour
         float hue)
     {
         selectedAppearance.eyeHue =
-            Mathf.Repeat(hue, 1f);
+            Mathf.Clamp01(hue);
 
         NotifySelectionChanged();
     }

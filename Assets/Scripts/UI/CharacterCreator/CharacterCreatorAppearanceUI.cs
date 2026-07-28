@@ -41,6 +41,12 @@ public class CharacterCreatorAppearanceUI : MonoBehaviour
     private CharacterAppearanceCategory selectedCategory =
         CharacterAppearanceCategory.Body;
 
+    private string cachedRaceId = "";
+    private string cachedSubraceId = "";
+
+    private readonly List<string> cachedLineageIds =
+        new();
+
     private void OnEnable()
     {
         SubscribeToCreator();
@@ -59,10 +65,10 @@ public class CharacterCreatorAppearanceUI : MonoBehaviour
             return;
 
         characterCreator.SelectionChanged -=
-            RebuildCategories;
+            OnSelectionChanged;
 
         characterCreator.SelectionChanged +=
-            RebuildCategories;
+            OnSelectionChanged;
     }
 
     private void UnsubscribeFromCreator()
@@ -71,12 +77,23 @@ public class CharacterCreatorAppearanceUI : MonoBehaviour
             return;
 
         characterCreator.SelectionChanged -=
-            RebuildCategories;
+            OnSelectionChanged;
+    }
+
+    private void OnSelectionChanged()
+    {
+        if (AncestryChanged())
+        {
+            RebuildCategories();
+            return;
+        }
+
+        RefreshCategories();
     }
 
     private void RebuildCategories()
     {
-        ClearCategories();
+        CacheAncestry();
 
         if (categoryPrefab == null ||
             categoryParent == null)
@@ -406,5 +423,84 @@ public class CharacterCreatorAppearanceUI : MonoBehaviour
         }
 
         return label.ToString();
+    }
+
+    private bool AncestryChanged()
+    {
+        if (characterCreator == null)
+            return false;
+
+        if (!string.Equals(
+                cachedRaceId,
+                characterCreator.SelectedRaceId,
+                System.StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        if (!string.Equals(
+                cachedSubraceId,
+                characterCreator.SelectedSubraceId,
+                System.StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        IReadOnlyList<string> selectedLineageIds =
+            characterCreator.SelectedLineageIds;
+
+        int selectedCount =
+            selectedLineageIds != null
+                ? selectedLineageIds.Count
+                : 0;
+
+        if (cachedLineageIds.Count != selectedCount)
+            return true;
+
+        for (int i = 0;
+             i < cachedLineageIds.Count;
+             i++)
+        {
+            if (!string.Equals(
+                    cachedLineageIds[i],
+                    selectedLineageIds[i],
+                    System.StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void CacheAncestry()
+    {
+        cachedRaceId = "";
+        cachedSubraceId = "";
+        cachedLineageIds.Clear();
+
+        if (characterCreator == null)
+            return;
+
+        cachedRaceId =
+            characterCreator.SelectedRaceId;
+
+        cachedSubraceId =
+            characterCreator.SelectedSubraceId;
+
+        IReadOnlyList<string> selectedLineageIds =
+            characterCreator.SelectedLineageIds;
+
+        if (selectedLineageIds == null)
+            return;
+
+        for (int i = 0;
+             i < selectedLineageIds.Count;
+             i++)
+        {
+            cachedLineageIds.Add(
+                selectedLineageIds[i]
+            );
+        }
     }
 }
