@@ -1,80 +1,45 @@
-using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 
-public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
+public class CharacterCreatorAppearanceDetailsUI :
+    MonoBehaviour
 {
     [Header("Data")]
     [SerializeField]
     private CharacterCreator characterCreator;
 
-    [Header("Option Prefab")]
+    [Header("Display")]
     [SerializeField]
-    private CharacterOptionButtonUI optionButtonPrefab;
+    private TMP_Text categoryTitleText;
 
-    [Header("Category Panels")]
-    [SerializeField] private GameObject bodyDetails;
-    [FormerlySerializedAs("headDetails")]
-    [SerializeField] private GameObject optionDetails;
-    [SerializeField] private GameObject hairDetails;
-    [SerializeField] private GameObject eyesDetails;
+    [SerializeField]
+    private GameObject bodyScaleControl;
 
-    [Header("Body")]
-    [SerializeField] private Slider bodyScaleSlider;
-    [SerializeField] private Slider skinHueSlider;
-    [SerializeField] private Slider skinSaturationSlider;
-    [SerializeField] private Slider skinValueSlider;
+    [SerializeField]
+    private GameObject colorControls;
 
-    [Header("Appearance Options")]
-    [SerializeField] private Transform optionButtonParent;
+    [Header("Shared Sliders")]
+    [SerializeField]
+    private Slider bodyScaleSlider;
 
-    [Header("Hair Color")]
-    [SerializeField] private Slider hairHueSlider;
-    [SerializeField] private Slider hairSaturationSlider;
-    [SerializeField] private Slider hairValueSlider;
+    [SerializeField]
+    private Slider hueSlider;
 
-    [Header("Eye Color")]
-    [SerializeField] private Slider eyeHueSlider;
-    [SerializeField] private Slider eyeSaturationSlider;
-    [SerializeField] private Slider eyeValueSlider;
+    [SerializeField]
+    private Slider saturationSlider;
 
-    private readonly List<CharacterOptionButtonUI>
-        optionButtons = new();
-
-    private readonly List<CharacterAppearanceOptionDefinition>
-        optionDefinitions = new();
-
-    private CharacterAppearanceCategory
-        selectedOptionCategory =
-            CharacterAppearanceCategory.Head;
+    [SerializeField]
+    private Slider valueSlider;
 
     private CharacterAppearanceCategory selectedCategory =
         CharacterAppearanceCategory.Body;
-
-    private string optionRaceId = "";
-    private string optionSubraceId = "";
-
-    private readonly List<string>
-        optionLineageIds = new();
-
-    private bool showingOptionCategory;
 
     private void OnEnable()
     {
         HookUI();
         SubscribeToCreator();
-
-        if (showingOptionCategory)
-        {
-            ShowOptionCategory(
-                selectedOptionCategory
-            );
-
-            return;
-        }
-
         ShowCategory(selectedCategory);
     }
 
@@ -82,48 +47,23 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
     {
         UnhookUI();
         UnsubscribeFromCreator();
-        ClearOptionButtons();
     }
 
     public void ShowCategory(
         CharacterAppearanceCategory category)
     {
-        showingOptionCategory = false;
         selectedCategory = category;
 
-        SetActive(
-            bodyDetails,
-            category == CharacterAppearanceCategory.Body
-        );
-
-        SetActive(optionDetails, false);
-
-        SetActive(
-            hairDetails,
-            category == CharacterAppearanceCategory.Hair
-        );
-
-        SetActive(
-            eyesDetails,
-            category == CharacterAppearanceCategory.Eyes
-        );
-
+        RefreshControls();
         Refresh();
     }
 
+    // Temporary compatibility with the current left-side
+    // controller. Both methods now use the same details panel.
     public void ShowOptionCategory(
         CharacterAppearanceCategory category)
     {
-        showingOptionCategory = true;
-        selectedOptionCategory = category;
-
-        SetActive(bodyDetails, false);
-        SetActive(optionDetails, true);
-        SetActive(hairDetails, false);
-        SetActive(eyesDetails, false);
-
-        BuildOptionButtons();
-        Refresh();
+        ShowCategory(category);
     }
 
     private void HookUI()
@@ -134,48 +74,18 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
         );
 
         HookSlider(
-            skinHueSlider,
-            OnSkinHueChanged
+            hueSlider,
+            OnHueChanged
         );
 
         HookSlider(
-            skinSaturationSlider,
-            OnSkinSaturationChanged
+            saturationSlider,
+            OnSaturationChanged
         );
 
         HookSlider(
-            skinValueSlider,
-            OnSkinValueChanged
-        );
-
-        HookSlider(
-            hairHueSlider,
-            OnHairHueChanged
-        );
-
-        HookSlider(
-            hairSaturationSlider,
-            OnHairSaturationChanged
-        );
-
-        HookSlider(
-            hairValueSlider,
-            OnHairValueChanged
-        );
-
-        HookSlider(
-            eyeHueSlider,
-            OnEyeHueChanged
-        );
-
-        HookSlider(
-            eyeSaturationSlider,
-            OnEyeSaturationChanged
-        );
-
-        HookSlider(
-            eyeValueSlider,
-            OnEyeValueChanged
+            valueSlider,
+            OnValueChanged
         );
     }
 
@@ -187,48 +97,18 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
         );
 
         UnhookSlider(
-            skinHueSlider,
-            OnSkinHueChanged
+            hueSlider,
+            OnHueChanged
         );
 
         UnhookSlider(
-            skinSaturationSlider,
-            OnSkinSaturationChanged
+            saturationSlider,
+            OnSaturationChanged
         );
 
         UnhookSlider(
-            skinValueSlider,
-            OnSkinValueChanged
-        );
-
-        UnhookSlider(
-            hairHueSlider,
-            OnHairHueChanged
-        );
-
-        UnhookSlider(
-            hairSaturationSlider,
-            OnHairSaturationChanged
-        );
-
-        UnhookSlider(
-            hairValueSlider,
-            OnHairValueChanged
-        );
-
-        UnhookSlider(
-            eyeHueSlider,
-            OnEyeHueChanged
-        );
-
-        UnhookSlider(
-            eyeSaturationSlider,
-            OnEyeSaturationChanged
-        );
-
-        UnhookSlider(
-            eyeValueSlider,
-            OnEyeValueChanged
+            valueSlider,
+            OnValueChanged
         );
     }
 
@@ -268,171 +148,35 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
         characterCreator.SelectionChanged -= Refresh;
     }
 
-    private void BuildOptionButtons()
+    private void RefreshControls()
     {
-        ClearOptionButtons();
-
-        if (characterCreator == null ||
-            optionButtonPrefab == null ||
-            optionButtonParent == null)
+        if (categoryTitleText != null)
         {
-            return;
+            categoryTitleText.text =
+                GetCategoryLabel(selectedCategory);
         }
 
-        List<CharacterAppearanceOptionDefinition> shownOptions =
-            characterCreator.GetShownAppearanceOptions(
-                selectedOptionCategory
-            );
+        SetActive(
+            bodyScaleControl,
+            selectedCategory ==
+                CharacterAppearanceCategory.Body
+        );
 
-        CacheAncestry();
-
-        foreach (CharacterAppearanceOptionDefinition option
-                 in shownOptions)
-        {
-            if (option == null)
-                continue;
-
-            CharacterOptionButtonUI button =
-                Instantiate(
-                    optionButtonPrefab,
-                    optionButtonParent
-                );
-
-            button.name =
-                $"{option.optionId}AppearanceOptionButton";
-
-            button.SetText(option.displayName);
-            button.SetImage(option.optionImage);
-            button.SetSelected(false);
-
-            CharacterAppearanceOptionDefinition capturedOption =
-                option;
-
-            if (button.Button != null)
-            {
-                button.Button.onClick.RemoveAllListeners();
-
-                button.Button.onClick.AddListener(() =>
-                    SelectOption(capturedOption)
-                );
-            }
-
-            optionButtons.Add(button);
-            optionDefinitions.Add(option);
-        }
+        SetActive(
+            colorControls,
+            HasColorControls(selectedCategory)
+        );
     }
 
-    private void ClearOptionButtons()
+    private bool HasColorControls(
+        CharacterAppearanceCategory category)
     {
-        foreach (CharacterOptionButtonUI button
-                 in optionButtons)
-        {
-            if (button != null)
-                Destroy(button.gameObject);
-        }
-
-        optionButtons.Clear();
-        optionDefinitions.Clear();
-    }
-
-    private bool AncestryChanged()
-    {
-        if (characterCreator == null)
-            return false;
-
-        if (!string.Equals(
-                optionRaceId,
-                characterCreator.SelectedRaceId,
-                System.StringComparison.OrdinalIgnoreCase))
-        {
-            return true;
-        }
-
-        if (!string.Equals(
-                optionSubraceId,
-                characterCreator.SelectedSubraceId,
-                System.StringComparison.OrdinalIgnoreCase))
-        {
-            return true;
-        }
-
-        IReadOnlyList<string> selectedLineageIds =
-            characterCreator.SelectedLineageIds;
-
-        if (selectedLineageIds == null)
-            return optionLineageIds.Count != 0;
-
-        if (optionLineageIds.Count !=
-            selectedLineageIds.Count)
-        {
-            return true;
-        }
-
-        for (int i = 0;
-             i < selectedLineageIds.Count;
-             i++)
-        {
-            if (!string.Equals(
-                    optionLineageIds[i],
-                    selectedLineageIds[i],
-                    System.StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private void CacheAncestry()
-    {
-        optionRaceId = "";
-        optionSubraceId = "";
-        optionLineageIds.Clear();
-
-        if (characterCreator == null)
-            return;
-
-        optionRaceId =
-            characterCreator.SelectedRaceId;
-
-        optionSubraceId =
-            characterCreator.SelectedSubraceId;
-
-        IReadOnlyList<string> selectedLineageIds =
-            characterCreator.SelectedLineageIds;
-
-        if (selectedLineageIds == null)
-            return;
-
-        for (int i = 0;
-             i < selectedLineageIds.Count;
-             i++)
-        {
-            optionLineageIds.Add(
-                selectedLineageIds[i]
-            );
-        }
-    }
-
-    private void SelectOption(
-        CharacterAppearanceOptionDefinition option)
-    {
-        if (characterCreator == null ||
-            option == null)
-        {
-            return;
-        }
-
-        if (!characterCreator.SelectAppearanceOption(
-                option.optionId,
-                out string errorMessage))
-        {
-            Debug.LogWarning(
-                errorMessage,
-                this
-            );
-        }
+        return category ==
+                   CharacterAppearanceCategory.Body ||
+               category ==
+                   CharacterAppearanceCategory.Hair ||
+               category ==
+                   CharacterAppearanceCategory.Eyes;
     }
 
     private void Refresh()
@@ -440,125 +184,57 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
         if (characterCreator == null)
             return;
 
-        if (showingOptionCategory &&
-            AncestryChanged())
-        {
-            BuildOptionButtons();
-        }
-
         CharacterAppearanceData appearance =
             characterCreator.SelectedAppearance;
 
         if (appearance == null)
             return;
 
-        SetSlider(
-            bodyScaleSlider,
-            appearance.bodyScale
-        );
+        if (selectedCategory ==
+            CharacterAppearanceCategory.Body)
+        {
+            SetSlider(
+                bodyScaleSlider,
+                appearance.bodyScale
+            );
+        }
 
-        SetSlider(
-            skinHueSlider,
-            appearance.hue
-        );
+        switch (selectedCategory)
+        {
+            case CharacterAppearanceCategory.Body:
+                SetColorSliders(
+                    appearance.hue,
+                    appearance.saturation,
+                    appearance.value
+                );
+                break;
 
-        SetSlider(
-            skinSaturationSlider,
-            appearance.saturation
-        );
+            case CharacterAppearanceCategory.Hair:
+                SetColorSliders(
+                    appearance.hairHue,
+                    appearance.hairSaturation,
+                    appearance.hairValue
+                );
+                break;
 
-        SetSlider(
-            skinValueSlider,
-            appearance.value
-        );
-
-        SetSlider(
-            hairHueSlider,
-            appearance.hairHue
-        );
-
-        SetSlider(
-            hairSaturationSlider,
-            appearance.hairSaturation
-        );
-
-        SetSlider(
-            hairValueSlider,
-            appearance.hairValue
-        );
-
-        SetSlider(
-            eyeHueSlider,
-            appearance.eyeHue
-        );
-
-        SetSlider(
-            eyeSaturationSlider,
-            appearance.eyeSaturation
-        );
-
-        SetSlider(
-            eyeValueSlider,
-            appearance.eyeValue
-        );
-
-        RefreshOptionButtons(
-            appearance.GetSingleOptionId(
-                selectedOptionCategory
-            )
-        );
+            case CharacterAppearanceCategory.Eyes:
+                SetColorSliders(
+                    appearance.eyeHue,
+                    appearance.eyeSaturation,
+                    appearance.eyeValue
+                );
+                break;
+        }
     }
 
-    private void RefreshOptionButtons(
-        string selectedOptionId)
+    private void SetColorSliders(
+        float hue,
+        float saturation,
+        float value)
     {
-        for (int i = 0;
-             i < optionButtons.Count;
-             i++)
-        {
-            CharacterOptionButtonUI button =
-                optionButtons[i];
-
-            CharacterAppearanceOptionDefinition option =
-                i < optionDefinitions.Count
-                    ? optionDefinitions[i]
-                    : null;
-
-            if (button == null ||
-                option == null)
-            {
-                continue;
-            }
-
-            CharacterAppearanceOptionAvailability availability =
-                characterCreator.GetAppearanceOptionAvailability(
-                    option
-                );
-
-            bool shown =
-                availability !=
-                CharacterAppearanceOptionAvailability.Hidden;
-
-            button.gameObject.SetActive(shown);
-
-            if (!shown)
-                continue;
-
-            bool available =
-                availability ==
-                CharacterAppearanceOptionAvailability.Available;
-
-            bool selected =
-                available &&
-                string.Equals(
-                    selectedOptionId,
-                    option.optionId,
-                    System.StringComparison.OrdinalIgnoreCase
-                );
-
-            button.SetInteractable(available);
-            button.SetSelected(selected);
-        }
+        SetSlider(hueSlider, hue);
+        SetSlider(saturationSlider, saturation);
+        SetSlider(valueSlider, value);
     }
 
     private void SetSlider(
@@ -577,73 +253,94 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
             target.SetActive(active);
     }
 
+    private string GetCategoryLabel(
+        CharacterAppearanceCategory category)
+    {
+        if (category ==
+            CharacterAppearanceCategory.BodyPattern)
+        {
+            return "Body Pattern";
+        }
+
+        return category.ToString();
+    }
+
     private void OnBodyScaleChanged(
         float value)
     {
-        if (characterCreator != null)
-            characterCreator.SetBodyScale(value);
+        if (characterCreator == null ||
+            selectedCategory !=
+                CharacterAppearanceCategory.Body)
+        {
+            return;
+        }
+
+        characterCreator.SetBodyScale(value);
     }
 
-    private void OnSkinHueChanged(
+    private void OnHueChanged(
         float value)
     {
-        if (characterCreator != null)
-            characterCreator.SetHue(value);
+        if (characterCreator == null)
+            return;
+
+        switch (selectedCategory)
+        {
+            case CharacterAppearanceCategory.Body:
+                characterCreator.SetHue(value);
+                break;
+
+            case CharacterAppearanceCategory.Hair:
+                characterCreator.SetHairHue(value);
+                break;
+
+            case CharacterAppearanceCategory.Eyes:
+                characterCreator.SetEyeHue(value);
+                break;
+        }
     }
 
-    private void OnSkinSaturationChanged(
+    private void OnSaturationChanged(
         float value)
     {
-        if (characterCreator != null)
-            characterCreator.SetSaturation(value);
+        if (characterCreator == null)
+            return;
+
+        switch (selectedCategory)
+        {
+            case CharacterAppearanceCategory.Body:
+                characterCreator.SetSaturation(value);
+                break;
+
+            case CharacterAppearanceCategory.Hair:
+                characterCreator.SetHairSaturation(value);
+                break;
+
+            case CharacterAppearanceCategory.Eyes:
+                characterCreator.SetEyeSaturation(value);
+                break;
+        }
     }
 
-    private void OnSkinValueChanged(
+    private void OnValueChanged(
         float value)
     {
-        if (characterCreator != null)
-            characterCreator.SetValue(value);
-    }
+        if (characterCreator == null)
+            return;
 
-    private void OnHairHueChanged(
-        float value)
-    {
-        if (characterCreator != null)
-            characterCreator.SetHairHue(value);
-    }
+        switch (selectedCategory)
+        {
+            case CharacterAppearanceCategory.Body:
+                characterCreator.SetValue(value);
+                break;
 
-    private void OnHairSaturationChanged(
-        float value)
-    {
-        if (characterCreator != null)
-            characterCreator.SetHairSaturation(value);
-    }
+            case CharacterAppearanceCategory.Hair:
+                characterCreator.SetHairValue(value);
+                break;
 
-    private void OnHairValueChanged(
-        float value)
-    {
-        if (characterCreator != null)
-            characterCreator.SetHairValue(value);
-    }
-
-    private void OnEyeHueChanged(
-        float value)
-    {
-        if (characterCreator != null)
-            characterCreator.SetEyeHue(value);
-    }
-
-    private void OnEyeSaturationChanged(
-        float value)
-    {
-        if (characterCreator != null)
-            characterCreator.SetEyeSaturation(value);
-    }
-
-    private void OnEyeValueChanged(
-        float value)
-    {
-        if (characterCreator != null)
-            characterCreator.SetEyeValue(value);
+            case CharacterAppearanceCategory.Eyes:
+                characterCreator.SetEyeValue(value);
+                break;
+        }
     }
 }
