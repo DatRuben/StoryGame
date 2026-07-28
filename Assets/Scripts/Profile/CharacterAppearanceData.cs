@@ -49,32 +49,32 @@ public class CharacterAppearanceData
     public string bodyPatternOptionId = "";
 
     public string GetSingleOptionId(
-        CharacterAppearanceOptionCategory category)
+        CharacterAppearanceCategory category)
     {
         switch (category)
         {
-            case CharacterAppearanceOptionCategory.Head:
+            case CharacterAppearanceCategory.Head:
                 return headOptionId;
 
-            case CharacterAppearanceOptionCategory.Ears:
+            case CharacterAppearanceCategory.Ears:
                 return earOptionId;
 
-            case CharacterAppearanceOptionCategory.Horns:
+            case CharacterAppearanceCategory.Horns:
                 return hornOptionId;
 
-            case CharacterAppearanceOptionCategory.Tail:
+            case CharacterAppearanceCategory.Tail:
                 return tailOptionId;
 
-            case CharacterAppearanceOptionCategory.Hair:
+            case CharacterAppearanceCategory.Hair:
                 return hairOptionId;
 
-            case CharacterAppearanceOptionCategory.Eyes:
+            case CharacterAppearanceCategory.Eyes:
                 return eyeOptionId;
 
-            case CharacterAppearanceOptionCategory.Marking:
+            case CharacterAppearanceCategory.Marking:
                 return markingOptionId;
 
-            case CharacterAppearanceOptionCategory.BodyPattern:
+            case CharacterAppearanceCategory.BodyPattern:
                 return bodyPatternOptionId;
 
             default:
@@ -83,7 +83,7 @@ public class CharacterAppearanceData
     }
 
     public bool SetSingleOptionId(
-        CharacterAppearanceOptionCategory category,
+        CharacterAppearanceCategory category,
         string optionId)
     {
         optionId =
@@ -93,35 +93,35 @@ public class CharacterAppearanceData
 
         switch (category)
         {
-            case CharacterAppearanceOptionCategory.Head:
+            case CharacterAppearanceCategory.Head:
                 headOptionId = optionId;
                 return true;
 
-            case CharacterAppearanceOptionCategory.Ears:
+            case CharacterAppearanceCategory.Ears:
                 earOptionId = optionId;
                 return true;
 
-            case CharacterAppearanceOptionCategory.Horns:
+            case CharacterAppearanceCategory.Horns:
                 hornOptionId = optionId;
                 return true;
 
-            case CharacterAppearanceOptionCategory.Tail:
+            case CharacterAppearanceCategory.Tail:
                 tailOptionId = optionId;
                 return true;
 
-            case CharacterAppearanceOptionCategory.Hair:
+            case CharacterAppearanceCategory.Hair:
                 hairOptionId = optionId;
                 return true;
 
-            case CharacterAppearanceOptionCategory.Eyes:
+            case CharacterAppearanceCategory.Eyes:
                 eyeOptionId = optionId;
                 return true;
 
-            case CharacterAppearanceOptionCategory.Marking:
+            case CharacterAppearanceCategory.Marking:
                 markingOptionId = optionId;
                 return true;
 
-            case CharacterAppearanceOptionCategory.BodyPattern:
+            case CharacterAppearanceCategory.BodyPattern:
                 bodyPatternOptionId = optionId;
                 return true;
 

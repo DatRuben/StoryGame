@@ -6,8 +6,9 @@ using UnityEngine;
 using UnityEditor;
 #endif
 
-public enum CharacterAppearanceOptionCategory
+public enum CharacterAppearanceCategory
 {
+    Body,
     Head,
     Ears,
     Horns,
@@ -36,7 +37,7 @@ public class CharacterAppearanceOptionDefinition :
 
     public string displayName;
 
-    public CharacterAppearanceOptionCategory category;
+    public CharacterAppearanceCategory category;
 
     [Tooltip(
         "The 2D image shown on this option's character creator button."

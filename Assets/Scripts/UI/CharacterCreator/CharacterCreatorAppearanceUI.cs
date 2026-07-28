@@ -3,14 +3,6 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.Events;
 
-public enum CharacterAppearanceCategory
-{
-    Body,
-    Hair,
-    Eyes,
-    Skin
-}
-
 public class CharacterCreatorAppearanceUI : MonoBehaviour
 {
     [Header("Data")]
@@ -46,15 +38,15 @@ public class CharacterCreatorAppearanceUI : MonoBehaviour
     private readonly List<CharacterOptionButtonUI>
         optionCategoryButtons = new();
 
-    private readonly List<CharacterAppearanceOptionCategory>
+    private readonly List<CharacterAppearanceCategory>
         optionCategories = new();
 
     private CharacterAppearanceCategory selectedCategory =
         CharacterAppearanceCategory.Body;
 
-    private CharacterAppearanceOptionCategory
+    private CharacterAppearanceCategory
         selectedOptionCategory =
-            CharacterAppearanceOptionCategory.Head;
+            CharacterAppearanceCategory.Head;
 
     private bool showingOptionCategory;
 
@@ -103,12 +95,6 @@ public class CharacterCreatorAppearanceUI : MonoBehaviour
             "Eye Color",
             SelectEyeColor
         );
-
-        HookButton(
-            skinButton,
-            "Skin Color",
-            SelectSkinColor
-        );
     }
 
     private void UnhookButtons()
@@ -126,11 +112,6 @@ public class CharacterCreatorAppearanceUI : MonoBehaviour
         UnhookButton(
             eyesButton,
             SelectEyeColor
-        );
-
-        UnhookButton(
-            skinButton,
-            SelectSkinColor
         );
     }
 
@@ -160,7 +141,7 @@ public class CharacterCreatorAppearanceUI : MonoBehaviour
         if (characterCreator == null)
             return;
 
-        List<CharacterAppearanceOptionCategory>
+        List<CharacterAppearanceCategory>
             shownCategories =
                 characterCreator
                     .GetShownAppearanceCategories();
@@ -197,13 +178,13 @@ public class CharacterCreatorAppearanceUI : MonoBehaviour
 
     private void RebuildOptionCategoryButtons()
     {
-        List<CharacterAppearanceOptionCategory>
+        List<CharacterAppearanceCategory>
             shownCategories =
                 characterCreator != null
                     ? characterCreator
                         .GetShownAppearanceCategories()
                     : new List<
-                        CharacterAppearanceOptionCategory>();
+                        CharacterAppearanceCategory>();
 
         RebuildOptionCategoryButtons(
             shownCategories
@@ -211,7 +192,7 @@ public class CharacterCreatorAppearanceUI : MonoBehaviour
     }
 
     private void RebuildOptionCategoryButtons(
-        List<CharacterAppearanceOptionCategory>
+        List<CharacterAppearanceCategory>
             shownCategories)
     {
         ClearOptionCategoryButtons();
@@ -223,7 +204,7 @@ public class CharacterCreatorAppearanceUI : MonoBehaviour
         }
 
         foreach (
-            CharacterAppearanceOptionCategory category
+            CharacterAppearanceCategory category
             in shownCategories)
         {
             CharacterOptionButtonUI button =
@@ -245,7 +226,7 @@ public class CharacterCreatorAppearanceUI : MonoBehaviour
             button.SetInteractable(true);
             button.SetSelected(false);
 
-            CharacterAppearanceOptionCategory
+            CharacterAppearanceCategory
                 capturedCategory = category;
 
             if (button.Button != null)
@@ -282,7 +263,7 @@ public class CharacterCreatorAppearanceUI : MonoBehaviour
     }
 
     private bool SameOptionCategories(
-        List<CharacterAppearanceOptionCategory>
+        List<CharacterAppearanceCategory>
             shownCategories)
     {
         if (shownCategories == null)
@@ -309,7 +290,7 @@ public class CharacterCreatorAppearanceUI : MonoBehaviour
     }
 
     private bool HasOptionCategory(
-        CharacterAppearanceOptionCategory category)
+        CharacterAppearanceCategory category)
     {
         return ContainsOptionCategory(
             optionCategories,
@@ -319,8 +300,8 @@ public class CharacterCreatorAppearanceUI : MonoBehaviour
 
     private bool ContainsOptionCategory(
         IReadOnlyList<
-            CharacterAppearanceOptionCategory> categories,
-        CharacterAppearanceOptionCategory category)
+            CharacterAppearanceCategory> categories,
+        CharacterAppearanceCategory category)
     {
         if (categories == null)
             return false;
@@ -337,7 +318,7 @@ public class CharacterCreatorAppearanceUI : MonoBehaviour
     }
 
     private string GetOptionCategoryLabel(
-        CharacterAppearanceOptionCategory category)
+        CharacterAppearanceCategory category)
     {
         string categoryName =
             category.ToString();
@@ -420,13 +401,6 @@ public class CharacterCreatorAppearanceUI : MonoBehaviour
         );
     }
 
-    private void SelectSkinColor()
-    {
-        SelectCategory(
-            CharacterAppearanceCategory.Skin
-        );
-    }
-
     private void SelectCategory(
         CharacterAppearanceCategory category)
     {
@@ -451,12 +425,6 @@ public class CharacterCreatorAppearanceUI : MonoBehaviour
                 CharacterAppearanceCategory.Eyes
         );
 
-        SetSelected(
-            skinButton,
-            category ==
-                CharacterAppearanceCategory.Skin
-        );
-
         RefreshOptionCategorySelection();
 
         if (appearanceDetailsUI != null)
@@ -468,7 +436,7 @@ public class CharacterCreatorAppearanceUI : MonoBehaviour
     }
 
     private void SelectOptionCategory(
-        CharacterAppearanceOptionCategory category)
+        CharacterAppearanceCategory category)
     {
         if (!HasOptionCategory(category))
             return;

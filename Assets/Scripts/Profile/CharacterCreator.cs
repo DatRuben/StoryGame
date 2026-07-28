@@ -293,7 +293,7 @@ public class CharacterCreator : MonoBehaviour
     }
 
     public bool HasShownAppearanceOptions(
-        CharacterAppearanceOptionCategory category)
+        CharacterAppearanceCategory category)
     {
         if (characterDataLibrary == null)
             return false;
@@ -323,15 +323,15 @@ public class CharacterCreator : MonoBehaviour
         return false;
     }
 
-    public List<CharacterAppearanceOptionCategory>
+    public List<CharacterAppearanceCategory>
         GetShownAppearanceCategories()
     {
-        List<CharacterAppearanceOptionCategory> categories =
-            new List<CharacterAppearanceOptionCategory>();
+        List<CharacterAppearanceCategory> categories =
+            new List<CharacterAppearanceCategory>();
 
-        foreach (CharacterAppearanceOptionCategory category
+        foreach (CharacterAppearanceCategory category
                  in System.Enum.GetValues(
-                     typeof(CharacterAppearanceOptionCategory)))
+                     typeof(CharacterAppearanceCategory)))
         {
             if (HasShownAppearanceOptions(category))
                 categories.Add(category);
@@ -342,7 +342,7 @@ public class CharacterCreator : MonoBehaviour
 
     public List<CharacterAppearanceOptionDefinition>
         GetShownAppearanceOptions(
-            CharacterAppearanceOptionCategory category)
+            CharacterAppearanceCategory category)
     {
         List<CharacterAppearanceOptionDefinition> options =
             new List<CharacterAppearanceOptionDefinition>();
@@ -1149,40 +1149,40 @@ public class CharacterCreator : MonoBehaviour
     private void ClampSelectedSingleAppearanceOptions()
     {
         ClampSelectedSingleAppearanceOption(
-            CharacterAppearanceOptionCategory.Head
+            CharacterAppearanceCategory.Head
         );
 
         ClampSelectedSingleAppearanceOption(
-            CharacterAppearanceOptionCategory.Ears
+            CharacterAppearanceCategory.Ears
         );
 
         ClampSelectedSingleAppearanceOption(
-            CharacterAppearanceOptionCategory.Horns
+            CharacterAppearanceCategory.Horns
         );
 
         ClampSelectedSingleAppearanceOption(
-            CharacterAppearanceOptionCategory.Tail
+            CharacterAppearanceCategory.Tail
         );
 
         ClampSelectedSingleAppearanceOption(
-            CharacterAppearanceOptionCategory.Hair
+            CharacterAppearanceCategory.Hair
         );
 
         ClampSelectedSingleAppearanceOption(
-            CharacterAppearanceOptionCategory.Eyes
+            CharacterAppearanceCategory.Eyes
         );
 
         ClampSelectedSingleAppearanceOption(
-            CharacterAppearanceOptionCategory.Marking
+            CharacterAppearanceCategory.Marking
         );
 
         ClampSelectedSingleAppearanceOption(
-            CharacterAppearanceOptionCategory.BodyPattern
+            CharacterAppearanceCategory.BodyPattern
         );
     }
 
     private void ClampSelectedSingleAppearanceOption(
-        CharacterAppearanceOptionCategory category)
+        CharacterAppearanceCategory category)
     {
         if (selectedAppearance == null)
             return;
@@ -1238,7 +1238,7 @@ public class CharacterCreator : MonoBehaviour
 
     private CharacterAppearanceOptionDefinition
         GetDefaultAppearanceOption(
-            CharacterAppearanceOptionCategory category)
+            CharacterAppearanceCategory category)
     {
         if (characterDataLibrary == null)
             return null;

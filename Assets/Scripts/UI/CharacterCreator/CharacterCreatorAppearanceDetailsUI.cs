@@ -50,9 +50,9 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
     private readonly List<CharacterAppearanceOptionDefinition>
         optionDefinitions = new();
 
-    private CharacterAppearanceOptionCategory
+    private CharacterAppearanceCategory
         selectedOptionCategory =
-            CharacterAppearanceOptionCategory.Head;
+            CharacterAppearanceCategory.Head;
 
     private CharacterAppearanceCategory selectedCategory =
         CharacterAppearanceCategory.Body;
@@ -112,16 +112,11 @@ public class CharacterCreatorAppearanceDetailsUI : MonoBehaviour
             category == CharacterAppearanceCategory.Eyes
         );
 
-        SetActive(
-            skinDetails,
-            category == CharacterAppearanceCategory.Skin
-        );
-
         Refresh();
     }
 
     public void ShowOptionCategory(
-        CharacterAppearanceOptionCategory category)
+        CharacterAppearanceCategory category)
     {
         showingOptionCategory = true;
         selectedOptionCategory = category;
