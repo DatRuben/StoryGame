@@ -58,6 +58,28 @@ public class SubraceDefinition : ScriptableObject
     public RaceSize size;
     public BodyType bodyType;
 
+    [Min(0.01f)]
+    public float minBodyScale = 0.9f;
+
+    [Min(0.01f)]
+    public float maxBodyScale = 1.1f;
+
+    public Vector2 GetBodyScaleRange()
+    {
+        return new Vector2(
+            minBodyScale,
+            maxBodyScale
+        );
+    }
+
+    public float GetDefaultBodyScale()
+    {
+        return (
+            minBodyScale +
+            maxBodyScale
+        ) * 0.5f;
+    }
+
     [Header("Character Preview")]
     public GameObject previewPrefab;
 
@@ -281,6 +303,18 @@ public class SubraceDefinition : ScriptableObject
             baseSubrace = null;
         }
 
+        minBodyScale =
+            Mathf.Max(
+                0.01f,
+                minBodyScale
+            );
+
+        maxBodyScale =
+            Mathf.Max(
+                minBodyScale,
+                maxBodyScale
+            );
+
         RecalculatePreview();
     }
 
@@ -323,6 +357,8 @@ public class SubraceDefinitionEditor : Editor
     private SerializedProperty totalAttributePointsPreview;
     private SerializedProperty size;
     private SerializedProperty bodyType;
+    private SerializedProperty minBodyScale;
+    private SerializedProperty maxBodyScale;
     private SerializedProperty previewPrefab;
     private SerializedProperty canHoldItemInMouth;
     private SerializedProperty canUseMouthWeapons;
@@ -383,6 +419,16 @@ public class SubraceDefinitionEditor : Editor
         bodyType =
             serializedObject.FindProperty(
                 "bodyType"
+            );
+
+        minBodyScale =
+            serializedObject.FindProperty(
+                "minBodyScale"
+            );
+
+        maxBodyScale =
+            serializedObject.FindProperty(
+                "maxBodyScale"
             );
 
         previewPrefab =
@@ -640,6 +686,34 @@ public class SubraceDefinitionEditor : Editor
 
         EditorGUILayout.PropertyField(size);
         EditorGUILayout.PropertyField(bodyType);
+
+        EditorGUILayout.Space(4f);
+
+        EditorGUILayout.LabelField(
+            "Body Scale Range",
+            EditorStyles.boldLabel
+        );
+
+        EditorGUILayout.PropertyField(
+            minBodyScale,
+            new GUIContent("Minimum")
+        );
+
+        EditorGUILayout.PropertyField(
+            maxBodyScale,
+            new GUIContent("Maximum")
+        );
+
+        using (new EditorGUI.DisabledScope(true))
+        {
+            EditorGUILayout.FloatField(
+                "Default",
+                (
+                    minBodyScale.floatValue +
+                    maxBodyScale.floatValue
+                ) * 0.5f
+            );
+        }
 
         EditorGUILayout.Space();
 
