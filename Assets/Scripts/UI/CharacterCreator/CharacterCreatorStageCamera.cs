@@ -172,8 +172,18 @@ public class CharacterCreatorStageCamera : MonoBehaviour
             cameraPoint.position -
             lookTarget.position;
 
-        automaticDistance = distance;
-        zoomOffset = 0f;
+        distance =
+            Mathf.Clamp(
+                offset.magnitude,
+                minDistance,
+                currentMaxDistance
+            );
+
+        automaticDistance =
+            distance;
+
+        zoomOffset =
+            0f;
 
         if (offset.sqrMagnitude <= 0.0001f)
         {
@@ -192,9 +202,11 @@ public class CharacterCreatorStageCamera : MonoBehaviour
             rotation.eulerAngles;
 
         yaw = eulerAngles.y;
-        pitch = NormalizeAngle(
-            eulerAngles.x
-        );
+
+        pitch =
+            NormalizeAngle(
+                eulerAngles.x
+            );
     }
 
     private void Orbit(
@@ -237,7 +249,7 @@ public class CharacterCreatorStageCamera : MonoBehaviour
                 zoomOffset,
                 minDistance -
                 automaticDistance,
-                maxDistance -
+                currentMaxDistance -
                 automaticDistance
             );
 
@@ -246,7 +258,7 @@ public class CharacterCreatorStageCamera : MonoBehaviour
                 automaticDistance +
                 zoomOffset,
                 minDistance,
-                maxDistance
+                currentMaxDistance
             );
 
         ApplyCamera();

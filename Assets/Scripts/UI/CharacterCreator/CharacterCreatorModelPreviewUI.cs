@@ -110,16 +110,16 @@ public class CharacterCreatorModelPreviewUI : MonoBehaviour
         CharacterAppearanceData appearance =
             characterCreator.SelectedAppearance;
 
+        RaceSize raceSize =
+            subraceDefinition != null
+                ? subraceDefinition.size
+                : RaceSize.Size2;
+
         bool usingDefaultPrefab =
             desiredPrefab == defaultPreviewPrefab;
 
         if (usingDefaultPrefab)
         {
-            RaceSize raceSize =
-                subraceDefinition != null
-                    ? subraceDefinition.size
-                    : RaceSize.Size2;
-
             ApplyCapsuleTransform(
                 raceSize,
                 appearance
@@ -131,7 +131,7 @@ public class CharacterCreatorModelPreviewUI : MonoBehaviour
         }
 
         ApplyColor(appearance);
-        UpdateStageCamera();
+        UpdateStageCamera(raceSize);
     }
 
     private SubraceDefinition GetSelectedSubrace()
@@ -301,7 +301,8 @@ public class CharacterCreatorModelPreviewUI : MonoBehaviour
         return null;
     }
 
-    private void UpdateStageCamera()
+    private void UpdateStageCamera(
+        RaceSize raceSize)
     {
         if (stageCamera == null ||
             !TryGetBounds(out Bounds bounds))
@@ -309,7 +310,10 @@ public class CharacterCreatorModelPreviewUI : MonoBehaviour
             return;
         }
 
-        stageCamera.SetTarget(bounds);
+        stageCamera.SetTarget(
+            bounds,
+            raceSize
+        );
     }
 
     private bool TryGetBounds(
