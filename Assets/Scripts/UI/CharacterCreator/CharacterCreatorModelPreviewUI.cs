@@ -24,6 +24,9 @@ public class CharacterCreatorModelPreviewUI : MonoBehaviour
     [SerializeField] private Transform previewParent;
     [SerializeField] private GameObject defaultPreviewPrefab;
 
+    [SerializeField]
+    private CharacterCreatorStageCamera stageCamera;
+
     [Header("Capsule Race Size Transforms")]
     [SerializeField]
     private List<RaceSizePreviewTransform> raceSizeTransforms = new();
@@ -128,6 +131,7 @@ public class CharacterCreatorModelPreviewUI : MonoBehaviour
         }
 
         ApplyColor(appearance);
+        UpdateStageCamera();
     }
 
     private SubraceDefinition GetSelectedSubrace()
@@ -243,40 +247,10 @@ public class CharacterCreatorModelPreviewUI : MonoBehaviour
     {
         if (currentPreview == null ||
             previewParent == null ||
-            currentRenderers == null)
+            !TryGetBounds(out Bounds bounds))
         {
             return;
         }
-
-        bool hasBounds = false;
-        Bounds bounds = default;
-
-        foreach (Renderer targetRenderer
-                 in currentRenderers)
-        {
-            if (targetRenderer == null ||
-                !targetRenderer.enabled)
-            {
-                continue;
-            }
-
-            if (!hasBounds)
-            {
-                bounds =
-                    targetRenderer.bounds;
-
-                hasBounds = true;
-            }
-            else
-            {
-                bounds.Encapsulate(
-                    targetRenderer.bounds
-                );
-            }
-        }
-
-        if (!hasBounds)
-            return;
 
         Vector3 worldPosition =
             currentPreview.transform.position;
@@ -325,6 +299,54 @@ public class CharacterCreatorModelPreviewUI : MonoBehaviour
         }
 
         return null;
+    }
+
+    private void UpdateStageCamera()
+    {
+        if (stageCamera == null ||
+            !TryGetBounds(out Bounds bounds))
+        {
+            return;
+        }
+
+        stageCamera.SetTarget(bounds);
+    }
+
+    private bool TryGetBounds(
+        out Bounds bounds)
+    {
+        bounds = default;
+
+        if (currentRenderers == null)
+            return false;
+
+        bool hasBounds = false;
+
+        foreach (Renderer targetRenderer
+                 in currentRenderers)
+        {
+            if (targetRenderer == null ||
+                !targetRenderer.enabled)
+            {
+                continue;
+            }
+
+            if (!hasBounds)
+            {
+                bounds =
+                    targetRenderer.bounds;
+
+                hasBounds = true;
+            }
+            else
+            {
+                bounds.Encapsulate(
+                    targetRenderer.bounds
+                );
+            }
+        }
+
+        return hasBounds;
     }
 
     private void ApplyColor(

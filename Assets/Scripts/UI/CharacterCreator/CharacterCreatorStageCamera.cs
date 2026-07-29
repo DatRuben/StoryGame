@@ -20,6 +20,10 @@ public class CharacterCreatorStageCamera : MonoBehaviour
     [SerializeField] private float minDistance = 0.75f;
     [SerializeField] private float maxDistance = 5f;
 
+    [Header("Automatic Target")]
+    [SerializeField, Range(0f, 1f)]
+    private float targetHeightPercent = 0.55f;
+
     private float yaw;
     private float pitch;
     private float distance;
@@ -78,6 +82,36 @@ public class CharacterCreatorStageCamera : MonoBehaviour
                 mouse.scroll.ReadValue().y
             );
         }
+    }
+
+    public void SetTarget(Bounds bounds)
+    {
+        if (cameraPoint == null ||
+            lookTarget == null)
+        {
+            return;
+        }
+
+        Vector3 targetPosition =
+            new Vector3(
+                bounds.center.x,
+                Mathf.Lerp(
+                    bounds.min.y,
+                    bounds.max.y,
+                    targetHeightPercent
+                ),
+                bounds.center.z
+            );
+
+        Vector3 targetOffset =
+            targetPosition -
+            lookTarget.position;
+
+        lookTarget.position =
+            targetPosition;
+
+        cameraPoint.position +=
+            targetOffset;
     }
 
     private void ReadCamera()
@@ -149,12 +183,14 @@ public class CharacterCreatorStageCamera : MonoBehaviour
         if (Mathf.Abs(scrollAmount) <= 0.01f)
             return;
 
+        float zoomInput =
+            scrollAmount / 120f;
+
         distance =
             Mathf.Clamp(
                 distance -
-                scrollAmount *
-                zoomSpeed *
-                0.01f,
+                zoomInput *
+                zoomSpeed,
                 minDistance,
                 maxDistance
             );
