@@ -73,13 +73,8 @@ public class PlayerSpawner : MonoBehaviour
                 rotation
             );
 
-        PlayerCharacterProfile playerCharacterProfile =
-            spawnedPlayer.GetComponent<PlayerCharacterProfile>();
-
-        if (playerCharacterProfile == null)
-            playerCharacterProfile = spawnedPlayer.AddComponent<PlayerCharacterProfile>();
-
-        playerCharacterProfile.Initialize(
+        InitializePlayer(
+            spawnedPlayer,
             profile,
             raceDefinition,
             subraceDefinition,
@@ -87,6 +82,88 @@ public class PlayerSpawner : MonoBehaviour
         );
 
         return true;
+    }
+
+    public bool UsePlayer(
+        GameObject player,
+        CharacterProfileData profile)
+    {
+        if (player == null)
+        {
+            Debug.LogWarning(
+                "PlayerSpawner could not use the existing player because it is missing.",
+                this
+            );
+
+            return false;
+        }
+
+        if (characterDataLibrary == null)
+        {
+            Debug.LogWarning(
+                "PlayerSpawner could not use the existing player because CharacterDataLibrary is missing.",
+                this
+            );
+
+            return false;
+        }
+
+        if (profile == null)
+        {
+            Debug.LogWarning(
+                "PlayerSpawner could not use the existing player because its character profile is missing.",
+                this
+            );
+
+            return false;
+        }
+
+        if (!TryGetRuntimeDefinitions(
+            profile,
+            out RaceDefinition raceDefinition,
+            out SubraceDefinition subraceDefinition,
+            out LineageSelection[] lineageSelections))
+        {
+            return false;
+        }
+
+        spawnedPlayer =
+            player;
+
+        InitializePlayer(
+            spawnedPlayer,
+            profile,
+            raceDefinition,
+            subraceDefinition,
+            lineageSelections
+        );
+
+        return true;
+    }
+
+    private void InitializePlayer(
+        GameObject player,
+        CharacterProfileData profile,
+        RaceDefinition raceDefinition,
+        SubraceDefinition subraceDefinition,
+        LineageSelection[] lineageSelections)
+    {
+        PlayerCharacterProfile playerCharacterProfile =
+            player.GetComponent<PlayerCharacterProfile>();
+
+        if (playerCharacterProfile == null)
+        {
+            playerCharacterProfile =
+                player.AddComponent<
+                    PlayerCharacterProfile>();
+        }
+
+        playerCharacterProfile.Initialize(
+            profile,
+            raceDefinition,
+            subraceDefinition,
+            lineageSelections
+        );
     }
 
     private bool TryGetProfileToSpawn(
