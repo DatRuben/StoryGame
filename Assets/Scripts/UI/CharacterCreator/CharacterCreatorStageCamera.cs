@@ -8,6 +8,7 @@ public class CharacterCreatorStageCamera : MonoBehaviour
     [Header("Stage")]
     [SerializeField] private Transform cameraPoint;
     [SerializeField] private Transform lookTarget;
+    [SerializeField] private Camera outputCamera;
 
     [Header("Input Area")]
     [SerializeField] private RectTransform inputArea;
@@ -38,8 +39,7 @@ public class CharacterCreatorStageCamera : MonoBehaviour
     [SerializeField, Range(0f, 1f)]
     private float targetHeightPercent = 0.55f;
 
-    [SerializeField] private float distanceMultiplier = 2.75f;
-    [SerializeField] private float distancePadding = 1f;
+    [SerializeField] private float distancePadding = 0.5f;
 
     private float yaw;
     private float pitch;
@@ -52,6 +52,9 @@ public class CharacterCreatorStageCamera : MonoBehaviour
 
     private void OnEnable()
     {
+        if (outputCamera == null)
+            outputCamera = Camera.main;
+
         currentMaxDistance =
             Mathf.Max(
                 minDistance,
@@ -137,17 +140,11 @@ public class CharacterCreatorStageCamera : MonoBehaviour
         lookTarget.position =
             targetPosition;
 
-        float framedSize =
-            Mathf.Max(
-                bounds.size.x,
-                bounds.size.y,
-                bounds.size.z
-            );
-
         automaticDistance =
-            framedSize *
-            distanceMultiplier +
-            distancePadding;
+            GetFrameDistance(
+                bounds,
+                targetPosition
+            );
 
         zoomOffset =
             Mathf.Clamp(
@@ -167,6 +164,112 @@ public class CharacterCreatorStageCamera : MonoBehaviour
             );
 
         ApplyCamera();
+    }
+
+    private float GetFrameDistance(
+        Bounds bounds,
+        Vector3 targetPosition)
+    {
+        if (outputCamera == null)
+            return distance;
+
+        float verticalFov =
+            Mathf.Clamp(
+                outputCamera.fieldOfView,
+                1f,
+                179f
+            ) * Mathf.Deg2Rad;
+
+        float verticalTangent =
+            Mathf.Tan(
+                verticalFov * 0.5f
+            );
+
+        float visibleAspect =
+            outputCamera.aspect;
+
+        if (inputArea != null &&
+            inputArea.rect.height > 0.01f)
+        {
+            visibleAspect =
+                inputArea.rect.width /
+                inputArea.rect.height;
+        }
+
+        visibleAspect =
+            Mathf.Max(
+                0.01f,
+                visibleAspect
+            );
+
+        float horizontalTangent =
+            verticalTangent *
+            visibleAspect;
+
+        Quaternion cameraRotation =
+            Quaternion.Euler(
+                pitch,
+                yaw,
+                0f
+            );
+
+        Quaternion inverseRotation =
+            Quaternion.Inverse(
+                cameraRotation
+            );
+
+        Vector3 boundsMin =
+            bounds.min;
+
+        Vector3 boundsMax =
+            bounds.max;
+
+        float requiredDistance = 0f;
+
+        for (int i = 0; i < 8; i++)
+        {
+            Vector3 corner =
+                new Vector3(
+                    (i & 1) == 0
+                        ? boundsMin.x
+                        : boundsMax.x,
+
+                    (i & 2) == 0
+                        ? boundsMin.y
+                        : boundsMax.y,
+
+                    (i & 4) == 0
+                        ? boundsMin.z
+                        : boundsMax.z
+                );
+
+            Vector3 localCorner =
+                inverseRotation *
+                (corner - targetPosition);
+
+            float verticalDistance =
+                Mathf.Abs(localCorner.y) /
+                verticalTangent -
+                localCorner.z;
+
+            float horizontalDistance =
+                Mathf.Abs(localCorner.x) /
+                horizontalTangent -
+                localCorner.z;
+
+            requiredDistance =
+                Mathf.Max(
+                    requiredDistance,
+                    verticalDistance,
+                    horizontalDistance
+                );
+        }
+
+        return Mathf.Max(
+            minDistance,
+            requiredDistance +
+            distancePadding
+        );
     }
 
     private void ReadCamera()

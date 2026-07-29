@@ -30845,6 +30845,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CharacterCreatorStageCamera
   cameraPoint: {fileID: 158613825}
   lookTarget: {fileID: 1370201799}
+  outputCamera: {fileID: 330585545}
   inputArea: {fileID: 1726303412}
   orbitSpeed: 0.15
   minPitch: -10
@@ -30872,7 +30873,6 @@ MonoBehaviour:
   - raceSize: 8
     maxDistance: 18
   targetHeightPercent: 0.75
-  distanceMultiplier: 2
   distancePadding: 1
 --- !u!1 &1689058081
 GameObject:
