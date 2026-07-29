@@ -30852,6 +30852,25 @@ MonoBehaviour:
   zoomSpeed: 20
   minDistance: 1
   maxDistance: 18
+  raceSizeZoomLimits:
+  - raceSize: 0
+    maxDistance: 3
+  - raceSize: 1
+    maxDistance: 5
+  - raceSize: 2
+    maxDistance: 5
+  - raceSize: 3
+    maxDistance: 8
+  - raceSize: 4
+    maxDistance: 3
+  - raceSize: 5
+    maxDistance: 8
+  - raceSize: 6
+    maxDistance: 12
+  - raceSize: 7
+    maxDistance: 15
+  - raceSize: 8
+    maxDistance: 18
   targetHeightPercent: 0.75
   distanceMultiplier: 2
   distancePadding: 1
