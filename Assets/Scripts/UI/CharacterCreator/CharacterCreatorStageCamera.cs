@@ -41,12 +41,26 @@ public class CharacterCreatorStageCamera : MonoBehaviour
 
     [SerializeField] private float distancePadding = 0.5f;
 
+    [Header("Automatic Transition")]
+    [SerializeField, Min(0f)]
+    private float transitionDuration = 0.5f;
+
     private float yaw;
     private float pitch;
     private float distance;
     private float currentMaxDistance;
     private float automaticDistance;
     private float zoomOffset;
+
+    private Vector3 startTargetPosition;
+    private Vector3 desiredTargetPosition;
+
+    private float startDistance;
+    private float desiredDistance;
+    private float transitionElapsed;
+
+    private bool hasTarget;
+    private bool transitioning;
 
     private bool dragging;
 
@@ -62,12 +76,28 @@ public class CharacterCreatorStageCamera : MonoBehaviour
             );
 
         ReadCamera();
+
+        desiredTargetPosition =
+            lookTarget != null
+                ? lookTarget.position
+                : Vector3.zero;
+
+        desiredDistance =
+            distance;
+
+        transitionElapsed = 0f;
+        hasTarget = false;
+        transitioning = false;
+
         ApplyCamera();
     }
 
     private void OnDisable()
     {
         dragging = false;
+        hasTarget = false;
+        transitioning = false;
+        transitionElapsed = 0f;
     }
 
     private void Update()
@@ -111,6 +141,8 @@ public class CharacterCreatorStageCamera : MonoBehaviour
                 mouse.scroll.ReadValue().y
             );
         }
+
+        UpdateTransition();
     }
 
     public void SetTarget(
@@ -126,7 +158,7 @@ public class CharacterCreatorStageCamera : MonoBehaviour
         currentMaxDistance =
             GetMaxDistance(raceSize);
 
-        Vector3 targetPosition =
+        Vector3 nextTargetPosition =
             new Vector3(
                 bounds.center.x,
                 Mathf.Lerp(
@@ -137,13 +169,10 @@ public class CharacterCreatorStageCamera : MonoBehaviour
                 bounds.center.z
             );
 
-        lookTarget.position =
-            targetPosition;
-
         automaticDistance =
             GetFrameDistance(
                 bounds,
-                targetPosition
+                nextTargetPosition
             );
 
         zoomOffset =
@@ -155,13 +184,119 @@ public class CharacterCreatorStageCamera : MonoBehaviour
                 automaticDistance
             );
 
-        distance =
+        float nextDistance =
             Mathf.Clamp(
                 automaticDistance +
                 zoomOffset,
                 minDistance,
                 currentMaxDistance
             );
+
+        if (!hasTarget ||
+            transitionDuration <= 0f)
+        {
+            lookTarget.position =
+                nextTargetPosition;
+
+            distance =
+                nextDistance;
+
+            desiredTargetPosition =
+                nextTargetPosition;
+
+            desiredDistance =
+                nextDistance;
+
+            hasTarget = true;
+            transitioning = false;
+
+            ApplyCamera();
+            return;
+        }
+
+        bool sameTarget =
+            (
+                desiredTargetPosition -
+                nextTargetPosition
+            ).sqrMagnitude <= 0.000001f;
+
+        bool sameDistance =
+            Mathf.Abs(
+                desiredDistance -
+                nextDistance
+            ) <= 0.0001f;
+
+        if (sameTarget &&
+            sameDistance)
+        {
+            return;
+        }
+
+        startTargetPosition =
+            lookTarget.position;
+
+        startDistance =
+            distance;
+
+        desiredTargetPosition =
+            nextTargetPosition;
+
+        desiredDistance =
+            nextDistance;
+
+        transitionElapsed = 0f;
+        transitioning = true;
+    }
+
+    private void UpdateTransition()
+    {
+        if (!transitioning ||
+            cameraPoint == null ||
+            lookTarget == null)
+        {
+            return;
+        }
+
+        transitionElapsed +=
+            Time.unscaledDeltaTime;
+
+        float progress =
+            transitionDuration <= 0f
+                ? 1f
+                : Mathf.Clamp01(
+                    transitionElapsed /
+                    transitionDuration
+                );
+
+        float easedProgress =
+            progress *
+            progress *
+            (3f - 2f * progress);
+
+        lookTarget.position =
+            Vector3.Lerp(
+                startTargetPosition,
+                desiredTargetPosition,
+                easedProgress
+            );
+
+        distance =
+            Mathf.Lerp(
+                startDistance,
+                desiredDistance,
+                easedProgress
+            );
+
+        if (progress >= 1f)
+        {
+            lookTarget.position =
+                desiredTargetPosition;
+
+            distance =
+                desiredDistance;
+
+            transitioning = false;
+        }
 
         ApplyCamera();
     }
@@ -372,6 +507,12 @@ public class CharacterCreatorStageCamera : MonoBehaviour
                 minDistance,
                 currentMaxDistance
             );
+
+        desiredDistance =
+            distance;
+
+        startDistance =
+            distance;
 
         ApplyCamera();
     }
