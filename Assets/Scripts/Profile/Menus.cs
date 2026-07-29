@@ -8,6 +8,7 @@ public class Menus : MonoBehaviour
     [SerializeField] private GameObject characterSelectPanel;
     [SerializeField] private GameObject characterCreatorPanel;
     [SerializeField] private GameObject gameplayHudPanel;
+    [SerializeField] private GameObject characterCreatorStage;
     [SerializeField] private CharacterSelectUI characterSelectUI;
 
     [Header("Gameplay")]
@@ -28,6 +29,7 @@ public class Menus : MonoBehaviour
         SetPanel(characterSelectPanel, false);
         SetPanel(characterCreatorPanel, false);
         SetPanel(gameplayHudPanel, false);
+        SetPanel(characterCreatorStage, false);
 
         ShowMessage("");
     }
@@ -38,6 +40,7 @@ public class Menus : MonoBehaviour
         SetPanel(characterSelectPanel, true);
         SetPanel(characterCreatorPanel, false);
         SetPanel(gameplayHudPanel, false);
+        SetPanel(characterCreatorStage, false);
 
         if (characterSelectUI != null)
             characterSelectUI.Refresh();
@@ -47,6 +50,7 @@ public class Menus : MonoBehaviour
     {
         SetPanel(startMenuPanel, false);
         SetPanel(characterSelectPanel, false);
+        SetPanel(characterCreatorStage, true);
         SetPanel(characterCreatorPanel, true);
         SetPanel(gameplayHudPanel, false);
 
@@ -81,6 +85,7 @@ public class Menus : MonoBehaviour
         SetPanel(startMenuPanel, false);
         SetPanel(characterSelectPanel, false);
         SetPanel(characterCreatorPanel, false);
+        SetPanel(characterCreatorStage, false);
         SetPanel(gameplayHudPanel, true);
 
         if (characterRuntimeBinder != null)
