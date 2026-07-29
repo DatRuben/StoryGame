@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System;
+using System.Collections.Generic;
 
 public class CharacterCreatorStageCamera : MonoBehaviour
 {
@@ -15,23 +17,47 @@ public class CharacterCreatorStageCamera : MonoBehaviour
     [SerializeField] private float minPitch = -10f;
     [SerializeField] private float maxPitch = 35f;
 
+    [Serializable]
+    private class RaceSizeZoomLimit
+    {
+        public RaceSize raceSize;
+
+        [Min(0f)]
+        public float maxDistance = 8f;
+    }
+
     [Header("Zoom")]
     [SerializeField] private float zoomSpeed = 0.25f;
     [SerializeField] private float minDistance = 0.75f;
     [SerializeField] private float maxDistance = 5f;
 
+    [SerializeField]
+    private List<RaceSizeZoomLimit> raceSizeZoomLimits = new();
+
     [Header("Automatic Target")]
     [SerializeField, Range(0f, 1f)]
     private float targetHeightPercent = 0.55f;
 
+    [SerializeField] private float distanceMultiplier = 2.75f;
+    [SerializeField] private float distancePadding = 1f;
+
     private float yaw;
     private float pitch;
     private float distance;
+    private float currentMaxDistance;
+    private float automaticDistance;
+    private float zoomOffset;
 
     private bool dragging;
 
     private void OnEnable()
     {
+        currentMaxDistance =
+            Mathf.Max(
+                minDistance,
+                maxDistance
+            );
+
         ReadCamera();
         ApplyCamera();
     }
@@ -84,13 +110,18 @@ public class CharacterCreatorStageCamera : MonoBehaviour
         }
     }
 
-    public void SetTarget(Bounds bounds)
+    public void SetTarget(
+        Bounds bounds,
+        RaceSize raceSize)
     {
         if (cameraPoint == null ||
             lookTarget == null)
         {
             return;
         }
+
+        currentMaxDistance =
+            GetMaxDistance(raceSize);
 
         Vector3 targetPosition =
             new Vector3(
@@ -103,15 +134,30 @@ public class CharacterCreatorStageCamera : MonoBehaviour
                 bounds.center.z
             );
 
-        Vector3 targetOffset =
-            targetPosition -
-            lookTarget.position;
-
         lookTarget.position =
             targetPosition;
 
-        cameraPoint.position +=
-            targetOffset;
+        float framedSize =
+            Mathf.Max(
+                bounds.size.x,
+                bounds.size.y,
+                bounds.size.z
+            );
+
+        automaticDistance =
+            framedSize *
+            distanceMultiplier +
+            distancePadding;
+
+        distance =
+            Mathf.Clamp(
+                automaticDistance +
+                zoomOffset,
+                minDistance,
+                currentMaxDistance
+            );
+
+        ApplyCamera();
     }
 
     private void ReadCamera()
@@ -126,12 +172,8 @@ public class CharacterCreatorStageCamera : MonoBehaviour
             cameraPoint.position -
             lookTarget.position;
 
-        distance =
-            Mathf.Clamp(
-                offset.magnitude,
-                minDistance,
-                maxDistance
-            );
+        automaticDistance = distance;
+        zoomOffset = 0f;
 
         if (offset.sqrMagnitude <= 0.0001f)
         {
@@ -186,11 +228,23 @@ public class CharacterCreatorStageCamera : MonoBehaviour
         float zoomInput =
             scrollAmount / 120f;
 
+        zoomOffset -=
+            zoomInput *
+            zoomSpeed;
+
+        zoomOffset =
+            Mathf.Clamp(
+                zoomOffset,
+                minDistance -
+                automaticDistance,
+                maxDistance -
+                automaticDistance
+            );
+
         distance =
             Mathf.Clamp(
-                distance -
-                zoomInput *
-                zoomSpeed,
+                automaticDistance +
+                zoomOffset,
                 minDistance,
                 maxDistance
             );
