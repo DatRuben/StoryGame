@@ -7202,12 +7202,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CharacterCreatorTraitsUI
   characterDataLibrary: {fileID: 11400000, guid: c1acf6bd8c47e7e46a8bb26e72e63560, type: 2}
   characterCreator: {fileID: 1655067621}
+  detailsUI: {fileID: 2116189960}
   optionButtonPrefab: {fileID: -4955666378580240941, guid: 0057be8b1ad3ec94ea35d29ebc463918, type: 3}
   backgroundButtonParent: {fileID: 1498491571}
-  backgroundDescriptionText: {fileID: 0}
   traitButtonParent: {fileID: 958245278}
-  traitDescriptionText: {fileID: 0}
-  racialPassiveText: {fileID: 0}
 --- !u!114 &305173992
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -43227,6 +43225,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2116189958}
   - component: {fileID: 2116189959}
+  - component: {fileID: 2116189960}
   m_Layer: 5
   m_Name: TraitsRightPanel
   m_TagString: Untagged
@@ -43285,6 +43284,23 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!114 &2116189960
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2116189957}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd8bde22b4c0b4548b4b0dba59dc62b0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterCreatorTraitsDetailsUI
+  characterDataLibrary: {fileID: 11400000, guid: c1acf6bd8c47e7e46a8bb26e72e63560, type: 2}
+  characterCreator: {fileID: 1655067621}
+  backgroundDescriptionText: {fileID: 833780734}
+  traitDescriptionText: {fileID: 354232719}
+  racialPassiveText: {fileID: 837054059}
 --- !u!1 &2129206564
 GameObject:
   m_ObjectHideFlags: 0

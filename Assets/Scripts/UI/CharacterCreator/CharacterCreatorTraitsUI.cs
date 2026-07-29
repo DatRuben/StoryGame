@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
 
 public class CharacterCreatorTraitsUI : MonoBehaviour
@@ -8,19 +7,18 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
     [SerializeField] private CharacterDataLibrary characterDataLibrary;
     [SerializeField] private CharacterCreator characterCreator;
 
+    [Header("Details")]
+    [SerializeField]
+    private CharacterCreatorTraitsDetailsUI detailsUI;
+
     [Header("Option Prefab")]
     [SerializeField] private CharacterOptionButtonUI optionButtonPrefab;
 
     [Header("Background UI")]
     [SerializeField] private Transform backgroundButtonParent;
-    [SerializeField] private TMP_Text backgroundDescriptionText;
 
     [Header("Trait UI")]
     [SerializeField] private Transform traitButtonParent;
-    [SerializeField] private TMP_Text traitDescriptionText;
-
-    [Header("Racial Passive Details")]
-    [SerializeField] private TMP_Text racialPassiveText;
 
     private readonly List<CharacterOptionButtonUI> backgroundButtons = new();
     private readonly List<string> backgroundButtonIds = new();
@@ -62,7 +60,6 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
         BuildBackgroundButtons();
         BuildTraitButtons();
 
-        RefreshRacialPassiveText();
         RefreshUI();
     }
 
@@ -137,6 +134,13 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
             return;
         }
 
+        if (detailsUI != null)
+        {
+            detailsUI.ShowBackground(
+                backgroundDefinition
+            );
+        }
+
         RefreshUI();
     }
 
@@ -164,9 +168,12 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
             return;
         }
 
-        ShowTraitDescription(
-            GetTraitDescription(traitDefinition)
-        );
+        if (detailsUI != null)
+        {
+            detailsUI.ShowTrait(
+                traitDefinition
+            );
+        }
 
         RefreshUI();
     }
@@ -174,9 +181,7 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
     private void RefreshUI()
     {
         RefreshBackgroundButtons();
-        RefreshBackgroundDescription();
         RefreshTraitButtons();
-        RefreshRacialPassiveText();
     }
 
     private void RefreshBackgroundButtons()
@@ -209,33 +214,6 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
         }
     }
 
-    private void RefreshBackgroundDescription()
-    {
-        if (characterCreator == null ||
-            characterDataLibrary == null)
-        {
-            ShowBackgroundDescription("");
-            return;
-        }
-
-        string backgroundId =
-            characterCreator.SelectedBackgroundId;
-
-        if (string.IsNullOrWhiteSpace(backgroundId) ||
-            !characterDataLibrary.TryGetBackgroundDefinition(
-                backgroundId,
-                out BackgroundDefinition backgroundDefinition))
-        {
-            ShowBackgroundDescription("");
-            return;
-        }
-
-        ShowBackgroundDescription(
-            GetBackgroundDescription(
-                backgroundDefinition
-            )
-        );
-    }
     private void RefreshTraitButtons()
     {
         for (int i = 0; i < traitButtons.Count; i++)
@@ -423,15 +401,6 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
         return value.ToString();
     }
 
-    private void RefreshRacialPassiveText()
-    {
-        if (racialPassiveText != null)
-        {
-            racialPassiveText.text =
-                "Racial passives will be shown here later.";
-        }
-    }
-
     private bool HasRequiredReferences()
     {
         if (characterDataLibrary == null)
@@ -450,20 +419,6 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
             return false;
 
         return true;
-    }
-
-    private void ShowBackgroundDescription(
-        string message)
-    {
-        if (backgroundDescriptionText != null)
-            backgroundDescriptionText.text = message;
-    }
-
-    private void ShowTraitDescription(
-        string message)
-    {
-        if (traitDescriptionText != null)
-            traitDescriptionText.text = message;
     }
 
     private void ClearButtons(
