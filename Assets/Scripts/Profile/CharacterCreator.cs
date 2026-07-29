@@ -36,6 +36,11 @@ public class CharacterCreator : MonoBehaviour
         public List<TraitDefinition> traitDefinitions;
     }
 
+    private void Awake()
+    {
+        EnsureDefaultBackground();
+    }
+
     public void SelectGender(
         CharacterGender gender)
     {
@@ -708,6 +713,7 @@ public class CharacterCreator : MonoBehaviour
         selectedLineageIds.Clear();
 
         selectedBackgroundId = "";
+        EnsureDefaultBackground();
         selectedTraitIds.Clear();
 
         selectedGender = CharacterGender.Male;
@@ -745,6 +751,30 @@ public class CharacterCreator : MonoBehaviour
 
         if (raceDefinition.standardSubrace != null)
             selectedSubraceId = raceDefinition.standardSubrace.subraceId;
+    }
+
+    private void EnsureDefaultBackground()
+    {
+        if (!string.IsNullOrWhiteSpace(
+                selectedBackgroundId) ||
+            characterDataLibrary == null)
+        {
+            return;
+        }
+
+        BackgroundDefinition defaultBackground =
+            characterDataLibrary
+                .GetDefaultBackgroundDefinition();
+
+        if (defaultBackground == null ||
+            string.IsNullOrWhiteSpace(
+                defaultBackground.backgroundId))
+        {
+            return;
+        }
+
+        selectedBackgroundId =
+            defaultBackground.backgroundId;
     }
 
     private bool TryGetRaceDefinition(
