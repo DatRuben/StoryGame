@@ -221,6 +221,7 @@ public class CharacterCreatorModelPreviewUI : MonoBehaviour
             previewTransform.localScale =
                 prefabScale * appearance.bodyScale;
 
+            GroundPreview();
             return;
         }
 
@@ -235,6 +236,57 @@ public class CharacterCreatorModelPreviewUI : MonoBehaviour
         previewTransform.localScale =
             raceTransform.localScale *
             appearance.bodyScale;
+        GroundPreview();
+    }
+
+    private void GroundPreview()
+    {
+        if (currentPreview == null ||
+            previewParent == null ||
+            currentRenderers == null)
+        {
+            return;
+        }
+
+        bool hasBounds = false;
+        Bounds bounds = default;
+
+        foreach (Renderer targetRenderer
+                 in currentRenderers)
+        {
+            if (targetRenderer == null ||
+                !targetRenderer.enabled)
+            {
+                continue;
+            }
+
+            if (!hasBounds)
+            {
+                bounds =
+                    targetRenderer.bounds;
+
+                hasBounds = true;
+            }
+            else
+            {
+                bounds.Encapsulate(
+                    targetRenderer.bounds
+                );
+            }
+        }
+
+        if (!hasBounds)
+            return;
+
+        Vector3 worldPosition =
+            currentPreview.transform.position;
+
+        worldPosition.y +=
+            previewParent.position.y -
+            bounds.min.y;
+
+        currentPreview.transform.position =
+            worldPosition;
     }
 
     private void ApplyPrefabTransform(
