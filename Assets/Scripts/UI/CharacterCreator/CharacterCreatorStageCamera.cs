@@ -149,6 +149,15 @@ public class CharacterCreatorStageCamera : MonoBehaviour
             distanceMultiplier +
             distancePadding;
 
+        zoomOffset =
+            Mathf.Clamp(
+                zoomOffset,
+                minDistance -
+                automaticDistance,
+                currentMaxDistance -
+                automaticDistance
+            );
+
         distance =
             Mathf.Clamp(
                 automaticDistance +
@@ -287,6 +296,28 @@ public class CharacterCreatorStageCamera : MonoBehaviour
 
         cameraPoint.rotation =
             rotation;
+    }
+
+    private float GetMaxDistance(
+        RaceSize raceSize)
+    {
+        foreach (RaceSizeZoomLimit zoomLimit
+                 in raceSizeZoomLimits)
+        {
+            if (zoomLimit != null &&
+                zoomLimit.raceSize == raceSize)
+            {
+                return Mathf.Max(
+                    minDistance,
+                    zoomLimit.maxDistance
+                );
+            }
+        }
+
+        return Mathf.Max(
+            minDistance,
+            maxDistance
+        );
     }
 
     private float NormalizeAngle(
