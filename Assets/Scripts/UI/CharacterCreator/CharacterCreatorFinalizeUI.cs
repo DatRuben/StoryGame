@@ -2,12 +2,21 @@ using System.Collections.Generic;
 using System.Text;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class CharacterCreatorFinalizeUI : MonoBehaviour
 {
     [Header("Data")]
     [SerializeField] private CharacterDataLibrary characterDataLibrary;
     [SerializeField] private CharacterCreator characterCreator;
+
+    [Header("Left Panel")]
+    [SerializeField] private TMP_InputField characterNameInput;
+    [SerializeField] private Button createCharacterButton;
+    [SerializeField] private TMP_Text creationMessageText;
+
+    [Header("Navigation")]
+    [SerializeField] private Menus menus;
 
     [Header("Right Panel")]
     [SerializeField] private TMP_Text finalAttributesText;
@@ -16,11 +25,23 @@ public class CharacterCreatorFinalizeUI : MonoBehaviour
     private void OnEnable()
     {
         SubscribeToCreator();
+        HookControls();
+
+        if (characterNameInput != null &&
+            characterCreator != null)
+        {
+            characterNameInput.SetTextWithoutNotify(
+                characterCreator.SelectedCharacterName
+            );
+        }
+
+        ShowCreationMessage("");
         Refresh();
     }
 
     private void OnDisable()
     {
+        UnhookControls();
         UnsubscribeFromCreator();
     }
 
@@ -41,8 +62,111 @@ public class CharacterCreatorFinalizeUI : MonoBehaviour
         characterCreator.SelectionChanged -= Refresh;
     }
 
+    private void HookControls()
+    {
+        if (characterNameInput != null)
+        {
+            characterNameInput.onValueChanged.RemoveListener(
+                OnNameChanged
+            );
+
+            characterNameInput.onValueChanged.AddListener(
+                OnNameChanged
+            );
+        }
+
+        if (createCharacterButton != null)
+        {
+            createCharacterButton.onClick.RemoveListener(
+                CreateCharacter
+            );
+
+            createCharacterButton.onClick.AddListener(
+                CreateCharacter
+            );
+        }
+    }
+
+    private void UnhookControls()
+    {
+        if (characterNameInput != null)
+        {
+            characterNameInput.onValueChanged.RemoveListener(
+                OnNameChanged
+            );
+        }
+
+        if (createCharacterButton != null)
+        {
+            createCharacterButton.onClick.RemoveListener(
+                CreateCharacter
+            );
+        }
+    }
+
+    private void OnNameChanged(
+        string characterName)
+    {
+        if (characterCreator == null)
+            return;
+
+        characterCreator.SetCharacterName(
+            characterName
+        );
+
+        ShowCreationMessage("");
+        RefreshCreateButton();
+    }
+
+    private void CreateCharacter()
+    {
+        if (characterCreator == null)
+        {
+            ShowCreationMessage(
+                "Character Creator is missing."
+            );
+
+            return;
+        }
+
+        bool created =
+            characterCreator.TryCreateCharacter(
+                characterCreator.SelectedCharacterName,
+                out CharacterProfileData profile,
+                out string errorMessage
+            );
+
+        if (!created)
+        {
+            ShowCreationMessage(
+                errorMessage
+            );
+
+            RefreshCreateButton();
+            return;
+        }
+
+        ShowCreationMessage("");
+
+        characterCreator.ResetCreator();
+
+        if (menus != null)
+        {
+            menus.ShowCharacterSelect();
+        }
+        else
+        {
+            Debug.LogWarning(
+                "Character was saved, but Menus is missing.",
+                this
+            );
+        }
+    }
+
     private void Refresh()
     {
+        RefreshCreateButton();
+
         if (!TryResolveStats(
             out ResolvedCharacterStats resolvedStats))
         {
@@ -193,6 +317,38 @@ public class CharacterCreatorFinalizeUI : MonoBehaviour
         float value)
     {
         text.AppendLine($"{label}: {value:0.##}");
+    }
+
+    private void RefreshCreateButton()
+    {
+        if (createCharacterButton == null)
+            return;
+
+        bool hasName =
+            characterCreator != null &&
+            !string.IsNullOrWhiteSpace(
+                characterCreator.SelectedCharacterName
+            );
+
+        bool hasValidSelections =
+            characterCreator != null &&
+            characterCreator.CanCreateCharacter(
+                out string _
+            );
+
+        createCharacterButton.interactable =
+            hasName &&
+            hasValidSelections;
+    }
+
+    private void ShowCreationMessage(
+        string message)
+    {
+        if (creationMessageText != null)
+        {
+            creationMessageText.text =
+                message ?? "";
+        }
     }
 
     private void ShowMissingData()
