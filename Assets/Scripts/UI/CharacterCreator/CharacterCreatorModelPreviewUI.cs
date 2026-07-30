@@ -95,6 +95,77 @@ public class CharacterCreatorModelPreviewUI : MonoBehaviour
         SubraceDefinition subraceDefinition =
             GetSelectedSubrace();
 
+        CharacterAppearanceData appearance =
+            characterCreator.SelectedAppearance;
+
+        ApplyPreview(
+            subraceDefinition,
+            appearance,
+            true,
+            false
+        );
+    }
+
+    public bool ApplyProfile(
+        CharacterProfileData profile)
+    {
+        if (profile == null ||
+            characterDataLibrary == null ||
+            previewParent == null ||
+            defaultPreviewPrefab == null)
+        {
+            return false;
+        }
+
+        if (!characterDataLibrary.TryGetSubraceDefinition(
+            profile.subraceId,
+            out SubraceDefinition subraceDefinition) ||
+            subraceDefinition == null)
+        {
+            Debug.LogWarning(
+                $"Could not load the model for subrace " +
+                $"'{profile.subraceId}'.",
+                this
+            );
+
+            return false;
+        }
+
+        CharacterAppearanceData appearance =
+            profile.appearance != null
+                ? CharacterAppearanceData.Copy(
+                    profile.appearance
+                )
+                : CharacterAppearanceData.CreateDefault();
+
+        ApplyPreview(
+            subraceDefinition,
+            appearance,
+            false,
+            true
+        );
+
+        return currentPreview != null;
+    }
+
+    private void ApplyPreview(
+        SubraceDefinition subraceDefinition,
+        CharacterAppearanceData appearance,
+        bool updateCamera,
+        bool scaleBodyOnPlayer)
+    {
+        if (previewParent == null ||
+            defaultPreviewPrefab == null)
+        {
+            return;
+        }
+
+        if (appearance == null)
+        {
+            appearance =
+                CharacterAppearanceData.CreateDefault();
+        }
+
         GameObject desiredPrefab =
             GetPreviewPrefab(subraceDefinition);
 
@@ -107,13 +178,24 @@ public class CharacterCreatorModelPreviewUI : MonoBehaviour
         if (currentPreview == null)
             return;
 
-        CharacterAppearanceData appearance =
-            characterCreator.SelectedAppearance;
-
         RaceSize raceSize =
             subraceDefinition != null
                 ? subraceDefinition.size
                 : RaceSize.Size2;
+
+        CharacterAppearanceData transformAppearance =
+            appearance;
+
+        if (scaleBodyOnPlayer)
+        {
+            transformAppearance =
+                CharacterAppearanceData.Copy(
+                    appearance
+                );
+
+            transformAppearance.bodyScale =
+                RaceSizeBodyScale.DefaultMultiplier;
+        }
 
         bool usingDefaultPrefab =
             desiredPrefab == defaultPreviewPrefab;
@@ -122,19 +204,23 @@ public class CharacterCreatorModelPreviewUI : MonoBehaviour
         {
             ApplyCapsuleTransform(
                 raceSize,
-                appearance
+                transformAppearance
             );
         }
         else
         {
             ApplyPrefabTransform(
                 raceSize,
-                appearance
+                transformAppearance
             );
         }
 
         ApplyColor(appearance);
-        UpdateStageCamera(raceSize);
+
+        if (updateCamera)
+        {
+            UpdateStageCamera(raceSize);
+        }
     }
 
     private SubraceDefinition GetSelectedSubrace()
@@ -408,6 +494,12 @@ public class CharacterCreatorModelPreviewUI : MonoBehaviour
             currentRenderers == null)
         {
             return;
+        }
+
+        if (propertyBlock == null)
+        {
+            propertyBlock =
+                new MaterialPropertyBlock();
         }
 
         Color color =

@@ -15,6 +15,9 @@ public class Menus : MonoBehaviour
     [SerializeField] private CharacterCreator characterCreator;
     [SerializeField] private GameObject creatorPlayer;
 
+    [SerializeField]
+    private CharacterCreatorModelPreviewUI creatorModelPreview;
+
     [Header("Gameplay")]
     [SerializeField] private PlayerSpawner playerSpawner;
     [SerializeField] private CharacterRuntimeBinder characterRuntimeBinder;
@@ -77,6 +80,18 @@ public class Menus : MonoBehaviour
         if (playerSpawner == null)
         {
             ShowMessage("PlayerSpawner is missing.");
+            return;
+        }
+
+        if (creatorPlayer != null &&
+            creatorModelPreview != null &&
+            !creatorModelPreview.ApplyProfile(profile))
+        {
+            ShowMessage(
+                "Could not load the selected character model."
+            );
+
+            ShowCharacterSelect();
             return;
         }
 

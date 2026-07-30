@@ -26933,6 +26933,7 @@ MonoBehaviour:
   characterSelectUI: {fileID: 807692054}
   characterCreator: {fileID: 1655067621}
   creatorPlayer: {fileID: 875376791}
+  creatorModelPreview: {fileID: 1726303416}
   playerSpawner: {fileID: 1297872241}
   characterRuntimeBinder: {fileID: 967172425}
   messageText: {fileID: 1168074061}
