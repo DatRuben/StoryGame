@@ -66,13 +66,46 @@ public class WeaponSetSlotUI : MonoBehaviour
         }
     }
 
-    private void Start()
+    private void OnEnable()
+    {
+        Subscribe();
+        Refresh();
+    }
+
+    private void OnDisable()
+    {
+        Unsubscribe();
+    }
+
+    private void Subscribe()
     {
         if (playerInventory != null)
             playerInventory.OnHeldItemChanged += Refresh;
 
         if (playerWeaponSlots != null)
             playerWeaponSlots.OnWeaponSlotsChanged += Refresh;
+    }
+
+    private void Unsubscribe()
+    {
+        if (playerInventory != null)
+            playerInventory.OnHeldItemChanged -= Refresh;
+
+        if (playerWeaponSlots != null)
+            playerWeaponSlots.OnWeaponSlotsChanged -= Refresh;
+    }
+
+    public void BindPlayer(
+        PlayerInventory newPlayerInventory,
+        PlayerWeaponSlots newPlayerWeaponSlots)
+    {
+        Unsubscribe();
+
+        playerInventory = newPlayerInventory;
+        playerWeaponSlots = newPlayerWeaponSlots;
+
+        if (isActiveAndEnabled)
+            Subscribe();
 
         Refresh();
     }
@@ -80,15 +113,6 @@ public class WeaponSetSlotUI : MonoBehaviour
     private void Update()
     {
         UpdateVisibility();
-    }
-
-    private void OnDestroy()
-    {
-        if (playerInventory != null)
-            playerInventory.OnHeldItemChanged -= Refresh;
-
-        if (playerWeaponSlots != null)
-            playerWeaponSlots.OnWeaponSlotsChanged -= Refresh;
     }
 
     private void OnSlotClicked()

@@ -175,6 +175,29 @@ public class CharacterRuntimeBinder : MonoBehaviour
             );
         }
 
+        WeaponSetSlotUI[] weaponSetSlotUIs =
+            Resources.FindObjectsOfTypeAll<
+                WeaponSetSlotUI>();
+
+        for (int i = 0;
+             i < weaponSetSlotUIs.Length;
+             i++)
+        {
+            WeaponSetSlotUI weaponSetSlotUI =
+                weaponSetSlotUIs[i];
+
+            if (weaponSetSlotUI == null ||
+                !weaponSetSlotUI.gameObject.scene.IsValid())
+            {
+                continue;
+            }
+
+            weaponSetSlotUI.BindPlayer(
+                playerInventory,
+                playerWeaponSlots
+            );
+        }
+
         if (playerResourcesUI != null)
             playerResourcesUI.BindPlayer(playerResources);
 
