@@ -4,36 +4,37 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class CharacterCreatorFinalizeUI : MonoBehaviour
+public class CharacterCreatorFinalizeCreationUI : MonoBehaviour
 {
     [Header("Data")]
-    [SerializeField] private CharacterDataLibrary characterDataLibrary;
-    [SerializeField] private CharacterCreator characterCreator;
+    [SerializeField]
+    private CharacterDataLibrary characterDataLibrary;
 
-    [Header("Left Panel")]
-    [SerializeField] private TMP_InputField characterNameInput;
-    [SerializeField] private Button createCharacterButton;
-    [SerializeField] private TMP_Text creationMessageText;
+    [SerializeField]
+    private CharacterCreator characterCreator;
+
+    [Header("Final Values")]
+    [SerializeField]
+    private TMP_Text finalAttributesText;
+
+    [SerializeField]
+    private TMP_Text finalStatsText;
+
+    [Header("Creation")]
+    [SerializeField]
+    private TMP_Text creationMessageText;
+
+    [SerializeField]
+    private Button createCharacterButton;
 
     [Header("Navigation")]
-    [SerializeField] private Menus menus;
-
-    [Header("Right Panel")]
-    [SerializeField] private TMP_Text finalAttributesText;
-    [SerializeField] private TMP_Text finalStatsText;
+    [SerializeField]
+    private Menus menus;
 
     private void OnEnable()
     {
         SubscribeToCreator();
         HookControls();
-
-        if (characterNameInput != null &&
-            characterCreator != null)
-        {
-            characterNameInput.SetTextWithoutNotify(
-                characterCreator.SelectedCharacterName
-            );
-        }
 
         ShowCreationMessage("");
         Refresh();
@@ -64,58 +65,26 @@ public class CharacterCreatorFinalizeUI : MonoBehaviour
 
     private void HookControls()
     {
-        if (characterNameInput != null)
-        {
-            characterNameInput.onValueChanged.RemoveListener(
-                OnNameChanged
-            );
+        if (createCharacterButton == null)
+            return;
 
-            characterNameInput.onValueChanged.AddListener(
-                OnNameChanged
-            );
-        }
+        createCharacterButton.onClick.RemoveListener(
+            CreateCharacter
+        );
 
-        if (createCharacterButton != null)
-        {
-            createCharacterButton.onClick.RemoveListener(
-                CreateCharacter
-            );
-
-            createCharacterButton.onClick.AddListener(
-                CreateCharacter
-            );
-        }
+        createCharacterButton.onClick.AddListener(
+            CreateCharacter
+        );
     }
 
     private void UnhookControls()
     {
-        if (characterNameInput != null)
-        {
-            characterNameInput.onValueChanged.RemoveListener(
-                OnNameChanged
-            );
-        }
-
-        if (createCharacterButton != null)
-        {
-            createCharacterButton.onClick.RemoveListener(
-                CreateCharacter
-            );
-        }
-    }
-
-    private void OnNameChanged(
-        string characterName)
-    {
-        if (characterCreator == null)
+        if (createCharacterButton == null)
             return;
 
-        characterCreator.SetCharacterName(
-            characterName
+        createCharacterButton.onClick.RemoveListener(
+            CreateCharacter
         );
-
-        ShowCreationMessage("");
-        RefreshCreateButton();
     }
 
     private void CreateCharacter()
@@ -132,7 +101,7 @@ public class CharacterCreatorFinalizeUI : MonoBehaviour
         bool created =
             characterCreator.TryCreateCharacter(
                 characterCreator.SelectedCharacterName,
-                out CharacterProfileData profile,
+                out CharacterProfileData _,
                 out string errorMessage
             );
 
@@ -174,7 +143,10 @@ public class CharacterCreatorFinalizeUI : MonoBehaviour
             return;
         }
 
-        ShowFinalAttributes(resolvedStats.finalAttributes);
+        ShowFinalAttributes(
+            resolvedStats.finalAttributes
+        );
+
         ShowFinalStats(resolvedStats);
     }
 
@@ -204,7 +176,9 @@ public class CharacterCreatorFinalizeUI : MonoBehaviour
         }
 
         List<string> lineageIds =
-            new(characterCreator.SelectedLineageIds);
+            new List<string>(
+                characterCreator.SelectedLineageIds
+            );
 
         List<LineageSelection> lineages =
             characterDataLibrary.GetLineageSelections(
@@ -217,10 +191,14 @@ public class CharacterCreatorFinalizeUI : MonoBehaviour
         );
 
         List<string> traitIds =
-            new(characterCreator.SelectedTraitIds);
+            new List<string>(
+                characterCreator.SelectedTraitIds
+            );
 
         List<TraitDefinition> traits =
-            characterDataLibrary.GetTraitDefinitions(traitIds);
+            characterDataLibrary.GetTraitDefinitions(
+                traitIds
+            );
 
         resolvedStats =
             CharacterStatsResolver.ResolveCharacter(
@@ -248,22 +226,67 @@ public class CharacterCreatorFinalizeUI : MonoBehaviour
             return;
         }
 
-        StringBuilder text = new();
+        StringBuilder text = new StringBuilder();
 
         text.AppendLine("FINAL ATTRIBUTES");
         text.AppendLine();
 
-        AddValue(text, "Strength", attributes.strength);
-        AddValue(text, "Dexterity", attributes.dexterity);
-        AddValue(text, "Agility", attributes.agility);
-        AddValue(text, "Vitality", attributes.vitality);
-        AddValue(text, "Endurance", attributes.endurance);
-        AddValue(text, "Intelligence", attributes.intelligence);
-        AddValue(text, "Willpower", attributes.willpower);
-        AddValue(text, "Spirit", attributes.spirit);
-        AddValue(text, "Perception", attributes.perception);
+        AddValue(
+            text,
+            "Strength",
+            attributes.strength
+        );
 
-        finalAttributesText.text = text.ToString();
+        AddValue(
+            text,
+            "Dexterity",
+            attributes.dexterity
+        );
+
+        AddValue(
+            text,
+            "Agility",
+            attributes.agility
+        );
+
+        AddValue(
+            text,
+            "Vitality",
+            attributes.vitality
+        );
+
+        AddValue(
+            text,
+            "Endurance",
+            attributes.endurance
+        );
+
+        AddValue(
+            text,
+            "Intelligence",
+            attributes.intelligence
+        );
+
+        AddValue(
+            text,
+            "Willpower",
+            attributes.willpower
+        );
+
+        AddValue(
+            text,
+            "Spirit",
+            attributes.spirit
+        );
+
+        AddValue(
+            text,
+            "Perception",
+            attributes.perception
+        );
+
+        finalAttributesText.text =
+            text.ToString();
     }
 
     private void ShowFinalStats(
@@ -287,20 +310,55 @@ public class CharacterCreatorFinalizeUI : MonoBehaviour
             return;
         }
 
-        StringBuilder text = new();
+        StringBuilder text = new StringBuilder();
 
         text.AppendLine("FINAL STATS");
         text.AppendLine();
 
-        AddValue(text, "Health", stats.maxHealth);
-        AddValue(text, "Soul Barrier", stats.maxSoulBarrier);
-        AddValue(text, "Stamina", stats.maxStamina);
-        AddValue(text, "Aether", stats.maxAether);
-        AddValue(text, "Mass", stats.mass);
-        AddValue(text, "Poise", stats.poise);
-        AddValue(text, "Carry Weight", baseStats.carryWeight);
+        AddValue(
+            text,
+            "Health",
+            stats.maxHealth
+        );
 
-        finalStatsText.text = text.ToString();
+        AddValue(
+            text,
+            "Soul Barrier",
+            stats.maxSoulBarrier
+        );
+
+        AddValue(
+            text,
+            "Stamina",
+            stats.maxStamina
+        );
+
+        AddValue(
+            text,
+            "Aether",
+            stats.maxAether
+        );
+
+        AddValue(
+            text,
+            "Mass",
+            stats.mass
+        );
+
+        AddValue(
+            text,
+            "Poise",
+            stats.poise
+        );
+
+        AddValue(
+            text,
+            "Carry Weight",
+            baseStats.carryWeight
+        );
+
+        finalStatsText.text =
+            text.ToString();
     }
 
     private void AddValue(
@@ -308,7 +366,9 @@ public class CharacterCreatorFinalizeUI : MonoBehaviour
         string label,
         int value)
     {
-        text.AppendLine($"{label}: {value}");
+        text.AppendLine(
+            $"{label}: {value}"
+        );
     }
 
     private void AddValue(
@@ -316,7 +376,9 @@ public class CharacterCreatorFinalizeUI : MonoBehaviour
         string label,
         float value)
     {
-        text.AppendLine($"{label}: {value:0.##}");
+        text.AppendLine(
+            $"{label}: {value:0.##}"
+        );
     }
 
     private void RefreshCreateButton()
@@ -344,11 +406,11 @@ public class CharacterCreatorFinalizeUI : MonoBehaviour
     private void ShowCreationMessage(
         string message)
     {
-        if (creationMessageText != null)
-        {
-            creationMessageText.text =
-                message ?? "";
-        }
+        if (creationMessageText == null)
+            return;
+
+        creationMessageText.text =
+            message ?? "";
     }
 
     private void ShowMissingData()

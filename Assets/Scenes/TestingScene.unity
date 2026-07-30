@@ -28666,6 +28666,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1465139342}
   - component: {fileID: 1465139343}
+  - component: {fileID: 1465139344}
   m_Layer: 5
   m_Name: FinalizeLeftPanel
   m_TagString: Untagged
@@ -28721,6 +28722,27 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!114 &1465139344
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1465139341}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b9cf582dbb631bc44a02626a91b2e5b1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterCreatorFinalizeSummaryUI
+  characterDataLibrary: {fileID: 11400000, guid: c1acf6bd8c47e7e46a8bb26e72e63560, type: 2}
+  characterCreator: {fileID: 1655067621}
+  characterNameInput: {fileID: 1798031912}
+  genderText: {fileID: 1227144685}
+  raceText: {fileID: 1933410653}
+  subraceText: {fileID: 1109233915}
+  lineageText: {fileID: 1389925500}
+  backgroundText: {fileID: 2014700374}
+  traitText: {fileID: 1536043762}
 --- !u!1 &1469089762
 GameObject:
   m_ObjectHideFlags: 0
