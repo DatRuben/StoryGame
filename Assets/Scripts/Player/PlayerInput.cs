@@ -317,8 +317,8 @@ public class PlayerInput : MonoBehaviour
         }
 
         rb.AddForce(
-            Vector3.up * jumpForce,
-            ForceMode.VelocityChange
+            velocityChange * acceleration,
+            ForceMode.Acceleration
         );
 
         PreventSlopeSliding(grounded);
