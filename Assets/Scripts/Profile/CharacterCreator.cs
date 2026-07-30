@@ -312,10 +312,6 @@ public class CharacterCreator : MonoBehaviour
             return false;
         }
 
-        selectedRaceId = raceDefinition.raceId;
-
-        SelectDefaultSubraceFor(raceDefinition);
-
         string nextSubraceId =
             raceDefinition.standardSubrace != null
                 ? raceDefinition.standardSubrace.subraceId
@@ -332,6 +328,10 @@ public class CharacterCreator : MonoBehaviour
                 nextSubraceId,
                 System.StringComparison.OrdinalIgnoreCase
             );
+
+        selectedRaceId = raceDefinition.raceId;
+
+        SelectDefaultSubraceFor(raceDefinition);
 
         TryGetSelectedSubrace(
             out SubraceDefinition selectedSubraceDefinition
