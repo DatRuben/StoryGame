@@ -645,16 +645,11 @@ public class PlayerInput : MonoBehaviour
         rb.linearVelocity =
             new Vector3(
                 rb.linearVelocity.x,
-                0f,
+                jumpForce,
                 rb.linearVelocity.z
             );
 
         lastJumpTime = Time.time;
-
-        rb.AddForce(
-            Vector3.up * jumpForce,
-            ForceMode.Impulse
-        );
     }
 
     public void ApplyExternalLaunch(Vector3 impulse)
