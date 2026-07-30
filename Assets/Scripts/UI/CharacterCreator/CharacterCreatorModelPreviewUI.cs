@@ -11,9 +11,6 @@ public class CharacterCreatorModelPreviewUI : MonoBehaviour
 
         public Vector3 localPosition;
         public Vector3 localEulerAngles;
-
-        public Vector3 localScale =
-            Vector3.one;
     }
 
     [Header("Data")]
@@ -27,7 +24,7 @@ public class CharacterCreatorModelPreviewUI : MonoBehaviour
     [SerializeField]
     private CharacterCreatorStageCamera stageCamera;
 
-    [Header("Capsule Race Size Transforms")]
+    [Header("Race Size Preview Offsets")]
     [SerializeField]
     private List<RaceSizePreviewTransform> raceSizeTransforms = new();
 
@@ -127,7 +124,10 @@ public class CharacterCreatorModelPreviewUI : MonoBehaviour
         }
         else
         {
-            ApplyPrefabTransform(appearance);
+            ApplyPrefabTransform(
+                raceSize,
+                appearance
+            );
         }
 
         ApplyColor(appearance);
@@ -198,6 +198,20 @@ public class CharacterCreatorModelPreviewUI : MonoBehaviour
             );
     }
 
+    private Vector3 GetPreviewScale(
+        RaceSize raceSize,
+        CharacterAppearanceData appearance)
+    {
+        float bodyScale =
+            appearance != null
+                ? appearance.bodyScale
+                : RaceSizeBodyScale.DefaultMultiplier;
+
+        return prefabScale *
+            RaceSizeBodyScale.GetBase(raceSize) *
+            bodyScale;
+    }
+
     private void ApplyCapsuleTransform(
         RaceSize raceSize,
         CharacterAppearanceData appearance)
@@ -221,25 +235,24 @@ public class CharacterCreatorModelPreviewUI : MonoBehaviour
 
             previewTransform.localRotation =
                 prefabRotation;
+        }
+        else
+        {
+            previewTransform.localPosition =
+                raceTransform.localPosition;
 
-            previewTransform.localScale =
-                prefabScale * appearance.bodyScale;
-
-            GroundPreview();
-            return;
+            previewTransform.localRotation =
+                Quaternion.Euler(
+                    raceTransform.localEulerAngles
+                );
         }
 
-        previewTransform.localPosition =
-            raceTransform.localPosition;
-
-        previewTransform.localRotation =
-            Quaternion.Euler(
-                raceTransform.localEulerAngles
+        previewTransform.localScale =
+            GetPreviewScale(
+                raceSize,
+                appearance
             );
 
-        previewTransform.localScale =
-            raceTransform.localScale *
-            appearance.bodyScale;
         GroundPreview();
     }
 
@@ -264,6 +277,7 @@ public class CharacterCreatorModelPreviewUI : MonoBehaviour
     }
 
     private void ApplyPrefabTransform(
+        RaceSize raceSize,
         CharacterAppearanceData appearance)
     {
         if (currentPreview == null ||
@@ -282,7 +296,12 @@ public class CharacterCreatorModelPreviewUI : MonoBehaviour
             prefabRotation;
 
         previewTransform.localScale =
-            prefabScale * appearance.bodyScale;
+            GetPreviewScale(
+                raceSize,
+                appearance
+            );
+
+        GroundPreview();
     }
 
     private RaceSizePreviewTransform GetRaceSizeTransform(
