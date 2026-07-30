@@ -317,8 +317,8 @@ public class PlayerInput : MonoBehaviour
         }
 
         rb.AddForce(
-            velocityChange * acceleration,
-            ForceMode.Acceleration
+            Vector3.up * jumpForce,
+            ForceMode.VelocityChange
         );
 
         PreventSlopeSliding(grounded);
@@ -636,7 +636,8 @@ public class PlayerInput : MonoBehaviour
         lastStaminaSpendTime = Time.time;
     }
 
-    private void DoJump(InputAction.CallbackContext obj)
+    private void DoJump(
+        InputAction.CallbackContext obj)
     {
         if (!IsGrounded())
             return;
