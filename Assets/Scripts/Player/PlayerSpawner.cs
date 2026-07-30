@@ -138,7 +138,70 @@ public class PlayerSpawner : MonoBehaviour
             lineageSelections
         );
 
+        PrepareForGameplay(
+            spawnedPlayer
+        );
+
         return true;
+    }
+
+    private void PrepareForGameplay(
+        GameObject player)
+    {
+        if (player == null)
+            return;
+
+        player.SetActive(false);
+
+        player.transform.SetParent(
+            null,
+            true
+        );
+
+        Vector3 position =
+            spawnPoint != null
+                ? spawnPoint.position
+                : transform.position;
+
+        Quaternion rotation =
+            spawnPoint != null
+                ? spawnPoint.rotation
+                : transform.rotation;
+
+        player.transform.SetPositionAndRotation(
+            position,
+            rotation
+        );
+
+        CapsuleCollider capsuleCollider =
+            player.GetComponent<CapsuleCollider>();
+
+        if (capsuleCollider != null)
+            capsuleCollider.enabled = true;
+
+        Rigidbody rigidbody =
+            player.GetComponent<Rigidbody>();
+
+        if (rigidbody != null)
+        {
+            rigidbody.isKinematic = false;
+            rigidbody.useGravity = true;
+        }
+
+        PlayerInput playerInput =
+            player.GetComponent<PlayerInput>();
+
+        if (playerInput != null)
+            playerInput.enabled = true;
+
+        PlayerStorageContainerInteract storageInteract =
+            player.GetComponent<
+                PlayerStorageContainerInteract>();
+
+        if (storageInteract != null)
+            storageInteract.enabled = true;
+
+        player.SetActive(true);
     }
 
     private void InitializePlayer(

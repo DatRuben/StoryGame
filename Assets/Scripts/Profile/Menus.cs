@@ -11,6 +11,10 @@ public class Menus : MonoBehaviour
     [SerializeField] private GameObject characterCreatorStage;
     [SerializeField] private CharacterSelectUI characterSelectUI;
 
+    [Header("Character Creator")]
+    [SerializeField] private CharacterCreator characterCreator;
+    [SerializeField] private GameObject creatorPlayer;
+
     [Header("Gameplay")]
     [SerializeField] private PlayerSpawner playerSpawner;
     [SerializeField] private CharacterRuntimeBinder characterRuntimeBinder;
@@ -48,6 +52,9 @@ public class Menus : MonoBehaviour
 
     public void ShowCharacterCreator()
     {
+        if (characterCreator != null)
+            characterCreator.ResetCreator();
+
         SetPanel(startMenuPanel, false);
         SetPanel(characterSelectPanel, false);
         SetPanel(characterCreatorStage, true);
@@ -59,7 +66,8 @@ public class Menus : MonoBehaviour
 
     public void StartGame()
     {
-        if (!CharacterSelection.HasSelectedProfile())
+        if (!CharacterSelection.TryGetSelectedProfile(
+            out CharacterProfileData profile))
         {
             ShowMessage("Select a character first.");
             ShowCharacterSelect();
@@ -73,11 +81,19 @@ public class Menus : MonoBehaviour
         }
 
         bool spawned =
-            playerSpawner.SpawnSelectedCharacter();
+            creatorPlayer != null
+                ? playerSpawner.UsePlayer(
+                    creatorPlayer,
+                    profile
+                )
+                : playerSpawner.SpawnSelectedCharacter();
 
         if (!spawned)
         {
-            ShowMessage("Could not spawn selected character.");
+            ShowMessage(
+                "Could not use the selected character."
+            );
+
             ShowCharacterSelect();
             return;
         }

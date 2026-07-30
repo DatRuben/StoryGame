@@ -117,8 +117,6 @@ public class CharacterCreatorFinalizeCreationUI : MonoBehaviour
 
         ShowCreationMessage("");
 
-        characterCreator.ResetCreator();
-
         if (menus != null)
         {
             menus.ShowCharacterSelect();
