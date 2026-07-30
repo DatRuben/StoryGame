@@ -75,6 +75,13 @@ public class CharacterCreator : MonoBehaviour
         NotifySelectionChanged();
     }
 
+    public Vector2 GetBodyScaleRange()
+    {
+        return RaceSizeBodyScale.GetSliderRange(
+            GetSelectedRaceSize()
+        );
+    }
+
     public void SetHue(
         float hue)
     {
@@ -309,6 +316,23 @@ public class CharacterCreator : MonoBehaviour
 
         SelectDefaultSubraceFor(raceDefinition);
 
+        string nextSubraceId =
+            raceDefinition.standardSubrace != null
+                ? raceDefinition.standardSubrace.subraceId
+                : "";
+
+        bool raceOrSubraceChanged =
+            !string.Equals(
+                selectedRaceId,
+                raceDefinition.raceId,
+                System.StringComparison.OrdinalIgnoreCase
+            ) ||
+            !string.Equals(
+                selectedSubraceId,
+                nextSubraceId,
+                System.StringComparison.OrdinalIgnoreCase
+            );
+
         TryGetSelectedSubrace(
             out SubraceDefinition selectedSubraceDefinition
         );
@@ -317,6 +341,11 @@ public class CharacterCreator : MonoBehaviour
             raceDefinition,
             selectedSubraceDefinition
         );
+
+        if (raceOrSubraceChanged)
+        {
+            ResetBodyScaleForSelectedRaceSize();
+        }
 
         ClampSelectedAppearance();
 
@@ -431,6 +460,18 @@ public class CharacterCreator : MonoBehaviour
             return false;
         }
 
+        bool raceOrSubraceChanged =
+            !string.Equals(
+                selectedRaceId,
+                subraceDefinition.race.raceId,
+                System.StringComparison.OrdinalIgnoreCase
+            ) ||
+            !string.Equals(
+                selectedSubraceId,
+                subraceDefinition.subraceId,
+                System.StringComparison.OrdinalIgnoreCase
+            );
+
         selectedRaceId = subraceDefinition.race.raceId;
         selectedSubraceId = subraceDefinition.subraceId;
 
@@ -438,6 +479,11 @@ public class CharacterCreator : MonoBehaviour
             subraceDefinition.race,
             subraceDefinition
         );
+
+        if (raceOrSubraceChanged)
+        {
+            ResetBodyScaleForSelectedRaceSize();
+        }
 
         ClampSelectedAppearance();
 
@@ -1142,6 +1188,18 @@ public class CharacterCreator : MonoBehaviour
         selectedLineageIds.Add(selectionId);
     }
 
+    private void ResetBodyScaleForSelectedRaceSize()
+    {
+        if (selectedAppearance == null)
+        {
+            selectedAppearance =
+                CharacterAppearanceData.CreateDefault();
+        }
+
+        selectedAppearance.bodyScale =
+            RaceSizeBodyScale.DefaultMultiplier;
+    }
+
     private void ClampSelectedAppearance()
     {
         if (selectedAppearance == null)
@@ -1340,11 +1398,8 @@ public class CharacterCreator : MonoBehaviour
     private float ClampBodyScaleForSelectedRaceSize(
         float value)
     {
-        RaceSize raceSize =
-            GetSelectedRaceSize();
-
         Vector2 range =
-            GetBodyScaleRange(raceSize);
+            GetBodyScaleRange();
 
         return Mathf.Clamp(
             value,
@@ -1362,33 +1417,6 @@ public class CharacterCreator : MonoBehaviour
         }
 
         return RaceSize.Size2;
-    }
-
-    private Vector2 GetBodyScaleRange(
-        RaceSize raceSize)
-    {
-        switch (raceSize)
-        {
-            case RaceSize.Size1:
-            case RaceSize.Size1Feral:
-                return new Vector2(0.9f, 1.1f);
-
-            case RaceSize.TallerSize2:
-                return new Vector2(0.9f, 1.1f);
-
-            case RaceSize.Size3:
-            case RaceSize.Size3Feral:
-                return new Vector2(0.9f, 1.1f);
-
-            case RaceSize.Dragon:
-            case RaceSize.BigDragon:
-                return new Vector2(0.9f, 1.1f);
-
-            case RaceSize.Size2:
-            case RaceSize.Size2Feral:
-            default:
-                return new Vector2(0.9f, 1.1f);
-        }
     }
 
     public bool TryGetAncestryPreview(

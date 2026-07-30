@@ -39,6 +39,8 @@ public class CharacterCreatorAppearanceDetailsUI :
     private CharacterAppearanceCategory selectedCategory =
         CharacterAppearanceCategory.Body;
 
+    private bool refreshing;
+
     private void OnEnable()
     {
         HookUI();
@@ -195,48 +197,65 @@ public class CharacterCreatorAppearanceDetailsUI :
         if (appearance == null)
             return;
 
-        if (selectedCategory ==
-            CharacterAppearanceCategory.Body)
+        refreshing = true;
+
+        try
         {
-            SetSlider(
-                bodyScaleSlider,
-                appearance.bodyScale
-            );
+            if (selectedCategory ==
+                CharacterAppearanceCategory.Body)
+            {
+                Vector2 bodyScaleRange =
+                    characterCreator.GetBodyScaleRange();
+
+                SetSliderRange(
+                    bodyScaleSlider,
+                    bodyScaleRange
+                );
+
+                SetSlider(
+                    bodyScaleSlider,
+                    appearance.bodyScale
+                );
+            }
+
+            switch (selectedCategory)
+            {
+                case CharacterAppearanceCategory.Body:
+                    SetColorSliders(
+                        appearance.hue,
+                        appearance.saturation,
+                        appearance.value
+                    );
+                    break;
+
+                case CharacterAppearanceCategory.Tail:
+                    SetColorSliders(
+                        appearance.tailHue,
+                        appearance.tailSaturation,
+                        appearance.tailValue
+                    );
+                    break;
+
+                case CharacterAppearanceCategory.Hair:
+                    SetColorSliders(
+                        appearance.hairHue,
+                        appearance.hairSaturation,
+                        appearance.hairValue
+                    );
+                    break;
+
+                case CharacterAppearanceCategory.Eyes:
+                    SetColorSliders(
+                        appearance.eyeHue,
+                        appearance.eyeSaturation,
+                        appearance.eyeValue
+                    );
+                    break;
+            }
         }
-
-        switch (selectedCategory)
+        finally
         {
-            case CharacterAppearanceCategory.Body:
-                SetColorSliders(
-                    appearance.hue,
-                    appearance.saturation,
-                    appearance.value
-                );
-                break;
-
-            case CharacterAppearanceCategory.Tail:
-                SetColorSliders(
-                    appearance.tailHue,
-                    appearance.tailSaturation,
-                    appearance.tailValue
-                );
-                break;
-
-            case CharacterAppearanceCategory.Hair:
-                SetColorSliders(
-                    appearance.hairHue,
-                    appearance.hairSaturation,
-                    appearance.hairValue
-                );
-                break;
-
-            case CharacterAppearanceCategory.Eyes:
-                SetColorSliders(
-                    appearance.eyeHue,
-                    appearance.eyeSaturation,
-                    appearance.eyeValue
-                );
-                break;
+            refreshing = false;
         }
     }
 
@@ -262,6 +281,18 @@ public class CharacterCreatorAppearanceDetailsUI :
                     value
                 );
         }
+    }
+
+    private void SetSliderRange(
+        Slider slider,
+        Vector2 range)
+    {
+        if (slider == null)
+            return;
+
+        slider.wholeNumbers = false;
+        slider.minValue = range.x;
+        slider.maxValue = range.y;
     }
 
     private void SetSlider(
@@ -295,7 +326,8 @@ public class CharacterCreatorAppearanceDetailsUI :
     private void OnBodyScaleChanged(
         float value)
     {
-        if (characterCreator == null ||
+        if (refreshing ||
+            characterCreator == null ||
             selectedCategory !=
                 CharacterAppearanceCategory.Body)
         {
