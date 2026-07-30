@@ -27,7 +27,9 @@ public enum RaceSize
 
 public static class RaceSizeBodyScale
 {
-    public static float GetDefault(
+    public const float DefaultMultiplier = 1f;
+
+    public static float GetBase(
         RaceSize raceSize)
     {
         switch (raceSize)
@@ -64,7 +66,7 @@ public static class RaceSizeBodyScale
         }
     }
 
-    public static Vector2 GetRange(
+    public static Vector2 GetAbsoluteRange(
         RaceSize raceSize)
     {
         switch (raceSize)
@@ -129,6 +131,24 @@ public static class RaceSizeBodyScale
                     1.1f
                 );
         }
+    }
+
+    public static Vector2 GetSliderRange(
+        RaceSize raceSize)
+    {
+        float baseScale =
+            Mathf.Max(
+                0.01f,
+                GetBase(raceSize)
+            );
+
+        Vector2 absoluteRange =
+            GetAbsoluteRange(raceSize);
+
+        return new Vector2(
+            absoluteRange.x / baseScale,
+            absoluteRange.y / baseScale
+        );
     }
 }
 
