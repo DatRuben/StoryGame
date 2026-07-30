@@ -11,6 +11,9 @@ public class CharacterCreatorModelPreviewUI : MonoBehaviour
 
         public Vector3 localPosition;
         public Vector3 localEulerAngles;
+
+        public Vector3 localScale =
+            Vector3.one;
     }
 
     [Header("Data")]
@@ -124,10 +127,7 @@ public class CharacterCreatorModelPreviewUI : MonoBehaviour
         }
         else
         {
-            ApplyPrefabTransform(
-                raceSize,
-                appearance
-            );
+            ApplyPrefabTransform(appearance);
         }
 
         ApplyColor(appearance);
@@ -198,18 +198,41 @@ public class CharacterCreatorModelPreviewUI : MonoBehaviour
             );
     }
 
-    private Vector3 GetPreviewScale(
+    private Vector3 GetCapsuleScale(
         RaceSize raceSize,
-        CharacterAppearanceData appearance)
+        CharacterAppearanceData appearance,
+        RaceSizePreviewTransform raceTransform)
     {
         float bodyScale =
             appearance != null
                 ? appearance.bodyScale
                 : RaceSizeBodyScale.DefaultMultiplier;
 
-        return prefabScale *
+        Vector3 shapeScale =
+            GetShapeScale(raceTransform);
+
+        return Vector3.Scale(
+            prefabScale,
+            shapeScale
+        ) *
             RaceSizeBodyScale.GetBase(raceSize) *
             bodyScale;
+    }
+
+    private Vector3 GetShapeScale(
+        RaceSizePreviewTransform raceTransform)
+    {
+        if (raceTransform == null)
+            return Vector3.one;
+
+        float verticalScale =
+            Mathf.Max(
+                0.0001f,
+                raceTransform.localScale.y
+            );
+
+        return raceTransform.localScale /
+            verticalScale;
     }
 
     private void ApplyCapsuleTransform(
@@ -248,9 +271,10 @@ public class CharacterCreatorModelPreviewUI : MonoBehaviour
         }
 
         previewTransform.localScale =
-            GetPreviewScale(
+            GetCapsuleScale(
                 raceSize,
-                appearance
+                appearance,
+                raceTransform
             );
 
         GroundPreview();
@@ -277,7 +301,6 @@ public class CharacterCreatorModelPreviewUI : MonoBehaviour
     }
 
     private void ApplyPrefabTransform(
-        RaceSize raceSize,
         CharacterAppearanceData appearance)
     {
         if (currentPreview == null ||
@@ -296,10 +319,8 @@ public class CharacterCreatorModelPreviewUI : MonoBehaviour
             prefabRotation;
 
         previewTransform.localScale =
-            GetPreviewScale(
-                raceSize,
-                appearance
-            );
+            prefabScale *
+            appearance.bodyScale;
 
         GroundPreview();
     }
