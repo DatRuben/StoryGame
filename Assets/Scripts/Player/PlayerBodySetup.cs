@@ -178,11 +178,15 @@ public class PlayerBodySetup : MonoBehaviour
             return;
         }
 
-        cameraPivot.localPosition =
-            new Vector3(
-                0f,
-                GetCameraPivotHeight(subraceDefinition),
-                0f
+        cameraPivot.position =
+            transform.TransformPoint(
+                new Vector3(
+                    0f,
+                    GetCameraPivotHeight(
+                        subraceDefinition
+                    ),
+                    0f
+                )
             );
     }
 
