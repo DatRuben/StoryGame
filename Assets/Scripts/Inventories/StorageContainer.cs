@@ -5,7 +5,7 @@ using UnityEngine;
 [Serializable]
 public class StartingStorageItem
 {
-    public ItemData item;
+    public ItemDefinition item;
 
     [Min(1)]
     public int quantity = 1;
@@ -72,7 +72,7 @@ public class StorageContainer : MonoBehaviour
     }
 
     private int GetSafeQuantityForItem(
-        ItemData item,
+        ItemDefinition item,
         int quantity)
     {
         quantity =
@@ -137,7 +137,7 @@ public class StorageContainer : MonoBehaviour
     }
 
     public bool TryAddItem(
-        ItemData item,
+        ItemDefinition item,
         int rotationSteps,
         int quantity,
         out int remainingQuantity)
@@ -194,7 +194,7 @@ public class StorageContainer : MonoBehaviour
     }
 
     public bool PlaceItem(
-        ItemData item,
+        ItemDefinition item,
         int x,
         int y,
         int rotationSteps,

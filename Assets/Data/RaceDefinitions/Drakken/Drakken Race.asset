@@ -1,0 +1,50 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 10551bd0ca1de1a4387828a69e4e131d, type: 3}
+  m_Name: Drakken Race
+  m_EditorClassIdentifier: Assembly-CSharp::RaceDefinition
+  raceId: drakken
+  displayName: Drakken
+  baseRace: 2
+  description: 
+  standardSubrace: {fileID: 11400000, guid: 10ccb86a2d0cb24429be39083f24cf0e, type: 2}
+  baseStats:
+    health: 100
+    stamina: 100
+    mana: 50
+    staggerResist: 50
+    carryWeight: 50
+  modifiersFromHuman:
+    strength: 2
+    dexterity: 0
+    agility: 2
+    vitality: 0
+    endurance: -2
+    intelligence: -2
+    willpower: -2
+    spirit: 2
+    perception: 0
+  finalAttributesPreview:
+    strength: 12
+    dexterity: 10
+    agility: 12
+    vitality: 10
+    endurance: 8
+    intelligence: 8
+    willpower: 8
+    spirit: 12
+    perception: 10
+  totalAttributePointsPreview: 90
+  allowedLineageType: 0
+  defaultLineage: {fileID: 11400000, guid: 859eb4e370d11e24da259978b34e9f5e, type: 2}
+  minLineages: 1
+  maxLineages: 1

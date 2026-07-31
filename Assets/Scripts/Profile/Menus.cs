@@ -8,7 +8,15 @@ public class Menus : MonoBehaviour
     [SerializeField] private GameObject characterSelectPanel;
     [SerializeField] private GameObject characterCreatorPanel;
     [SerializeField] private GameObject gameplayHudPanel;
+    [SerializeField] private GameObject characterCreatorStage;
     [SerializeField] private CharacterSelectUI characterSelectUI;
+
+    [Header("Character Creator")]
+    [SerializeField] private CharacterCreator characterCreator;
+    [SerializeField] private GameObject creatorPlayer;
+
+    [SerializeField]
+    private CharacterCreatorModelPreviewUI creatorModelPreview;
 
     [Header("Gameplay")]
     [SerializeField] private PlayerSpawner playerSpawner;
@@ -28,6 +36,7 @@ public class Menus : MonoBehaviour
         SetPanel(characterSelectPanel, false);
         SetPanel(characterCreatorPanel, false);
         SetPanel(gameplayHudPanel, false);
+        SetPanel(characterCreatorStage, false);
 
         ShowMessage("");
     }
@@ -38,6 +47,7 @@ public class Menus : MonoBehaviour
         SetPanel(characterSelectPanel, true);
         SetPanel(characterCreatorPanel, false);
         SetPanel(gameplayHudPanel, false);
+        SetPanel(characterCreatorStage, false);
 
         if (characterSelectUI != null)
             characterSelectUI.Refresh();
@@ -45,8 +55,12 @@ public class Menus : MonoBehaviour
 
     public void ShowCharacterCreator()
     {
+        if (characterCreator != null)
+            characterCreator.ResetCreator();
+
         SetPanel(startMenuPanel, false);
         SetPanel(characterSelectPanel, false);
+        SetPanel(characterCreatorStage, true);
         SetPanel(characterCreatorPanel, true);
         SetPanel(gameplayHudPanel, false);
 
@@ -55,7 +69,8 @@ public class Menus : MonoBehaviour
 
     public void StartGame()
     {
-        if (!CharacterSelection.HasSelectedProfile())
+        if (!CharacterSelection.TryGetSelectedProfile(
+            out CharacterProfileData profile))
         {
             ShowMessage("Select a character first.");
             ShowCharacterSelect();
@@ -68,12 +83,32 @@ public class Menus : MonoBehaviour
             return;
         }
 
+        if (creatorPlayer != null &&
+            creatorModelPreview != null &&
+            !creatorModelPreview.ApplyProfile(profile))
+        {
+            ShowMessage(
+                "Could not load the selected character model."
+            );
+
+            ShowCharacterSelect();
+            return;
+        }
+
         bool spawned =
-            playerSpawner.SpawnSelectedCharacter();
+            creatorPlayer != null
+                ? playerSpawner.UsePlayer(
+                    creatorPlayer,
+                    profile
+                )
+                : playerSpawner.SpawnSelectedCharacter();
 
         if (!spawned)
         {
-            ShowMessage("Could not spawn selected character.");
+            ShowMessage(
+                "Could not use the selected character."
+            );
+
             ShowCharacterSelect();
             return;
         }
@@ -81,6 +116,7 @@ public class Menus : MonoBehaviour
         SetPanel(startMenuPanel, false);
         SetPanel(characterSelectPanel, false);
         SetPanel(characterCreatorPanel, false);
+        SetPanel(characterCreatorStage, false);
         SetPanel(gameplayHudPanel, true);
 
         if (characterRuntimeBinder != null)

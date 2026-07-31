@@ -16,8 +16,8 @@ public static class InventoryStackPreviewUtility
 
         if (grid == null ||
             heldItem == null ||
-            heldItem.ItemData == null ||
-            !heldItem.ItemData.isStackable)
+            heldItem.ItemDefinition == null ||
+            !heldItem.ItemDefinition.isStackable)
         {
             return false;
         }
@@ -29,15 +29,15 @@ public static class InventoryStackPreviewUtility
             );
 
         if (targetStack == null ||
-            targetStack.ItemData == null)
+            targetStack.ItemDefinition == null)
         {
             return false;
         }
 
-        if (targetStack.ItemData != heldItem.ItemData)
+        if (targetStack.ItemDefinition != heldItem.ItemDefinition)
             return false;
 
-        if (!targetStack.ItemData.isStackable)
+        if (!targetStack.ItemDefinition.isStackable)
             return false;
 
         PlacedInventoryItem cellStack =
@@ -52,7 +52,7 @@ public static class InventoryStackPreviewUtility
         int maxStackSize =
             Mathf.Max(
                 1,
-                targetStack.ItemData.maxStackSize
+                targetStack.ItemDefinition.maxStackSize
             );
 
         int roomLeft =

@@ -9,20 +9,42 @@ public class PlayerBodySetup : MonoBehaviour
 
     private void Awake()
     {
+        ResolveReferences();
+    }
+
+    private void ResolveReferences()
+    {
         if (capsuleCollider == null)
-            capsuleCollider = GetComponent<CapsuleCollider>();
+        {
+            capsuleCollider =
+                GetComponent<CapsuleCollider>();
+        }
 
         if (groundCheck == null)
-            groundCheck = FindChildRecursive(transform, "GroundCheck");
+        {
+            groundCheck =
+                FindChildRecursive(
+                    transform,
+                    "GroundCheck"
+                );
+        }
 
         if (cameraPivot == null)
-            cameraPivot = FindChildRecursive(transform, "CameraPivot");
+        {
+            cameraPivot =
+                FindChildRecursive(
+                    transform,
+                    "CameraPivot"
+                );
+        }
     }
 
     public void ApplyBody(
         SubraceDefinition subraceDefinition,
         FinalCharacterStats finalStats)
     {
+        ResolveReferences();
+
         if (subraceDefinition == null)
         {
             Debug.LogWarning(
@@ -133,11 +155,13 @@ public class PlayerBodySetup : MonoBehaviour
             return;
         }
 
-        groundCheck.localPosition =
-            new Vector3(
-                0f,
-                -0.05f,
-                0f
+        groundCheck.position =
+            transform.TransformPoint(
+                new Vector3(
+                    0f,
+                    0.05f,
+                    0f
+                )
             );
     }
 
@@ -154,11 +178,15 @@ public class PlayerBodySetup : MonoBehaviour
             return;
         }
 
-        cameraPivot.localPosition =
-            new Vector3(
-                0f,
-                GetCameraPivotHeight(subraceDefinition),
-                0f
+        cameraPivot.position =
+            transform.TransformPoint(
+                new Vector3(
+                    0f,
+                    GetCameraPivotHeight(
+                        subraceDefinition
+                    ),
+                    0f
+                )
             );
     }
 

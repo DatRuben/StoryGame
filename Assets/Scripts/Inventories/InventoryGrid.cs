@@ -19,7 +19,7 @@ public class InventoryGrid
         cells = new PlacedInventoryItem[width, height];
     }
 
-    public ItemData GetCell(int x, int y)
+    public ItemDefinition GetCell(int x, int y)
     {
         PlacedInventoryItem placedItem =
             GetPlacedItem(x, y);
@@ -27,7 +27,7 @@ public class InventoryGrid
         if (placedItem == null)
             return null;
 
-        return placedItem.ItemData;
+        return placedItem.ItemDefinition;
     }
 
     public PlacedInventoryItem GetPlacedItem(int x, int y)
@@ -39,7 +39,7 @@ public class InventoryGrid
     }
 
     public bool CanPlaceItem(
-        ItemData item,
+        ItemDefinition item,
         int startX,
         int startY,
         int rotationSteps)
@@ -48,7 +48,7 @@ public class InventoryGrid
             return false;
 
         rotationSteps =
-            ItemData.NormalizeRotationSteps(rotationSteps);
+            ItemDefinition.NormalizeRotationSteps(rotationSteps);
 
         int itemWidth =
             item.GetWidth(rotationSteps);
@@ -78,7 +78,7 @@ public class InventoryGrid
     }
 
     public bool PlaceItem(
-        ItemData item,
+        ItemDefinition item,
         int startX,
         int startY,
         int rotationSteps,
@@ -88,7 +88,7 @@ public class InventoryGrid
             return false;
 
         rotationSteps =
-            ItemData.NormalizeRotationSteps(rotationSteps);
+            ItemDefinition.NormalizeRotationSteps(rotationSteps);
 
         PlacedInventoryItem placedItem =
             new PlacedInventoryItem(
@@ -122,7 +122,7 @@ public class InventoryGrid
     }
 
     public bool TryAddItemTopLeft(
-    ItemData item,
+    ItemDefinition item,
     int startingRotationSteps,
     int quantity,
     out int remainingQuantity)
@@ -185,7 +185,7 @@ public class InventoryGrid
     }
 
     public bool TryFindFirstAvailableSpaceTopLeft(
-        ItemData item,
+        ItemDefinition item,
         int startingRotationSteps,
         out Vector2Int position,
         out int rotationSteps)
@@ -203,7 +203,7 @@ public class InventoryGrid
                 for (int rotationOffset = 0; rotationOffset < 4; rotationOffset++)
                 {
                     int testRotationSteps =
-                        ItemData.NormalizeRotationSteps(
+                        ItemDefinition.NormalizeRotationSteps(
                             startingRotationSteps + rotationOffset
                         );
 
@@ -225,7 +225,7 @@ public class InventoryGrid
     }
 
     private int AddToExistingStacksTopLeft(
-        ItemData item,
+        ItemDefinition item,
         int quantity)
     {
         if (item == null ||
@@ -253,7 +253,7 @@ public class InventoryGrid
 
                 checkedStacks.Add(placedItem);
 
-                if (placedItem.ItemData != item)
+                if (placedItem.ItemDefinition != item)
                     continue;
 
                 if (!placedItem.HasRoomInStack)

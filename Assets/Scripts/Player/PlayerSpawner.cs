@@ -51,7 +51,7 @@ public class PlayerSpawner : MonoBehaviour
             profile,
             out RaceDefinition raceDefinition,
             out SubraceDefinition subraceDefinition,
-            out LineageDefinition[] lineageDefinitions))
+            out LineageSelection[] lineageSelections))
         {
             return false;
         }
@@ -73,20 +73,160 @@ public class PlayerSpawner : MonoBehaviour
                 rotation
             );
 
+        InitializePlayer(
+            spawnedPlayer,
+            profile,
+            raceDefinition,
+            subraceDefinition,
+            lineageSelections
+        );
+
+        return true;
+    }
+
+    public bool UsePlayer(
+        GameObject player,
+        CharacterProfileData profile)
+    {
+        if (player == null)
+        {
+            Debug.LogWarning(
+                "PlayerSpawner could not use the existing player because it is missing.",
+                this
+            );
+
+            return false;
+        }
+
+        if (characterDataLibrary == null)
+        {
+            Debug.LogWarning(
+                "PlayerSpawner could not use the existing player because CharacterDataLibrary is missing.",
+                this
+            );
+
+            return false;
+        }
+
+        if (profile == null)
+        {
+            Debug.LogWarning(
+                "PlayerSpawner could not use the existing player because its character profile is missing.",
+                this
+            );
+
+            return false;
+        }
+
+        if (!TryGetRuntimeDefinitions(
+            profile,
+            out RaceDefinition raceDefinition,
+            out SubraceDefinition subraceDefinition,
+            out LineageSelection[] lineageSelections))
+        {
+            return false;
+        }
+
+        spawnedPlayer =
+            player;
+
+        InitializePlayer(
+            spawnedPlayer,
+            profile,
+            raceDefinition,
+            subraceDefinition,
+            lineageSelections
+        );
+
+        PrepareForGameplay(
+            spawnedPlayer
+        );
+
+        return true;
+    }
+
+    private void PrepareForGameplay(
+        GameObject player)
+    {
+        if (player == null)
+            return;
+
+        player.SetActive(false);
+
+        player.transform.SetParent(
+            null,
+            true
+        );
+
+        Vector3 position =
+            spawnPoint != null
+                ? spawnPoint.position
+                : transform.position;
+
+        Quaternion rotation =
+            spawnPoint != null
+                ? spawnPoint.rotation
+                : transform.rotation;
+
+        player.transform.SetPositionAndRotation(
+            position,
+            rotation
+        );
+
+        CapsuleCollider capsuleCollider =
+            player.GetComponent<CapsuleCollider>();
+
+        if (capsuleCollider != null)
+            capsuleCollider.enabled = true;
+
+        Rigidbody rigidbody =
+            player.GetComponent<Rigidbody>();
+
+        if (rigidbody != null)
+        {
+            rigidbody.isKinematic = false;
+            rigidbody.useGravity = true;
+        }
+
+        PlayerInput playerInput =
+            player.GetComponent<PlayerInput>();
+
+        if (playerInput != null)
+            playerInput.enabled = true;
+
+        PlayerStorageContainerInteract storageInteract =
+            player.GetComponent<
+                PlayerStorageContainerInteract>();
+
+        if (storageInteract != null)
+            storageInteract.enabled = true;
+
+        player.SetActive(true);
+    }
+
+    private void InitializePlayer(
+        GameObject player,
+        CharacterProfileData profile,
+        RaceDefinition raceDefinition,
+        SubraceDefinition subraceDefinition,
+        LineageSelection[] lineageSelections)
+    {
         PlayerCharacterProfile playerCharacterProfile =
-            spawnedPlayer.GetComponent<PlayerCharacterProfile>();
+            player.GetComponent<PlayerCharacterProfile>();
 
         if (playerCharacterProfile == null)
-            playerCharacterProfile = spawnedPlayer.AddComponent<PlayerCharacterProfile>();
+        {
+            playerCharacterProfile =
+                player.AddComponent<
+                    PlayerCharacterProfile>();
+        }
 
         playerCharacterProfile.Initialize(
             profile,
             raceDefinition,
             subraceDefinition,
-            lineageDefinitions
+            lineageSelections
         );
-
-        return true;
     }
 
     private bool TryGetProfileToSpawn(
@@ -128,12 +268,25 @@ public class PlayerSpawner : MonoBehaviour
             return false;
         }
 
+        ResolvedCharacterStats resolvedStats =
+                CharacterStatsResolver.ResolveCharacter(
+                    defaultRaceDefinition,
+                    defaultRaceDefinition.standardSubrace,
+                    new List<LineageSelection>()
+                );
+
         profile =
             CharacterSelection.CreateCharacter(
                 defaultCharacterName,
+                CharacterGender.Male,
                 defaultRaceDefinition,
                 defaultRaceDefinition.standardSubrace,
-                new List<string>()
+                new List<string>(),
+                "",
+                new List<string>(),
+                CharacterAppearanceData.CreateDefault(),
+                CharacterAttributes.Copy(resolvedStats.finalAttributes),
+                CharacterBaseStats.Copy(resolvedStats.totalBaseStats)
             );
 
         return profile != null;
@@ -143,11 +296,11 @@ public class PlayerSpawner : MonoBehaviour
         CharacterProfileData profile,
         out RaceDefinition raceDefinition,
         out SubraceDefinition subraceDefinition,
-        out LineageDefinition[] lineageDefinitions)
+        out LineageSelection[] lineageSelections)
     {
         raceDefinition = null;
         subraceDefinition = null;
-        lineageDefinitions = null;
+        lineageSelections = null;
 
         if (profile == null)
             return false;
@@ -176,13 +329,13 @@ public class PlayerSpawner : MonoBehaviour
             return false;
         }
 
-        List<LineageDefinition> lineageDefinitionList =
-            characterDataLibrary.GetLineageDefinitions(
+        List<LineageSelection> selectionList =
+            characterDataLibrary.GetLineageSelections(
                 profile.lineageIds
             );
 
-        lineageDefinitions =
-            lineageDefinitionList.ToArray();
+        lineageSelections =
+            selectionList.ToArray();
 
         return true;
     }

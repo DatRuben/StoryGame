@@ -1,5 +1,6 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using TMPro;
+using System.Text;
 using UnityEngine;
 
 public class CharacterCreatorRaceUI : MonoBehaviour
@@ -19,8 +20,15 @@ public class CharacterCreatorRaceUI : MonoBehaviour
     [SerializeField] private Transform subraceButtonParent;
     [SerializeField] private TMP_Text subraceDescriptionText;
 
+    [Header("Lineage UI")]
+    [SerializeField] private Transform lineageButtonParent;
+    [SerializeField]
+    private TMP_Text lineageDescriptionText;
+
     private readonly List<CharacterOptionButtonUI> raceButtons = new();
     private readonly List<CharacterOptionButtonUI> subraceButtons = new();
+    private readonly List<CharacterOptionButtonUI> lineageButtons = new();
+    private readonly List<string> lineageButtonIds = new();
 
     private string selectedRaceId;
     private string selectedSubraceId;
@@ -46,12 +54,17 @@ public class CharacterCreatorRaceUI : MonoBehaviour
     {
         ClearButtons(raceButtons);
         ClearButtons(subraceButtons);
+        ClearButtons(lineageButtons);
+
+        lineageButtonIds.Clear();
     }
 
     public void BuildRaceButtons()
     {
         ClearButtons(raceButtons);
         ClearButtons(subraceButtons);
+        ClearButtons(lineageButtons);
+        lineageButtonIds.Clear();
 
         if (!HasRequiredReferences())
             return;
@@ -93,6 +106,7 @@ public class CharacterCreatorRaceUI : MonoBehaviour
         {
             ShowBaseRaceDescription("No race definitions found.");
             ShowSubraceDescription("");
+            ShowLineageDescription("");
         }
     }
 
@@ -103,18 +117,31 @@ public class CharacterCreatorRaceUI : MonoBehaviour
         if (raceDefinition == null)
             return;
 
-        if (!characterCreator.SelectRace(
-            raceDefinition.raceId,
-            out string errorMessage))
+        bool alreadySelected =
+            characterCreator != null &&
+            string.Equals(
+                characterCreator.SelectedRaceId,
+                raceDefinition.raceId,
+                System.StringComparison.OrdinalIgnoreCase
+            );
+
+        if (!alreadySelected)
         {
-            ShowBaseRaceDescription(errorMessage);
-            return;
+            if (!characterCreator.SelectRace(
+                raceDefinition.raceId,
+                out string errorMessage))
+            {
+                ShowBaseRaceDescription(errorMessage);
+                return;
+            }
         }
 
         selectedRaceId = raceDefinition.raceId;
 
         RefreshSelectedRace(selectedButton);
-        ShowBaseRaceDescription(GetRaceDescription(raceDefinition));
+        ShowBaseRaceDescription(
+            GetRaceDescription(raceDefinition)
+        );
 
         BuildSubraceButtons(raceDefinition);
     }
@@ -123,6 +150,10 @@ public class CharacterCreatorRaceUI : MonoBehaviour
         RaceDefinition raceDefinition)
     {
         ClearButtons(subraceButtons);
+        ClearButtons(lineageButtons);
+
+        lineageButtonIds.Clear();
+        ShowLineageDescription("");
 
         if (raceDefinition == null)
         {
@@ -131,7 +162,7 @@ public class CharacterCreatorRaceUI : MonoBehaviour
         }
 
         List<SubraceDefinition> subraceDefinitions =
-            GetSubraceDefinitionsForRace(raceDefinition);
+            characterDataLibrary.GetSubraceDefinitionsForRace(raceDefinition);
 
         foreach (SubraceDefinition subraceDefinition in subraceDefinitions)
         {
@@ -155,7 +186,14 @@ public class CharacterCreatorRaceUI : MonoBehaviour
 
         if (subraceDefinitions.Count == 0)
         {
-            ShowSubraceDescription("No subraces available.");
+            ShowSubraceDescription(
+                "No subraces available."
+            );
+
+            ShowLineageDescription(
+                "Select a race with an available subrace."
+            );
+
             return;
         }
 
@@ -189,7 +227,346 @@ public class CharacterCreatorRaceUI : MonoBehaviour
         selectedSubraceId = subraceDefinition.subraceId;
 
         RefreshSelectedSubrace(selectedButton);
-        ShowSubraceDescription(GetSubraceDescription(subraceDefinition));
+        ShowSubraceDescription(
+            GetSubraceDescription(
+                subraceDefinition,
+                null
+            )
+        );
+        BuildLineageButtons(
+            subraceDefinition.race,
+            subraceDefinition
+        );
+    }
+
+    private void BuildLineageButtons(
+    RaceDefinition raceDefinition,
+    SubraceDefinition selectedSubrace)
+    {
+        ClearButtons(lineageButtons);
+        lineageButtonIds.Clear();
+
+        if (raceDefinition == null ||
+            selectedSubrace == null)
+        {
+            ShowLineageDescription("");
+            return;
+        }
+
+        if (!raceDefinition.CanUseLineages())
+        {
+            RefreshAncestryDescriptions(
+                selectedSubrace
+            );
+
+            ShowLineageDescription(
+                "This race does not use lineages."
+            );
+
+            return;
+        }
+
+        List<LineageSelection> lineageOptions =
+            characterDataLibrary.GetLineageOptionsForRace(
+                raceDefinition,
+                selectedSubrace
+            );
+
+        foreach (LineageSelection lineage
+                 in lineageOptions)
+        {
+            if (lineage == null ||
+                !lineage.IsValid)
+            {
+                continue;
+            }
+
+            CharacterOptionButtonUI button =
+                Instantiate(
+                    optionButtonPrefab,
+                    lineageButtonParent
+                );
+
+            string selectionId =
+                lineage.SelectionId;
+
+            button.name =
+                $"{selectionId}LineageButton";
+
+            button.SetText(
+                lineage.DisplayName
+            );
+
+            button.SetSelected(false);
+            button.SetInteractable(true);
+
+            LineageSelection capturedLineage =
+                lineage;
+
+            button.Button.onClick.RemoveAllListeners();
+
+            button.Button.onClick.AddListener(() =>
+                ToggleLineage(
+                    capturedLineage,
+                    selectedSubrace
+                )
+            );
+
+            lineageButtons.Add(button);
+            lineageButtonIds.Add(selectionId);
+        }
+
+        if (lineageOptions.Count == 0)
+        {
+            RefreshAncestryDescriptions(
+                selectedSubrace
+            );
+
+            ShowLineageDescription(
+                "No lineage options are available."
+            );
+
+            return;
+        }
+
+        RefreshLineageButtons();
+
+        RefreshAncestryDescriptions(
+            selectedSubrace
+        );
+    }
+
+    private void ToggleLineage(
+        LineageSelection lineage,
+        SubraceDefinition selectedSubrace)
+    {
+        if (lineage == null ||
+            !lineage.IsValid ||
+            characterCreator == null)
+        {
+            return;
+        }
+
+        if (!characterCreator.ToggleLineage(
+            lineage.SelectionId,
+            out string errorMessage))
+        {
+            ShowLineageDescription(
+                errorMessage
+            );
+
+            RefreshLineageButtons();
+            return;
+        }
+
+        RefreshLineageButtons();
+
+        RefreshAncestryDescriptions(
+            selectedSubrace
+        );
+    }
+
+    private void RefreshLineageButtons()
+    {
+        for (int i = 0;
+             i < lineageButtons.Count;
+             i++)
+        {
+            CharacterOptionButtonUI button =
+                lineageButtons[i];
+
+            if (button == null)
+                continue;
+
+            string selectionId =
+                i < lineageButtonIds.Count
+                    ? lineageButtonIds[i]
+                    : "";
+
+            bool selected =
+                IsLineageSelected(selectionId);
+
+            button.SetSelected(selected);
+
+            button.SetInteractable(
+                selected ||
+                CanSelectAnotherLineage()
+            );
+        }
+    }
+
+    private bool IsLineageSelected(
+        string selectionId)
+    {
+        if (characterCreator == null ||
+            string.IsNullOrWhiteSpace(selectionId))
+        {
+            return false;
+        }
+
+        foreach (string selectedId
+                 in characterCreator.SelectedLineageIds)
+        {
+            if (string.Equals(
+                selectedId,
+                selectionId,
+                System.StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool CanSelectAnotherLineage()
+    {
+        if (characterCreator == null ||
+            characterDataLibrary == null)
+        {
+            return false;
+        }
+
+        if (!characterDataLibrary.TryGetRaceDefinition(
+            characterCreator.SelectedRaceId,
+            out RaceDefinition raceDefinition))
+        {
+            return false;
+        }
+
+        int selectedCount =
+            characterCreator.SelectedLineageIds.Count;
+
+        if (selectedCount <
+            raceDefinition.maxLineages)
+        {
+            return true;
+        }
+
+        return raceDefinition.maxLineages == 1 &&
+               selectedCount == 1;
+    }
+
+    private void RefreshAncestryDescriptions(
+        SubraceDefinition selectedSubrace)
+    {
+        if (selectedSubrace == null ||
+            characterCreator == null)
+        {
+            ShowSubraceDescription("");
+            ShowLineageDescription("");
+            return;
+        }
+
+        if (!characterCreator.TryGetAncestryPreview(
+            out CharacterAttributePreview preview,
+            out string errorMessage))
+        {
+            ShowSubraceDescription(
+                GetSubraceDescription(
+                    selectedSubrace,
+                    null
+                )
+            );
+
+            ShowLineageDescription(
+                errorMessage
+            );
+
+            return;
+        }
+
+        ShowSubraceDescription(
+            GetSubraceDescription(
+                selectedSubrace,
+                preview
+            )
+        );
+
+        ShowLineageDescription(
+            GetSelectedLineageDescription(
+                selectedSubrace.race,
+                preview
+            )
+        );
+    }
+
+    private string GetSelectedLineageDescription(
+        RaceDefinition raceDefinition,
+        CharacterAttributePreview preview)
+    {
+        if (preview?.lineageInfluences == null ||
+            preview.lineageInfluences.Count == 0)
+        {
+            return "No lineage selected.";
+        }
+
+        StringBuilder builder =
+            new StringBuilder();
+
+        bool animalSpecies =
+            raceDefinition != null &&
+            raceDefinition.allowedLineageType ==
+            LineageType.AnimalSpecies;
+
+        foreach (LineageInfluencePreview lineage
+                 in preview.lineageInfluences)
+        {
+            if (lineage == null)
+                continue;
+
+            int influencePercent =
+                Mathf.RoundToInt(
+                    lineage.influence * 100f
+                );
+
+            if (animalSpecies)
+            {
+                builder.AppendLine(
+                    $"{lineage.displayName} " +
+                    $"modifier share: " +
+                    $"{influencePercent}%"
+                );
+            }
+            else
+            {
+                builder.AppendLine(
+                    $"{lineage.displayName}: " +
+                    $"{influencePercent}%"
+                );
+            }
+
+            List<string> differences =
+                new();
+
+            AddAttributeDifferences(
+                differences,
+                lineage.effectiveModifiers
+            );
+
+            if (differences.Count == 0)
+            {
+                builder.AppendLine(
+                    "No effective attribute changes."
+                );
+            }
+            else
+            {
+                foreach (string difference
+                         in differences)
+                {
+                    builder.AppendLine(
+                        difference
+                    );
+                }
+            }
+
+            builder.AppendLine();
+        }
+
+        return builder
+            .ToString()
+            .TrimEnd();
     }
 
     private bool HasRequiredReferences()
@@ -221,6 +598,15 @@ public class CharacterCreatorRaceUI : MonoBehaviour
         if (subraceButtonParent == null)
         {
             ShowSubraceDescription("SubraceSelection is missing.");
+            return false;
+        }
+
+        if (lineageButtonParent == null)
+        {
+            ShowLineageDescription(
+                "LineageSelection is missing."
+            );
+
             return false;
         }
 
@@ -287,7 +673,28 @@ public class CharacterCreatorRaceUI : MonoBehaviour
     private RaceDefinition GetStartingRaceDefinition(
         List<RaceDefinition> raceDefinitions)
     {
-        foreach (RaceDefinition raceDefinition in raceDefinitions)
+        if (characterCreator != null &&
+            !string.IsNullOrWhiteSpace(
+                characterCreator.SelectedRaceId))
+        {
+            foreach (RaceDefinition raceDefinition
+                     in raceDefinitions)
+            {
+                if (raceDefinition == null)
+                    continue;
+
+                if (string.Equals(
+                    raceDefinition.raceId,
+                    characterCreator.SelectedRaceId,
+                    System.StringComparison.OrdinalIgnoreCase))
+                {
+                    return raceDefinition;
+                }
+            }
+        }
+
+        foreach (RaceDefinition raceDefinition
+                 in raceDefinitions)
         {
             if (raceDefinition != null &&
                 raceDefinition.baseRace == BaseRace.Human)
@@ -303,23 +710,49 @@ public class CharacterCreatorRaceUI : MonoBehaviour
         RaceDefinition raceDefinition,
         List<SubraceDefinition> subraceDefinitions)
     {
-        if (raceDefinition != null &&
-            raceDefinition.standardSubrace != null)
+        if (characterCreator != null &&
+            !string.IsNullOrWhiteSpace(
+                characterCreator.SelectedSubraceId))
         {
-            foreach (SubraceDefinition subraceDefinition in subraceDefinitions)
+            foreach (SubraceDefinition subraceDefinition
+                     in subraceDefinitions)
             {
                 if (subraceDefinition == null)
                     continue;
 
-                if (subraceDefinition == raceDefinition.standardSubrace ||
-                    subraceDefinition.subraceId == raceDefinition.standardSubrace.subraceId)
+                if (string.Equals(
+                    subraceDefinition.subraceId,
+                    characterCreator.SelectedSubraceId,
+                    System.StringComparison.OrdinalIgnoreCase))
                 {
                     return subraceDefinition;
                 }
             }
         }
 
-        foreach (SubraceDefinition subraceDefinition in subraceDefinitions)
+        if (raceDefinition != null &&
+            raceDefinition.standardSubrace != null)
+        {
+            foreach (SubraceDefinition subraceDefinition
+                     in subraceDefinitions)
+            {
+                if (subraceDefinition == null)
+                    continue;
+
+                if (subraceDefinition ==
+                        raceDefinition.standardSubrace ||
+                    string.Equals(
+                        subraceDefinition.subraceId,
+                        raceDefinition.standardSubrace.subraceId,
+                        System.StringComparison.OrdinalIgnoreCase))
+                {
+                    return subraceDefinition;
+                }
+            }
+        }
+
+        foreach (SubraceDefinition subraceDefinition
+                 in subraceDefinitions)
         {
             if (subraceDefinition != null)
                 return subraceDefinition;
@@ -412,6 +845,13 @@ public class CharacterCreatorRaceUI : MonoBehaviour
             subraceDescriptionText.text = message;
     }
 
+    private void ShowLineageDescription(
+    string message)
+    {
+        if (lineageDescriptionText != null)
+            lineageDescriptionText.text = message;
+    }
+
     private string GetRaceButtonText(
         RaceDefinition raceDefinition)
     {
@@ -449,14 +889,306 @@ public class CharacterCreatorRaceUI : MonoBehaviour
     }
 
     private string GetSubraceDescription(
-        SubraceDefinition subraceDefinition)
+        SubraceDefinition subraceDefinition,
+        CharacterAttributePreview preview)
     {
         if (subraceDefinition == null)
             return "";
 
-        if (!string.IsNullOrWhiteSpace(subraceDefinition.description))
-            return subraceDefinition.description;
+        StringBuilder builder =
+            new StringBuilder();
 
-        return GetSubraceButtonText(subraceDefinition);
+        string description =
+            !string.IsNullOrWhiteSpace(
+                subraceDefinition.description)
+                ? subraceDefinition.description
+                : GetSubraceButtonText(
+                    subraceDefinition
+                );
+
+        builder.Append(description);
+
+        RaceDefinition raceDefinition =
+            subraceDefinition.race;
+
+        if (preview != null &&
+            raceDefinition != null &&
+            raceDefinition.allowedLineageType !=
+            LineageType.AnimalSpecies)
+        {
+            int influencePercent =
+                Mathf.RoundToInt(
+                    preview.mainAncestryInfluence *
+                    100f
+                );
+
+            builder.Append(
+                $"\n\nMain ancestry influence: " +
+                $"{influencePercent}%"
+            );
+        }
+
+        CharacterAttributeModifiers modifiers =
+            preview != null
+                ? preview.SubraceModifiers
+                : subraceDefinition.attributeDifferences;
+
+        List<string> attributeDifferences =
+            new();
+
+        AddAttributeDifferences(
+            attributeDifferences,
+            modifiers
+        );
+
+        string raceName =
+            raceDefinition != null
+                ? GetRaceButtonText(raceDefinition)
+                : "base race";
+
+        builder.Append(
+            $"\n\nTotal attribute changes " +
+            $"from {raceName}:"
+        );
+
+        if (attributeDifferences.Count == 0)
+        {
+            builder.Append(
+                "\nNo attribute changes."
+            );
+        }
+        else
+        {
+            builder.Append("\n");
+            builder.Append(
+                string.Join(
+                    "\n",
+                    attributeDifferences
+                )
+            );
+        }
+
+        List<string> bodyDifferences =
+            new();
+
+        AddBodyDifferences(
+            bodyDifferences,
+            subraceDefinition
+        );
+
+        if (bodyDifferences.Count > 0)
+        {
+            builder.Append(
+                $"\n\nBody differences from " +
+                $"{GetSubraceBaselineName(subraceDefinition)}:"
+            );
+
+            builder.Append("\n");
+            builder.Append(
+                string.Join(
+                    "\n",
+                    bodyDifferences
+                )
+            );
+        }
+
+        return builder.ToString();
+    }
+
+    private string GetSubraceBaselineName(
+        SubraceDefinition subraceDefinition)
+    {
+        if (subraceDefinition == null)
+            return "race attributes";
+
+        SubraceDefinition baselineSubrace =
+            GetSubraceBaseline(
+                subraceDefinition
+            );
+
+        if (baselineSubrace != null)
+        {
+            return GetSubraceButtonText(
+                baselineSubrace
+            );
+        }
+
+        if (subraceDefinition.race != null)
+        {
+            return
+                $"{GetRaceButtonText(subraceDefinition.race)} " +
+                "race attributes";
+        }
+
+        return "race attributes";
+    }
+
+    private void AddAttributeDifferences(
+        List<string> differences,
+        CharacterAttributeModifiers modifiers)
+    {
+        if (differences == null ||
+            modifiers == null)
+        {
+            return;
+        }
+
+        AddDifference(
+            differences,
+            "Strength",
+            modifiers.strength
+        );
+
+        AddDifference(
+            differences,
+            "Dexterity",
+            modifiers.dexterity
+        );
+
+        AddDifference(
+            differences,
+            "Agility",
+            modifiers.agility
+        );
+
+        AddDifference(
+            differences,
+            "Vitality",
+            modifiers.vitality
+        );
+
+        AddDifference(
+            differences,
+            "Endurance",
+            modifiers.endurance
+        );
+
+        AddDifference(
+            differences,
+            "Intelligence",
+            modifiers.intelligence
+        );
+
+        AddDifference(
+            differences,
+            "Willpower",
+            modifiers.willpower
+        );
+
+        AddDifference(
+            differences,
+            "Spirit",
+            modifiers.spirit
+        );
+
+        AddDifference(
+            differences,
+            "Perception",
+            modifiers.perception
+        );
+    }
+
+    private void AddDifference(
+        List<string> differences,
+        string label,
+        int value)
+    {
+        if (differences == null ||
+            value == 0)
+        {
+            return;
+        }
+
+        string sign =
+            value > 0
+                ? "+"
+                : "";
+
+        differences.Add(
+            $"{label}: {sign}{value}"
+        );
+    }
+
+    private void AddBodyDifferences(
+        List<string> differences,
+        SubraceDefinition subraceDefinition)
+    {
+        if (differences == null ||
+            subraceDefinition == null)
+        {
+            return;
+        }
+
+        SubraceDefinition baselineSubrace =
+            GetSubraceBaseline(
+                subraceDefinition
+            );
+
+        if (baselineSubrace == null)
+            return;
+
+        if (baselineSubrace.size !=
+            subraceDefinition.size)
+        {
+            differences.Add(
+                $"Size: " +
+                $"{GetSizeName(baselineSubrace.size)} → " +
+                $"{GetSizeName(subraceDefinition.size)}"
+            );
+        }
+
+        if (baselineSubrace.bodyType !=
+            subraceDefinition.bodyType)
+        {
+            differences.Add(
+                $"Body: " +
+                $"{GetBodyName(baselineSubrace.bodyType)} → " +
+                $"{GetBodyName(subraceDefinition.bodyType)}"
+            );
+        }
+    }
+
+    private SubraceDefinition GetSubraceBaseline(
+        SubraceDefinition subraceDefinition)
+    {
+        if (subraceDefinition == null)
+            return null;
+
+        if (subraceDefinition.IsDefaultSubrace())
+            return null;
+
+        return subraceDefinition.GetBaseSubrace();
+    }
+
+    private string GetSizeName(
+        RaceSize size)
+    {
+        return size switch
+        {
+            RaceSize.Size1 => "Size 1",
+            RaceSize.Size2 => "Size 2",
+            RaceSize.TallerSize2 => "Taller Size 2",
+            RaceSize.Size3 => "Size 3",
+            RaceSize.Size1Feral => "Size 1 Feral",
+            RaceSize.Size2Feral => "Size 2 Feral",
+            RaceSize.Size3Feral => "Size 3 Feral",
+            RaceSize.Dragon => "Dragon",
+            RaceSize.BigDragon => "Big Dragon",
+            _ => size.ToString()
+        };
+    }
+
+    private string GetBodyName(
+        BodyType bodyType)
+    {
+        return bodyType switch
+        {
+            BodyType.Humanoid => "Humanoid",
+            BodyType.Quadruped => "Quadruped",
+            BodyType.StanceSwitching =>
+                "Stance Switching",
+
+            _ => bodyType.ToString()
+        };
     }
 }

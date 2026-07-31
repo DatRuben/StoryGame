@@ -344,7 +344,7 @@ public class PlayerStorageContainerInteract : MonoBehaviour
             );
 
         if (itemAtCell == null ||
-            itemAtCell.ItemData == null)
+            itemAtCell.ItemDefinition == null)
         {
             return false;
         }
@@ -360,13 +360,13 @@ public class PlayerStorageContainerInteract : MonoBehaviour
             );
 
         if (pickedItem == null ||
-            pickedItem.ItemData == null)
+            pickedItem.ItemDefinition == null)
         {
             return false;
         }
 
         currentOpenContainer.TryAddItem(
-            pickedItem.ItemData,
+            pickedItem.ItemDefinition,
             pickedItem.RotationSteps,
             pickedItem.Quantity,
             out int remainingQuantity

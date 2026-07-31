@@ -8,14 +8,34 @@ using UnityEditor;
 [CreateAssetMenu(menuName = "Game/Character Data Library")]
 public class CharacterDataLibrary : ScriptableObject
 {
+    private const string SubraceLineagePrefix =
+    "subrace:";
+
+    private const string CustomLineagePrefix =
+        "lineage:";
+
     [Header("Race Data")]
     [SerializeField] private List<RaceDefinition> raceDefinitions = new();
     [SerializeField] private List<SubraceDefinition> subraceDefinitions = new();
     [SerializeField] private List<LineageDefinition> lineageDefinitions = new();
+    [SerializeField] private List<BackgroundDefinition> backgroundDefinitions = new();
+    [SerializeField] private BackgroundDefinition defaultBackgroundDefinition;
+    [SerializeField] private List<TraitDefinition> traitDefinitions = new();
+
+    [Header("Appearance Data")]
+    [SerializeField]
+    private List<CharacterAppearanceOptionDefinition>
+    appearanceOptionDefinitions = new();
 
     public IReadOnlyList<RaceDefinition> RaceDefinitions => raceDefinitions;
     public IReadOnlyList<SubraceDefinition> SubraceDefinitions => subraceDefinitions;
     public IReadOnlyList<LineageDefinition> LineageDefinitions => lineageDefinitions;
+    public IReadOnlyList<BackgroundDefinition> BackgroundDefinitions => backgroundDefinitions;
+    public IReadOnlyList<TraitDefinition> TraitDefinitions => traitDefinitions;
+
+    public IReadOnlyList<CharacterAppearanceOptionDefinition>
+    AppearanceOptionDefinitions =>
+        appearanceOptionDefinitions;
 
     public bool TryGetRaceDefinition(
         string raceId,
@@ -98,6 +118,109 @@ public class CharacterDataLibrary : ScriptableObject
         return false;
     }
 
+    public bool TryGetBackgroundDefinition(
+    string backgroundId,
+    out BackgroundDefinition backgroundDefinition)
+    {
+        backgroundDefinition = null;
+
+        if (string.IsNullOrWhiteSpace(backgroundId))
+            return false;
+
+        foreach (BackgroundDefinition definition in backgroundDefinitions)
+        {
+            if (definition == null)
+                continue;
+
+            if (string.Equals(
+                definition.backgroundId,
+                backgroundId,
+                System.StringComparison.OrdinalIgnoreCase))
+            {
+                backgroundDefinition = definition;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public bool TryGetTraitDefinition(
+        string traitId,
+        out TraitDefinition traitDefinition)
+    {
+        traitDefinition = null;
+
+        if (string.IsNullOrWhiteSpace(traitId))
+            return false;
+
+        foreach (TraitDefinition definition in traitDefinitions)
+        {
+            if (definition == null)
+                continue;
+
+            if (string.Equals(
+                definition.traitId,
+                traitId,
+                System.StringComparison.OrdinalIgnoreCase))
+            {
+                traitDefinition = definition;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public bool TryGetAppearanceOptionDefinition(
+        string optionId,
+        out CharacterAppearanceOptionDefinition optionDefinition)
+    {
+        optionDefinition = null;
+
+        if (string.IsNullOrWhiteSpace(optionId))
+            return false;
+
+        foreach (CharacterAppearanceOptionDefinition definition
+                 in appearanceOptionDefinitions)
+        {
+            if (definition == null)
+                continue;
+
+            if (string.Equals(
+                definition.optionId,
+                optionId,
+                System.StringComparison.OrdinalIgnoreCase))
+            {
+                optionDefinition = definition;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public List<TraitDefinition> GetTraitDefinitions(
+        List<string> traitIds)
+    {
+        List<TraitDefinition> foundDefinitions = new();
+
+        if (traitIds == null)
+            return foundDefinitions;
+
+        foreach (string traitId in traitIds)
+        {
+            if (TryGetTraitDefinition(
+                traitId,
+                out TraitDefinition definition))
+            {
+                foundDefinitions.Add(definition);
+            }
+        }
+
+        return foundDefinitions;
+    }
+
     public List<SubraceDefinition> GetSubraceDefinitionsForRace(
         RaceDefinition raceDefinition)
     {
@@ -124,25 +247,182 @@ public class CharacterDataLibrary : ScriptableObject
         return found;
     }
 
-    public List<LineageDefinition> GetLineageDefinitions(
-        List<string> lineageIds)
+    public bool TryGetLineageSelection(
+    string selectionId,
+    out LineageSelection selection)
     {
-        List<LineageDefinition> foundDefinitions = new();
+        selection = null;
 
-        if (lineageIds == null)
-            return foundDefinitions;
+        if (string.IsNullOrWhiteSpace(selectionId))
+            return false;
 
-        foreach (string lineageId in lineageIds)
+        if (selectionId.StartsWith(
+            SubraceLineagePrefix,
+            System.StringComparison.OrdinalIgnoreCase))
         {
-            if (TryGetLineageDefinition(
-                lineageId,
-                out LineageDefinition definition))
+            string subraceId =
+                selectionId.Substring(
+                    SubraceLineagePrefix.Length
+                );
+
+            if (!TryGetSubraceDefinition(
+                subraceId,
+                out SubraceDefinition subrace))
             {
-                foundDefinitions.Add(definition);
+                return false;
+            }
+
+            selection =
+                LineageSelection.FromSubrace(
+                    subrace
+                );
+
+            return selection != null &&
+                   selection.IsValid;
+        }
+
+        if (selectionId.StartsWith(
+            CustomLineagePrefix,
+            System.StringComparison.OrdinalIgnoreCase))
+        {
+            string lineageId =
+                selectionId.Substring(
+                    CustomLineagePrefix.Length
+                );
+
+            if (!TryGetLineageDefinition(
+                lineageId,
+                out LineageDefinition lineage))
+            {
+                return false;
+            }
+
+            selection =
+                LineageSelection.FromCustomLineage(
+                    lineage
+                );
+
+            return selection != null &&
+                   selection.IsValid;
+        }
+
+        return false;
+    }
+
+    public List<LineageSelection> GetLineageSelections(
+        List<string> selectionIds)
+    {
+        List<LineageSelection> selections = new();
+
+        if (selectionIds == null)
+            return selections;
+
+        foreach (string selectionId in selectionIds)
+        {
+            if (TryGetLineageSelection(
+                selectionId,
+                out LineageSelection selection))
+            {
+                selections.Add(selection);
             }
         }
 
-        return foundDefinitions;
+        return selections;
+    }
+
+    public List<LineageSelection> GetLineageOptionsForRace(
+        RaceDefinition raceDefinition,
+        SubraceDefinition selectedSubrace)
+    {
+        List<LineageSelection> options = new();
+
+        HashSet<string> usedSelectionIds =
+            new HashSet<string>(
+                System.StringComparer.OrdinalIgnoreCase
+            );
+
+        if (raceDefinition == null ||
+            !raceDefinition.CanUseLineages())
+        {
+            return options;
+        }
+
+        if (raceDefinition.allowedLineageType ==
+            LineageType.HybridAncestry)
+        {
+            List<SubraceDefinition> raceSubraces =
+                GetSubraceDefinitionsForRace(
+                    raceDefinition
+                );
+
+            foreach (SubraceDefinition subrace
+                     in raceSubraces)
+            {
+                AddLineageOption(
+                    options,
+                    usedSelectionIds,
+                    LineageSelection.FromSubrace(
+                        subrace
+                    ),
+                    raceDefinition,
+                    selectedSubrace
+                );
+            }
+        }
+
+        foreach (LineageDefinition lineage
+                 in lineageDefinitions)
+        {
+            if (lineage == null)
+                continue;
+
+            AddLineageOption(
+                options,
+                usedSelectionIds,
+                LineageSelection.FromCustomLineage(
+                    lineage
+                ),
+                raceDefinition,
+                selectedSubrace
+            );
+        }
+
+        return options;
+    }
+
+    private static void AddLineageOption(
+        List<LineageSelection> options,
+        HashSet<string> usedSelectionIds,
+        LineageSelection selection,
+        RaceDefinition raceDefinition,
+        SubraceDefinition selectedSubrace)
+    {
+        if (selection == null ||
+            !selection.IsValid)
+        {
+            return;
+        }
+
+        if (!selection.IsAllowedFor(
+            raceDefinition,
+            selectedSubrace))
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(
+            selection.SelectionId))
+        {
+            return;
+        }
+
+        if (!usedSelectionIds.Add(
+            selection.SelectionId))
+        {
+            return;
+        }
+
+        options.Add(selection);
     }
 
     public RaceDefinition GetDefaultRaceDefinition()
@@ -156,16 +436,47 @@ public class CharacterDataLibrary : ScriptableObject
         return null;
     }
 
+    public BackgroundDefinition GetDefaultBackgroundDefinition()
+    {
+        if (defaultBackgroundDefinition != null)
+            return defaultBackgroundDefinition;
+
+        foreach (BackgroundDefinition definition in backgroundDefinitions)
+        {
+            if (definition != null)
+                return definition;
+        }
+
+        return null;
+    }
+
 #if UNITY_EDITOR
     [ContextMenu("Rebuild Library From Project Assets")]
     public void RebuildLibrary()
     {
+        RebuildLibraryInternal(true);
+    }
+
+    public void RebuildLibraryFromAuto()
+    {
+        RebuildLibraryInternal(false);
+    }
+
+    private void RebuildLibraryInternal(bool saveAssets)
+    {
         RebuildRaceDefinitions();
         RebuildSubraceDefinitions();
         RebuildLineageDefinitions();
+        RebuildBackgroundDefinitions();
+        RebuildTraitDefinitions();
+        RebuildAppearanceOptionDefinitions();
+
+        RecalculateDefinitionPreviews();
 
         EditorUtility.SetDirty(this);
-        AssetDatabase.SaveAssets();
+
+        if (saveAssets)
+            AssetDatabase.SaveAssets();
 
         Debug.Log(
             $"Rebuilt CharacterDataLibrary with " +
@@ -244,6 +555,101 @@ public class CharacterDataLibrary : ScriptableObject
             }
         }
     }
+
+    private void RebuildBackgroundDefinitions()
+    {
+        backgroundDefinitions.Clear();
+
+        string[] guids =
+            AssetDatabase.FindAssets("t:BackgroundDefinition");
+
+        foreach (string guid in guids)
+        {
+            string path =
+                AssetDatabase.GUIDToAssetPath(guid);
+
+            BackgroundDefinition definition =
+                AssetDatabase.LoadAssetAtPath<BackgroundDefinition>(path);
+
+            if (definition != null &&
+                !backgroundDefinitions.Contains(definition))
+            {
+                backgroundDefinitions.Add(definition);
+            }
+        }
+    }
+
+    private void RebuildTraitDefinitions()
+    {
+        traitDefinitions.Clear();
+
+        string[] guids =
+            AssetDatabase.FindAssets("t:TraitDefinition");
+
+        foreach (string guid in guids)
+        {
+            string path =
+                AssetDatabase.GUIDToAssetPath(guid);
+
+            TraitDefinition definition =
+                AssetDatabase.LoadAssetAtPath<TraitDefinition>(path);
+
+            if (definition != null &&
+                !traitDefinitions.Contains(definition))
+            {
+                traitDefinitions.Add(definition);
+            }
+        }
+    }
+
+    private void RebuildAppearanceOptionDefinitions()
+    {
+        appearanceOptionDefinitions.Clear();
+
+        string[] guids =
+            AssetDatabase.FindAssets(
+                "t:CharacterAppearanceOptionDefinition"
+            );
+
+        foreach (string guid in guids)
+        {
+            string path =
+                AssetDatabase.GUIDToAssetPath(guid);
+
+            CharacterAppearanceOptionDefinition definition =
+                AssetDatabase.LoadAssetAtPath<
+                    CharacterAppearanceOptionDefinition
+                >(path);
+
+            if (definition != null &&
+                !appearanceOptionDefinitions.Contains(definition))
+            {
+                appearanceOptionDefinitions.Add(definition);
+            }
+        }
+    }
+
+    private void RecalculateDefinitionPreviews()
+    {
+        foreach (RaceDefinition definition in raceDefinitions)
+        {
+            if (definition == null)
+                continue;
+
+            definition.RecalculatePreview();
+            EditorUtility.SetDirty(definition);
+        }
+
+        foreach (SubraceDefinition definition
+                 in subraceDefinitions)
+        {
+            if (definition == null)
+                continue;
+
+            definition.RecalculatePreview();
+            EditorUtility.SetDirty(definition);
+        }
+    }
 #endif
 }
 
@@ -251,6 +657,7 @@ public class CharacterDataLibrary : ScriptableObject
 public class CharacterDataLibraryAutoRebuilder : AssetPostprocessor
 {
     private static bool rebuildQueued;
+    private static bool isRebuilding;
 
     private static void OnPostprocessAllAssets(
         string[] importedAssets,
@@ -258,6 +665,9 @@ public class CharacterDataLibraryAutoRebuilder : AssetPostprocessor
         string[] movedAssets,
         string[] movedFromAssetPaths)
     {
+        if (isRebuilding)
+            return;
+
         if (!ShouldQueueRebuild(
             importedAssets,
             deletedAssets,
@@ -301,7 +711,10 @@ public class CharacterDataLibraryAutoRebuilder : AssetPostprocessor
 
             if (asset is RaceDefinition ||
                 asset is SubraceDefinition ||
-                asset is LineageDefinition)
+                asset is LineageDefinition ||
+                asset is BackgroundDefinition ||
+                asset is TraitDefinition ||
+                asset is CharacterAppearanceOptionDefinition)
             {
                 return true;
             }
@@ -328,21 +741,33 @@ public class CharacterDataLibraryAutoRebuilder : AssetPostprocessor
     {
         rebuildQueued = false;
 
-        string[] libraryGuids =
-            AssetDatabase.FindAssets("t:CharacterDataLibrary");
+        if (isRebuilding)
+            return;
 
-        foreach (string guid in libraryGuids)
+        isRebuilding = true;
+
+        try
         {
-            string path =
-                AssetDatabase.GUIDToAssetPath(guid);
+            string[] libraryGuids =
+                AssetDatabase.FindAssets("t:CharacterDataLibrary");
 
-            CharacterDataLibrary library =
-                AssetDatabase.LoadAssetAtPath<CharacterDataLibrary>(path);
+            foreach (string guid in libraryGuids)
+            {
+                string path =
+                    AssetDatabase.GUIDToAssetPath(guid);
 
-            if (library == null)
-                continue;
+                CharacterDataLibrary library =
+                    AssetDatabase.LoadAssetAtPath<CharacterDataLibrary>(path);
 
-            library.RebuildLibrary();
+                if (library == null)
+                    continue;
+
+                library.RebuildLibraryFromAuto();
+            }
+        }
+        finally
+        {
+            isRebuilding = false;
         }
     }
 }

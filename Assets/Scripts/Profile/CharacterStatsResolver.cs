@@ -3,62 +3,8 @@ using UnityEngine;
 
 public static class CharacterStatsResolver
 {
-    public static CharacterAttributes ResolveAttributes(
-        RaceDefinition raceDefinition,
-        SubraceDefinition subraceDefinition,
-        CharacterProfileData characterProfile,
-        LineageDefinition[] lineageDefinitions)
-    {
-        CharacterAttributes finalAttributes =
-            CreateHumanBaselineAttributes();
-
-        if (raceDefinition != null)
-        {
-            finalAttributes =
-                CharacterAttributes.AddModifiers(
-                    finalAttributes,
-                    raceDefinition.modifiersFromHuman
-                );
-        }
-        else
-        {
-            Debug.LogWarning(
-                "CharacterStatsResolver could not apply race modifiers because RaceDefinition is missing."
-            );
-        }
-
-        ApplySubraceModifiers(
-            ref finalAttributes,
-            subraceDefinition
-        );
-
-        ApplyLineageModifiers(
-            ref finalAttributes,
-            lineageDefinitions
-        );
-
-        if (characterProfile != null)
-        {
-            finalAttributes =
-                CharacterAttributes.Add(
-                    finalAttributes,
-                    characterProfile.allocatedAttributes
-                );
-        }
-        else
-        {
-            Debug.LogWarning(
-                "CharacterStatsResolver could not add allocated attributes because CharacterProfileData is missing."
-            );
-        }
-
-        return CharacterAttributes.ClampMinimum(
-            finalAttributes,
-            1
-        );
-    }
-
     public static FinalCharacterStats ResolveFinalStats(
+        CharacterBaseStats totalBaseStats,
         CharacterAttributes attributes)
     {
         attributes =
@@ -67,35 +13,62 @@ public static class CharacterStatsResolver
                 1
             );
 
+        if (totalBaseStats == null)
+        {
+            CharacterBaseStats baseStats =
+                CharacterBaseStats.CreateHumanDefault();
+
+            CharacterBaseStats attributeBonuses =
+                ResolveAttributeStatBonuses(attributes);
+
+            totalBaseStats =
+                CharacterBaseStats.Add(
+                    baseStats,
+                    attributeBonuses
+                );
+        }
+
         return new FinalCharacterStats
         {
             maxHealth =
-                75f +
-                attributes.vitality * 10f,
+                Mathf.Max(
+                    1f,
+                    totalBaseStats.health
+                ),
 
             maxSoulBarrier =
-                20f +
-                attributes.spirit * 4f +
-                attributes.willpower * 6f,
+                Mathf.Max(
+                    0f,
+                    20f +
+                    attributes.spirit * 4f +
+                    attributes.willpower * 6f
+                ),
 
             maxStamina =
-                50f +
-                attributes.endurance * 8f,
+                Mathf.Max(
+                    1f,
+                    totalBaseStats.stamina
+                ),
 
             maxAether =
-                20f +
-                attributes.spirit * 7f +
-                attributes.intelligence * 3f,
+                Mathf.Max(
+                    0f,
+                    totalBaseStats.mana
+                ),
 
             mass =
-                60f +
-                attributes.strength * 1.5f +
-                attributes.vitality,
+                Mathf.Max(
+                    1f,
+                    60f +
+                    attributes.strength * 1.5f +
+                    attributes.vitality
+                ),
 
             poise =
-                10f +
-                attributes.vitality * 1.5f +
-                attributes.strength,
+                Mathf.Max(
+                    0f,
+                    totalBaseStats.staggerResist
+                ),
 
             movementCostMultiplier =
                 Mathf.Max(
@@ -176,62 +149,6 @@ public static class CharacterStatsResolver
         );
 
         return movementStats;
-    }
-
-    private static CharacterAttributes CreateHumanBaselineAttributes()
-    {
-        return CharacterAttributes.CreateDefault(10);
-    }
-
-    private static void ApplySubraceModifiers(
-        ref CharacterAttributes attributes,
-        SubraceDefinition subraceDefinition)
-    {
-        if (subraceDefinition == null)
-            return;
-
-        HashSet<SubraceDefinition> visited = new();
-        SubraceDefinition current = subraceDefinition;
-
-        while (current != null)
-        {
-            if (!visited.Add(current))
-            {
-                Debug.LogWarning(
-                    $"Subrace comparison loop detected at {current.displayName}."
-                );
-
-                break;
-            }
-
-            attributes =
-                CharacterAttributes.AddModifiers(
-                    attributes,
-                    current.modifiersFromComparison
-                );
-
-            current = current.compareToSubrace;
-        }
-    }
-
-    private static void ApplyLineageModifiers(
-        ref CharacterAttributes attributes,
-        LineageDefinition[] lineageDefinitions)
-    {
-        if (lineageDefinitions == null)
-            return;
-
-        foreach (LineageDefinition lineageDefinition in lineageDefinitions)
-        {
-            if (lineageDefinition == null)
-                continue;
-
-            attributes =
-                CharacterAttributes.AddModifiers(
-                    attributes,
-                    lineageDefinition.modifiers
-                );
-        }
     }
 
     private static FinalMovementStats CreateSize2HumanoidMovement()
@@ -383,6 +300,148 @@ public static class CharacterStatsResolver
                 movementStats.jumpForce *= 0.7f;
                 break;
         }
+    }
+
+    public static CharacterBaseStats ResolveBaseStats(
+        RaceDefinition raceDefinition,
+        SubraceDefinition subraceDefinition)
+    {
+        if (subraceDefinition != null)
+        {
+            return subraceDefinition.ResolveBaseStats();
+        }
+
+        if (raceDefinition != null)
+        {
+            return CharacterBaseStats.Copy(
+                raceDefinition.baseStats
+            );
+        }
+
+        return CharacterBaseStats.CreateHumanDefault();
+    }
+
+    public static CharacterBaseStats ResolveAttributeStatBonuses(
+        CharacterAttributes attributes)
+    {
+        if (attributes == null)
+            attributes = CharacterAttributes.CreateDefault(10);
+
+        return new CharacterBaseStats
+        {
+            health =
+                (attributes.vitality - 10) * 10,
+
+            stamina =
+                (attributes.endurance - 10) * 8 +
+                (attributes.agility - 10) * 2,
+
+            mana =
+                (attributes.intelligence - 10) * 6 +
+                (attributes.spirit - 10) * 4,
+
+            staggerResist =
+                (attributes.vitality - 10) * 3 +
+                (attributes.endurance - 10) * 4 +
+                (attributes.willpower - 10) * 2,
+
+            carryWeight =
+                (attributes.strength - 10) * 3 +
+                (attributes.endurance - 10)
+        };
+    }
+
+    public static ResolvedCharacterStats ResolveCharacter(
+        RaceDefinition race,
+        SubraceDefinition subrace,
+        List<LineageSelection> lineages)
+    {
+        return ResolveCharacter(
+            race,
+            subrace,
+            lineages,
+            null,
+            null
+        );
+    }
+
+    public static ResolvedCharacterStats ResolveCharacter(
+        RaceDefinition race,
+        SubraceDefinition subrace,
+        List<LineageSelection> lineages,
+        BackgroundDefinition background,
+        List<TraitDefinition> traits)
+    {
+        if (lineages == null)
+            lineages = new List<LineageSelection>();
+
+        CharacterAttributePreview attributePreview =
+            CharacterAttributeResolver.CreatePreview(
+                race,
+                subrace,
+                lineages,
+                background,
+                traits
+            );
+
+        return ResolveCharacterFromPreview(
+            race,
+            subrace,
+            attributePreview
+        );
+    }
+
+    private static ResolvedCharacterStats ResolveCharacterFromPreview(
+        RaceDefinition race,
+        SubraceDefinition subrace,
+        CharacterAttributePreview attributePreview)
+    {
+        CharacterAttributes finalAttributes =
+            CharacterAttributes.ClampMinimum(
+                CharacterAttributes.Copy(
+                    attributePreview.levelOneAttributes
+                ),
+                1
+            );
+
+        CharacterBaseStats baseStats =
+            ResolveBaseStats(
+                race,
+                subrace
+            );
+
+        CharacterBaseStats attributeBonuses =
+            ResolveAttributeStatBonuses(
+                finalAttributes
+            );
+
+        CharacterBaseStats totalBaseStats =
+            CharacterBaseStats.Add(
+                baseStats,
+                attributeBonuses
+            );
+
+        FinalCharacterStats finalStats =
+            ResolveFinalStats(
+                totalBaseStats,
+                finalAttributes
+            );
+
+        FinalMovementStats movementStats =
+            ResolveMovementStats(
+                subrace
+            );
+
+        return new ResolvedCharacterStats
+        {
+            attributePreview = attributePreview,
+            finalAttributes = finalAttributes,
+            baseStats = baseStats,
+            attributeBonuses = attributeBonuses,
+            totalBaseStats = totalBaseStats,
+            finalStats = finalStats,
+            movementStats = movementStats
+        };
     }
 
     private static DodgeType ResolveDodgeType(

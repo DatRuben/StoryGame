@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b4f38750408f30544a01852387b489c6, type: 3}
+  m_Name: Large Frame
+  m_EditorClassIdentifier: Assembly-CSharp::TraitDefinition
+  traitId: large_frame
+  displayName: Large Frame
+  description: 
+  modifiers:
+    strength: 2
+    dexterity: 0
+    agility: -2
+    vitality: 1
+    endurance: -1
+    intelligence: 0
+    willpower: 0
+    spirit: 0
+    perception: 0
+  mutuallyExclusiveTraits:
+  - {fileID: 11400000, guid: 6f941135647b8044ab756a3ed44d62b1, type: 2}

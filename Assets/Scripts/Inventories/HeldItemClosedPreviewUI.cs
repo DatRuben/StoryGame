@@ -163,7 +163,7 @@ public class HeldItemClosedPreviewUI : MonoBehaviour
 
         if (playerInventory == null ||
             playerInventory.HeldItem == null ||
-            playerInventory.HeldItem.ItemData == null)
+            playerInventory.HeldItem.ItemDefinition == null)
         {
             heldItemNameText.text = "";
             return;
@@ -171,7 +171,7 @@ public class HeldItemClosedPreviewUI : MonoBehaviour
 
         heldItemNameText.text =
             holdingPrefix +
-            playerInventory.HeldItem.ItemData.itemName;
+            playerInventory.HeldItem.ItemDefinition.itemName;
     }
 
     private void BuildPreview()
@@ -190,7 +190,7 @@ public class HeldItemClosedPreviewUI : MonoBehaviour
 
         if (playerInventory == null ||
             playerInventory.HeldItem == null ||
-            playerInventory.HeldItem.ItemData == null)
+            playerInventory.HeldItem.ItemDefinition == null)
         {
             return;
         }
@@ -212,8 +212,8 @@ public class HeldItemClosedPreviewUI : MonoBehaviour
         previewGridRoot.sizeDelta =
             new Vector2(previewWidth, previewHeight);
 
-        ItemData itemData =
-            heldItem.ItemData;
+        ItemDefinition itemDefinition =
+            heldItem.ItemDefinition;
 
         for (int y = heldItem.Height - 1; y >= 0; y--)
         {
@@ -240,7 +240,7 @@ public class HeldItemClosedPreviewUI : MonoBehaviour
                 if (image != null)
                 {
                     bool occupied =
-                        itemData.IsCellOccupied(
+                        itemDefinition.IsCellOccupied(
                             x,
                             y,
                             heldItem.RotationSteps

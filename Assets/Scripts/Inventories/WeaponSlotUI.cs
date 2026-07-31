@@ -116,7 +116,7 @@ public class WeaponSlotUI : MonoBehaviour
             return;
         }
 
-        ItemData weapon =
+        ItemDefinition weapon =
             playerInventory.WeaponSlotItem;
 
         if (weapon == null)

@@ -9,10 +9,294 @@ public class CharacterCreator : MonoBehaviour
     [SerializeField] private string selectedRaceId;
     [SerializeField] private string selectedSubraceId;
     [SerializeField] private List<string> selectedLineageIds = new();
+    [SerializeField] private string selectedBackgroundId;
+    [SerializeField] private List<string> selectedTraitIds = new();
+    [SerializeField] private CharacterGender selectedGender = CharacterGender.Male;
+    [SerializeField] private string selectedCharacterName = "";
+    [SerializeField] private CharacterAppearanceData selectedAppearance = CharacterAppearanceData.CreateDefault();
+
+    public const int MaxTraits = 2;
 
     public string SelectedRaceId => selectedRaceId;
     public string SelectedSubraceId => selectedSubraceId;
     public IReadOnlyList<string> SelectedLineageIds => selectedLineageIds;
+    public CharacterGender SelectedGender => selectedGender;
+    public string SelectedCharacterName => selectedCharacterName;
+    public event System.Action SelectionChanged;
+    public CharacterAppearanceData SelectedAppearance => CharacterAppearanceData.Copy(selectedAppearance);
+    public string SelectedBackgroundId => selectedBackgroundId;
+    public IReadOnlyList<string> SelectedTraitIds => selectedTraitIds;
+
+    private class SelectedCreatorDefinitions
+    {
+        public RaceDefinition raceDefinition;
+        public SubraceDefinition subraceDefinition;
+        public List<LineageSelection> lineageSelections;
+        public BackgroundDefinition backgroundDefinition;
+        public List<TraitDefinition> traitDefinitions;
+    }
+
+    private void Awake()
+    {
+        EnsureDefaultBackground();
+    }
+
+    public void SelectGender(
+        CharacterGender gender)
+    {
+        if (selectedGender == gender)
+            return;
+
+        selectedGender = gender;
+        NotifySelectionChanged();
+    }
+
+    public void SetCharacterName(
+        string characterName)
+    {
+        string cleanedName =
+            string.IsNullOrWhiteSpace(characterName)
+                ? ""
+                : characterName.Trim();
+
+        if (selectedCharacterName == cleanedName)
+            return;
+
+        selectedCharacterName = cleanedName;
+        NotifySelectionChanged();
+    }
+
+    public void SetBodyScale(
+    float bodyScale)
+    {
+        selectedAppearance.bodyScale =
+            ClampBodyScaleForSelectedRaceSize(bodyScale);
+
+        NotifySelectionChanged();
+    }
+
+    public Vector2 GetBodyScaleRange()
+    {
+        return RaceSizeBodyScale.GetSliderRange(
+            GetSelectedRaceSize()
+        );
+    }
+
+    public void SetHue(
+        float hue)
+    {
+        selectedAppearance.hue =
+            Mathf.Clamp01(hue);
+
+        NotifySelectionChanged();
+    }
+
+    public void SetSaturation(
+        float saturation)
+    {
+        selectedAppearance.saturation =
+            Mathf.Clamp01(saturation);
+
+        NotifySelectionChanged();
+    }
+
+    public void SetValue(
+        float value)
+    {
+        selectedAppearance.value =
+            Mathf.Clamp01(value);
+
+        NotifySelectionChanged();
+    }
+
+    public void SetHairHue(
+        float hue)
+    {
+        selectedAppearance.hairHue =
+            Mathf.Clamp01(hue);
+
+        NotifySelectionChanged();
+    }
+
+    public void SetHairSaturation(
+        float saturation)
+    {
+        selectedAppearance.hairSaturation =
+            Mathf.Clamp01(saturation);
+
+        NotifySelectionChanged();
+    }
+
+    public void SetHairValue(
+        float value)
+    {
+        selectedAppearance.hairValue =
+            Mathf.Clamp01(value);
+
+        NotifySelectionChanged();
+    }
+
+    public void SetTailHue(
+        float hue)
+    {
+        selectedAppearance.tailHue =
+            Mathf.Clamp01(hue);
+
+        NotifySelectionChanged();
+    }
+
+    public void SetTailSaturation(
+		float saturation)
+	{
+		selectedAppearance.tailSaturation =
+			Mathf.Clamp01(saturation);
+
+		NotifySelectionChanged();
+	}
+
+	public void SetTailValue(
+		float value)
+	{
+		selectedAppearance.tailValue =
+			Mathf.Clamp01(value);
+
+		NotifySelectionChanged();
+	}
+
+    public void SetEyeHue(
+        float hue)
+    {
+        selectedAppearance.eyeHue =
+            Mathf.Clamp01(hue);
+
+        NotifySelectionChanged();
+    }
+
+    public void SetEyeSaturation(
+        float saturation)
+    {
+        selectedAppearance.eyeSaturation =
+            Mathf.Clamp01(saturation);
+
+        NotifySelectionChanged();
+    }
+
+    public void SetEyeValue(
+        float value)
+    {
+        selectedAppearance.eyeValue =
+            Mathf.Clamp01(value);
+
+        NotifySelectionChanged();
+    }
+
+    public bool SelectAppearanceOption(
+        string optionId,
+        out string errorMessage)
+    {
+        errorMessage = "";
+
+        if (characterDataLibrary == null)
+        {
+            errorMessage =
+                "CharacterDataLibrary is missing.";
+
+            return false;
+        }
+
+        if (!characterDataLibrary
+            .TryGetAppearanceOptionDefinition(
+                optionId,
+                out CharacterAppearanceOptionDefinition
+                    optionDefinition))
+        {
+            errorMessage =
+                $"Appearance option '{optionId}' was not found.";
+
+            return false;
+        }
+
+        CharacterAppearanceOptionAvailability availability =
+            GetAppearanceOptionAvailability(
+                optionDefinition
+            );
+
+        if (availability !=
+            CharacterAppearanceOptionAvailability.Available)
+        {
+            errorMessage =
+                $"{optionDefinition.displayName} is not " +
+                "available for the selected ancestry.";
+
+            return false;
+        }
+
+        if (selectedAppearance == null)
+        {
+            selectedAppearance =
+                CharacterAppearanceData.CreateDefault();
+        }
+
+        string currentOptionId =
+            selectedAppearance.GetSingleOptionId(
+                optionDefinition.category
+            );
+
+        if (string.Equals(
+            currentOptionId,
+            optionDefinition.optionId,
+            System.StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        if (!selectedAppearance.SetSingleOptionId(
+            optionDefinition.category,
+            optionDefinition.optionId))
+        {
+            errorMessage =
+                $"{optionDefinition.category} is not a " +
+                "supported single-selection appearance category.";
+
+            return false;
+        }
+
+        NotifySelectionChanged();
+        return true;
+    }
+
+    public CharacterAppearanceOptionAvailability GetAppearanceOptionAvailability(
+            CharacterAppearanceOptionDefinition optionDefinition)
+    {
+        if (optionDefinition == null)
+        {
+            return CharacterAppearanceOptionAvailability.Hidden;
+        }
+
+        if (!TryGetSelectedRace(
+            out RaceDefinition raceDefinition))
+        {
+            return CharacterAppearanceOptionAvailability.Hidden;
+        }
+
+        if (!TryGetSelectedSubrace(
+            out SubraceDefinition subraceDefinition))
+        {
+            return CharacterAppearanceOptionAvailability.Hidden;
+        }
+
+        return optionDefinition.GetAvailability(
+            raceDefinition,
+            subraceDefinition,
+            GetSelectedLineageSelections()
+        );
+    }
+
+    private void NotifySelectionChanged()
+    {
+        if (SelectionChanged != null)
+            SelectionChanged.Invoke();
+    }
 
     public bool SelectRace(
         string raceId,
@@ -28,12 +312,130 @@ public class CharacterCreator : MonoBehaviour
             return false;
         }
 
+        string nextSubraceId =
+            raceDefinition.standardSubrace != null
+                ? raceDefinition.standardSubrace.subraceId
+                : "";
+
+        bool raceOrSubraceChanged =
+            !string.Equals(
+                selectedRaceId,
+                raceDefinition.raceId,
+                System.StringComparison.OrdinalIgnoreCase
+            ) ||
+            !string.Equals(
+                selectedSubraceId,
+                nextSubraceId,
+                System.StringComparison.OrdinalIgnoreCase
+            );
+
         selectedRaceId = raceDefinition.raceId;
 
         SelectDefaultSubraceFor(raceDefinition);
-        CleanSelectedLineages(raceDefinition);
 
+        TryGetSelectedSubrace(
+            out SubraceDefinition selectedSubraceDefinition
+        );
+
+        CleanSelectedLineages(
+            raceDefinition,
+            selectedSubraceDefinition
+        );
+
+        if (raceOrSubraceChanged)
+        {
+            ResetBodyScaleForSelectedRaceSize();
+        }
+
+        ClampSelectedAppearance();
+
+        NotifySelectionChanged();
         return true;
+    }
+
+    public bool HasShownAppearanceOptions(
+        CharacterAppearanceCategory category)
+    {
+        if (characterDataLibrary == null)
+            return false;
+
+        foreach (CharacterAppearanceOptionDefinition option
+                 in characterDataLibrary
+                     .AppearanceOptionDefinitions)
+        {
+            if (option == null ||
+                option.category != category)
+            {
+                continue;
+            }
+
+            CharacterAppearanceOptionAvailability availability =
+                GetAppearanceOptionAvailability(
+                    option
+                );
+
+            if (availability !=
+                CharacterAppearanceOptionAvailability.Hidden)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public List<CharacterAppearanceCategory>
+        GetShownAppearanceCategories()
+    {
+        List<CharacterAppearanceCategory> categories =
+            new List<CharacterAppearanceCategory>();
+
+        foreach (CharacterAppearanceCategory category
+                 in System.Enum.GetValues(
+                     typeof(CharacterAppearanceCategory)))
+        {
+            if (HasShownAppearanceOptions(category))
+                categories.Add(category);
+        }
+
+        return categories;
+    }
+
+    public List<CharacterAppearanceOptionDefinition>
+        GetShownAppearanceOptions(
+            CharacterAppearanceCategory category)
+    {
+        List<CharacterAppearanceOptionDefinition> options =
+            new List<CharacterAppearanceOptionDefinition>();
+
+        if (characterDataLibrary == null)
+            return options;
+
+        foreach (CharacterAppearanceOptionDefinition option
+                 in characterDataLibrary
+                     .AppearanceOptionDefinitions)
+        {
+            if (option == null ||
+                option.category != category)
+            {
+                continue;
+            }
+
+            CharacterAppearanceOptionAvailability availability =
+                GetAppearanceOptionAvailability(
+                    option
+                );
+
+            if (availability ==
+                CharacterAppearanceOptionAvailability.Hidden)
+            {
+                continue;
+            }
+
+            options.Add(option);
+        }
+
+        return options;
     }
 
     public bool SelectSubrace(
@@ -58,59 +460,250 @@ public class CharacterCreator : MonoBehaviour
             return false;
         }
 
+        bool raceOrSubraceChanged =
+            !string.Equals(
+                selectedRaceId,
+                subraceDefinition.race.raceId,
+                System.StringComparison.OrdinalIgnoreCase
+            ) ||
+            !string.Equals(
+                selectedSubraceId,
+                subraceDefinition.subraceId,
+                System.StringComparison.OrdinalIgnoreCase
+            );
+
         selectedRaceId = subraceDefinition.race.raceId;
         selectedSubraceId = subraceDefinition.subraceId;
 
-        CleanSelectedLineages(subraceDefinition.race);
+        CleanSelectedLineages(
+            subraceDefinition.race,
+            subraceDefinition
+        );
 
+        if (raceOrSubraceChanged)
+        {
+            ResetBodyScaleForSelectedRaceSize();
+        }
+
+        ClampSelectedAppearance();
+
+        NotifySelectionChanged();
         return true;
     }
 
     public bool ToggleLineage(
-        string lineageId,
+        string selectionId,
         out string errorMessage)
     {
         errorMessage = "";
 
-        if (!TryGetSelectedRace(out RaceDefinition raceDefinition))
+        if (!TryGetSelectedSubrace(
+            out SubraceDefinition subraceDefinition))
         {
-            errorMessage = "No race is selected.";
+            errorMessage = "No subrace is selected.";
             return false;
         }
 
-        if (!TryGetLineageDefinition(
-            lineageId,
-            out LineageDefinition lineageDefinition,
+        if (subraceDefinition.race == null)
+        {
+            errorMessage =
+                $"{subraceDefinition.displayName} " +
+                "has no RaceDefinition assigned.";
+
+            return false;
+        }
+
+        RaceDefinition raceDefinition =
+            subraceDefinition.race;
+
+        if (!TryGetLineageSelection(
+            selectionId,
+            out LineageSelection selection,
             out errorMessage))
         {
             return false;
         }
 
-        if (selectedLineageIds.Contains(lineageDefinition.lineageId))
+        string resolvedSelectionId =
+            selection.SelectionId;
+
+        int selectedIndex =
+            FindSelectedLineageIndex(
+                resolvedSelectionId
+            );
+
+        if (selectedIndex >= 0)
         {
-            selectedLineageIds.Remove(lineageDefinition.lineageId);
+            if (selectedLineageIds.Count <=
+                raceDefinition.minLineages)
+            {
+                errorMessage =
+                    $"{raceDefinition.displayName} requires " +
+                    $"at least {raceDefinition.minLineages} lineage.";
+
+                return false;
+            }
+
+            selectedLineageIds.RemoveAt(
+                selectedIndex
+            );
+
+            ClampSelectedAppearance();
+            NotifySelectionChanged();
             return true;
         }
 
-        if (!raceDefinition.IsLineageAllowed(lineageDefinition))
+        if (!raceDefinition.IsLineageAllowed(
+            selection,
+            subraceDefinition))
         {
             errorMessage =
-                $"{raceDefinition.displayName} cannot use lineage {lineageDefinition.displayName}.";
+                $"{raceDefinition.displayName} cannot use " +
+                $"lineage {selection.DisplayName}.";
 
             return false;
         }
 
-        selectedLineageIds.Add(lineageDefinition.lineageId);
+        if (selectedLineageIds.Count >=
+            raceDefinition.maxLineages)
+        {
+            if (raceDefinition.maxLineages == 1 &&
+                selectedLineageIds.Count == 1)
+            {
+                string previousSelectionId =
+                    selectedLineageIds[0];
+
+                selectedLineageIds[0] =
+                    resolvedSelectionId;
+
+                if (!AreSelectedLineagesValid(
+                    raceDefinition,
+                    subraceDefinition,
+                    out errorMessage))
+                {
+                    selectedLineageIds[0] =
+                        previousSelectionId;
+
+                    return false;
+                }
+
+                ClampSelectedAppearance();
+                NotifySelectionChanged();
+                return true;
+            }
+
+            errorMessage =
+                $"{raceDefinition.displayName} can only use " +
+                $"up to {raceDefinition.maxLineages} lineages.";
+
+            return false;
+        }
+
+        selectedLineageIds.Add(
+            resolvedSelectionId
+        );
 
         if (!AreSelectedLineagesValid(
             raceDefinition,
+            subraceDefinition,
             out errorMessage))
         {
-            selectedLineageIds.Remove(lineageDefinition.lineageId);
+            selectedLineageIds.RemoveAt(
+                selectedLineageIds.Count - 1
+            );
+
             return false;
         }
 
+        ClampSelectedAppearance();
+        NotifySelectionChanged();
         return true;
+    }
+
+    public bool SelectBackground(
+    string backgroundId,
+    out string errorMessage)
+    {
+        errorMessage = "";
+
+        if (string.IsNullOrWhiteSpace(backgroundId))
+        {
+            ClearBackground();
+            return true;
+        }
+
+        if (!TryGetBackgroundDefinition(
+            backgroundId,
+            out BackgroundDefinition backgroundDefinition,
+            out errorMessage))
+        {
+            return false;
+        }
+
+        if (selectedBackgroundId == backgroundDefinition.backgroundId)
+            return true;
+
+        selectedBackgroundId = backgroundDefinition.backgroundId;
+        NotifySelectionChanged();
+        return true;
+    }
+
+    public void ClearBackground()
+    {
+        if (string.IsNullOrWhiteSpace(selectedBackgroundId))
+            return;
+
+        selectedBackgroundId = "";
+        NotifySelectionChanged();
+    }
+
+    public bool ToggleTrait(
+        string traitId,
+        out string errorMessage)
+    {
+        errorMessage = "";
+
+        if (!TryGetTraitDefinition(
+            traitId,
+            out TraitDefinition traitDefinition,
+            out errorMessage))
+        {
+            return false;
+        }
+
+        if (selectedTraitIds.Contains(traitDefinition.traitId))
+        {
+            selectedTraitIds.Remove(traitDefinition.traitId);
+            NotifySelectionChanged();
+            return true;
+        }
+
+        if (selectedTraitIds.Count >= MaxTraits)
+        {
+            errorMessage = $"Only {MaxTraits} traits can be selected.";
+            return false;
+        }
+
+        selectedTraitIds.Add(traitDefinition.traitId);
+
+        if (!AreSelectedTraitsValid(
+            out errorMessage))
+        {
+            selectedTraitIds.Remove(traitDefinition.traitId);
+            return false;
+        }
+
+        NotifySelectionChanged();
+        return true;
+    }
+
+    public void ClearTraits()
+    {
+        if (selectedTraitIds.Count == 0)
+            return;
+
+        selectedTraitIds.Clear();
+        NotifySelectionChanged();
     }
 
     public bool TryCreateCharacter(
@@ -127,66 +720,71 @@ public class CharacterCreator : MonoBehaviour
             return false;
         }
 
-        if (!TryGetSelectedRace(out RaceDefinition raceDefinition))
+        if (!TryGetSelectedDefinitions(
+            out SelectedCreatorDefinitions selectedDefinitions,
+            out errorMessage))
         {
-            errorMessage = "No race is selected.";
             return false;
         }
 
-        if (!TryGetSelectedSubrace(out SubraceDefinition subraceDefinition))
-        {
-            errorMessage = "No subrace is selected.";
-            return false;
-        }
-
-        List<LineageDefinition> lineageDefinitions =
-            GetSelectedLineageDefinitions();
+        ResolvedCharacterStats resolvedStats =
+            CharacterStatsResolver.ResolveCharacter(
+                selectedDefinitions.raceDefinition,
+                selectedDefinitions.subraceDefinition,
+                selectedDefinitions.lineageSelections,
+                selectedDefinitions.backgroundDefinition,
+                selectedDefinitions.traitDefinitions
+            );
 
         return CharacterSelection.TryCreateCharacter(
             characterName,
-            raceDefinition,
-            subraceDefinition,
-            lineageDefinitions,
+            selectedGender,
+            selectedDefinitions.raceDefinition,
+            selectedDefinitions.subraceDefinition,
+            selectedDefinitions.lineageSelections,
+            selectedDefinitions.backgroundDefinition,
+            selectedDefinitions.traitDefinitions,
+            CharacterAppearanceData.Copy(selectedAppearance),
+            CharacterAttributes.Copy(resolvedStats.finalAttributes),
+            CharacterBaseStats.Copy(resolvedStats.totalBaseStats),
             out profile,
             out errorMessage
         );
     }
 
+    public void ResetCreator()
+    {
+        selectedRaceId = "";
+        selectedSubraceId = "";
+        selectedLineageIds.Clear();
+
+        selectedBackgroundId = "";
+        EnsureDefaultBackground();
+        selectedTraitIds.Clear();
+
+        selectedGender = CharacterGender.Male;
+        selectedCharacterName = "";
+        selectedAppearance = CharacterAppearanceData.CreateDefault();
+
+        NotifySelectionChanged();
+    }
+
     public bool CanCreateCharacter(
         out string errorMessage)
     {
-        errorMessage = "";
-
-        if (!TryGetSelectedRace(out RaceDefinition raceDefinition))
-        {
-            errorMessage = "No race is selected.";
-            return false;
-        }
-
-        if (!TryGetSelectedSubrace(out SubraceDefinition subraceDefinition))
-        {
-            errorMessage = "No subrace is selected.";
-            return false;
-        }
-
-        if (subraceDefinition.race == null ||
-            subraceDefinition.race.raceId != raceDefinition.raceId)
-        {
-            errorMessage =
-                $"{subraceDefinition.displayName} does not belong to {raceDefinition.displayName}.";
-
-            return false;
-        }
-
-        return AreSelectedLineagesValid(
-            raceDefinition,
+        return TryGetSelectedDefinitions(
+            out SelectedCreatorDefinitions _,
             out errorMessage
         );
     }
 
     public void ClearLineages()
     {
+        if (selectedLineageIds.Count == 0)
+            return;
+
         selectedLineageIds.Clear();
+        NotifySelectionChanged();
     }
 
     private void SelectDefaultSubraceFor(
@@ -199,6 +797,30 @@ public class CharacterCreator : MonoBehaviour
 
         if (raceDefinition.standardSubrace != null)
             selectedSubraceId = raceDefinition.standardSubrace.subraceId;
+    }
+
+    private void EnsureDefaultBackground()
+    {
+        if (!string.IsNullOrWhiteSpace(
+                selectedBackgroundId) ||
+            characterDataLibrary == null)
+        {
+            return;
+        }
+
+        BackgroundDefinition defaultBackground =
+            characterDataLibrary
+                .GetDefaultBackgroundDefinition();
+
+        if (defaultBackground == null ||
+            string.IsNullOrWhiteSpace(
+                defaultBackground.backgroundId))
+        {
+            return;
+        }
+
+        selectedBackgroundId =
+            defaultBackground.backgroundId;
     }
 
     private bool TryGetRaceDefinition(
@@ -255,12 +877,41 @@ public class CharacterCreator : MonoBehaviour
         return true;
     }
 
-    private bool TryGetLineageDefinition(
-        string lineageId,
-        out LineageDefinition lineageDefinition,
+    private bool TryGetLineageSelection(
+        string selectionId,
+        out LineageSelection selection,
         out string errorMessage)
     {
-        lineageDefinition = null;
+        selection = null;
+        errorMessage = "";
+
+        if (characterDataLibrary == null)
+        {
+            errorMessage =
+                "CharacterDataLibrary is missing.";
+
+            return false;
+        }
+
+        if (!characterDataLibrary.TryGetLineageSelection(
+            selectionId,
+            out selection))
+        {
+            errorMessage =
+                $"Lineage selection '{selectionId}' was not found.";
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private bool TryGetBackgroundDefinition(
+    string backgroundId,
+    out BackgroundDefinition backgroundDefinition,
+    out string errorMessage)
+    {
+        backgroundDefinition = null;
         errorMessage = "";
 
         if (characterDataLibrary == null)
@@ -269,12 +920,39 @@ public class CharacterCreator : MonoBehaviour
             return false;
         }
 
-        if (!characterDataLibrary.TryGetLineageDefinition(
-            lineageId,
-            out lineageDefinition))
+        if (!characterDataLibrary.TryGetBackgroundDefinition(
+            backgroundId,
+            out backgroundDefinition))
         {
             errorMessage =
-                $"LineageDefinition '{lineageId}' was not found.";
+                $"BackgroundDefinition '{backgroundId}' was not found.";
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private bool TryGetTraitDefinition(
+        string traitId,
+        out TraitDefinition traitDefinition,
+        out string errorMessage)
+    {
+        traitDefinition = null;
+        errorMessage = "";
+
+        if (characterDataLibrary == null)
+        {
+            errorMessage = "CharacterDataLibrary is missing.";
+            return false;
+        }
+
+        if (!characterDataLibrary.TryGetTraitDefinition(
+            traitId,
+            out traitDefinition))
+        {
+            errorMessage =
+                $"TraitDefinition '{traitId}' was not found.";
 
             return false;
         }
@@ -316,52 +994,589 @@ public class CharacterCreator : MonoBehaviour
         );
     }
 
-    private List<LineageDefinition> GetSelectedLineageDefinitions()
+    private List<LineageSelection> GetSelectedLineageSelections()
     {
-        return characterDataLibrary.GetLineageDefinitions(
+        if (characterDataLibrary == null)
+            return new List<LineageSelection>();
+
+        return characterDataLibrary.GetLineageSelections(
             selectedLineageIds
+        );
+    }
+
+    private BackgroundDefinition GetSelectedBackgroundDefinition()
+    {
+        if (characterDataLibrary == null)
+            return null;
+
+        if (string.IsNullOrWhiteSpace(selectedBackgroundId))
+            return null;
+
+        characterDataLibrary.TryGetBackgroundDefinition(
+            selectedBackgroundId,
+            out BackgroundDefinition backgroundDefinition
+        );
+
+        return backgroundDefinition;
+    }
+
+    private List<TraitDefinition> GetSelectedTraitDefinitions()
+    {
+        if (characterDataLibrary == null)
+            return new List<TraitDefinition>();
+
+        return characterDataLibrary.GetTraitDefinitions(
+            selectedTraitIds
         );
     }
 
     private bool AreSelectedLineagesValid(
         RaceDefinition raceDefinition,
+        SubraceDefinition subraceDefinition,
         out string errorMessage)
     {
-        return raceDefinition.AreLineagesValid(
-            GetSelectedLineageDefinitions(),
+        return raceDefinition.AreLineageSelectionsValid(
+            subraceDefinition,
+            GetSelectedLineageSelections(),
             out errorMessage
         );
     }
 
+    private bool AreSelectedTraitsValid(
+        out string errorMessage)
+    {
+        errorMessage = "";
+
+        if (selectedTraitIds.Count > MaxTraits)
+        {
+            errorMessage = $"Only {MaxTraits} traits can be selected.";
+            return false;
+        }
+
+        List<TraitDefinition> traitDefinitions = new();
+
+        foreach (string selectedTraitId in selectedTraitIds)
+        {
+            if (!TryGetTraitDefinition(
+                selectedTraitId,
+                out TraitDefinition traitDefinition,
+                out errorMessage))
+            {
+                return false;
+            }
+
+            foreach (TraitDefinition existingTrait in traitDefinitions)
+            {
+                if (traitDefinition.IsMutuallyExclusiveWith(existingTrait) ||
+                    existingTrait.IsMutuallyExclusiveWith(traitDefinition))
+                {
+                    errorMessage =
+                        $"{traitDefinition.displayName} cannot be combined with {existingTrait.displayName}.";
+
+                    return false;
+                }
+            }
+
+            traitDefinitions.Add(traitDefinition);
+        }
+
+        return true;
+    }
+
     private void CleanSelectedLineages(
-        RaceDefinition raceDefinition)
+        RaceDefinition raceDefinition,
+        SubraceDefinition subraceDefinition)
     {
         if (raceDefinition == null ||
-            !raceDefinition.CanUseLineages())
+            !raceDefinition.CanUseLineages() ||
+            characterDataLibrary == null)
         {
             selectedLineageIds.Clear();
             return;
         }
 
-        for (int i = selectedLineageIds.Count - 1; i >= 0; i--)
+        for (int i =
+                 selectedLineageIds.Count - 1;
+             i >= 0;
+             i--)
         {
-            if (!characterDataLibrary.TryGetLineageDefinition(
-                selectedLineageIds[i],
-                out LineageDefinition lineageDefinition))
+            if (!characterDataLibrary
+                .TryGetLineageSelection(
+                    selectedLineageIds[i],
+                    out LineageSelection selection))
             {
                 selectedLineageIds.RemoveAt(i);
                 continue;
             }
 
-            if (!raceDefinition.IsLineageAllowed(lineageDefinition))
+            if (!raceDefinition.IsLineageAllowed(
+                selection,
+                subraceDefinition))
+            {
                 selectedLineageIds.RemoveAt(i);
+            }
         }
 
-        while (selectedLineageIds.Count > raceDefinition.maxLineages)
+        while (selectedLineageIds.Count >
+               raceDefinition.maxLineages)
         {
             selectedLineageIds.RemoveAt(
                 selectedLineageIds.Count - 1
             );
         }
+
+        EnsureDefaultLineage(
+            raceDefinition,
+            subraceDefinition
+        );
+    }
+
+    private int FindSelectedLineageIndex(
+        string selectionId)
+    {
+        if (string.IsNullOrWhiteSpace(selectionId))
+            return -1;
+
+        for (int i = 0;
+             i < selectedLineageIds.Count;
+             i++)
+        {
+            if (string.Equals(
+                selectedLineageIds[i],
+                selectionId,
+                System.StringComparison.OrdinalIgnoreCase))
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    private void EnsureDefaultLineage(
+    RaceDefinition raceDefinition,
+    SubraceDefinition subraceDefinition)
+    {
+        if (raceDefinition == null ||
+            selectedLineageIds.Count >=
+            raceDefinition.minLineages)
+        {
+            return;
+        }
+
+        LineageSelection defaultSelection =
+            raceDefinition.GetDefaultLineageSelection();
+
+        if (defaultSelection == null ||
+            !defaultSelection.IsValid ||
+            !raceDefinition.IsLineageAllowed(
+                defaultSelection,
+                subraceDefinition))
+        {
+            return;
+        }
+
+        string selectionId =
+            defaultSelection.SelectionId;
+
+        if (string.IsNullOrWhiteSpace(selectionId) ||
+            FindSelectedLineageIndex(selectionId) >= 0)
+        {
+            return;
+        }
+
+        selectedLineageIds.Add(selectionId);
+    }
+
+    private void ResetBodyScaleForSelectedRaceSize()
+    {
+        if (selectedAppearance == null)
+        {
+            selectedAppearance =
+                CharacterAppearanceData.CreateDefault();
+        }
+
+        selectedAppearance.bodyScale =
+            RaceSizeBodyScale.DefaultMultiplier;
+    }
+
+    private void ClampSelectedAppearance()
+    {
+        if (selectedAppearance == null)
+            selectedAppearance = CharacterAppearanceData.CreateDefault();
+
+        selectedAppearance.bodyScale =
+            ClampBodyScaleForSelectedRaceSize(
+                selectedAppearance.bodyScale
+            );
+
+        selectedAppearance.tailHue =
+            Mathf.Clamp01(
+                selectedAppearance.tailHue
+            );
+
+        selectedAppearance.tailSaturation =
+			Mathf.Clamp01(
+				selectedAppearance.tailSaturation
+			);
+
+		selectedAppearance.tailValue =
+			Mathf.Clamp01(
+				selectedAppearance.tailValue
+			);
+
+        selectedAppearance.hue =
+            Mathf.Clamp01(
+                selectedAppearance.hue
+            );
+
+        selectedAppearance.saturation =
+            Mathf.Clamp01(
+                selectedAppearance.saturation
+            );
+
+        selectedAppearance.value =
+            Mathf.Clamp01(
+                selectedAppearance.value
+            );
+
+        selectedAppearance.hairHue =
+            Mathf.Clamp01(
+                selectedAppearance.hairHue
+            );
+
+        selectedAppearance.hairSaturation =
+            Mathf.Clamp01(
+                selectedAppearance.hairSaturation
+            );
+
+        selectedAppearance.hairValue =
+            Mathf.Clamp01(
+                selectedAppearance.hairValue
+            );
+
+        selectedAppearance.eyeHue =
+            Mathf.Clamp01(
+                selectedAppearance.eyeHue
+            );
+
+        selectedAppearance.eyeSaturation =
+            Mathf.Clamp01(
+                selectedAppearance.eyeSaturation
+            );
+
+        selectedAppearance.eyeValue =
+            Mathf.Clamp01(
+                selectedAppearance.eyeValue
+            );
+
+        ClampSelectedSingleAppearanceOptions();
+    }
+
+    private void ClampSelectedSingleAppearanceOptions()
+    {
+		ClampSelectedSingleAppearanceOption(
+			CharacterAppearanceCategory.Body
+		);
+
+		ClampSelectedSingleAppearanceOption(
+            CharacterAppearanceCategory.Head
+        );
+
+        ClampSelectedSingleAppearanceOption(
+            CharacterAppearanceCategory.Ears
+        );
+
+        ClampSelectedSingleAppearanceOption(
+            CharacterAppearanceCategory.Horns
+        );
+
+        ClampSelectedSingleAppearanceOption(
+            CharacterAppearanceCategory.Tail
+        );
+
+        ClampSelectedSingleAppearanceOption(
+            CharacterAppearanceCategory.Hair
+        );
+
+        ClampSelectedSingleAppearanceOption(
+            CharacterAppearanceCategory.Eyes
+        );
+
+        ClampSelectedSingleAppearanceOption(
+            CharacterAppearanceCategory.Marking
+        );
+
+        ClampSelectedSingleAppearanceOption(
+            CharacterAppearanceCategory.BodyPattern
+        );
+    }
+
+    private void ClampSelectedSingleAppearanceOption(
+        CharacterAppearanceCategory category)
+    {
+        if (selectedAppearance == null)
+            return;
+
+        if (characterDataLibrary == null)
+        {
+            selectedAppearance.SetSingleOptionId(
+                category,
+                ""
+            );
+
+            return;
+        }
+
+        string selectedOptionId =
+            selectedAppearance.GetSingleOptionId(
+                category
+            );
+
+        if (!string.IsNullOrWhiteSpace(
+                selectedOptionId) &&
+            characterDataLibrary
+                .TryGetAppearanceOptionDefinition(
+                    selectedOptionId,
+                    out CharacterAppearanceOptionDefinition
+                        selectedOption) &&
+            selectedOption.category == category &&
+            GetAppearanceOptionAvailability(
+                selectedOption
+            ) ==
+                CharacterAppearanceOptionAvailability.Available)
+        {
+            selectedAppearance.SetSingleOptionId(
+                category,
+                selectedOption.optionId
+            );
+
+            return;
+        }
+
+        CharacterAppearanceOptionDefinition defaultOption =
+            GetDefaultAppearanceOption(
+                category
+            );
+
+        selectedAppearance.SetSingleOptionId(
+            category,
+            defaultOption != null
+                ? defaultOption.optionId
+                : ""
+        );
+    }
+
+    private CharacterAppearanceOptionDefinition
+        GetDefaultAppearanceOption(
+            CharacterAppearanceCategory category)
+    {
+        if (characterDataLibrary == null)
+            return null;
+
+        foreach (CharacterAppearanceOptionDefinition option
+                 in characterDataLibrary
+                     .AppearanceOptionDefinitions)
+        {
+            if (option == null ||
+                option.category != category ||
+                !option.isDefaultOption)
+            {
+                continue;
+            }
+
+            if (GetAppearanceOptionAvailability(option) ==
+                CharacterAppearanceOptionAvailability.Available)
+            {
+                return option;
+            }
+        }
+
+        return null;
+    }
+
+    private float ClampBodyScaleForSelectedRaceSize(
+        float value)
+    {
+        Vector2 range =
+            GetBodyScaleRange();
+
+        return Mathf.Clamp(
+            value,
+            range.x,
+            range.y
+        );
+    }
+
+    private RaceSize GetSelectedRaceSize()
+    {
+        if (TryGetSelectedSubrace(
+            out SubraceDefinition subraceDefinition))
+        {
+            return subraceDefinition.size;
+        }
+
+        return RaceSize.Size2;
+    }
+
+    public bool TryGetAncestryPreview(
+        out CharacterAttributePreview preview,
+        out string errorMessage)
+    {
+        preview = null;
+        errorMessage = "";
+
+        if (!TryGetSelectedRace(
+            out RaceDefinition raceDefinition))
+        {
+            errorMessage = "No race is selected.";
+            return false;
+        }
+
+        SubraceDefinition subraceDefinition = null;
+
+        if (!string.IsNullOrWhiteSpace(
+                selectedSubraceId) &&
+            !TryGetSelectedSubrace(
+                out subraceDefinition))
+        {
+            errorMessage =
+                $"SubraceDefinition " +
+                $"'{selectedSubraceId}' was not found.";
+
+            return false;
+        }
+
+        if (subraceDefinition != null &&
+            (subraceDefinition.race == null ||
+             subraceDefinition.race.raceId !=
+             raceDefinition.raceId))
+        {
+            errorMessage =
+                $"{subraceDefinition.displayName} " +
+                $"does not belong to " +
+                $"{raceDefinition.displayName}.";
+
+            return false;
+        }
+
+        List<LineageSelection> lineages =
+            GetSelectedLineageSelections();
+
+        if (!raceDefinition.AreLineageSelectionsValid(
+            subraceDefinition,
+            lineages,
+            out errorMessage))
+        {
+            return false;
+        }
+
+        preview =
+            CharacterAttributeResolver.CreatePreview(
+                raceDefinition,
+                subraceDefinition,
+                lineages
+            );
+
+        return true;
+    }
+
+    public bool TryGetResolvedStats(
+        out ResolvedCharacterStats resolvedStats,
+        out string errorMessage)
+    {
+        resolvedStats = null;
+
+        if (!TryGetSelectedDefinitions(
+            out SelectedCreatorDefinitions selectedDefinitions,
+            out errorMessage))
+        {
+            return false;
+        }
+
+        resolvedStats =
+            CharacterStatsResolver.ResolveCharacter(
+                selectedDefinitions.raceDefinition,
+                selectedDefinitions.subraceDefinition,
+                selectedDefinitions.lineageSelections,
+                selectedDefinitions.backgroundDefinition,
+                selectedDefinitions.traitDefinitions
+            );
+
+        return true;
+    }
+
+    private bool TryGetSelectedDefinitions(
+    out SelectedCreatorDefinitions selectedDefinitions,
+    out string errorMessage)
+    {
+        selectedDefinitions = null;
+        errorMessage = "";
+
+        if (!TryGetSelectedRace(out RaceDefinition raceDefinition))
+        {
+            errorMessage = "No race is selected.";
+            return false;
+        }
+
+        if (!TryGetSelectedSubrace(out SubraceDefinition subraceDefinition))
+        {
+            errorMessage = "No subrace is selected.";
+            return false;
+        }
+
+        if (subraceDefinition.race == null ||
+            subraceDefinition.race.raceId != raceDefinition.raceId)
+        {
+            errorMessage =
+                $"{subraceDefinition.displayName} does not belong to {raceDefinition.displayName}.";
+            return false;
+        }
+
+        if (!AreSelectedLineagesValid(
+            raceDefinition,
+            subraceDefinition,
+            out errorMessage))
+        {
+            return false;
+        }
+
+        BackgroundDefinition backgroundDefinition =
+            GetSelectedBackgroundDefinition();
+
+        if (backgroundDefinition == null)
+        {
+            errorMessage = "Background is required.";
+            return false;
+        }
+
+        if (!AreSelectedTraitsValid(
+            out errorMessage))
+        {
+            return false;
+        }
+
+        selectedDefinitions =
+            new SelectedCreatorDefinitions
+            {
+                raceDefinition = raceDefinition,
+                subraceDefinition = subraceDefinition,
+                lineageSelections = GetSelectedLineageSelections(),
+                backgroundDefinition = backgroundDefinition,
+                traitDefinitions = GetSelectedTraitDefinitions()
+            };
+
+        return true;
+    }
+
+    public bool TryCreateSelectedCharacter(
+        out CharacterProfileData profile,
+        out string errorMessage)
+    {
+        return TryCreateCharacter(
+            selectedCharacterName,
+            out profile,
+            out errorMessage
+        );
     }
 }

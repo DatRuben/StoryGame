@@ -19,17 +19,29 @@ public static class CharacterSelection
 
     public static CharacterProfileData CreateCharacter(
         string characterName,
+        CharacterGender gender,
         RaceDefinition raceDefinition,
         SubraceDefinition subraceDefinition,
-        List<string> lineageIds)
+        List<string> lineageIds,
+        string backgroundId,
+        List<string> traitIds,
+        CharacterAppearanceData appearance,
+        CharacterAttributes createdAttributes,
+        CharacterBaseStats createdBaseStats)
     {
         CharacterProfileData profile =
-            CharacterProfileData.CreateNew(
-                characterName,
-                raceDefinition.raceId,
-                subraceDefinition.subraceId,
-                lineageIds
-            );
+                CharacterProfileData.CreateNew(
+                    characterName,
+                    gender,
+                    raceDefinition.raceId,
+                    subraceDefinition.subraceId,
+                    lineageIds,
+                    backgroundId,
+                    traitIds,
+                    appearance,
+                    createdAttributes,
+                    createdBaseStats
+                );
 
         CharacterSaveSystem.SaveProfile(profile);
         SelectProfile(profile.profileId);
@@ -39,9 +51,15 @@ public static class CharacterSelection
 
     public static bool TryCreateCharacter(
         string characterName,
+        CharacterGender gender,
         RaceDefinition raceDefinition,
         SubraceDefinition subraceDefinition,
-        List<LineageDefinition> lineageDefinitions,
+        List<LineageSelection> lineageSelections,
+        BackgroundDefinition backgroundDefinition,
+        List<TraitDefinition> traitDefinitions,
+        CharacterAppearanceData appearance,
+        CharacterAttributes createdAttributes,
+        CharacterBaseStats createdBaseStats,
         out CharacterProfileData profile,
         out string errorMessage)
     {
@@ -50,33 +68,42 @@ public static class CharacterSelection
 
         if (string.IsNullOrWhiteSpace(characterName))
         {
-            errorMessage = "Character name is required.";
+            errorMessage =
+                "Character name is required.";
+
             return false;
         }
 
         if (raceDefinition == null)
         {
-            errorMessage = "Race definition is missing.";
+            errorMessage =
+                "Race definition is missing.";
+
             return false;
         }
 
         if (subraceDefinition == null)
         {
-            errorMessage = "Subrace definition is missing.";
+            errorMessage =
+                "Subrace definition is missing.";
+
             return false;
         }
 
         if (subraceDefinition.race == null ||
-            subraceDefinition.race.raceId != raceDefinition.raceId)
+            subraceDefinition.race.raceId !=
+                raceDefinition.raceId)
         {
             errorMessage =
-                $"{subraceDefinition.displayName} does not belong to {raceDefinition.displayName}.";
+                $"{subraceDefinition.displayName} does not belong to " +
+                $"{raceDefinition.displayName}.";
 
             return false;
         }
 
-        if (!raceDefinition.AreLineagesValid(
-            lineageDefinitions,
+        if (!raceDefinition.AreLineageSelectionsValid(
+            subraceDefinition,
+            lineageSelections,
             out errorMessage))
         {
             return false;
@@ -84,24 +111,65 @@ public static class CharacterSelection
 
         List<string> lineageIds = new();
 
-        if (lineageDefinitions != null)
+        if (lineageSelections != null)
         {
-            foreach (LineageDefinition lineageDefinition in lineageDefinitions)
+            foreach (LineageSelection selection
+                     in lineageSelections)
             {
-                if (lineageDefinition != null)
-                    lineageIds.Add(lineageDefinition.lineageId);
+                if (selection == null ||
+                    !selection.IsValid)
+                {
+                    continue;
+                }
+
+                lineageIds.Add(
+                    selection.SelectionId
+                );
             }
         }
+
+        string backgroundId =
+            backgroundDefinition != null
+                ? backgroundDefinition.backgroundId
+                : "";
+
+        List<string> traitIds =
+            GetTraitIds(traitDefinitions);
 
         profile =
             CreateCharacter(
                 characterName,
+                gender,
                 raceDefinition,
                 subraceDefinition,
-                lineageIds
+                lineageIds,
+                backgroundId,
+                traitIds,
+                appearance,
+                createdAttributes,
+                createdBaseStats
             );
 
         return true;
+    }
+
+    private static List<string> GetTraitIds(
+    List<TraitDefinition> traitDefinitions)
+    {
+        List<string> traitIds = new();
+
+        if (traitDefinitions == null)
+            return traitIds;
+
+        foreach (TraitDefinition traitDefinition in traitDefinitions)
+        {
+            if (traitDefinition == null)
+                continue;
+
+            traitIds.Add(traitDefinition.traitId);
+        }
+
+        return traitIds;
     }
 
     public static void SelectProfile(string profileId)

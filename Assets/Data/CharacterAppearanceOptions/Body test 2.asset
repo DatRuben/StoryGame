@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2722568d2dc4ca64ca826ea61b1ba2ad, type: 3}
+  m_Name: Body test 2
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterAppearanceOptionDefinition
+  optionId: body_test_2
+  displayName: Body Test 2
+  category: 0
+  optionImage: {fileID: 0}
+  modelPrefab: {fileID: 0}
+  race: {fileID: 11400000, guid: 4163000ff3c63644db2f76c943545857, type: 2}
+  allowedSubraces:
+  - {fileID: 11400000, guid: 10ccb86a2d0cb24429be39083f24cf0e, type: 2}
+  allowedLineages: []
+  isDefaultOption: 1

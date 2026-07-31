@@ -5,33 +5,38 @@ public class PlayerCharacterProfile : MonoBehaviour
     public CharacterProfileData ProfileData { get; private set; }
     public RaceDefinition RaceDefinition { get; private set; }
     public SubraceDefinition SubraceDefinition { get; private set; }
-    public LineageDefinition[] LineageDefinitions { get; private set; }
-
+    public LineageSelection[] LineageSelections { get; private set; }
     public CharacterAttributes FinalAttributes { get; private set; }
     public FinalCharacterStats FinalStats { get; private set; }
     public FinalMovementStats FinalMovementStats { get; private set; }
+
+    public CharacterAppearanceData Appearance =>
+    ProfileData != null
+        ? CharacterAppearanceData.Copy(
+            ProfileData.appearance
+        )
+        : CharacterAppearanceData.CreateDefault();
 
     public void Initialize(
         CharacterProfileData profileData,
         RaceDefinition raceDefinition,
         SubraceDefinition subraceDefinition,
-        LineageDefinition[] lineageDefinitions)
+        LineageSelection[] lineageSelections)
     {
         ProfileData = profileData;
         RaceDefinition = raceDefinition;
         SubraceDefinition = subraceDefinition;
-        LineageDefinitions = lineageDefinitions;
+        LineageSelections = lineageSelections;
 
         FinalAttributes =
-            CharacterStatsResolver.ResolveAttributes(
-                raceDefinition,
-                subraceDefinition,
-                profileData,
-                lineageDefinitions
+            CharacterAttributes.ClampMinimum(
+                CharacterAttributes.Copy(ProfileData.currentAttributes),
+                1
             );
 
         FinalStats =
             CharacterStatsResolver.ResolveFinalStats(
+                ProfileData.currentBaseStats,
                 FinalAttributes
             );
 
@@ -42,6 +47,7 @@ public class PlayerCharacterProfile : MonoBehaviour
 
         ApplyResources();
         ApplyBody();
+        ApplyAppearance();
         ApplyEquipmentRules();
         ApplyInput();
 
@@ -133,6 +139,23 @@ public class PlayerCharacterProfile : MonoBehaviour
                 SubraceDefinition
             );
         }
+    }
+
+    private void ApplyAppearance()
+    {
+        CharacterAppearanceApplier appearanceApplier =
+            GetComponent<CharacterAppearanceApplier>();
+
+        if (appearanceApplier == null)
+        {
+            appearanceApplier =
+                gameObject.AddComponent<
+                    CharacterAppearanceApplier>();
+        }
+
+        appearanceApplier.ApplyAppearance(
+            Appearance
+        );
     }
 
     private void LogResolvedCharacter()
