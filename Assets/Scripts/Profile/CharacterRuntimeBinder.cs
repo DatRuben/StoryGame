@@ -45,6 +45,9 @@ public class CharacterRuntimeBinder : MonoBehaviour
         PlayerWeaponSlots playerWeaponSlots =
             player.GetComponent<PlayerWeaponSlots>();
 
+        PlayerEquipment playerEquipment =
+            player.GetComponent<PlayerEquipment>();
+
         PlayerResources playerResources =
             player.GetComponent<PlayerResources>();
 
@@ -195,6 +198,29 @@ public class CharacterRuntimeBinder : MonoBehaviour
             weaponSetSlotUI.BindPlayer(
                 playerInventory,
                 playerWeaponSlots
+            );
+        }
+
+        EquipmentSlotUI[] equipmentSlotUIs =
+            Resources.FindObjectsOfTypeAll<
+                EquipmentSlotUI>();
+
+        for (int i = 0;
+             i < equipmentSlotUIs.Length;
+             i++)
+        {
+            EquipmentSlotUI equipmentSlotUI =
+                equipmentSlotUIs[i];
+
+            if (equipmentSlotUI == null ||
+                !equipmentSlotUI.gameObject.scene.IsValid())
+            {
+                continue;
+            }
+
+            equipmentSlotUI.BindPlayer(
+                playerInventory,
+                playerEquipment
             );
         }
 

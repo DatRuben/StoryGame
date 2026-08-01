@@ -51,13 +51,46 @@ public class EquipmentSlotUI : MonoBehaviour
         }
     }
 
-    private void Start()
+    private void OnEnable()
+    {
+        Subscribe();
+        Refresh();
+    }
+
+    private void OnDisable()
+    {
+        Unsubscribe();
+    }
+
+    private void Subscribe()
     {
         if (playerInventory != null)
             playerInventory.OnHeldItemChanged += Refresh;
 
         if (playerEquipment != null)
             playerEquipment.OnEquipmentChanged += Refresh;
+    }
+
+    private void Unsubscribe()
+    {
+        if (playerInventory != null)
+            playerInventory.OnHeldItemChanged -= Refresh;
+
+        if (playerEquipment != null)
+            playerEquipment.OnEquipmentChanged -= Refresh;
+    }
+
+    public void BindPlayer(
+        PlayerInventory newPlayerInventory,
+        PlayerEquipment newPlayerEquipment)
+    {
+        Unsubscribe();
+
+        playerInventory = newPlayerInventory;
+        playerEquipment = newPlayerEquipment;
+
+        if (isActiveAndEnabled)
+            Subscribe();
 
         Refresh();
     }
@@ -65,15 +98,6 @@ public class EquipmentSlotUI : MonoBehaviour
     private void Update()
     {
         UpdateVisibility();
-    }
-
-    private void OnDestroy()
-    {
-        if (playerInventory != null)
-            playerInventory.OnHeldItemChanged -= Refresh;
-
-        if (playerEquipment != null)
-            playerEquipment.OnEquipmentChanged -= Refresh;
     }
 
     private void OnSlotClicked()
