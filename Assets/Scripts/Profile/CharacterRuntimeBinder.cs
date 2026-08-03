@@ -224,6 +224,28 @@ public class CharacterRuntimeBinder : MonoBehaviour
             );
         }
 
+        HeldItemClosedPreviewUI[] closedPreviewUIs =
+            Resources.FindObjectsOfTypeAll<
+                HeldItemClosedPreviewUI>();
+
+        for (int i = 0;
+             i < closedPreviewUIs.Length;
+             i++)
+        {
+            HeldItemClosedPreviewUI closedPreviewUI =
+                closedPreviewUIs[i];
+
+            if (closedPreviewUI == null ||
+                !closedPreviewUI.gameObject.scene.IsValid())
+            {
+                continue;
+            }
+
+            closedPreviewUI.BindPlayer(
+                playerInventory
+            );
+        }
+
         if (playerResourcesUI != null)
             playerResourcesUI.BindPlayer(playerResources);
 
