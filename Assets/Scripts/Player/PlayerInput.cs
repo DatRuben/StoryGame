@@ -79,6 +79,9 @@ public class PlayerInput : MonoBehaviour
     [SerializeField] private PlayerInventory playerInventory;
     [SerializeField] private PlayerWeaponSlots playerWeaponSlots;
 
+    [SerializeField]
+    private PlayerStorageContainerInteract storageInteract;
+
     [SerializeField] private PlayerResources playerResources;
 
     private Animator animator;
@@ -110,6 +113,11 @@ public class PlayerInput : MonoBehaviour
             playerInventory = GetComponent<PlayerInventory>();
         if (playerWeaponSlots == null)
             playerWeaponSlots = GetComponent<PlayerWeaponSlots>();
+        if (storageInteract == null)
+        {
+            storageInteract =
+                GetComponent<PlayerStorageContainerInteract>();
+        }
         if (playerResources == null)
             playerResources = GetComponent<PlayerResources>();
     }
@@ -234,6 +242,13 @@ public class PlayerInput : MonoBehaviour
             lastGroundedTime = Time.time;
         }
 
+        if (storageInteract != null &&
+            storageInteract.HasOpenContainer)
+        {
+            StopForOpenContainer(grounded);
+            return;
+        }
+
         Vector2 input =
             move.ReadValue<Vector2>();
 
@@ -329,6 +344,26 @@ public class PlayerInput : MonoBehaviour
         RegenerateStamina(hasMovementDirection);
         UpdateSpeedText(grounded);
         LookAt();
+    }
+
+    private void StopForOpenContainer(bool grounded)
+    {
+        isDodging = false;
+        isSprinting = false;
+
+        Vector3 velocity =
+            rb.linearVelocity;
+
+        velocity.x = 0f;
+        velocity.z = 0f;
+
+        rb.linearVelocity = velocity;
+        rb.angularVelocity = Vector3.zero;
+
+        PreventSlopeSliding(grounded);
+        ApplyExtraGravity(grounded);
+        RegenerateStamina(false);
+        UpdateSpeedText(grounded);
     }
 
     private void RegenerateStamina(bool hasMovementDirection)
@@ -604,6 +639,8 @@ public class PlayerInput : MonoBehaviour
 
     private void DoDodge(InputAction.CallbackContext obj)
     {
+        if (InventoryMenuController.IsInventoryOpen)
+            return;
         if (Time.time - lastDodgeTime < dodgeCooldown)
             return;
 
@@ -639,6 +676,12 @@ public class PlayerInput : MonoBehaviour
     private void DoJump(
         InputAction.CallbackContext obj)
     {
+        if (storageInteract != null &&
+            storageInteract.HasOpenContainer)
+        {
+            return;
+        }
+
         if (!IsGrounded())
             return;
 
