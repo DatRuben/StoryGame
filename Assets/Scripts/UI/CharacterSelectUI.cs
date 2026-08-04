@@ -21,6 +21,14 @@ public class CharacterSelectUI : MonoBehaviour
     [Header("Messages")]
     [SerializeField] private TMP_Text messageText;
 
+    [Header("Delete Confirmation")]
+    [SerializeField] private GameObject deleteConfirmationPanel;
+    [SerializeField] private TMP_Text deleteConfirmationText;
+    [SerializeField] private Button confirmDeleteButton;
+    [SerializeField] private Button cancelDeleteButton;
+
+    private string pendingDeleteProfileId = "";
+
     private List<CharacterProfileData> profiles = new();
     private int selectedSlotIndex;
 
@@ -32,6 +40,24 @@ public class CharacterSelectUI : MonoBehaviour
     private void Start()
     {
         Refresh();
+
+        if (confirmDeleteButton != null)
+        {
+            confirmDeleteButton.onClick.RemoveAllListeners();
+            confirmDeleteButton.onClick.AddListener(
+                ConfirmDeleteCharacter
+            );
+        }
+
+        if (cancelDeleteButton != null)
+        {
+            cancelDeleteButton.onClick.RemoveAllListeners();
+            cancelDeleteButton.onClick.AddListener(
+                CancelDeleteCharacter
+            );
+        }
+
+        CloseDeleteConfirmation();
     }
 
     public void Refresh()
@@ -59,7 +85,7 @@ public class CharacterSelectUI : MonoBehaviour
                 slot.DeleteCharacterButton.onClick.RemoveAllListeners();
 
                 slot.DeleteCharacterButton.onClick.AddListener(
-                    () => DeleteCharacter(capturedIndex)
+                    () => RequestDeleteCharacter(capturedIndex)
                 );
             }
 
@@ -79,7 +105,7 @@ public class CharacterSelectUI : MonoBehaviour
         SelectSlot(selectedSlotIndex);
     }
 
-    public void DeleteCharacter(int slotIndex)
+    public void RequestDeleteCharacter(int slotIndex)
     {
         CharacterProfileData profile =
             GetProfileForSlot(slotIndex);
@@ -87,9 +113,31 @@ public class CharacterSelectUI : MonoBehaviour
         if (profile == null)
             return;
 
+        pendingDeleteProfileId = profile.profileId;
+
+        if (deleteConfirmationText != null)
+        {
+            deleteConfirmationText.text =
+                $"Delete {profile.characterName}?\n" +
+                "This cannot be undone.";
+        }
+
+        if (deleteConfirmationPanel != null)
+            deleteConfirmationPanel.SetActive(true);
+    }
+
+    public void ConfirmDeleteCharacter()
+    {
+        if (string.IsNullOrWhiteSpace(
+            pendingDeleteProfileId))
+        {
+            CloseDeleteConfirmation();
+            return;
+        }
+
         bool deleted =
             CharacterSelection.DeleteProfile(
-                profile.profileId
+                pendingDeleteProfileId
             );
 
         if (!deleted)
@@ -97,13 +145,28 @@ public class CharacterSelectUI : MonoBehaviour
             if (messageText != null)
             {
                 messageText.text =
-                    $"Could not delete {profile.characterName}.";
+                    "Could not delete the character.";
             }
 
+            CloseDeleteConfirmation();
             return;
         }
 
+        CloseDeleteConfirmation();
         Refresh();
+    }
+
+    public void CancelDeleteCharacter()
+    {
+        CloseDeleteConfirmation();
+    }
+
+    private void CloseDeleteConfirmation()
+    {
+        pendingDeleteProfileId = "";
+
+        if (deleteConfirmationPanel != null)
+            deleteConfirmationPanel.SetActive(false);
     }
 
     public void SelectSlot(int slotIndex)
