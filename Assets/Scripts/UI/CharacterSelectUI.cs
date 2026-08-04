@@ -55,7 +55,13 @@ public class CharacterSelectUI : MonoBehaviour
             }
 
             if (slot.DeleteCharacterButton != null)
+            {
                 slot.DeleteCharacterButton.onClick.RemoveAllListeners();
+
+                slot.DeleteCharacterButton.onClick.AddListener(
+                    () => DeleteCharacter(capturedIndex)
+                );
+            }
 
             CharacterProfileData profile = GetProfileForSlot(i);
 
@@ -71,6 +77,33 @@ public class CharacterSelectUI : MonoBehaviour
         }
 
         SelectSlot(selectedSlotIndex);
+    }
+
+    public void DeleteCharacter(int slotIndex)
+    {
+        CharacterProfileData profile =
+            GetProfileForSlot(slotIndex);
+
+        if (profile == null)
+            return;
+
+        bool deleted =
+            CharacterSelection.DeleteProfile(
+                profile.profileId
+            );
+
+        if (!deleted)
+        {
+            if (messageText != null)
+            {
+                messageText.text =
+                    $"Could not delete {profile.characterName}.";
+            }
+
+            return;
+        }
+
+        Refresh();
     }
 
     public void SelectSlot(int slotIndex)

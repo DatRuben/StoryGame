@@ -210,6 +210,29 @@ public static class CharacterSelection
         return TryGetSelectedProfile(out _);
     }
 
+    public static bool DeleteProfile(string profileId)
+    {
+        if (string.IsNullOrWhiteSpace(profileId))
+            return false;
+
+        string selectedProfileId =
+            PlayerPrefs.GetString(
+                SelectedProfileIdKey,
+                string.Empty
+            );
+
+        bool deleted =
+            CharacterSaveSystem.DeleteProfile(profileId);
+
+        if (!deleted)
+            return false;
+
+        if (selectedProfileId == profileId)
+            ClearSelection();
+
+        return true;
+    }
+
     public static void ClearSelection()
     {
         PlayerPrefs.DeleteKey(SelectedProfileIdKey);
