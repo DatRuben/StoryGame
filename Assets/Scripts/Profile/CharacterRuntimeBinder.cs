@@ -149,7 +149,15 @@ public class CharacterRuntimeBinder : MonoBehaviour
                 mainCamera != null ? mainCamera.transform : null,
                 storageContainerGridUI,
                 storageContainerPanel,
-                contextPanelController
+                contextPanelController,
+                inventoryMenuController
+            );
+        }
+
+        if (inventoryMenuController != null)
+        {
+            inventoryMenuController.BindPlayerStorageInteract(
+                storageInteract
             );
         }
 

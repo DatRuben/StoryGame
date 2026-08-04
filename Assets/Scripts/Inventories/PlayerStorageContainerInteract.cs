@@ -19,6 +19,9 @@ public class PlayerStorageContainerInteract : MonoBehaviour
 
     [SerializeField] private InventoryContextPanelController contextPanelController;
 
+    [SerializeField]
+    private InventoryMenuController inventoryMenuController;
+
     private PlayerInputActions inputActions;
     private StorageContainer currentOpenContainer;
 
@@ -49,8 +52,8 @@ public class PlayerStorageContainerInteract : MonoBehaviour
 
         inputActions.Enable();
 
-        inputActions.Player.TestKey1.performed += OnInteractPerformed;
-        inputActions.Player.TestKey2.performed += OnClosePerformed;
+        inputActions.Player.Interact.performed +=
+            OnInteractPerformed;
     }
 
     private void OnDisable()
@@ -58,8 +61,8 @@ public class PlayerStorageContainerInteract : MonoBehaviour
         if (inputActions == null)
             return;
 
-        inputActions.Player.TestKey1.performed -= OnInteractPerformed;
-        inputActions.Player.TestKey2.performed -= OnClosePerformed;
+        inputActions.Player.Interact.performed -=
+            OnInteractPerformed;
 
         inputActions.Disable();
     }
@@ -202,6 +205,12 @@ public class PlayerStorageContainerInteract : MonoBehaviour
 
     private void OnInteractPerformed(InputAction.CallbackContext context)
     {
+        if (currentOpenContainer != null)
+        {
+            CloseContainer();
+            return;
+        }
+
         StorageContainer targetContainer = null;
 
         if (useLookTargeting)
@@ -211,17 +220,9 @@ public class PlayerStorageContainerInteract : MonoBehaviour
             targetContainer = FindNearestContainer();
 
         if (targetContainer == null)
-        {
-            CloseContainer();
             return;
-        }
 
         OpenContainer(targetContainer);
-    }
-
-    private void OnClosePerformed(InputAction.CallbackContext context)
-    {
-        CloseContainer();
     }
 
     private StorageContainer FindLookedAtContainer()
@@ -313,6 +314,11 @@ public class PlayerStorageContainerInteract : MonoBehaviour
         }
 
         currentOpenContainer = storageContainer;
+
+        if (inventoryMenuController != null)
+        {
+            inventoryMenuController.SetInventoryOpen(true);
+        }
 
         if (contextPanelController != null)
         {
@@ -413,6 +419,11 @@ public class PlayerStorageContainerInteract : MonoBehaviour
         );
     }
 
+    public void CloseOpenContainer()
+    {
+        CloseContainer();
+    }
+
     private void CloseContainer()
     {
         currentOpenContainer = null;
@@ -432,14 +443,16 @@ public class PlayerStorageContainerInteract : MonoBehaviour
     }
 
     public void BindSceneReferences(
-    Transform newCameraTransform,
-    StorageContainerGridUI newContainerGridUI,
-    GameObject newContainerPanel,
-    InventoryContextPanelController newContextPanelController)
+        Transform newCameraTransform,
+        StorageContainerGridUI newContainerGridUI,
+        GameObject newContainerPanel,
+        InventoryContextPanelController newContextPanelController,
+        InventoryMenuController newInventoryMenuController)
     {
         cameraTransform = newCameraTransform;
         containerGridUI = newContainerGridUI;
         containerPanel = newContainerPanel;
         contextPanelController = newContextPanelController;
+        inventoryMenuController = newInventoryMenuController;
     }
 }

@@ -13,6 +13,8 @@ public class InventoryMenuController : MonoBehaviour
     private PlayerInputActions playerInput;
     private bool isOpen;
 
+    private PlayerStorageContainerInteract storageInteract;
+
     public static bool IsInventoryOpen { get; private set; }
 
     private void Awake()
@@ -52,10 +54,22 @@ public class InventoryMenuController : MonoBehaviour
         SetInventoryOpen(isOpen);
     }
 
-    private void SetInventoryOpen(bool open)
+    public void BindPlayerStorageInteract(
+        PlayerStorageContainerInteract newStorageInteract)
+    {
+        storageInteract = newStorageInteract;
+
+        if (!isOpen && storageInteract != null)
+            storageInteract.CloseOpenContainer();
+    }
+
+    public void SetInventoryOpen(bool open)
     {
         isOpen = open;
         IsInventoryOpen = open;
+
+        if (!open && storageInteract != null)
+            storageInteract.CloseOpenContainer();
 
         if (inventoryCanvasGroup != null)
         {
