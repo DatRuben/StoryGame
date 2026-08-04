@@ -33265,7 +33265,7 @@ GameObject:
   - component: {fileID: 1626743104}
   - component: {fileID: 1626743103}
   - component: {fileID: 1626743102}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -33377,7 +33377,7 @@ GameObject:
   - component: {fileID: 1627019037}
   - component: {fileID: 1627019036}
   - component: {fileID: 1627019035}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Cube (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -40600,7 +40600,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1948836836}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Human Sized Pillar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
