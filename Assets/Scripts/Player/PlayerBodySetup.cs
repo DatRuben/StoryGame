@@ -41,7 +41,8 @@ public class PlayerBodySetup : MonoBehaviour
 
     public void ApplyBody(
         SubraceDefinition subraceDefinition,
-        FinalCharacterStats finalStats)
+        FinalCharacterStats finalStats,
+        float bodyScale)
     {
         ResolveReferences();
 
@@ -55,14 +56,29 @@ public class PlayerBodySetup : MonoBehaviour
             return;
         }
 
-        ApplyCapsule(subraceDefinition);
-        ApplyGroundCheck(subraceDefinition);
-        ApplyCameraPivot(subraceDefinition);
+        float safeBodyScale =
+            CharacterAppearanceData.ClampBodyScale(
+                bodyScale
+            );
+
+        ApplyCapsule(
+            subraceDefinition,
+            safeBodyScale
+        );
+
+        ApplyGroundCheck(safeBodyScale);
+
+        ApplyCameraPivot(
+            subraceDefinition,
+            safeBodyScale
+        );
+
         ApplyRigidbody(finalStats);
     }
 
     private void ApplyCapsule(
-        SubraceDefinition subraceDefinition)
+        SubraceDefinition subraceDefinition,
+        float bodyScale)
     {
         if (capsuleCollider == null)
         {
@@ -75,13 +91,21 @@ public class PlayerBodySetup : MonoBehaviour
         }
 
         capsuleCollider.direction = 1;
-        capsuleCollider.radius = GetCapsuleRadius(subraceDefinition);
-        capsuleCollider.height = GetCapsuleHeight(subraceDefinition);
-        capsuleCollider.center = new Vector3(
-            0f,
-            capsuleCollider.height * 0.5f,
-            0f
-        );
+
+        capsuleCollider.radius =
+            GetCapsuleRadius(subraceDefinition) *
+            bodyScale;
+
+        capsuleCollider.height =
+            GetCapsuleHeight(subraceDefinition) *
+            bodyScale;
+
+        capsuleCollider.center =
+            new Vector3(
+                0f,
+                capsuleCollider.height * 0.5f,
+                0f
+            );
     }
 
     private float GetCapsuleRadius(
@@ -143,7 +167,7 @@ public class PlayerBodySetup : MonoBehaviour
     }
 
     private void ApplyGroundCheck(
-        SubraceDefinition subraceDefinition)
+        float bodyScale)
     {
         if (groundCheck == null)
         {
@@ -159,14 +183,15 @@ public class PlayerBodySetup : MonoBehaviour
             transform.TransformPoint(
                 new Vector3(
                     0f,
-                    0.05f,
+                    0.05f * bodyScale,
                     0f
                 )
             );
     }
 
     private void ApplyCameraPivot(
-        SubraceDefinition subraceDefinition)
+        SubraceDefinition subraceDefinition,
+        float bodyScale)
     {
         if (cameraPivot == null)
         {
@@ -184,7 +209,7 @@ public class PlayerBodySetup : MonoBehaviour
                     0f,
                     GetCameraPivotHeight(
                         subraceDefinition
-                    ),
+                    ) * bodyScale,
                     0f
                 )
             );

@@ -45,11 +45,17 @@ public class PlayerCharacterProfile : MonoBehaviour
                 subraceDefinition
             );
 
+        CharacterAppearanceData appearance =
+            Appearance;
+
+        float bodyScale =
+            appearance.SafeBodyScale;
+
         ApplyResources();
-        ApplyBody();
-        ApplyAppearance();
+        ApplyBody(bodyScale);
+        ApplyAppearance(appearance);
         ApplyEquipmentRules();
-        ApplyInput();
+        ApplyInput(bodyScale);
 
         LogResolvedCharacter();
     }
@@ -75,21 +81,25 @@ public class PlayerCharacterProfile : MonoBehaviour
         );
     }
 
-    private void ApplyBody()
+    private void ApplyBody(float bodyScale)
     {
         PlayerBodySetup bodySetup =
             GetComponent<PlayerBodySetup>();
 
         if (bodySetup == null)
-            bodySetup = gameObject.AddComponent<PlayerBodySetup>();
+        {
+            bodySetup =
+                gameObject.AddComponent<PlayerBodySetup>();
+        }
 
         bodySetup.ApplyBody(
             SubraceDefinition,
-            FinalStats
+            FinalStats,
+            bodyScale
         );
     }
 
-    private void ApplyInput()
+    private void ApplyInput(float bodyScale)
     {
         PlayerInput playerInput =
             GetComponent<PlayerInput>();
@@ -104,8 +114,17 @@ public class PlayerCharacterProfile : MonoBehaviour
             return;
         }
 
-        playerInput.ApplyMovementStats(FinalMovementStats);
-        playerInput.ApplyFinalStats(FinalStats);
+        playerInput.ApplyMovementStats(
+            FinalMovementStats
+        );
+
+        playerInput.ApplyFinalStats(
+            FinalStats
+        );
+
+        playerInput.ApplyBodyScale(
+            bodyScale
+        );
     }
 
     private void ApplyEquipmentRules()
@@ -141,7 +160,8 @@ public class PlayerCharacterProfile : MonoBehaviour
         }
     }
 
-    private void ApplyAppearance()
+    private void ApplyAppearance(
+        CharacterAppearanceData appearance)
     {
         CharacterAppearanceApplier appearanceApplier =
             GetComponent<CharacterAppearanceApplier>();
@@ -154,7 +174,7 @@ public class PlayerCharacterProfile : MonoBehaviour
         }
 
         appearanceApplier.ApplyAppearance(
-            Appearance
+            appearance
         );
     }
 

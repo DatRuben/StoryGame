@@ -47,6 +47,9 @@ public class PlayerInput : MonoBehaviour
     [SerializeField] private float maxGroundAngle = 55f;
     [SerializeField] private float jumpGroundIgnoreTime = 0.15f;
 
+    private float baseGroundCheckRadius;
+    private float baseGroundCheckDistance;
+
     [Header("Jump Feel")]
     [SerializeField] private float fallMultiplier = 4f;
     [SerializeField] private float lowJumpMultiplier = 3f;
@@ -110,7 +113,21 @@ public class PlayerInput : MonoBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
+
+        baseGroundCheckRadius =
+            Mathf.Max(
+                0.01f,
+                groundCheckRadius
+            );
+
+        baseGroundCheckDistance =
+            Mathf.Max(
+                0.01f,
+                groundCheckDistance
+            );
+
         animator = GetComponent<Animator>();
+
         if (inputRouter == null)
             inputRouter = GetComponent<PlayerInputRouter>();
         if (playerInventory == null)
@@ -210,6 +227,22 @@ public class PlayerInput : MonoBehaviour
         dodgeDuration = movementStats.dodgeDuration;
         dodgeCooldown = movementStats.dodgeCooldown;
         dodgeStaminaCost = movementStats.dodgeStaminaCost;
+    }
+
+    public void ApplyBodyScale(float bodyScale)
+    {
+        float safeBodyScale =
+            CharacterAppearanceData.ClampBodyScale(
+                bodyScale
+            );
+
+        groundCheckRadius =
+            baseGroundCheckRadius *
+            safeBodyScale;
+
+        groundCheckDistance =
+            baseGroundCheckDistance *
+            safeBodyScale;
     }
 
     public void SetRuntimeCameraReferences(

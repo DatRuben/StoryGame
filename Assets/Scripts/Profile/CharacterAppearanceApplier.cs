@@ -6,31 +6,77 @@ public class CharacterAppearanceApplier : MonoBehaviour
     [SerializeField] private Transform visualRoot;
     [SerializeField] private Renderer[] renderers;
 
+    [Header("Automatic Reference Names")]
+    [SerializeField] private string visualRootName = "VisualRoot";
+
     private MaterialPropertyBlock propertyBlock;
+
+    private Transform cachedScaleTarget;
+    private Vector3 baseVisualScale = Vector3.one;
+
+    private void Awake()
+    {
+        ResolveTargets();
+    }
 
     public void ApplyAppearance(
         CharacterAppearanceData appearance)
     {
         if (appearance == null)
-            appearance = CharacterAppearanceData.CreateDefault();
+        {
+            appearance =
+                CharacterAppearanceData.CreateDefault();
+        }
 
-        ApplyBodyScale(appearance.bodyScale);
+        ResolveTargets();
+
+        ApplyBodyScale(
+            appearance.SafeBodyScale
+        );
+
         ApplyColor(appearance);
     }
 
-    private void ApplyBodyScale(
-        float bodyScale)
+    private void ResolveTargets()
     {
-        Transform target =
-            visualRoot != null
-                ? visualRoot
-                : transform;
+        if (visualRoot == null)
+        {
+            visualRoot =
+                FindChildRecursive(
+                    transform,
+                    visualRootName
+                );
+        }
 
-        target.localScale =
-            Vector3.one * Mathf.Max(
-                0.01f,
+        if (visualRoot == null ||
+            visualRoot == cachedScaleTarget)
+        {
+            return;
+        }
+
+        cachedScaleTarget = visualRoot;
+        baseVisualScale = visualRoot.localScale;
+    }
+
+    private void ApplyBodyScale(float bodyScale)
+    {
+        if (visualRoot == null)
+        {
+            Debug.LogWarning(
+                "CharacterAppearanceApplier could not apply body scale because VisualRoot is missing.",
+                this
+            );
+
+            return;
+        }
+
+        float safeScale =
+            CharacterAppearanceData.ClampBodyScale(
                 bodyScale
             );
+
+        visualRoot.localScale =
+            baseVisualScale * safeScale;
     }
 
     private void ApplyColor(
@@ -44,20 +90,41 @@ public class CharacterAppearanceApplier : MonoBehaviour
             );
 
         if (propertyBlock == null)
-            propertyBlock = new MaterialPropertyBlock();
+        {
+            propertyBlock =
+                new MaterialPropertyBlock();
+        }
 
         Renderer[] targetRenderers =
             GetRenderers();
 
-        foreach (Renderer targetRenderer in targetRenderers)
+        for (int i = 0;
+             i < targetRenderers.Length;
+             i++)
         {
+            Renderer targetRenderer =
+                targetRenderers[i];
+
             if (targetRenderer == null)
                 continue;
 
-            targetRenderer.GetPropertyBlock(propertyBlock);
-            propertyBlock.SetColor("_BaseColor", color);
-            propertyBlock.SetColor("_Color", color);
-            targetRenderer.SetPropertyBlock(propertyBlock);
+            targetRenderer.GetPropertyBlock(
+                propertyBlock
+            );
+
+            propertyBlock.SetColor(
+                "_BaseColor",
+                color
+            );
+
+            propertyBlock.SetColor(
+                "_Color",
+                color
+            );
+
+            targetRenderer.SetPropertyBlock(
+                propertyBlock
+            );
         }
     }
 
@@ -69,11 +136,44 @@ public class CharacterAppearanceApplier : MonoBehaviour
             return renderers;
         }
 
-        Transform target =
-            visualRoot != null
-                ? visualRoot
-                : transform;
+        if (visualRoot == null)
+            return new Renderer[0];
 
-        return target.GetComponentsInChildren<Renderer>();
+        return visualRoot.GetComponentsInChildren<Renderer>(
+            true
+        );
+    }
+
+    private Transform FindChildRecursive(
+        Transform parent,
+        string childName)
+    {
+        if (parent == null ||
+            string.IsNullOrWhiteSpace(childName))
+        {
+            return null;
+        }
+
+        for (int i = 0;
+             i < parent.childCount;
+             i++)
+        {
+            Transform child =
+                parent.GetChild(i);
+
+            if (child.name == childName)
+                return child;
+
+            Transform match =
+                FindChildRecursive(
+                    child,
+                    childName
+                );
+
+            if (match != null)
+                return match;
+        }
+
+        return null;
     }
 }
