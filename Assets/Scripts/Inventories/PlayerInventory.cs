@@ -32,18 +32,10 @@ public class PlayerInventory : MonoBehaviour
     private List<StartingInventoryItem> startingItems =
         new List<StartingInventoryItem>();
 
-    [Header("Old Weapon Slot - Temporary")]
-    [SerializeField] private ItemDefinition weaponSlotItem;
-    [SerializeField] private bool weaponDrawn = false;
-
     public InventoryGrid Grid { get; private set; }
 
     public PlacedInventoryItem HeldItem { get; private set; }
     public bool IsHoldingItem => HeldItem != null;
-
-    public ItemDefinition WeaponSlotItem => weaponSlotItem;
-    public bool IsWeaponDrawn => weaponDrawn;
-    public bool HasWeaponInSlot => weaponSlotItem != null;
 
     public bool CenterHeldItemOnCursorRequested { get; private set; }
     public bool MouseHeldItemCountsAsHeld { get; private set; }
@@ -61,7 +53,6 @@ public class PlayerInventory : MonoBehaviour
 
     public event Action OnInventoryChanged;
     public event Action OnHeldItemChanged;
-    public event Action OnEquipmentChanged;
 
     private void Awake()
     {
@@ -78,7 +69,6 @@ public class PlayerInventory : MonoBehaviour
 
     private void Start()
     {
-        ValidateWeaponSlot();
         ClampStartingItemQuantities();
         PlaceStartingItems();
     }
@@ -136,26 +126,6 @@ public class PlayerInventory : MonoBehaviour
             return 1;
 
         return quantity;
-    }
-
-    private void ValidateWeaponSlot()
-    {
-        if (weaponSlotItem == null)
-        {
-            weaponDrawn = false;
-            return;
-        }
-
-        if (!IsWeapon(weaponSlotItem))
-        {
-            Debug.LogWarning(
-                weaponSlotItem.itemName +
-                " is assigned to the old weapon slot, but it is not marked as a Weapon."
-            );
-
-            weaponSlotItem = null;
-            weaponDrawn = false;
-        }
     }
 
     private void PlaceStartingItems()
@@ -396,17 +366,6 @@ public class PlayerInventory : MonoBehaviour
                 if (!canKeepWeaponsDrawn)
                     playerWeaponSlots.SheatheWeapons();
             }
-
-            if (weaponDrawn)
-            {
-                bool oldWeaponCanStayDrawn =
-                    weaponSlotItem != null &&
-                    weaponSlotItem.handUsage == ItemHandUsage.OneHanded &&
-                    itemAtCell.ItemDefinition.handUsage == ItemHandUsage.OneHanded;
-
-                if (!oldWeaponCanStayDrawn)
-                    SheatheWeapon();
-            }
         }
 
         PlacedInventoryItem pickedItem =
@@ -477,17 +436,6 @@ public class PlayerInventory : MonoBehaviour
 
                 if (!canKeepWeaponsDrawn)
                     playerWeaponSlots.SheatheWeapons();
-            }
-
-            if (weaponDrawn)
-            {
-                bool oldWeaponCanStayDrawn =
-                    weaponSlotItem != null &&
-                    weaponSlotItem.handUsage == ItemHandUsage.OneHanded &&
-                    itemDefinition.handUsage == ItemHandUsage.OneHanded;
-
-                if (!oldWeaponCanStayDrawn)
-                    SheatheWeapon();
             }
         }
 
@@ -747,17 +695,6 @@ public class PlayerInventory : MonoBehaviour
                 if (!canKeepWeaponsDrawn)
                     playerWeaponSlots.SheatheWeapons();
             }
-
-            if (weaponDrawn)
-            {
-                bool oldWeaponCanStayDrawn =
-                    weaponSlotItem != null &&
-                    weaponSlotItem.handUsage == ItemHandUsage.OneHanded &&
-                    item.handUsage == ItemHandUsage.OneHanded;
-
-                if (!oldWeaponCanStayDrawn)
-                    SheatheWeapon();
-            }
         }
 
         int safeQuantity =
@@ -860,171 +797,6 @@ public class PlayerInventory : MonoBehaviour
         OnHeldItemChanged?.Invoke();
 
         return fullyStored;
-    }
-
-    public bool CanEquipHeldItemToWeaponSlot()
-    {
-        if (HeldItem == null ||
-            HeldItem.ItemDefinition == null)
-        {
-            return false;
-        }
-
-        if (weaponSlotItem != null)
-            return false;
-
-        return IsWeapon(HeldItem.ItemDefinition);
-    }
-
-    public bool TryEquipHeldItemToWeaponSlot()
-    {
-        if (!CanEquipHeldItemToWeaponSlot())
-            return false;
-
-        weaponSlotItem = HeldItem.ItemDefinition;
-        weaponDrawn = false;
-
-        HeldItem = null;
-        MouseHeldItemCountsAsHeld = false;
-
-        OnHeldItemChanged?.Invoke();
-        OnEquipmentChanged?.Invoke();
-
-        return true;
-    }
-
-    public bool TryPickUpWeaponSlotItem()
-    {
-        if (weaponSlotItem == null)
-            return false;
-
-        if (HeldItem != null)
-            return false;
-
-        if (weaponDrawn)
-            SheatheWeapon();
-
-        HeldItem =
-            new PlacedInventoryItem(
-                weaponSlotItem,
-                Vector2Int.zero,
-                0
-            );
-
-        CenterHeldItemOnCursorRequested = true;
-        MouseHeldItemCountsAsHeld = true;
-
-        weaponSlotItem = null;
-        weaponDrawn = false;
-
-        OnHeldItemChanged?.Invoke();
-        OnEquipmentChanged?.Invoke();
-
-        return true;
-    }
-
-    public bool TrySwapHeldWeaponWithWeaponSlot()
-    {
-        if (HeldItem == null ||
-            HeldItem.ItemDefinition == null)
-        {
-            return false;
-        }
-
-        if (!IsWeapon(HeldItem.ItemDefinition))
-            return false;
-
-        if (weaponSlotItem == null)
-            return TryEquipHeldItemToWeaponSlot();
-
-        if (weaponDrawn)
-            SheatheWeapon();
-
-        ItemDefinition oldWeapon =
-            weaponSlotItem;
-
-        weaponSlotItem =
-            HeldItem.ItemDefinition;
-
-        HeldItem =
-            new PlacedInventoryItem(
-                oldWeapon,
-                Vector2Int.zero,
-                0
-            );
-
-        CenterHeldItemOnCursorRequested = true;
-        MouseHeldItemCountsAsHeld = true;
-
-        weaponDrawn = false;
-
-        OnHeldItemChanged?.Invoke();
-        OnEquipmentChanged?.Invoke();
-
-        return true;
-    }
-
-    public bool TryEquipWeaponToSlot(
-        ItemDefinition weaponItem)
-    {
-        if (!IsWeapon(weaponItem))
-            return false;
-
-        if (weaponSlotItem != null)
-            return false;
-
-        weaponSlotItem = weaponItem;
-        weaponDrawn = false;
-
-        OnEquipmentChanged?.Invoke();
-
-        return true;
-    }
-
-    public bool DrawWeapon()
-    {
-        if (weaponSlotItem == null)
-            return false;
-
-        if (weaponDrawn)
-            return true;
-
-        if (HeldItem != null &&
-            MouseHeldItemCountsAsHeld)
-        {
-            bool canKeepHeldItem =
-                weaponSlotItem.handUsage == ItemHandUsage.OneHanded &&
-                HeldItem.ItemDefinition.handUsage == ItemHandUsage.OneHanded;
-
-            if (!canKeepHeldItem)
-                TryStoreHeldItemInInventoryOrDrop();
-        }
-
-        weaponDrawn = true;
-
-        OnEquipmentChanged?.Invoke();
-
-        return true;
-    }
-
-    public bool SheatheWeapon()
-    {
-        if (!weaponDrawn)
-            return false;
-
-        weaponDrawn = false;
-
-        OnEquipmentChanged?.Invoke();
-
-        return true;
-    }
-
-    public bool ToggleWeaponDrawn()
-    {
-        if (weaponDrawn)
-            return SheatheWeapon();
-
-        return DrawWeapon();
     }
 
     public bool IsWeapon(
