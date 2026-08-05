@@ -151,12 +151,31 @@ public class CharacterRuntimeBinder : MonoBehaviour
         if (inventoryMenuController == null)
             inventoryMenuController = FindSceneComponent<InventoryMenuController>();
 
+        if (inventoryFollow == null)
+        {
+            inventoryFollow =
+                FindSceneComponent<InventoryFollow>();
+        }
+
+        if (playerCrosshair == null)
+        {
+            playerCrosshair =
+                FindSceneComponent<PlayerCrosshair>();
+        }
+
         if (inventoryFollow != null)
         {
             inventoryFollow.BindPlayer(
                 player.transform,
                 mainCamera,
                 storageInteract
+            );
+        }
+        else
+        {
+            Debug.LogWarning(
+                "CharacterRuntimeBinder could not find InventoryFollow to bind.",
+                this
             );
         }
 
@@ -177,12 +196,13 @@ public class CharacterRuntimeBinder : MonoBehaviour
                 aimTarget
             );
         }
-
-        if (inventoryFollow == null)
-            inventoryFollow = FindSceneComponent<InventoryFollow>();
-
-        if (playerCrosshair == null)
-            playerCrosshair = FindSceneComponent<PlayerCrosshair>();
+        else
+        {
+            Debug.LogWarning(
+                "CharacterRuntimeBinder could not find PlayerCrosshair to bind.",
+                this
+            );
+        }
 
         if (storageInteract != null)
         {
