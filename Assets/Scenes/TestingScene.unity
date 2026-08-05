@@ -21324,23 +21324,8 @@ MonoBehaviour:
   inventoryMenuController: {fileID: 579740482}
   inventoryFollow: {fileID: 1711152533}
   heldItemUI: {fileID: 400143311}
-  storageContainerPanel: {fileID: 0}
-  weaponSetSlotUIs:
-  - {fileID: 977526919}
-  - {fileID: 1996881872}
-  - {fileID: 590850348}
-  - {fileID: 83566586}
-  - {fileID: 857210548}
-  - {fileID: 2144422319}
-  - {fileID: 1751352022}
-  - {fileID: 713377555}
-  - {fileID: 629255909}
-  - {fileID: 2057406768}
-  equipmentSlotUIs:
-  - {fileID: 2593608}
-  - {fileID: 1588357107}
-  - {fileID: 1794528043}
-  - {fileID: 2044314366}
+  storageContainerPanel: {fileID: 173529711}
+  inventorySlotUIRoot: {fileID: 579740481}
   closedPreviewUIs:
   - {fileID: 1350866576}
   playerResourcesUI: {fileID: 1093962943}

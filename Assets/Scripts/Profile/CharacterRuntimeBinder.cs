@@ -14,13 +14,12 @@ public class CharacterRuntimeBinder : MonoBehaviour
     [SerializeField] private GameObject storageContainerPanel;
 
     [Header("Runtime Equipment UI")]
+    [Tooltip(
+        "Parent containing all WeaponSetSlotUI and EquipmentSlotUI components. " +
+        "If empty, InventoryMenuController is used as the root."
+    )]
     [SerializeField]
-    private WeaponSetSlotUI[] weaponSetSlotUIs =
-        new WeaponSetSlotUI[0];
-
-    [SerializeField]
-    private EquipmentSlotUI[] equipmentSlotUIs =
-        new EquipmentSlotUI[0];
+    private Transform inventorySlotUIRoot;
 
     [SerializeField]
     private HeldItemClosedPreviewUI[] closedPreviewUIs =
@@ -212,6 +211,10 @@ public class CharacterRuntimeBinder : MonoBehaviour
 
         if (inventoryMenuController != null)
         {
+            inventoryMenuController.BindInput(
+                inputRouter
+            );
+
             inventoryMenuController.BindPlayerStorageInteract(
                 storageInteract
             );
@@ -246,43 +249,19 @@ public class CharacterRuntimeBinder : MonoBehaviour
             );
         }
 
-        if (weaponSetSlotUIs != null)
-        {
-            for (int i = 0;
-                 i < weaponSetSlotUIs.Length;
-                 i++)
-            {
-                WeaponSetSlotUI weaponSetSlotUI =
-                    weaponSetSlotUIs[i];
+        Transform slotUIRoot =
+            inventorySlotUIRoot != null
+                ? inventorySlotUIRoot
+                : inventoryMenuController != null
+                    ? inventoryMenuController.transform
+                    : null;
 
-                if (weaponSetSlotUI == null)
-                    continue;
-
-                weaponSetSlotUI.BindPlayer(
-                    playerInventory,
-                    playerWeaponSlots
-                );
-            }
-        }
-
-        if (equipmentSlotUIs != null)
-        {
-            for (int i = 0;
-                 i < equipmentSlotUIs.Length;
-                 i++)
-            {
-                EquipmentSlotUI equipmentSlotUI =
-                    equipmentSlotUIs[i];
-
-                if (equipmentSlotUI == null)
-                    continue;
-
-                equipmentSlotUI.BindPlayer(
-                    playerInventory,
-                    playerEquipment
-                );
-            }
-        }
+        BindSlotUIs(
+            slotUIRoot,
+            playerInventory,
+            playerWeaponSlots,
+            playerEquipment
+        );
 
         if (closedPreviewUIs != null)
         {
@@ -308,6 +287,71 @@ public class CharacterRuntimeBinder : MonoBehaviour
         Debug.Log(
             $"Bound runtime systems to spawned player: {player.name}",
             this
+        );
+    }
+
+    private void BindSlotUIs(
+        Transform root,
+        PlayerInventory playerInventory,
+        PlayerWeaponSlots playerWeaponSlots,
+        PlayerEquipment playerEquipment)
+    {
+        if (root == null)
+        {
+            Debug.LogWarning(
+                "CharacterRuntimeBinder could not find an inventory slot UI root.",
+                this
+            );
+
+            return;
+        }
+
+        WeaponSetSlotUI[] weaponSlots =
+            root.GetComponentsInChildren<WeaponSetSlotUI>(
+                true
+            );
+
+        for (int i = 0;
+             i < weaponSlots.Length;
+             i++)
+        {
+            WeaponSetSlotUI slotUI =
+                weaponSlots[i];
+
+            if (slotUI == null)
+                continue;
+
+            slotUI.BindPlayer(
+                playerInventory,
+                playerWeaponSlots
+            );
+        }
+
+        EquipmentSlotUI[] equipmentSlots =
+            root.GetComponentsInChildren<EquipmentSlotUI>(
+                true
+            );
+
+        for (int i = 0;
+             i < equipmentSlots.Length;
+             i++)
+        {
+            EquipmentSlotUI slotUI =
+                equipmentSlots[i];
+
+            if (slotUI == null)
+                continue;
+
+            slotUI.BindPlayer(
+                playerInventory,
+                playerEquipment
+            );
+        }
+
+        Debug.Log(
+            $"Bound {weaponSlots.Length} weapon slot UIs and " +
+            $"{equipmentSlots.Length} equipment slot UIs.",
+            root
         );
     }
 
