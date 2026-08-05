@@ -35,6 +35,12 @@ public class CharacterProfileData
     public CharacterBaseStats currentBaseStats =
         CharacterBaseStats.CreateHumanDefault();
 
+    public FinalMovementStats createdMovementStats =
+        FinalMovementStats.CreateDefault();
+
+    public FinalMovementStats currentMovementStats =
+        FinalMovementStats.CreateDefault();
+
     public int level = 1;
     public bool storyCompleted;
 
@@ -53,7 +59,8 @@ public class CharacterProfileData
         List<string> traitIds = null,
         CharacterAppearanceData appearance = null,
         CharacterAttributes createdAttributes = null,
-        CharacterBaseStats createdBaseStats = null)
+        CharacterBaseStats createdBaseStats = null,
+        FinalMovementStats createdMovementStats = null)
     {
         string now = DateTime.UtcNow.ToString("O");
 
@@ -81,8 +88,15 @@ public class CharacterProfileData
                 CharacterAttributes.Copy(createdAttributes),
             createdBaseStats =
                 CharacterBaseStats.Copy(createdBaseStats),
-            currentBaseStats =
-                CharacterBaseStats.Copy(createdBaseStats),
+            createdMovementStats =
+                FinalMovementStats.Copy(
+                    createdMovementStats
+                ),
+
+            currentMovementStats =
+                FinalMovementStats.Copy(
+                    createdMovementStats
+                ),
             level = 1,
             storyCompleted = false,
             createdUtc = now,

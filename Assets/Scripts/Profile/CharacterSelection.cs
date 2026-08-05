@@ -27,7 +27,8 @@ public static class CharacterSelection
         List<string> traitIds,
         CharacterAppearanceData appearance,
         CharacterAttributes createdAttributes,
-        CharacterBaseStats createdBaseStats)
+        CharacterBaseStats createdBaseStats,
+        FinalMovementStats createdMovementStats)
     {
         CharacterProfileData profile =
                 CharacterProfileData.CreateNew(
@@ -40,7 +41,8 @@ public static class CharacterSelection
                     traitIds,
                     appearance,
                     createdAttributes,
-                    createdBaseStats
+                    createdBaseStats,
+                    createdMovementStats
                 );
 
         CharacterSaveSystem.SaveProfile(profile);
@@ -60,6 +62,7 @@ public static class CharacterSelection
         CharacterAppearanceData appearance,
         CharacterAttributes createdAttributes,
         CharacterBaseStats createdBaseStats,
+        FinalMovementStats createdMovementStats,
         out CharacterProfileData profile,
         out string errorMessage)
     {
@@ -147,7 +150,8 @@ public static class CharacterSelection
                 traitIds,
                 appearance,
                 createdAttributes,
-                createdBaseStats
+                createdBaseStats,
+                createdMovementStats
             );
 
         return true;

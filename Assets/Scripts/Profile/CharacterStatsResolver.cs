@@ -153,15 +153,7 @@ public static class CharacterStatsResolver
 
     private static FinalMovementStats CreateSize2HumanoidMovement()
     {
-        return new FinalMovementStats
-        {
-            walkSpeed = 8f,
-            sprintSpeed = 12f,
-            groundAcceleration = 8f,
-            airAcceleration = 2f,
-            deceleration = 16f,
-            jumpForce = 7f
-        };
+        return FinalMovementStats.CreateDefault();
     }
 
     private static FinalMovementStats CreateSize2FeralMovement()
