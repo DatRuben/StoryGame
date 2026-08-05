@@ -21320,16 +21320,37 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CharacterRuntimeBinder
   inventoryGridUI: {fileID: 1711152530}
   storageContainerGridUI: {fileID: 173529715}
-  heldItemUI: {fileID: 400143311}
-  playerResourcesUI: {fileID: 1093962943}
+  contextPanelController: {fileID: 72305741}
   inventoryMenuController: {fileID: 579740482}
+  inventoryFollow: {fileID: 1711152533}
+  heldItemUI: {fileID: 400143311}
+  storageContainerPanel: {fileID: 0}
+  weaponSetSlotUIs:
+  - {fileID: 977526919}
+  - {fileID: 1996881872}
+  - {fileID: 590850348}
+  - {fileID: 83566586}
+  - {fileID: 857210548}
+  - {fileID: 2144422319}
+  - {fileID: 1751352022}
+  - {fileID: 713377555}
+  - {fileID: 629255909}
+  - {fileID: 2057406768}
+  equipmentSlotUIs:
+  - {fileID: 2593608}
+  - {fileID: 1588357107}
+  - {fileID: 1794528043}
+  - {fileID: 2044314366}
+  closedPreviewUIs:
+  - {fileID: 1350866576}
+  playerResourcesUI: {fileID: 1093962943}
+  playerCrosshair: {fileID: 1350866575}
   speedText: {fileID: 872080309}
   cinemachineCamera: {fileID: 636625052}
-  cameraCollision: {fileID: 0}
+  cameraCollision: {fileID: 330585549}
   cameraTargetOverride: {fileID: 0}
   cameraPivotName: CameraPivot
-  contextPanelController: {fileID: 0}
-  storageContainerPanel: {fileID: 0}
+  aimTargetName: AimTarget
 --- !u!1 &973344196
 GameObject:
   m_ObjectHideFlags: 0
@@ -35644,6 +35665,7 @@ MonoBehaviour:
   snapToPixel: 1
   clampToScreen: 1
   screenPadding: {x: 24, y: 24}
+  storageInteract: {fileID: 0}
 --- !u!114 &1711152534
 MonoBehaviour:
   m_ObjectHideFlags: 0

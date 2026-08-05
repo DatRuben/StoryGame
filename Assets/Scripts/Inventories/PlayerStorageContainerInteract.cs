@@ -48,7 +48,11 @@ public class PlayerStorageContainerInteract : MonoBehaviour
         if (inputRouter == null)
             inputRouter = GetComponent<PlayerInputRouter>();
 
-        ValidateReferences(false, false);
+        if (cameraTransform == null &&
+            Camera.main != null)
+        {
+            cameraTransform = Camera.main.transform;
+        }
     }
 
     private void OnEnable()
@@ -97,72 +101,8 @@ public class PlayerStorageContainerInteract : MonoBehaviour
             CloseContainer();
     }
 
-    private void ValidateReferences(
-        bool logAutoFilled,
-        bool logMissing)
+    private void LogMissingSceneReferences()
     {
-        if (cameraTransform == null &&
-            Camera.main != null)
-        {
-            cameraTransform = Camera.main.transform;
-
-            if (logAutoFilled)
-            {
-                Debug.Log(
-                    "PlayerStorageContainerInteract auto-filled Camera Transform from Camera.main.",
-                    this
-                );
-            }
-        }
-
-        if (contextPanelController == null)
-        {
-            contextPanelController =
-                FindSceneComponent<InventoryContextPanelController>();
-
-            if (contextPanelController != null &&
-                logAutoFilled)
-            {
-                Debug.Log(
-                    "PlayerStorageContainerInteract auto-filled InventoryContextPanelController.",
-                    this
-                );
-            }
-        }
-
-        if (containerGridUI == null)
-        {
-            containerGridUI =
-                FindSceneComponent<StorageContainerGridUI>();
-
-            if (containerGridUI != null &&
-                logAutoFilled)
-            {
-                Debug.Log(
-                    "PlayerStorageContainerInteract auto-filled StorageContainerGridUI.",
-                    this
-                );
-            }
-        }
-
-        if (containerPanel == null &&
-            containerGridUI != null)
-        {
-            containerPanel =
-                containerGridUI.gameObject;
-
-            if (logAutoFilled)
-            {
-                Debug.Log(
-                    "PlayerStorageContainerInteract auto-filled ContainerPanel from StorageContainerGridUI.",
-                    this
-                );
-            }
-        }
-
-        if (!logMissing)
-            return;
-
         if (cameraTransform == null &&
             useLookTargeting)
         {
@@ -191,31 +131,18 @@ public class PlayerStorageContainerInteract : MonoBehaviour
         if (contextPanelController == null)
         {
             Debug.LogWarning(
-                "PlayerStorageContainerInteract is missing InventoryContextPanelController. It can still use ContainerPanel fallback if assigned.",
+                "PlayerStorageContainerInteract is missing InventoryContextPanelController. ContainerPanel fallback will be used if assigned.",
                 this
             );
         }
-    }
 
-    private T FindSceneComponent<T>() where T : Component
-    {
-        T[] matches =
-            Resources.FindObjectsOfTypeAll<T>();
-
-        for (int i = 0; i < matches.Length; i++)
+        if (inventoryMenuController == null)
         {
-            T match = matches[i];
-
-            if (match == null ||
-                !match.gameObject.scene.IsValid())
-            {
-                continue;
-            }
-
-            return match;
+            Debug.LogWarning(
+                "PlayerStorageContainerInteract is missing InventoryMenuController.",
+                this
+            );
         }
-
-        return null;
     }
 
     private void OnInteractPerformed(InputAction.CallbackContext context)
@@ -314,7 +241,7 @@ public class PlayerStorageContainerInteract : MonoBehaviour
 
     private void OpenContainer(StorageContainer storageContainer)
     {
-        ValidateReferences(false, true);
+        LogMissingSceneReferences();
 
         if (storageContainer == null ||
             containerGridUI == null ||
