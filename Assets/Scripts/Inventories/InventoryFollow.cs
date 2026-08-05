@@ -24,6 +24,9 @@ public class InventoryFollow : MonoBehaviour
     [SerializeField] private bool clampToScreen = true;
     [SerializeField] private Vector2 screenPadding = new Vector2(24f, 24f);
 
+    [SerializeField]
+    private PlayerStorageContainerInteract storageInteract;
+
     private RectTransform rectTransform;
     private Canvas rootCanvas;
     private RectTransform canvasRect;
@@ -49,10 +52,14 @@ public class InventoryFollow : MonoBehaviour
 
     private void LateUpdate()
     {
-        bool inventoryOpen =
-            InventoryMenuController.IsInventoryOpen;
+        bool shouldFollow =
+            InventoryMenuController.IsInventoryOpen &&
+            (
+                storageInteract == null ||
+                !storageInteract.HasOpenContainer
+            );
 
-        if (!inventoryOpen)
+        if (!shouldFollow)
         {
             wasInventoryOpen = false;
             smoothVelocity = Vector2.zero;
@@ -73,6 +80,32 @@ public class InventoryFollow : MonoBehaviour
             return;
 
         UpdatePosition(false);
+    }
+
+    public void BindPlayer(
+        Transform newTarget,
+        Camera newPlayerCamera,
+        PlayerStorageContainerInteract newStorageInteract)
+    {
+        target = newTarget;
+        playerCamera = newPlayerCamera;
+        storageInteract = newStorageInteract;
+
+        wasInventoryOpen = false;
+        smoothVelocity = Vector2.zero;
+
+        bool shouldFollow =
+            InventoryMenuController.IsInventoryOpen &&
+            (
+                storageInteract == null ||
+                !storageInteract.HasOpenContainer
+            );
+
+        if (!shouldFollow)
+            return;
+
+        UpdatePosition(true);
+        wasInventoryOpen = true;
     }
 
     private void UpdatePosition(bool snapImmediately)

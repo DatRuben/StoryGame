@@ -17,7 +17,9 @@ public class CharacterRuntimeBinder : MonoBehaviour
     [SerializeField] private string cameraPivotName = "CameraPivot";
     [SerializeField] private InventoryContextPanelController contextPanelController;
     [SerializeField] private GameObject storageContainerPanel;
-
+    [SerializeField] private InventoryFollow inventoryFollow;
+    [SerializeField] private PlayerCrosshair playerCrosshair;
+    [SerializeField] private string aimTargetName = "AimTarget";
     public void Bind(GameObject player)
     {
         if (player == null)
@@ -70,6 +72,12 @@ public class CharacterRuntimeBinder : MonoBehaviour
             cameraTargetOverride != null
                 ? cameraTargetOverride
                 : FindChildRecursive(player.transform, cameraPivotName);
+
+        Transform aimTarget =
+            FindChildRecursive(
+                player.transform,
+                aimTargetName
+            );
 
         if (cameraTarget == null)
         {
@@ -142,6 +150,39 @@ public class CharacterRuntimeBinder : MonoBehaviour
 
         if (inventoryMenuController == null)
             inventoryMenuController = FindSceneComponent<InventoryMenuController>();
+
+        if (inventoryFollow != null)
+        {
+            inventoryFollow.BindPlayer(
+                player.transform,
+                mainCamera,
+                storageInteract
+            );
+        }
+
+        if (playerCrosshair != null)
+        {
+            if (aimTarget == null)
+            {
+                Debug.LogWarning(
+                    $"CharacterRuntimeBinder could not find aim target named '{aimTargetName}'.",
+                    this
+                );
+            }
+
+            playerCrosshair.BindPlayer(
+                playerInput,
+                player.transform,
+                mainCamera,
+                aimTarget
+            );
+        }
+
+        if (inventoryFollow == null)
+            inventoryFollow = FindSceneComponent<InventoryFollow>();
+
+        if (playerCrosshair == null)
+            playerCrosshair = FindSceneComponent<PlayerCrosshair>();
 
         if (storageInteract != null)
         {

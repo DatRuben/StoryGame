@@ -37,6 +37,20 @@ public class PlayerCrosshair : MonoBehaviour
         HideCrosshair();
     }
 
+    public void BindPlayer(
+        PlayerInput newPlayerInput,
+        Transform newCharacter,
+        Camera newPlayerCamera,
+        Transform newAimTarget)
+    {
+        playerInput = newPlayerInput;
+        character = newCharacter;
+        playerCamera = newPlayerCamera;
+        aimTarget = newAimTarget;
+
+        HideCrosshair();
+    }
+
     private void LateUpdate()
     {
         if (playerInput == null ||
