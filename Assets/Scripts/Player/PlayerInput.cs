@@ -3,10 +3,13 @@ using UnityEngine.InputSystem;
 using TMPro;
 using Unity.Cinemachine;
 
+[RequireComponent(typeof(PlayerInputRouter))]
+
 public class PlayerInput : MonoBehaviour
 {
-    // Input fields
-    private PlayerInputActions playerInput;
+    [SerializeField]
+    private PlayerInputRouter inputRouter;
+
     private InputAction move;
 
     // Movement fields
@@ -107,8 +110,9 @@ public class PlayerInput : MonoBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
-        playerInput = new PlayerInputActions();
         animator = GetComponent<Animator>();
+        if (inputRouter == null)
+            inputRouter = GetComponent<PlayerInputRouter>();
         if (playerInventory == null)
             playerInventory = GetComponent<PlayerInventory>();
         if (playerWeaponSlots == null)
@@ -124,46 +128,64 @@ public class PlayerInput : MonoBehaviour
 
     private void OnEnable()
     {
-        move = playerInput.Player.Move;
+        if (inputRouter == null)
+            inputRouter = GetComponent<PlayerInputRouter>();
 
-        playerInput.Player.Jump.started += DoJump;
-        playerInput.Player.Jump.started += StartJumpHold;
-        playerInput.Player.Jump.canceled += StopJumpHold;
+        if (inputRouter == null)
+        {
+            Debug.LogError(
+                "PlayerInput requires PlayerInputRouter.",
+                this
+            );
 
-        playerInput.Player.PrimaryAttack.started += DoAttack;
-        playerInput.Player.CameraLock.started += ToggleCameraLock;
+            return;
+        }
 
-        playerInput.Player.Sprint.started += StartSprint;
-        playerInput.Player.Sprint.canceled += StopSprint;
+        move = inputRouter.MoveAction;
 
-        playerInput.Player.Dodge.started += DoDodge;
+        inputRouter.JumpAction.started += DoJump;
+        inputRouter.JumpAction.started += StartJumpHold;
+        inputRouter.JumpAction.canceled += StopJumpHold;
 
-        playerInput.Player.SheatheUnsheathe.started += ToggleWeaponSheathe;
+        inputRouter.PrimaryAttackAction.started += DoAttack;
+        inputRouter.CameraLockAction.started += ToggleCameraLock;
 
-        playerInput.Player.SwitchWeapon.started += SwitchWeaponSet;
+        inputRouter.SprintAction.started += StartSprint;
+        inputRouter.SprintAction.canceled += StopSprint;
 
-        playerInput.Player.Enable();
+        inputRouter.DodgeAction.started += DoDodge;
+
+        inputRouter.SheatheUnsheatheAction.started +=
+            ToggleWeaponSheathe;
+
+        inputRouter.SwitchWeaponAction.started +=
+            SwitchWeaponSet;
     }
 
     private void OnDisable()
     {
-        playerInput.Player.Jump.started -= DoJump;
-        playerInput.Player.Jump.started -= StartJumpHold;
-        playerInput.Player.Jump.canceled -= StopJumpHold;
+        if (inputRouter == null)
+            return;
 
-        playerInput.Player.PrimaryAttack.started -= DoAttack;
-        playerInput.Player.CameraLock.started -= ToggleCameraLock;
+        inputRouter.JumpAction.started -= DoJump;
+        inputRouter.JumpAction.started -= StartJumpHold;
+        inputRouter.JumpAction.canceled -= StopJumpHold;
 
-        playerInput.Player.Sprint.started -= StartSprint;
-        playerInput.Player.Sprint.canceled -= StopSprint;
+        inputRouter.PrimaryAttackAction.started -= DoAttack;
+        inputRouter.CameraLockAction.started -= ToggleCameraLock;
 
-        playerInput.Player.Dodge.started -= DoDodge;
+        inputRouter.SprintAction.started -= StartSprint;
+        inputRouter.SprintAction.canceled -= StopSprint;
 
-        playerInput.Player.SheatheUnsheathe.started -= ToggleWeaponSheathe;
+        inputRouter.DodgeAction.started -= DoDodge;
 
-        playerInput.Player.SwitchWeapon.started -= SwitchWeaponSet;
+        inputRouter.SheatheUnsheatheAction.started -=
+            ToggleWeaponSheathe;
 
-        playerInput.Player.Disable();
+        inputRouter.SwitchWeaponAction.started -=
+            SwitchWeaponSet;
+
+        move = null;
     }
 
     public void ApplyMovementStats(FinalMovementStats movementStats)

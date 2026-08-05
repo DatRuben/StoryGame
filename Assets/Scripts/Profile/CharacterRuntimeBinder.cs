@@ -35,6 +35,9 @@ public class CharacterRuntimeBinder : MonoBehaviour
         PlayerInput playerInput =
             player.GetComponent<PlayerInput>();
 
+        PlayerInputRouter inputRouter =
+            player.GetComponent<PlayerInputRouter>();
+
         PlayerInventory playerInventory =
             player.GetComponent<PlayerInventory>();
 
@@ -62,6 +65,14 @@ public class CharacterRuntimeBinder : MonoBehaviour
                 mainCamera,
                 mainCamera != null ? mainCamera.transform : null,
                 speedText
+            );
+        }
+
+        if (inputRouter == null)
+        {
+            Debug.LogError(
+                "CharacterRuntimeBinder could not find PlayerInputRouter on the runtime player.",
+                player
             );
         }
 
@@ -148,8 +159,16 @@ public class CharacterRuntimeBinder : MonoBehaviour
         if (playerResourcesUI == null)
             playerResourcesUI = FindSceneComponent<PlayerResourcesUI>();
 
-        if (inventoryMenuController == null)
-            inventoryMenuController = FindSceneComponent<InventoryMenuController>();
+        if (inventoryMenuController != null)
+        {
+            inventoryMenuController.BindInput(
+                inputRouter
+            );
+
+            inventoryMenuController.BindPlayerStorageInteract(
+                storageInteract
+            );
+        }
 
         if (inventoryFollow == null)
         {
@@ -224,6 +243,10 @@ public class CharacterRuntimeBinder : MonoBehaviour
 
         if (inventoryGridUI != null)
         {
+            inventoryGridUI.BindInput(
+                inputRouter
+            );
+
             inventoryGridUI.BindPlayer(
                 playerInventory,
                 storageInteract

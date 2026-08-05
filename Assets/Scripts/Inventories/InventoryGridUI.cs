@@ -37,7 +37,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
 
     private GridLayoutGroup gridLayoutGroup;
     private Canvas rootCanvas;
-    private PlayerInputActions playerInput;
+    private PlayerInputRouter inputRouter;
 
     private RectTransform heldPreviewRoot;
     private GridLayoutGroup heldPreviewLayoutGroup;
@@ -84,7 +84,6 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
             gridLayoutGroup = GetComponent<GridLayoutGroup>();
 
         rootCanvas = GetComponentInParent<Canvas>();
-        playerInput = new PlayerInputActions();
 
         if (playerStorageContainerInteract == null &&
             playerInventory != null)
@@ -96,20 +95,12 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
 
     private void OnEnable()
     {
-        if (playerInput == null)
-            playerInput = new PlayerInputActions();
-
-        playerInput.Player.ReloadRotateItem.started += OnRotateItem;
-        playerInput.Player.Enable();
+        SubscribeInput();
     }
 
     private void OnDisable()
     {
-        if (playerInput != null)
-        {
-            playerInput.Player.ReloadRotateItem.started -= OnRotateItem;
-            playerInput.Player.Disable();
-        }
+        UnsubscribeInput();
     }
 
     private void Start()
@@ -142,6 +133,38 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
             playerInventory.OnInventoryChanged -= Refresh;
             playerInventory.OnHeldItemChanged -= HandleHeldItemChanged;
         }
+    }
+
+    public void BindInput(
+        PlayerInputRouter newInputRouter)
+    {
+        UnsubscribeInput();
+
+        inputRouter = newInputRouter;
+
+        if (isActiveAndEnabled)
+            SubscribeInput();
+    }
+
+    private void SubscribeInput()
+    {
+        if (inputRouter == null)
+            return;
+
+        inputRouter.RotateItemAction.started -=
+            OnRotateItem;
+
+        inputRouter.RotateItemAction.started +=
+            OnRotateItem;
+    }
+
+    private void UnsubscribeInput()
+    {
+        if (inputRouter == null)
+            return;
+
+        inputRouter.RotateItemAction.started -=
+            OnRotateItem;
     }
 
     private void OnRotateItem(InputAction.CallbackContext context)

@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+[RequireComponent(typeof(PlayerInputRouter))]
+
 public class PlayerStorageContainerInteract : MonoBehaviour
 {
     [Header("Interaction")]
@@ -22,7 +24,9 @@ public class PlayerStorageContainerInteract : MonoBehaviour
     [SerializeField]
     private InventoryMenuController inventoryMenuController;
 
-    private PlayerInputActions inputActions;
+    [SerializeField]
+    private PlayerInputRouter inputRouter;
+
     private StorageContainer currentOpenContainer;
 
     public bool HasOpenContainer => currentOpenContainer != null;
@@ -41,30 +45,41 @@ public class PlayerStorageContainerInteract : MonoBehaviour
 
     private void Awake()
     {
-        inputActions = new PlayerInputActions();
+        if (inputRouter == null)
+            inputRouter = GetComponent<PlayerInputRouter>();
+
         ValidateReferences(false, false);
     }
 
     private void OnEnable()
     {
-        if (inputActions == null)
-            inputActions = new PlayerInputActions();
+        if (inputRouter == null)
+            inputRouter = GetComponent<PlayerInputRouter>();
 
-        inputActions.Enable();
+        if (inputRouter == null)
+        {
+            Debug.LogError(
+                "PlayerStorageContainerInteract requires PlayerInputRouter.",
+                this
+            );
 
-        inputActions.Player.Interact.performed +=
+            return;
+        }
+
+        inputRouter.InteractAction.performed -=
+            OnInteractPerformed;
+
+        inputRouter.InteractAction.performed +=
             OnInteractPerformed;
     }
 
     private void OnDisable()
     {
-        if (inputActions == null)
+        if (inputRouter == null)
             return;
 
-        inputActions.Player.Interact.performed -=
+        inputRouter.InteractAction.performed -=
             OnInteractPerformed;
-
-        inputActions.Disable();
     }
 
     private void Update()
