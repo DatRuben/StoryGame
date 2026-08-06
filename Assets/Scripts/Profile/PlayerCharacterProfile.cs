@@ -39,8 +39,6 @@ public class PlayerCharacterProfile : MonoBehaviour
         private set;
     }
 
-    // Temporary compatibility alias.
-    // Derived calculations should use EffectiveAttributes.
     public CharacterAttributes FinalAttributes =>
         EffectiveAttributes;
 
@@ -56,6 +54,9 @@ public class PlayerCharacterProfile : MonoBehaviour
         private set;
     }
 
+    public PlayerStatusEffects StatusEffects =>
+        statusEffects;
+
     public CharacterAppearanceData Appearance =>
         ProfileData != null
             ? CharacterAppearanceData.Copy(
@@ -65,49 +66,49 @@ public class PlayerCharacterProfile : MonoBehaviour
 
     public event Action AttributesChanged;
 
-    private PlayerAttributeEffects attributeEffects;
+    private PlayerStatusEffects statusEffects;
 
     private void Awake()
     {
-        ResolveAttributeEffects();
+        ResolveStatusEffects();
     }
 
     private void OnEnable()
     {
-        ResolveAttributeEffects();
+        ResolveStatusEffects();
 
-        if (attributeEffects == null)
+        if (statusEffects == null)
             return;
 
-        attributeEffects.ModifiersChanged -=
-            HandleAttributeModifiersChanged;
+        statusEffects.EffectsChanged -=
+            HandleStatusEffectsChanged;
 
-        attributeEffects.ModifiersChanged +=
-            HandleAttributeModifiersChanged;
+        statusEffects.EffectsChanged +=
+            HandleStatusEffectsChanged;
     }
 
     private void OnDisable()
     {
-        if (attributeEffects == null)
+        if (statusEffects == null)
             return;
 
-        attributeEffects.ModifiersChanged -=
-            HandleAttributeModifiersChanged;
+        statusEffects.EffectsChanged -=
+            HandleStatusEffectsChanged;
     }
 
-    private void ResolveAttributeEffects()
+    private void ResolveStatusEffects()
     {
-        if (attributeEffects != null)
+        if (statusEffects != null)
             return;
 
-        attributeEffects =
-            GetComponent<PlayerAttributeEffects>();
+        statusEffects =
+            GetComponent<PlayerStatusEffects>();
 
-        if (attributeEffects == null)
+        if (statusEffects == null)
         {
-            attributeEffects =
+            statusEffects =
                 gameObject.AddComponent<
-                    PlayerAttributeEffects>();
+                    PlayerStatusEffects>();
         }
     }
 
@@ -127,7 +128,7 @@ public class PlayerCharacterProfile : MonoBehaviour
             return;
         }
 
-        ResolveAttributeEffects();
+        ResolveStatusEffects();
 
         ProfileData = profileData;
         RaceDefinition = raceDefinition;
@@ -161,7 +162,7 @@ public class PlayerCharacterProfile : MonoBehaviour
         LogResolvedCharacter();
     }
 
-    private void HandleAttributeModifiersChanged()
+    private void HandleStatusEffectsChanged()
     {
         if (ProfileData == null ||
             PermanentAttributes == null)
@@ -171,11 +172,15 @@ public class PlayerCharacterProfile : MonoBehaviour
 
         ResolveEffectiveValues();
 
+        float bodyScale =
+            Appearance.SafeBodyScale;
+
+
         ApplyResources(false);
 
-        ApplyInput(
-            Appearance.SafeBodyScale
-        );
+        ApplyBody(bodyScale);
+
+        ApplyInput(bodyScale);
 
         AttributesChanged?.Invoke();
 
@@ -185,10 +190,10 @@ public class PlayerCharacterProfile : MonoBehaviour
     private void ResolveEffectiveValues()
     {
         CharacterAttributeModifiers
-            temporaryModifiers =
-                attributeEffects != null
-                    ? attributeEffects
-                        .GetTotalModifiers()
+            statusModifiers =
+                statusEffects != null
+                    ? statusEffects
+                        .GetAttributeModifiers()
                     : CharacterAttributeModifiers
                         .CreateZero();
 
@@ -196,14 +201,17 @@ public class PlayerCharacterProfile : MonoBehaviour
             CharacterAttributes.ClampMinimum(
                 CharacterAttributes.AddModifiers(
                     PermanentAttributes,
-                    temporaryModifiers
+                    statusModifiers
                 ),
                 1
             );
 
+        CharacterBaseStats effectiveBaseStats =
+            ResolveEffectiveBaseStats();
+
         FinalStats =
             CharacterStatsResolver.ResolveFinalStats(
-                ProfileData.currentBaseStats,
+                effectiveBaseStats,
                 EffectiveAttributes
             );
 
@@ -212,6 +220,70 @@ public class PlayerCharacterProfile : MonoBehaviour
                 SubraceDefinition,
                 EffectiveAttributes
             );
+    }
+
+    private CharacterBaseStats
+        ResolveEffectiveBaseStats()
+    {
+        CharacterBaseStats effectiveBonuses =
+            CharacterStatsResolver
+                .ResolveAttributeStatBonuses(
+                    EffectiveAttributes
+                );
+
+        if (ProfileData == null ||
+            ProfileData.currentBaseStats == null)
+        {
+            CharacterBaseStats liveBaseStats =
+                CharacterStatsResolver.ResolveBaseStats(
+                    RaceDefinition,
+                    SubraceDefinition
+                );
+
+            return CharacterBaseStats.Add(
+                liveBaseStats,
+                effectiveBonuses
+            );
+        }
+
+        CharacterBaseStats savedTotalStats =
+            CharacterBaseStats.Copy(
+                ProfileData.currentBaseStats
+            );
+
+        CharacterBaseStats permanentBonuses =
+            CharacterStatsResolver
+                .ResolveAttributeStatBonuses(
+                    PermanentAttributes
+                );
+
+        return new CharacterBaseStats
+        {
+            health =
+                savedTotalStats.health -
+                permanentBonuses.health +
+                effectiveBonuses.health,
+
+            stamina =
+                savedTotalStats.stamina -
+                permanentBonuses.stamina +
+                effectiveBonuses.stamina,
+
+            mana =
+                savedTotalStats.mana -
+                permanentBonuses.mana +
+                effectiveBonuses.mana,
+
+            staggerResist =
+                savedTotalStats.staggerResist -
+                permanentBonuses.staggerResist +
+                effectiveBonuses.staggerResist,
+
+            carryWeight =
+                savedTotalStats.carryWeight -
+                permanentBonuses.carryWeight +
+                effectiveBonuses.carryWeight
+        };
     }
 
     private void ApplyResources(
