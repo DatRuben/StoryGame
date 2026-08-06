@@ -61,9 +61,11 @@ public class SubraceDefinition : ScriptableObject
     [Header("Character Preview")]
     public GameObject previewPrefab;
 
-    [Header("Equipment / Holding Rules")]
-    public bool canHoldItemInMouth;
-    public bool canUseMouthWeapons;
+    [Header("Grip Profile")]
+    public CharacterGripProfile gripProfile =
+        CharacterGripProfile.CreateHumanoidDefault();
+
+    [Header("Equipment Rules")]
     public bool canEquipSaddles;
 
     public SubraceDefinition GetDefaultSubrace()
@@ -281,6 +283,15 @@ public class SubraceDefinition : ScriptableObject
             baseSubrace = null;
         }
 
+        if (gripProfile == null)
+        {
+            gripProfile =
+                CharacterGripProfile
+                    .CreateHumanoidDefault();
+        }
+
+        gripProfile.Clamp();
+
         RecalculatePreview();
     }
 
@@ -324,8 +335,7 @@ public class SubraceDefinitionEditor : Editor
     private SerializedProperty size;
     private SerializedProperty bodyType;
     private SerializedProperty previewPrefab;
-    private SerializedProperty canHoldItemInMouth;
-    private SerializedProperty canUseMouthWeapons;
+    private SerializedProperty gripProfile;
     private SerializedProperty canEquipSaddles;
 
     private void OnEnable()
@@ -390,14 +400,9 @@ public class SubraceDefinitionEditor : Editor
                 "previewPrefab"
             );
 
-        canHoldItemInMouth =
+        gripProfile =
             serializedObject.FindProperty(
-                "canHoldItemInMouth"
-            );
-
-        canUseMouthWeapons =
-            serializedObject.FindProperty(
-                "canUseMouthWeapons"
+                "gripProfile"
             );
 
         canEquipSaddles =
@@ -805,21 +810,27 @@ public class SubraceDefinitionEditor : Editor
     private void DrawEquipmentRules()
     {
         EditorGUILayout.LabelField(
-            "Equipment / Holding Rules",
+            "Grip Profile",
             EditorStyles.boldLabel
         );
 
         EditorGUILayout.PropertyField(
-            canHoldItemInMouth
+            gripProfile,
+            true
         );
 
-        EditorGUILayout.PropertyField(
-            canUseMouthWeapons
+        EditorGUILayout.Space();
+
+        EditorGUILayout.LabelField(
+            "Equipment Rules",
+            EditorStyles.boldLabel
         );
 
         EditorGUILayout.PropertyField(
             canEquipSaddles
         );
+
+        EditorGUILayout.Space();
     }
 }
 #endif

@@ -11,8 +11,9 @@ public enum HoldingSlot
 
 public class PlayerHolding : MonoBehaviour
 {
-    [Header("Body Holding Rules")]
-    [SerializeField] private bool canHoldItemInMouth = false;
+    [Header("Body Grip Rules")]
+    [SerializeField] private int availableHandGrips = 2;
+    [SerializeField] private int availableMouthGrips = 0;
 
     [Header("Current Held Items")]
     [SerializeField] private ItemDefinition leftHandItem;
@@ -20,7 +21,14 @@ public class PlayerHolding : MonoBehaviour
     [SerializeField] private ItemDefinition twoHandedItem;
     [SerializeField] private ItemDefinition mouthItem;
 
-    public bool CanHoldItemInMouth => canHoldItemInMouth;
+    public int AvailableHandGrips =>
+        availableHandGrips;
+
+    public int AvailableMouthGrips =>
+        availableMouthGrips;
+
+    public bool CanHoldItemInMouth =>
+        availableMouthGrips > 0;
 
     public ItemDefinition LeftHandItem => leftHandItem;
     public ItemDefinition RightHandItem => rightHandItem;
@@ -48,10 +56,46 @@ public class PlayerHolding : MonoBehaviour
         if (subraceDefinition == null)
             return;
 
-        canHoldItemInMouth =
-            subraceDefinition.canHoldItemInMouth;
+        CharacterGripProfile gripProfile =
+            subraceDefinition.gripProfile;
 
-        if (!canHoldItemInMouth)
+        if (gripProfile == null)
+        {
+            gripProfile =
+                CharacterGripProfile
+                    .CreateHumanoidDefault();
+        }
+
+        availableHandGrips =
+            Mathf.Max(
+                0,
+                gripProfile.handGripCount
+            );
+
+        availableMouthGrips =
+            Mathf.Max(
+                0,
+                gripProfile.mouthGripCount
+            );
+
+        if (availableHandGrips <= 0)
+        {
+            leftHandItem = null;
+            rightHandItem = null;
+            twoHandedItem = null;
+        }
+        else if (availableHandGrips == 1)
+        {
+            twoHandedItem = null;
+
+            if (leftHandItem != null &&
+                rightHandItem != null)
+            {
+                rightHandItem = null;
+            }
+        }
+
+        if (!CanHoldItemInMouth)
             mouthItem = null;
 
         OnHoldingChanged?.Invoke();
@@ -124,6 +168,12 @@ public class PlayerHolding : MonoBehaviour
         if (twoHandedItem != null)
             return false;
 
+        if (rightHandItem != null &&
+            availableHandGrips < 2)
+        {
+            return false;
+        }
+
         leftHandItem = item;
 
         OnHoldingChanged?.Invoke();
@@ -138,6 +188,12 @@ public class PlayerHolding : MonoBehaviour
 
         if (twoHandedItem != null)
             return false;
+
+        if (leftHandItem != null &&
+            availableHandGrips < 2)
+        {
+            return false;
+        }
 
         rightHandItem = item;
 
@@ -157,6 +213,9 @@ public class PlayerHolding : MonoBehaviour
         leftHandItem = null;
         rightHandItem = null;
         twoHandedItem = item;
+
+        if (availableHandGrips < 2)
+            return false;
 
         OnHoldingChanged?.Invoke();
 
@@ -263,6 +322,9 @@ public class PlayerHolding : MonoBehaviour
     private bool CanHoldOneHandedItem(ItemDefinition item)
     {
         if (item == null)
+            return false;
+
+        if (availableHandGrips < 1)
             return false;
 
         return item.handUsage == ItemHandUsage.OneHanded;

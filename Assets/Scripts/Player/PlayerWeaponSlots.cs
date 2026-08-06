@@ -433,15 +433,23 @@ public class PlayerWeaponSlots : MonoBehaviour
     [Header("Draw State")]
     [SerializeField] private bool weaponsDrawn = false;
 
-    [Header("Body Weapon Rules")]
-    [SerializeField] private bool canUseMouthWeapons = false;
+    [Header("Body Grip Rules")]
+    [SerializeField] private int availableHandGrips = 2;
+    [SerializeField] private int availableMouthGrips = 0;
 
     public WeaponSet WeaponSet1 => weaponSet1;
     public WeaponSet WeaponSet2 => weaponSet2;
 
     public int ActiveWeaponSetIndex => activeWeaponSetIndex;
     public bool WeaponsDrawn => weaponsDrawn;
-    public bool CanUseMouthWeapons => canUseMouthWeapons;
+    public int AvailableHandGrips =>
+        availableHandGrips;
+
+    public int AvailableMouthGrips =>
+        availableMouthGrips;
+
+    public bool CanUseMouthWeapons =>
+        availableMouthGrips > 0;
 
     public WeaponSet ActiveWeaponSet =>
         activeWeaponSetIndex == 1
@@ -480,8 +488,27 @@ public class PlayerWeaponSlots : MonoBehaviour
         if (subraceDefinition == null)
             return;
 
-        canUseMouthWeapons =
-            subraceDefinition.canUseMouthWeapons;
+        CharacterGripProfile gripProfile =
+            subraceDefinition.gripProfile;
+
+        if (gripProfile == null)
+        {
+            gripProfile =
+                CharacterGripProfile
+                    .CreateHumanoidDefault();
+        }
+
+        availableHandGrips =
+            Mathf.Max(
+                0,
+                gripProfile.handGripCount
+            );
+
+        availableMouthGrips =
+            Mathf.Max(
+                0,
+                gripProfile.mouthGripCount
+            );
 
         OnWeaponSlotsChanged?.Invoke();
     }
@@ -570,11 +597,18 @@ public class PlayerWeaponSlots : MonoBehaviour
             SheatheWeapons();
         }
 
+        if (!CanUseEquipPoint(
+            set,
+            equipPoint))
+        {
+            return false;
+        }
+
         bool equipped =
             set.TryEquipWeapon(
                 weapon,
                 equipPoint,
-                canUseMouthWeapons
+                CanUseMouthWeapons
             );
 
         if (!equipped)
@@ -629,6 +663,40 @@ public class PlayerWeaponSlots : MonoBehaviour
         OnWeaponSlotsChanged?.Invoke();
 
         return removedWeapon;
+    }
+
+    private bool CanUseEquipPoint(
+        WeaponSet set,
+        WeaponEquipPoint equipPoint)
+    {
+        if (set == null)
+            return false;
+
+        switch (equipPoint)
+        {
+            case WeaponEquipPoint.LeftHand:
+                if (availableHandGrips < 1)
+                    return false;
+
+                return set.RightHandWeapon == null ||
+                       availableHandGrips >= 2;
+
+            case WeaponEquipPoint.RightHand:
+                if (availableHandGrips < 1)
+                    return false;
+
+                return set.LeftHandWeapon == null ||
+                       availableHandGrips >= 2;
+
+            case WeaponEquipPoint.BothHands:
+                return availableHandGrips >= 2;
+
+            case WeaponEquipPoint.Mouth:
+                return availableMouthGrips >= 1;
+
+            default:
+                return false;
+        }
     }
 
     public bool TryReserveSetForManualSaddleTurret(
