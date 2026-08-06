@@ -15,6 +15,17 @@ public class ProceduralWalkTest : MonoBehaviour
     [Header("Movement Detection")]
     public Rigidbody movementBody;
 
+    [Header("Movement Speed Matching")]
+
+    [Min(0.01f)]
+    public float normalMovementSpeed = 8f;
+
+    [Min(0.01f)]
+    public float minimumCycleSpeed = 0.65f;
+
+    [Min(0.01f)]
+    public float maximumCycleSpeed = 1.6f;
+
     [Tooltip("Allows the animation to run without a Rigidbody, such as in ModelTest.")]
     public bool previewWalking = false;
 
@@ -84,6 +95,8 @@ public class ProceduralWalkTest : MonoBehaviour
     private float movementBlend;
     private float walkTime;
 
+    private float currentMovementSpeed;
+
     private void Start()
     {
         if (movementBody == null)
@@ -143,10 +156,27 @@ public class ProceduralWalkTest : MonoBehaviour
 
         if (movementBlend > 0.001f)
         {
+            float movementSpeedRatio =
+                normalMovementSpeed > 0f
+                    ? currentMovementSpeed /
+                      normalMovementSpeed
+                    : 1f;
+
+            float cycleSpeed =
+                Mathf.Clamp(
+                    movementSpeedRatio,
+                    minimumCycleSpeed,
+                    maximumCycleSpeed
+                );
+
+            if (previewWalking || moveForward)
+                cycleSpeed = 1f;
+
             walkTime +=
                 Time.deltaTime *
                 walkSpeed *
-                animationSpeedMultiplier;
+                animationSpeedMultiplier *
+                cycleSpeed;
         }
 
         if (moveForward)
@@ -168,15 +198,20 @@ public class ProceduralWalkTest : MonoBehaviour
     private bool IsMoving()
     {
         if (movementBody == null)
+        {
+            currentMovementSpeed = 0f;
             return false;
+        }
 
         Vector3 horizontalVelocity =
             movementBody.linearVelocity;
 
         horizontalVelocity.y = 0f;
 
-        return horizontalVelocity.sqrMagnitude >
-               minimumMovementSpeed *
+        currentMovementSpeed =
+            horizontalVelocity.magnitude;
+
+        return currentMovementSpeed >
                minimumMovementSpeed;
     }
 
