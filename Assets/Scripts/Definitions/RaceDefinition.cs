@@ -35,6 +35,16 @@ public class RaceDefinition : ScriptableObject
     public CharacterAttributeModifiers modifiersFromHuman =
         CharacterAttributeModifiers.CreateZero();
 
+    [Header("Attribute Effectiveness")]
+    [Tooltip(
+        "Controls how strongly each attribute point affects " +
+        "derived capabilities for this race. " +
+        "1 is the normal baseline. This does not change the " +
+        "displayed attribute score or attribute advancement speed."
+    )]
+    public CharacterAttributeScaling attributeScaling =
+        CharacterAttributeScaling.CreateDefault();
+
     [Header("Calculated Preview")]
     [SerializeField]
     private CharacterAttributes finalAttributesPreview =
@@ -235,6 +245,14 @@ public class RaceDefinition : ScriptableObject
             displayName = name;
 
         raceId = MakeId(displayName);
+
+        if (attributeScaling == null)
+        {
+            attributeScaling =
+                CharacterAttributeScaling.CreateDefault();
+        }
+
+        attributeScaling.ClampMinimum();
 
         RecalculatePreview();
 
