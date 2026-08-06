@@ -44,6 +44,12 @@ public class PlayerSpawner : MonoBehaviour
             return false;
         }
 
+        if (!TryGetProfileToSpawn(
+            out CharacterProfileData profile))
+        {
+            return false;
+        }
+
         if (!TryGetRuntimeDefinitions(
             profile,
             out RaceDefinition raceDefinition,

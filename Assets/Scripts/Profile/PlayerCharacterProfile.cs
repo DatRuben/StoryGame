@@ -131,7 +131,9 @@ public class PlayerCharacterProfile : MonoBehaviour
         CharacterProfileData profileData,
         RaceDefinition raceDefinition,
         SubraceDefinition subraceDefinition,
-        LineageSelection[] lineageSelections)
+        LineageSelection[] lineageSelections,
+        BackgroundDefinition backgroundDefinition,
+        List<TraitDefinition> resolvedTraitDefinitions)
     {
         if (profileData == null)
         {
