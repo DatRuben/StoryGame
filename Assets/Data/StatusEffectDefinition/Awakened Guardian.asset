@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 514cd60d572f88f4ab7b3e2f3d131eb5, type: 3}
+  m_Name: Awakened Guardian
+  m_EditorClassIdentifier: Assembly-CSharp::StatusEffectDefinition
+  effectId: awakened_guardian
+  displayName: Awakened Guardian
+  description: 
+  icon: {fileID: 0}
+  disposition: 1
+  duration: 30
+  stacking: 0
+  maxStacks: 1
+  attributeModifiers:
+    strength: 4
+    dexterity: 1
+    agility: 4
+    vitality: 2
+    endurance: 2
+    intelligence: 5
+    willpower: 3
+    spirit: 3
+    perception: 1

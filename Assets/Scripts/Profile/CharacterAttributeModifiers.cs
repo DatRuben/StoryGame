@@ -65,6 +65,47 @@ public class CharacterAttributeModifiers
         };
     }
 
+    public static CharacterAttributeModifiers Multiply(
+        CharacterAttributeModifiers modifiers,
+        int multiplier)
+    {
+        if (modifiers == null ||
+            multiplier <= 0)
+        {
+            return CreateZero();
+        }
+
+        return new CharacterAttributeModifiers
+        {
+            strength =
+                modifiers.strength * multiplier,
+
+            dexterity =
+                modifiers.dexterity * multiplier,
+
+            agility =
+                modifiers.agility * multiplier,
+
+            vitality =
+                modifiers.vitality * multiplier,
+
+            endurance =
+                modifiers.endurance * multiplier,
+
+            intelligence =
+                modifiers.intelligence * multiplier,
+
+            willpower =
+                modifiers.willpower * multiplier,
+
+            spirit =
+                modifiers.spirit * multiplier,
+
+            perception =
+                modifiers.perception * multiplier
+        };
+    }
+
     public static CharacterAttributeModifiers FromDifference(
     CharacterAttributes value,
     CharacterAttributes comparison)

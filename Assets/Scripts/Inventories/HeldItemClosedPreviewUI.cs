@@ -40,12 +40,44 @@ public class HeldItemClosedPreviewUI : MonoBehaviour
         CreatePreviewUI();
     }
 
-    private void Start()
+    private void OnEnable()
+    {
+        Subscribe();
+        HandleHeldItemChanged();
+    }
+
+    private void OnDisable()
+    {
+        Unsubscribe();
+    }
+
+    private void Subscribe()
     {
         if (playerInventory != null)
         {
-            playerInventory.OnHeldItemChanged += HandleHeldItemChanged;
+            playerInventory.OnHeldItemChanged +=
+                HandleHeldItemChanged;
         }
+    }
+
+    private void Unsubscribe()
+    {
+        if (playerInventory != null)
+        {
+            playerInventory.OnHeldItemChanged -=
+                HandleHeldItemChanged;
+        }
+    }
+
+    public void BindPlayer(
+        PlayerInventory newPlayerInventory)
+    {
+        Unsubscribe();
+
+        playerInventory = newPlayerInventory;
+
+        if (isActiveAndEnabled)
+            Subscribe();
 
         HandleHeldItemChanged();
     }
@@ -53,14 +85,6 @@ public class HeldItemClosedPreviewUI : MonoBehaviour
     private void Update()
     {
         UpdateVisibility();
-    }
-
-    private void OnDestroy()
-    {
-        if (playerInventory != null)
-        {
-            playerInventory.OnHeldItemChanged -= HandleHeldItemChanged;
-        }
     }
 
     private void HandleHeldItemChanged()

@@ -80,9 +80,14 @@ public class CharacterProfileData
             currentAttributes =
                 CharacterAttributes.Copy(createdAttributes),
             createdBaseStats =
-                CharacterBaseStats.Copy(createdBaseStats),
+                CharacterBaseStats.Copy(
+                    createdBaseStats
+                ),
+
             currentBaseStats =
-                CharacterBaseStats.Copy(createdBaseStats),
+                CharacterBaseStats.Copy(
+                    createdBaseStats
+                ),
             level = 1,
             storyCompleted = false,
             createdUtc = now,

@@ -4,9 +4,24 @@ using UnityEngine;
 [Serializable]
 public class CharacterAppearanceData
 {
+    public const float MinBodyScale = 0.8f;
+    public const float MaxBodyScale = 1.2f;
+
     [Header("Body")]
-    [Range(0.8f, 1.2f)]
+    [Range(MinBodyScale, MaxBodyScale)]
     public float bodyScale = 1f;
+
+    public float SafeBodyScale =>
+        ClampBodyScale(bodyScale);
+
+    public static float ClampBodyScale(float scale)
+    {
+        return Mathf.Clamp(
+            scale,
+            MinBodyScale,
+            MaxBodyScale
+        );
+    }
 
     [Header("Skin Color")]
     [Range(0f, 1f)]

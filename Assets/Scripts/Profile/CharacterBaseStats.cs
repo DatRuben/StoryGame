@@ -61,4 +61,38 @@ public class CharacterBaseStats
             carryWeight = baseStats.carryWeight + modifiers.carryWeight
         };
     }
+
+    public static CharacterBaseStats FromDifference(
+        CharacterBaseStats value,
+        CharacterBaseStats comparison)
+    {
+        if (value == null)
+            value = CreateZero();
+
+        if (comparison == null)
+            comparison = CreateZero();
+
+        return new CharacterBaseStats
+        {
+            health =
+                value.health -
+                comparison.health,
+
+            stamina =
+                value.stamina -
+                comparison.stamina,
+
+            mana =
+                value.mana -
+                comparison.mana,
+
+            staggerResist =
+                value.staggerResist -
+                comparison.staggerResist,
+
+            carryWeight =
+                value.carryWeight -
+                comparison.carryWeight
+        };
+    }
 }

@@ -744,9 +744,15 @@ public class CharacterCreator : MonoBehaviour
             selectedDefinitions.lineageSelections,
             selectedDefinitions.backgroundDefinition,
             selectedDefinitions.traitDefinitions,
-            CharacterAppearanceData.Copy(selectedAppearance),
-            CharacterAttributes.Copy(resolvedStats.finalAttributes),
-            CharacterBaseStats.Copy(resolvedStats.totalBaseStats),
+            CharacterAppearanceData.Copy(
+                selectedAppearance
+            ),
+            CharacterAttributes.Copy(
+                resolvedStats.finalAttributes
+            ),
+            CharacterBaseStats.Copy(
+                resolvedStats.baseStats
+            ),
             out profile,
             out errorMessage
         );

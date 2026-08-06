@@ -3,10 +3,13 @@ using UnityEngine.InputSystem;
 using TMPro;
 using Unity.Cinemachine;
 
+[RequireComponent(typeof(PlayerInputRouter))]
+
 public class PlayerInput : MonoBehaviour
 {
-    // Input fields
-    private PlayerInputActions playerInput;
+    [SerializeField]
+    private PlayerInputRouter inputRouter;
+
     private InputAction move;
 
     // Movement fields
@@ -44,6 +47,9 @@ public class PlayerInput : MonoBehaviour
     [SerializeField] private float maxGroundAngle = 55f;
     [SerializeField] private float jumpGroundIgnoreTime = 0.15f;
 
+    private float baseGroundCheckRadius;
+    private float baseGroundCheckDistance;
+
     [Header("Jump Feel")]
     [SerializeField] private float fallMultiplier = 4f;
     [SerializeField] private float lowJumpMultiplier = 3f;
@@ -79,6 +85,9 @@ public class PlayerInput : MonoBehaviour
     [SerializeField] private PlayerInventory playerInventory;
     [SerializeField] private PlayerWeaponSlots playerWeaponSlots;
 
+    [SerializeField]
+    private PlayerStorageContainerInteract storageInteract;
+
     [SerializeField] private PlayerResources playerResources;
 
     private Animator animator;
@@ -104,58 +113,96 @@ public class PlayerInput : MonoBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
-        playerInput = new PlayerInputActions();
+
+        baseGroundCheckRadius =
+            Mathf.Max(
+                0.01f,
+                groundCheckRadius
+            );
+
+        baseGroundCheckDistance =
+            Mathf.Max(
+                0.01f,
+                groundCheckDistance
+            );
+
         animator = GetComponent<Animator>();
+
+        if (inputRouter == null)
+            inputRouter = GetComponent<PlayerInputRouter>();
         if (playerInventory == null)
             playerInventory = GetComponent<PlayerInventory>();
         if (playerWeaponSlots == null)
             playerWeaponSlots = GetComponent<PlayerWeaponSlots>();
+        if (storageInteract == null)
+        {
+            storageInteract =
+                GetComponent<PlayerStorageContainerInteract>();
+        }
         if (playerResources == null)
             playerResources = GetComponent<PlayerResources>();
     }
 
     private void OnEnable()
     {
-        move = playerInput.Player.Move;
+        if (inputRouter == null)
+            inputRouter = GetComponent<PlayerInputRouter>();
 
-        playerInput.Player.Jump.started += DoJump;
-        playerInput.Player.Jump.started += StartJumpHold;
-        playerInput.Player.Jump.canceled += StopJumpHold;
+        if (inputRouter == null)
+        {
+            Debug.LogError(
+                "PlayerInput requires PlayerInputRouter.",
+                this
+            );
 
-        playerInput.Player.PrimaryAttack.started += DoAttack;
-        playerInput.Player.CameraLock.started += ToggleCameraLock;
+            return;
+        }
 
-        playerInput.Player.Sprint.started += StartSprint;
-        playerInput.Player.Sprint.canceled += StopSprint;
+        move = inputRouter.MoveAction;
 
-        playerInput.Player.Dodge.started += DoDodge;
+        inputRouter.JumpAction.started += DoJump;
+        inputRouter.JumpAction.started += StartJumpHold;
+        inputRouter.JumpAction.canceled += StopJumpHold;
 
-        playerInput.Player.SheatheUnsheathe.started += ToggleWeaponSheathe;
+        inputRouter.PrimaryAttackAction.started += DoAttack;
+        inputRouter.CameraLockAction.started += ToggleCameraLock;
 
-        playerInput.Player.SwitchWeapon.started += SwitchWeaponSet;
+        inputRouter.SprintAction.started += StartSprint;
+        inputRouter.SprintAction.canceled += StopSprint;
 
-        playerInput.Player.Enable();
+        inputRouter.DodgeAction.started += DoDodge;
+
+        inputRouter.SheatheUnsheatheAction.started +=
+            ToggleWeaponSheathe;
+
+        inputRouter.SwitchWeaponAction.started +=
+            SwitchWeaponSet;
     }
 
     private void OnDisable()
     {
-        playerInput.Player.Jump.started -= DoJump;
-        playerInput.Player.Jump.started -= StartJumpHold;
-        playerInput.Player.Jump.canceled -= StopJumpHold;
+        if (inputRouter == null)
+            return;
 
-        playerInput.Player.PrimaryAttack.started -= DoAttack;
-        playerInput.Player.CameraLock.started -= ToggleCameraLock;
+        inputRouter.JumpAction.started -= DoJump;
+        inputRouter.JumpAction.started -= StartJumpHold;
+        inputRouter.JumpAction.canceled -= StopJumpHold;
 
-        playerInput.Player.Sprint.started -= StartSprint;
-        playerInput.Player.Sprint.canceled -= StopSprint;
+        inputRouter.PrimaryAttackAction.started -= DoAttack;
+        inputRouter.CameraLockAction.started -= ToggleCameraLock;
 
-        playerInput.Player.Dodge.started -= DoDodge;
+        inputRouter.SprintAction.started -= StartSprint;
+        inputRouter.SprintAction.canceled -= StopSprint;
 
-        playerInput.Player.SheatheUnsheathe.started -= ToggleWeaponSheathe;
+        inputRouter.DodgeAction.started -= DoDodge;
 
-        playerInput.Player.SwitchWeapon.started -= SwitchWeaponSet;
+        inputRouter.SheatheUnsheatheAction.started -=
+            ToggleWeaponSheathe;
 
-        playerInput.Player.Disable();
+        inputRouter.SwitchWeaponAction.started -=
+            SwitchWeaponSet;
+
+        move = null;
     }
 
     public void ApplyMovementStats(FinalMovementStats movementStats)
@@ -180,6 +227,22 @@ public class PlayerInput : MonoBehaviour
         dodgeDuration = movementStats.dodgeDuration;
         dodgeCooldown = movementStats.dodgeCooldown;
         dodgeStaminaCost = movementStats.dodgeStaminaCost;
+    }
+
+    public void ApplyBodyScale(float bodyScale)
+    {
+        float safeBodyScale =
+            CharacterAppearanceData.ClampBodyScale(
+                bodyScale
+            );
+
+        groundCheckRadius =
+            baseGroundCheckRadius *
+            safeBodyScale;
+
+        groundCheckDistance =
+            baseGroundCheckDistance *
+            safeBodyScale;
     }
 
     public void SetRuntimeCameraReferences(
@@ -232,6 +295,13 @@ public class PlayerInput : MonoBehaviour
         if (grounded)
         {
             lastGroundedTime = Time.time;
+        }
+
+        if (storageInteract != null &&
+            storageInteract.HasOpenContainer)
+        {
+            StopForOpenContainer(grounded);
+            return;
         }
 
         Vector2 input =
@@ -329,6 +399,26 @@ public class PlayerInput : MonoBehaviour
         RegenerateStamina(hasMovementDirection);
         UpdateSpeedText(grounded);
         LookAt();
+    }
+
+    private void StopForOpenContainer(bool grounded)
+    {
+        isDodging = false;
+        isSprinting = false;
+
+        Vector3 velocity =
+            rb.linearVelocity;
+
+        velocity.x = 0f;
+        velocity.z = 0f;
+
+        rb.linearVelocity = velocity;
+        rb.angularVelocity = Vector3.zero;
+
+        PreventSlopeSliding(grounded);
+        ApplyExtraGravity(grounded);
+        RegenerateStamina(false);
+        UpdateSpeedText(grounded);
     }
 
     private void RegenerateStamina(bool hasMovementDirection)
@@ -604,6 +694,8 @@ public class PlayerInput : MonoBehaviour
 
     private void DoDodge(InputAction.CallbackContext obj)
     {
+        if (InventoryMenuController.IsInventoryOpen)
+            return;
         if (Time.time - lastDodgeTime < dodgeCooldown)
             return;
 
@@ -639,6 +731,12 @@ public class PlayerInput : MonoBehaviour
     private void DoJump(
         InputAction.CallbackContext obj)
     {
+        if (storageInteract != null &&
+            storageInteract.HasOpenContainer)
+        {
+            return;
+        }
+
         if (!IsGrounded())
             return;
 

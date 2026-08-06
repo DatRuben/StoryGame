@@ -81,6 +81,27 @@ public static class CharacterSaveSystem
         Save(saveFile);
     }
 
+    public static bool DeleteProfile(string profileId)
+    {
+        if (string.IsNullOrWhiteSpace(profileId))
+            return false;
+
+        CharacterSaveFile saveFile = Load();
+
+        int removedCount =
+            saveFile.profiles.RemoveAll(
+                profile =>
+                    profile != null &&
+                    profile.profileId == profileId
+            );
+
+        if (removedCount == 0)
+            return false;
+
+        Save(saveFile);
+        return true;
+    }
+
     public static bool TryGetProfile(
         string profileId,
         out CharacterProfileData profile)

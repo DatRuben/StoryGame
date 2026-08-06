@@ -10,8 +10,10 @@ public class InventoryMenuController : MonoBehaviour
     [Header("Settings")]
     [SerializeField] private bool startsOpen = false;
 
-    private PlayerInputActions playerInput;
+    private PlayerInputRouter inputRouter;
     private bool isOpen;
+
+    private PlayerStorageContainerInteract storageInteract;
 
     public static bool IsInventoryOpen { get; private set; }
 
@@ -19,20 +21,16 @@ public class InventoryMenuController : MonoBehaviour
     {
         if (inventoryCanvasGroup == null)
             inventoryCanvasGroup = GetComponent<CanvasGroup>();
-
-        playerInput = new PlayerInputActions();
     }
 
     private void OnEnable()
     {
-        playerInput.Player.Inventory.started += ToggleInventory;
-        playerInput.Player.Enable();
+        SubscribeInput();
     }
 
     private void OnDisable()
     {
-        playerInput.Player.Inventory.started -= ToggleInventory;
-        playerInput.Player.Disable();
+        UnsubscribeInput();
     }
 
     private void Start()
@@ -52,10 +50,54 @@ public class InventoryMenuController : MonoBehaviour
         SetInventoryOpen(isOpen);
     }
 
-    private void SetInventoryOpen(bool open)
+    public void BindPlayerStorageInteract(
+        PlayerStorageContainerInteract newStorageInteract)
+    {
+        storageInteract = newStorageInteract;
+
+        if (!isOpen && storageInteract != null)
+            storageInteract.CloseOpenContainer();
+    }
+
+    public void BindInput(
+        PlayerInputRouter newInputRouter)
+    {
+        UnsubscribeInput();
+
+        inputRouter = newInputRouter;
+
+        if (isActiveAndEnabled)
+            SubscribeInput();
+    }
+
+    private void SubscribeInput()
+    {
+        if (inputRouter == null)
+            return;
+
+        inputRouter.InventoryAction.started -=
+            ToggleInventory;
+
+        inputRouter.InventoryAction.started +=
+            ToggleInventory;
+    }
+
+    private void UnsubscribeInput()
+    {
+        if (inputRouter == null)
+            return;
+
+        inputRouter.InventoryAction.started -=
+            ToggleInventory;
+    }
+
+    public void SetInventoryOpen(bool open)
     {
         isOpen = open;
         IsInventoryOpen = open;
+
+        if (!open && storageInteract != null)
+            storageInteract.CloseOpenContainer();
 
         if (inventoryCanvasGroup != null)
         {

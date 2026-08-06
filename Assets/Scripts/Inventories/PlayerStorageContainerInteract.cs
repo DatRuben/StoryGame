@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+[RequireComponent(typeof(PlayerInputRouter))]
+
 public class PlayerStorageContainerInteract : MonoBehaviour
 {
     [Header("Interaction")]
@@ -19,7 +21,12 @@ public class PlayerStorageContainerInteract : MonoBehaviour
 
     [SerializeField] private InventoryContextPanelController contextPanelController;
 
-    private PlayerInputActions inputActions;
+    [SerializeField]
+    private InventoryMenuController inventoryMenuController;
+
+    [SerializeField]
+    private PlayerInputRouter inputRouter;
+
     private StorageContainer currentOpenContainer;
 
     public bool HasOpenContainer => currentOpenContainer != null;
@@ -38,30 +45,45 @@ public class PlayerStorageContainerInteract : MonoBehaviour
 
     private void Awake()
     {
-        inputActions = new PlayerInputActions();
-        ValidateReferences(false, false);
+        if (inputRouter == null)
+            inputRouter = GetComponent<PlayerInputRouter>();
+
+        if (cameraTransform == null &&
+            Camera.main != null)
+        {
+            cameraTransform = Camera.main.transform;
+        }
     }
 
     private void OnEnable()
     {
-        if (inputActions == null)
-            inputActions = new PlayerInputActions();
+        if (inputRouter == null)
+            inputRouter = GetComponent<PlayerInputRouter>();
 
-        inputActions.Enable();
+        if (inputRouter == null)
+        {
+            Debug.LogError(
+                "PlayerStorageContainerInteract requires PlayerInputRouter.",
+                this
+            );
 
-        inputActions.Player.TestKey1.performed += OnInteractPerformed;
-        inputActions.Player.TestKey2.performed += OnClosePerformed;
+            return;
+        }
+
+        inputRouter.InteractAction.performed -=
+            OnInteractPerformed;
+
+        inputRouter.InteractAction.performed +=
+            OnInteractPerformed;
     }
 
     private void OnDisable()
     {
-        if (inputActions == null)
+        if (inputRouter == null)
             return;
 
-        inputActions.Player.TestKey1.performed -= OnInteractPerformed;
-        inputActions.Player.TestKey2.performed -= OnClosePerformed;
-
-        inputActions.Disable();
+        inputRouter.InteractAction.performed -=
+            OnInteractPerformed;
     }
 
     private void Update()
@@ -79,72 +101,8 @@ public class PlayerStorageContainerInteract : MonoBehaviour
             CloseContainer();
     }
 
-    private void ValidateReferences(
-        bool logAutoFilled,
-        bool logMissing)
+    private void LogMissingSceneReferences()
     {
-        if (cameraTransform == null &&
-            Camera.main != null)
-        {
-            cameraTransform = Camera.main.transform;
-
-            if (logAutoFilled)
-            {
-                Debug.Log(
-                    "PlayerStorageContainerInteract auto-filled Camera Transform from Camera.main.",
-                    this
-                );
-            }
-        }
-
-        if (contextPanelController == null)
-        {
-            contextPanelController =
-                FindSceneComponent<InventoryContextPanelController>();
-
-            if (contextPanelController != null &&
-                logAutoFilled)
-            {
-                Debug.Log(
-                    "PlayerStorageContainerInteract auto-filled InventoryContextPanelController.",
-                    this
-                );
-            }
-        }
-
-        if (containerGridUI == null)
-        {
-            containerGridUI =
-                FindSceneComponent<StorageContainerGridUI>();
-
-            if (containerGridUI != null &&
-                logAutoFilled)
-            {
-                Debug.Log(
-                    "PlayerStorageContainerInteract auto-filled StorageContainerGridUI.",
-                    this
-                );
-            }
-        }
-
-        if (containerPanel == null &&
-            containerGridUI != null)
-        {
-            containerPanel =
-                containerGridUI.gameObject;
-
-            if (logAutoFilled)
-            {
-                Debug.Log(
-                    "PlayerStorageContainerInteract auto-filled ContainerPanel from StorageContainerGridUI.",
-                    this
-                );
-            }
-        }
-
-        if (!logMissing)
-            return;
-
         if (cameraTransform == null &&
             useLookTargeting)
         {
@@ -173,35 +131,28 @@ public class PlayerStorageContainerInteract : MonoBehaviour
         if (contextPanelController == null)
         {
             Debug.LogWarning(
-                "PlayerStorageContainerInteract is missing InventoryContextPanelController. It can still use ContainerPanel fallback if assigned.",
+                "PlayerStorageContainerInteract is missing InventoryContextPanelController. ContainerPanel fallback will be used if assigned.",
+                this
+            );
+        }
+
+        if (inventoryMenuController == null)
+        {
+            Debug.LogWarning(
+                "PlayerStorageContainerInteract is missing InventoryMenuController.",
                 this
             );
         }
     }
 
-    private T FindSceneComponent<T>() where T : Component
-    {
-        T[] matches =
-            Resources.FindObjectsOfTypeAll<T>();
-
-        for (int i = 0; i < matches.Length; i++)
-        {
-            T match = matches[i];
-
-            if (match == null ||
-                !match.gameObject.scene.IsValid())
-            {
-                continue;
-            }
-
-            return match;
-        }
-
-        return null;
-    }
-
     private void OnInteractPerformed(InputAction.CallbackContext context)
     {
+        if (currentOpenContainer != null)
+        {
+            CloseContainer();
+            return;
+        }
+
         StorageContainer targetContainer = null;
 
         if (useLookTargeting)
@@ -211,17 +162,9 @@ public class PlayerStorageContainerInteract : MonoBehaviour
             targetContainer = FindNearestContainer();
 
         if (targetContainer == null)
-        {
-            CloseContainer();
             return;
-        }
 
         OpenContainer(targetContainer);
-    }
-
-    private void OnClosePerformed(InputAction.CallbackContext context)
-    {
-        CloseContainer();
     }
 
     private StorageContainer FindLookedAtContainer()
@@ -298,7 +241,7 @@ public class PlayerStorageContainerInteract : MonoBehaviour
 
     private void OpenContainer(StorageContainer storageContainer)
     {
-        ValidateReferences(false, true);
+        LogMissingSceneReferences();
 
         if (storageContainer == null ||
             containerGridUI == null ||
@@ -313,6 +256,11 @@ public class PlayerStorageContainerInteract : MonoBehaviour
         }
 
         currentOpenContainer = storageContainer;
+
+        if (inventoryMenuController != null)
+        {
+            inventoryMenuController.SetInventoryOpen(true);
+        }
 
         if (contextPanelController != null)
         {
@@ -413,6 +361,11 @@ public class PlayerStorageContainerInteract : MonoBehaviour
         );
     }
 
+    public void CloseOpenContainer()
+    {
+        CloseContainer();
+    }
+
     private void CloseContainer()
     {
         currentOpenContainer = null;
@@ -432,14 +385,16 @@ public class PlayerStorageContainerInteract : MonoBehaviour
     }
 
     public void BindSceneReferences(
-    Transform newCameraTransform,
-    StorageContainerGridUI newContainerGridUI,
-    GameObject newContainerPanel,
-    InventoryContextPanelController newContextPanelController)
+        Transform newCameraTransform,
+        StorageContainerGridUI newContainerGridUI,
+        GameObject newContainerPanel,
+        InventoryContextPanelController newContextPanelController,
+        InventoryMenuController newInventoryMenuController)
     {
         cameraTransform = newCameraTransform;
         containerGridUI = newContainerGridUI;
         containerPanel = newContainerPanel;
         contextPanelController = newContextPanelController;
+        inventoryMenuController = newInventoryMenuController;
     }
 }

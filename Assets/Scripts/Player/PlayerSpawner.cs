@@ -44,14 +44,19 @@ public class PlayerSpawner : MonoBehaviour
             return false;
         }
 
-        if (!TryGetProfileToSpawn(out CharacterProfileData profile))
+        if (!TryGetProfileToSpawn(
+            out CharacterProfileData profile))
+        {
             return false;
+        }
 
         if (!TryGetRuntimeDefinitions(
             profile,
             out RaceDefinition raceDefinition,
             out SubraceDefinition subraceDefinition,
-            out LineageSelection[] lineageSelections))
+            out LineageSelection[] lineageSelections,
+            out BackgroundDefinition backgroundDefinition,
+            out List<TraitDefinition> traitDefinitions))
         {
             return false;
         }
@@ -78,7 +83,9 @@ public class PlayerSpawner : MonoBehaviour
             profile,
             raceDefinition,
             subraceDefinition,
-            lineageSelections
+            lineageSelections,
+            backgroundDefinition,
+            traitDefinitions
         );
 
         return true;
@@ -122,7 +129,9 @@ public class PlayerSpawner : MonoBehaviour
             profile,
             out RaceDefinition raceDefinition,
             out SubraceDefinition subraceDefinition,
-            out LineageSelection[] lineageSelections))
+            out LineageSelection[] lineageSelections,
+            out BackgroundDefinition backgroundDefinition,
+            out List<TraitDefinition> traitDefinitions))
         {
             return false;
         }
@@ -135,7 +144,9 @@ public class PlayerSpawner : MonoBehaviour
             profile,
             raceDefinition,
             subraceDefinition,
-            lineageSelections
+            lineageSelections,
+            backgroundDefinition,
+            traitDefinitions
         );
 
         PrepareForGameplay(
@@ -209,7 +220,9 @@ public class PlayerSpawner : MonoBehaviour
         CharacterProfileData profile,
         RaceDefinition raceDefinition,
         SubraceDefinition subraceDefinition,
-        LineageSelection[] lineageSelections)
+        LineageSelection[] lineageSelections,
+        BackgroundDefinition backgroundDefinition,
+        List<TraitDefinition> traitDefinitions)
     {
         PlayerCharacterProfile playerCharacterProfile =
             player.GetComponent<PlayerCharacterProfile>();
@@ -225,7 +238,9 @@ public class PlayerSpawner : MonoBehaviour
             profile,
             raceDefinition,
             subraceDefinition,
-            lineageSelections
+            lineageSelections,
+            backgroundDefinition,
+            traitDefinitions
         );
     }
 
@@ -268,12 +283,31 @@ public class PlayerSpawner : MonoBehaviour
             return false;
         }
 
+        BackgroundDefinition defaultBackgroundDefinition =
+            characterDataLibrary
+                .GetDefaultBackgroundDefinition();
+
+        if (defaultBackgroundDefinition == null)
+        {
+            Debug.LogWarning(
+                "PlayerSpawner could not create a default character because the CharacterDataLibrary has no default background.",
+                this
+            );
+
+            return false;
+        }
+
+        List<TraitDefinition> defaultTraits =
+            new List<TraitDefinition>();
+
         ResolvedCharacterStats resolvedStats =
-                CharacterStatsResolver.ResolveCharacter(
-                    defaultRaceDefinition,
-                    defaultRaceDefinition.standardSubrace,
-                    new List<LineageSelection>()
-                );
+            CharacterStatsResolver.ResolveCharacter(
+                defaultRaceDefinition,
+                defaultRaceDefinition.standardSubrace,
+                new List<LineageSelection>(),
+                defaultBackgroundDefinition,
+                defaultTraits
+            );
 
         profile =
             CharacterSelection.CreateCharacter(
@@ -282,11 +316,17 @@ public class PlayerSpawner : MonoBehaviour
                 defaultRaceDefinition,
                 defaultRaceDefinition.standardSubrace,
                 new List<string>(),
-                "",
+                defaultBackgroundDefinition.backgroundId,
                 new List<string>(),
                 CharacterAppearanceData.CreateDefault(),
-                CharacterAttributes.Copy(resolvedStats.finalAttributes),
-                CharacterBaseStats.Copy(resolvedStats.totalBaseStats)
+
+                CharacterAttributes.Copy(
+                    resolvedStats.finalAttributes
+                ),
+
+                CharacterBaseStats.Copy(
+                    resolvedStats.baseStats
+                )
             );
 
         return profile != null;
@@ -296,11 +336,16 @@ public class PlayerSpawner : MonoBehaviour
         CharacterProfileData profile,
         out RaceDefinition raceDefinition,
         out SubraceDefinition subraceDefinition,
-        out LineageSelection[] lineageSelections)
+        out LineageSelection[] lineageSelections,
+        out BackgroundDefinition backgroundDefinition,
+        out List<TraitDefinition> traitDefinitions)
     {
         raceDefinition = null;
         subraceDefinition = null;
         lineageSelections = null;
+        backgroundDefinition = null;
+        traitDefinitions =
+            new List<TraitDefinition>();
 
         if (profile == null)
             return false;
@@ -329,13 +374,116 @@ public class PlayerSpawner : MonoBehaviour
             return false;
         }
 
+        if (subraceDefinition.race == null ||
+            !string.Equals(
+                subraceDefinition.race.raceId,
+                raceDefinition.raceId,
+                System.StringComparison.OrdinalIgnoreCase))
+        {
+            Debug.LogWarning(
+                $"PlayerSpawner found a mismatched race and subrace for profile '{profile.characterName}'.",
+                this
+            );
+
+            return false;
+        }
+
         List<LineageSelection> selectionList =
             characterDataLibrary.GetLineageSelections(
                 profile.lineageIds
             );
 
+        int savedLineageCount =
+            profile.lineageIds != null
+                ? profile.lineageIds.Count
+                : 0;
+
+        if (selectionList.Count != savedLineageCount)
+        {
+            Debug.LogWarning(
+                $"PlayerSpawner could not resolve every saved lineage for profile '{profile.characterName}'.",
+                this
+            );
+
+            return false;
+        }
+
+        if (!raceDefinition.AreLineageSelectionsValid(
+            subraceDefinition,
+            selectionList,
+            out string lineageError))
+        {
+            Debug.LogWarning(
+                $"PlayerSpawner found invalid saved lineages for profile '{profile.characterName}': {lineageError}",
+                this
+            );
+
+            return false;
+        }
+
         lineageSelections =
             selectionList.ToArray();
+
+        if (string.IsNullOrWhiteSpace(
+            profile.backgroundId))
+        {
+            backgroundDefinition =
+                characterDataLibrary
+                    .GetDefaultBackgroundDefinition();
+        }
+        else if (!characterDataLibrary
+            .TryGetBackgroundDefinition(
+                profile.backgroundId,
+                out backgroundDefinition))
+        {
+            Debug.LogWarning(
+                $"PlayerSpawner could not find BackgroundDefinition '{profile.backgroundId}'.",
+                this
+            );
+
+            return false;
+        }
+
+        if (backgroundDefinition == null)
+        {
+            Debug.LogWarning(
+                $"PlayerSpawner could not resolve a background for profile '{profile.characterName}'.",
+                this
+            );
+
+            return false;
+        }
+
+        traitDefinitions =
+            characterDataLibrary.GetTraitDefinitions(
+                profile.traitIds
+            );
+
+        int savedTraitCount =
+            profile.traitIds != null
+                ? profile.traitIds.Count
+                : 0;
+
+        if (traitDefinitions.Count != savedTraitCount)
+        {
+            Debug.LogWarning(
+                $"PlayerSpawner could not resolve every saved trait for profile '{profile.characterName}'.",
+                this
+            );
+
+            return false;
+        }
+
+        if (traitDefinitions.Count >
+            CharacterCreator.MaxTraits)
+        {
+            Debug.LogWarning(
+                $"Profile '{profile.characterName}' has more than {CharacterCreator.MaxTraits} saved traits.",
+                this
+            );
+
+            return false;
+        }
 
         return true;
     }

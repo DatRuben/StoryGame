@@ -4,19 +4,40 @@ using Unity.Cinemachine;
 
 public class CharacterRuntimeBinder : MonoBehaviour
 {
-    [Header("Optional Scene References")]
+    [Header("Runtime Inventory UI")]
     [SerializeField] private InventoryGridUI inventoryGridUI;
     [SerializeField] private StorageContainerGridUI storageContainerGridUI;
-    [SerializeField] private HeldItemUI heldItemUI;
-    [SerializeField] private PlayerResourcesUI playerResourcesUI;
+    [SerializeField] private InventoryContextPanelController contextPanelController;
     [SerializeField] private InventoryMenuController inventoryMenuController;
+    [SerializeField] private InventoryFollow inventoryFollow;
+    [SerializeField] private HeldItemUI heldItemUI;
+    [SerializeField] private GameObject storageContainerPanel;
+
+    [Header("Runtime Equipment UI")]
+    [Tooltip(
+        "Parent containing all WeaponSetSlotUI and EquipmentSlotUI components. " +
+        "If empty, InventoryMenuController is used as the root."
+    )]
+    [SerializeField]
+    private Transform inventorySlotUIRoot;
+
+    [SerializeField]
+    private HeldItemClosedPreviewUI[] closedPreviewUIs =
+        new HeldItemClosedPreviewUI[0];
+
+    [Header("Runtime Player UI")]
+    [SerializeField] private PlayerResourcesUI playerResourcesUI;
+    [SerializeField] private PlayerCrosshair playerCrosshair;
     [SerializeField] private TextMeshProUGUI speedText;
+
+    [Header("Runtime Camera")]
     [SerializeField] private CinemachineCamera cinemachineCamera;
     [SerializeField] private CameraCollision cameraCollision;
     [SerializeField] private Transform cameraTargetOverride;
+
+    [Header("Player Child Names")]
     [SerializeField] private string cameraPivotName = "CameraPivot";
-    [SerializeField] private InventoryContextPanelController contextPanelController;
-    [SerializeField] private GameObject storageContainerPanel;
+    [SerializeField] private string aimTargetName = "AimTarget";
 
     public void Bind(GameObject player)
     {
@@ -33,6 +54,9 @@ public class CharacterRuntimeBinder : MonoBehaviour
         PlayerInput playerInput =
             player.GetComponent<PlayerInput>();
 
+        PlayerInputRouter inputRouter =
+            player.GetComponent<PlayerInputRouter>();
+
         PlayerInventory playerInventory =
             player.GetComponent<PlayerInventory>();
 
@@ -44,6 +68,9 @@ public class CharacterRuntimeBinder : MonoBehaviour
 
         PlayerWeaponSlots playerWeaponSlots =
             player.GetComponent<PlayerWeaponSlots>();
+
+        PlayerEquipment playerEquipment =
+            player.GetComponent<PlayerEquipment>();
 
         PlayerResources playerResources =
             player.GetComponent<PlayerResources>();
@@ -60,13 +87,24 @@ public class CharacterRuntimeBinder : MonoBehaviour
             );
         }
 
-        if (cinemachineCamera == null)
-            cinemachineCamera = FindSceneComponent<CinemachineCamera>();
+        if (inputRouter == null)
+        {
+            Debug.LogError(
+                "CharacterRuntimeBinder could not find PlayerInputRouter on the runtime player.",
+                player
+            );
+        }
 
         Transform cameraTarget =
             cameraTargetOverride != null
                 ? cameraTargetOverride
                 : FindChildRecursive(player.transform, cameraPivotName);
+
+        Transform aimTarget =
+            FindChildRecursive(
+                player.transform,
+                aimTargetName
+            );
 
         if (cameraTarget == null)
         {
@@ -101,9 +139,6 @@ public class CharacterRuntimeBinder : MonoBehaviour
             cameraCollision = mainCamera.GetComponent<CameraCollision>();
         }
 
-        if (cameraCollision == null)
-            cameraCollision = FindSceneComponent<CameraCollision>();
-
         if (cameraCollision != null)
         {
             cameraCollision.SetCameraPivot(cameraTarget);
@@ -116,29 +151,52 @@ public class CharacterRuntimeBinder : MonoBehaviour
             );
         }
 
-        if (inventoryGridUI == null)
-            inventoryGridUI = FindSceneComponent<InventoryGridUI>();
-
-        if (storageContainerGridUI == null)
-            storageContainerGridUI = FindSceneComponent<StorageContainerGridUI>();
-
-        if (contextPanelController == null)
-            contextPanelController = FindSceneComponent<InventoryContextPanelController>();
-
         if (storageContainerPanel == null &&
             storageContainerGridUI != null)
         {
             storageContainerPanel = storageContainerGridUI.gameObject;
         }
 
-        if (heldItemUI == null)
-            heldItemUI = FindSceneComponent<HeldItemUI>();
+        if (inventoryFollow != null)
+        {
+            inventoryFollow.BindPlayer(
+                player.transform,
+                mainCamera,
+                storageInteract
+            );
+        }
+        else
+        {
+            Debug.LogWarning(
+                "CharacterRuntimeBinder could not find InventoryFollow to bind.",
+                this
+            );
+        }
 
-        if (playerResourcesUI == null)
-            playerResourcesUI = FindSceneComponent<PlayerResourcesUI>();
+        if (playerCrosshair != null)
+        {
+            if (aimTarget == null)
+            {
+                Debug.LogWarning(
+                    $"CharacterRuntimeBinder could not find aim target named '{aimTargetName}'.",
+                    this
+                );
+            }
 
-        if (inventoryMenuController == null)
-            inventoryMenuController = FindSceneComponent<InventoryMenuController>();
+            playerCrosshair.BindPlayer(
+                playerInput,
+                player.transform,
+                mainCamera,
+                aimTarget
+            );
+        }
+        else
+        {
+            Debug.LogWarning(
+                "CharacterRuntimeBinder could not find PlayerCrosshair to bind.",
+                this
+            );
+        }
 
         if (storageInteract != null)
         {
@@ -146,12 +204,28 @@ public class CharacterRuntimeBinder : MonoBehaviour
                 mainCamera != null ? mainCamera.transform : null,
                 storageContainerGridUI,
                 storageContainerPanel,
-                contextPanelController
+                contextPanelController,
+                inventoryMenuController
+            );
+        }
+
+        if (inventoryMenuController != null)
+        {
+            inventoryMenuController.BindInput(
+                inputRouter
+            );
+
+            inventoryMenuController.BindPlayerStorageInteract(
+                storageInteract
             );
         }
 
         if (inventoryGridUI != null)
         {
+            inventoryGridUI.BindInput(
+                inputRouter
+            );
+
             inventoryGridUI.BindPlayer(
                 playerInventory,
                 storageInteract
@@ -175,27 +249,36 @@ public class CharacterRuntimeBinder : MonoBehaviour
             );
         }
 
-        WeaponSetSlotUI[] weaponSetSlotUIs =
-            Resources.FindObjectsOfTypeAll<
-                WeaponSetSlotUI>();
+        Transform slotUIRoot =
+            inventorySlotUIRoot != null
+                ? inventorySlotUIRoot
+                : inventoryMenuController != null
+                    ? inventoryMenuController.transform
+                    : null;
 
-        for (int i = 0;
-             i < weaponSetSlotUIs.Length;
-             i++)
+        BindSlotUIs(
+            slotUIRoot,
+            playerInventory,
+            playerWeaponSlots,
+            playerEquipment
+        );
+
+        if (closedPreviewUIs != null)
         {
-            WeaponSetSlotUI weaponSetSlotUI =
-                weaponSetSlotUIs[i];
-
-            if (weaponSetSlotUI == null ||
-                !weaponSetSlotUI.gameObject.scene.IsValid())
+            for (int i = 0;
+                 i < closedPreviewUIs.Length;
+                 i++)
             {
-                continue;
-            }
+                HeldItemClosedPreviewUI closedPreviewUI =
+                    closedPreviewUIs[i];
 
-            weaponSetSlotUI.BindPlayer(
-                playerInventory,
-                playerWeaponSlots
-            );
+                if (closedPreviewUI == null)
+                    continue;
+
+                closedPreviewUI.BindPlayer(
+                    playerInventory
+                );
+            }
         }
 
         if (playerResourcesUI != null)
@@ -207,30 +290,74 @@ public class CharacterRuntimeBinder : MonoBehaviour
         );
     }
 
-    private T FindSceneComponent<T>() where T : Component
+    private void BindSlotUIs(
+        Transform root,
+        PlayerInventory playerInventory,
+        PlayerWeaponSlots playerWeaponSlots,
+        PlayerEquipment playerEquipment)
     {
-        T[] matches =
-            Resources.FindObjectsOfTypeAll<T>();
-
-        for (int i = 0; i < matches.Length; i++)
+        if (root == null)
         {
-            T match = matches[i];
+            Debug.LogWarning(
+                "CharacterRuntimeBinder could not find an inventory slot UI root.",
+                this
+            );
 
-            if (match == null ||
-                !match.gameObject.scene.IsValid())
-            {
-                continue;
-            }
-
-            return match;
+            return;
         }
 
-        return null;
+        WeaponSetSlotUI[] weaponSlots =
+            root.GetComponentsInChildren<WeaponSetSlotUI>(
+                true
+            );
+
+        for (int i = 0;
+             i < weaponSlots.Length;
+             i++)
+        {
+            WeaponSetSlotUI slotUI =
+                weaponSlots[i];
+
+            if (slotUI == null)
+                continue;
+
+            slotUI.BindPlayer(
+                playerInventory,
+                playerWeaponSlots
+            );
+        }
+
+        EquipmentSlotUI[] equipmentSlots =
+            root.GetComponentsInChildren<EquipmentSlotUI>(
+                true
+            );
+
+        for (int i = 0;
+             i < equipmentSlots.Length;
+             i++)
+        {
+            EquipmentSlotUI slotUI =
+                equipmentSlots[i];
+
+            if (slotUI == null)
+                continue;
+
+            slotUI.BindPlayer(
+                playerInventory,
+                playerEquipment
+            );
+        }
+
+        Debug.Log(
+            $"Bound {weaponSlots.Length} weapon slot UIs and " +
+            $"{equipmentSlots.Length} equipment slot UIs.",
+            root
+        );
     }
 
     private Transform FindChildRecursive(
-    Transform parent,
-    string childName)
+        Transform parent,
+        string childName)
     {
         if (parent == null ||
             string.IsNullOrWhiteSpace(childName))
