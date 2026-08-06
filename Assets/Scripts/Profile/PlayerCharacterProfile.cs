@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using System.Collections.Generic;
 
 public class PlayerCharacterProfile : MonoBehaviour
 {
@@ -26,6 +27,16 @@ public class PlayerCharacterProfile : MonoBehaviour
         get;
         private set;
     }
+
+    public BackgroundDefinition BackgroundDefinition
+    {
+        get;
+        private set;
+    }
+
+    public IReadOnlyList<TraitDefinition>
+        TraitDefinitions =>
+            traitDefinitions;
 
     public CharacterAttributes PermanentAttributes
     {
@@ -56,6 +67,10 @@ public class PlayerCharacterProfile : MonoBehaviour
 
     public PlayerStatusEffects StatusEffects =>
         statusEffects;
+
+    private readonly List<TraitDefinition>
+        traitDefinitions =
+            new List<TraitDefinition>();
 
     public CharacterAppearanceData Appearance =>
         ProfileData != null
@@ -133,15 +148,30 @@ public class PlayerCharacterProfile : MonoBehaviour
         ProfileData = profileData;
         RaceDefinition = raceDefinition;
         SubraceDefinition = subraceDefinition;
-        LineageSelections = lineageSelections;
+        LineageSelections =
+            lineageSelections ??
+            new LineageSelection[0];
 
-        PermanentAttributes =
-            CharacterAttributes.ClampMinimum(
-                CharacterAttributes.Copy(
-                    ProfileData.currentAttributes
-                ),
-                1
-            );
+        BackgroundDefinition =
+            backgroundDefinition;
+
+        traitDefinitions.Clear();
+
+        if (resolvedTraitDefinitions != null)
+        {
+            foreach (TraitDefinition traitDefinition
+                     in resolvedTraitDefinitions)
+            {
+                if (traitDefinition != null)
+                {
+                    traitDefinitions.Add(
+                        traitDefinition
+                    );
+                }
+            }
+        }
+
+        ResolvePermanentAttributes();
 
         ResolveEffectiveValues();
 
@@ -187,6 +217,48 @@ public class PlayerCharacterProfile : MonoBehaviour
         LogResolvedCharacter();
     }
 
+    private void ResolvePermanentAttributes()
+    {
+        List<LineageSelection> lineages =
+            new List<LineageSelection>(
+                LineageSelections
+            );
+
+        ResolvedCharacterStats liveResolvedStats =
+            CharacterStatsResolver.ResolveCharacter(
+                RaceDefinition,
+                SubraceDefinition,
+                lineages,
+                BackgroundDefinition,
+                traitDefinitions
+            );
+
+        CharacterAttributes savedCreatedAttributes =
+            ProfileData.createdAttributes ??
+            ProfileData.currentAttributes;
+
+        CharacterAttributes savedCurrentAttributes =
+            ProfileData.currentAttributes ??
+            savedCreatedAttributes;
+
+        CharacterAttributeModifiers
+            permanentProgression =
+                CharacterAttributeModifiers
+                    .FromDifference(
+                        savedCurrentAttributes,
+                        savedCreatedAttributes
+                    );
+
+        PermanentAttributes =
+            CharacterAttributes.ClampMinimum(
+                CharacterAttributes.AddModifiers(
+                    liveResolvedStats.finalAttributes,
+                    permanentProgression
+                ),
+                1
+            );
+    }
+
     private void ResolveEffectiveValues()
     {
         CharacterAttributeModifiers
@@ -225,65 +297,58 @@ public class PlayerCharacterProfile : MonoBehaviour
     private CharacterBaseStats
         ResolveEffectiveBaseStats()
     {
+        CharacterBaseStats liveBaseStats =
+            CharacterStatsResolver.ResolveBaseStats(
+                RaceDefinition,
+                SubraceDefinition
+            );
+
+        CharacterBaseStats createdBaseStats =
+            ProfileData != null
+                ? ProfileData.createdBaseStats
+                : null;
+
+        CharacterBaseStats currentBaseStats =
+            ProfileData != null
+                ? ProfileData.currentBaseStats
+                : null;
+
+        if (createdBaseStats == null)
+        {
+            createdBaseStats =
+                currentBaseStats ??
+                liveBaseStats;
+        }
+
+        if (currentBaseStats == null)
+        {
+            currentBaseStats =
+                createdBaseStats;
+        }
+
+        CharacterBaseStats
+            permanentBaseProgression =
+                CharacterBaseStats.FromDifference(
+                    currentBaseStats,
+                    createdBaseStats
+                );
+
+        CharacterBaseStats progressedBaseStats =
+            CharacterBaseStats.Add(
+                liveBaseStats,
+                permanentBaseProgression
+            );
+
         CharacterBaseStats effectiveBonuses =
             CharacterStatsResolver
                 .ResolveAttributeStatBonuses(
                     EffectiveAttributes
                 );
 
-        if (ProfileData == null ||
-            ProfileData.currentBaseStats == null)
-        {
-            CharacterBaseStats liveBaseStats =
-                CharacterStatsResolver.ResolveBaseStats(
-                    RaceDefinition,
-                    SubraceDefinition
-                );
-
-            return CharacterBaseStats.Add(
-                liveBaseStats,
-                effectiveBonuses
-            );
-        }
-
-        CharacterBaseStats savedTotalStats =
-            CharacterBaseStats.Copy(
-                ProfileData.currentBaseStats
-            );
-
-        CharacterBaseStats permanentBonuses =
-            CharacterStatsResolver
-                .ResolveAttributeStatBonuses(
-                    PermanentAttributes
-                );
-
-        return new CharacterBaseStats
-        {
-            health =
-                savedTotalStats.health -
-                permanentBonuses.health +
-                effectiveBonuses.health,
-
-            stamina =
-                savedTotalStats.stamina -
-                permanentBonuses.stamina +
-                effectiveBonuses.stamina,
-
-            mana =
-                savedTotalStats.mana -
-                permanentBonuses.mana +
-                effectiveBonuses.mana,
-
-            staggerResist =
-                savedTotalStats.staggerResist -
-                permanentBonuses.staggerResist +
-                effectiveBonuses.staggerResist,
-
-            carryWeight =
-                savedTotalStats.carryWeight -
-                permanentBonuses.carryWeight +
-                effectiveBonuses.carryWeight
-        };
+        return CharacterBaseStats.Add(
+            progressedBaseStats,
+            effectiveBonuses
+        );
     }
 
     private void ApplyResources(

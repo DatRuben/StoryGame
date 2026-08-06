@@ -751,7 +751,7 @@ public class CharacterCreator : MonoBehaviour
                 resolvedStats.finalAttributes
             ),
             CharacterBaseStats.Copy(
-                resolvedStats.totalBaseStats
+                resolvedStats.baseStats
             ),
             out profile,
             out errorMessage
