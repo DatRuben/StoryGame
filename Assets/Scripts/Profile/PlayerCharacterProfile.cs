@@ -50,6 +50,18 @@ public class PlayerCharacterProfile : MonoBehaviour
         private set;
     }
 
+    public CharacterAttributeOutput PermanentAttributeOutput
+    {
+        get;
+        private set;
+    }
+
+    public CharacterAttributeOutput EffectiveAttributeOutput
+    {
+        get;
+        private set;
+    }
+
     public CharacterAttributes FinalAttributes =>
         EffectiveAttributes;
 
@@ -259,6 +271,11 @@ public class PlayerCharacterProfile : MonoBehaviour
                 ),
                 1
             );
+
+        PermanentAttributeOutput =
+            ResolveAttributeOutput(
+                PermanentAttributes
+            );
     }
 
     private void ResolveEffectiveValues()
@@ -280,6 +297,11 @@ public class PlayerCharacterProfile : MonoBehaviour
                 1
             );
 
+        EffectiveAttributeOutput =
+            ResolveAttributeOutput(
+                EffectiveAttributes
+            );
+
         CharacterBaseStats effectiveBaseStats =
             ResolveEffectiveBaseStats();
 
@@ -294,6 +316,20 @@ public class PlayerCharacterProfile : MonoBehaviour
                 SubraceDefinition,
                 EffectiveAttributes
             );
+    }
+
+    private CharacterAttributeOutput ResolveAttributeOutput(
+        CharacterAttributes attributes)
+    {
+        CharacterAttributeScaling scaling =
+            RaceDefinition != null
+                ? RaceDefinition.attributeScaling
+                : null;
+
+        return CharacterAttributeOutputResolver.Resolve(
+            attributes,
+            scaling
+        );
     }
 
     private CharacterBaseStats
