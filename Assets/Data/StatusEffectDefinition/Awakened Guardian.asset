@@ -12,21 +12,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 514cd60d572f88f4ab7b3e2f3d131eb5, type: 3}
   m_Name: Awakened Guardian
   m_EditorClassIdentifier: Assembly-CSharp::StatusEffectDefinition
-  effectId: 
-  displayName: 
+  effectId: awakened_guardian
+  displayName: Awakened Guardian
   description: 
   icon: {fileID: 0}
-  disposition: 0
-  duration: 0
+  disposition: 1
+  duration: 30
   stacking: 0
   maxStacks: 1
   attributeModifiers:
-    strength: 0
-    dexterity: 0
-    agility: 0
-    vitality: 0
-    endurance: 0
-    intelligence: 0
-    willpower: 0
-    spirit: 0
-    perception: 0
+    strength: 4
+    dexterity: 1
+    agility: 4
+    vitality: 2
+    endurance: 2
+    intelligence: 5
+    willpower: 3
+    spirit: 3
+    perception: 1
