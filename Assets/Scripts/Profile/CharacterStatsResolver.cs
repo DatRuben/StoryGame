@@ -3,6 +3,13 @@ using UnityEngine;
 
 public static class CharacterStatsResolver
 {
+    private const int MovementBaselineAgility = 10;
+
+    private const float AgilitySpeedPerPoint = 0.01f;
+    private const float AgilityAccelerationPerPoint = 0.015f;
+    private const float AgilityDodgeDistancePerPoint = 0.0075f;
+    private const float AgilityDodgeCooldownPerPoint = 0.005f;
+
     public static FinalCharacterStats ResolveFinalStats(
         CharacterBaseStats totalBaseStats,
         CharacterAttributes attributes)
@@ -109,6 +116,23 @@ public static class CharacterStatsResolver
             subraceDefinition,
             movementBaseType
         );
+    }
+
+    public static FinalMovementStats ResolveMovementStats(
+        SubraceDefinition subraceDefinition,
+        CharacterAttributes attributes)
+    {
+        FinalMovementStats movementStats =
+            ResolveMovementStats(
+                subraceDefinition
+            );
+
+        ApplyAttributeMovementModifiers(
+            movementStats,
+            attributes
+        );
+
+        return movementStats;
     }
 
     public static FinalMovementStats ResolveMovementStats(
@@ -231,6 +255,82 @@ public static class CharacterStatsResolver
                 movementStats.dodgeControl = 0.15f;
                 break;
         }
+    }
+
+    private static void ApplyAttributeMovementModifiers(
+        FinalMovementStats movementStats,
+        CharacterAttributes attributes)
+    {
+        if (movementStats == null ||
+            attributes == null)
+        {
+            return;
+        }
+
+        float agilityDifference =
+            attributes.agility -
+            MovementBaselineAgility;
+
+        float speedMultiplier =
+            Mathf.Clamp(
+                1f +
+                agilityDifference *
+                AgilitySpeedPerPoint,
+                0.75f,
+                1.35f
+            );
+
+        float accelerationMultiplier =
+            Mathf.Clamp(
+                1f +
+                agilityDifference *
+                AgilityAccelerationPerPoint,
+                0.7f,
+                1.5f
+            );
+
+        float dodgeDistanceMultiplier =
+            Mathf.Clamp(
+                1f +
+                agilityDifference *
+                AgilityDodgeDistancePerPoint,
+                0.8f,
+                1.3f
+            );
+
+        float dodgeCooldownMultiplier =
+            Mathf.Clamp(
+                1f -
+                agilityDifference *
+                AgilityDodgeCooldownPerPoint,
+                0.7f,
+                1.3f
+            );
+
+        movementStats.walkSpeed *=
+            speedMultiplier;
+
+        movementStats.sprintSpeed *=
+            speedMultiplier;
+
+        movementStats.groundAcceleration *=
+            accelerationMultiplier;
+
+        movementStats.airAcceleration *=
+            accelerationMultiplier;
+
+        movementStats.deceleration *=
+            accelerationMultiplier;
+
+        movementStats.dodgeDistance *=
+            dodgeDistanceMultiplier;
+
+        movementStats.dodgeCooldown =
+            Mathf.Max(
+                0.05f,
+                movementStats.dodgeCooldown *
+                dodgeCooldownMultiplier
+            );
     }
 
     private static void ApplySizeMovementModifiers(
@@ -421,7 +521,8 @@ public static class CharacterStatsResolver
 
         FinalMovementStats movementStats =
             ResolveMovementStats(
-                subrace
+                subrace,
+                finalAttributes
             );
 
         return new ResolvedCharacterStats

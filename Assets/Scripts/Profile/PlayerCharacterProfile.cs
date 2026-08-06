@@ -40,19 +40,10 @@ public class PlayerCharacterProfile : MonoBehaviour
                 FinalAttributes
             );
 
-        if (ProfileData.currentMovementStats == null)
-        {
-            Debug.LogWarning(
-                $"Character profile '{ProfileData.characterName}' " +
-                "does not contain a saved movement snapshot. " +
-                "This is probably an outdated development save.",
-                this
-            );
-        }
-
         FinalMovementStats =
-            global::FinalMovementStats.Copy(
-                ProfileData.currentMovementStats
+            CharacterStatsResolver.ResolveMovementStats(
+                SubraceDefinition,
+                FinalAttributes
             );
 
         CharacterAppearanceData appearance =

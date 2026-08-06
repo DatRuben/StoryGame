@@ -292,10 +292,6 @@ public class PlayerSpawner : MonoBehaviour
 
                 CharacterBaseStats.Copy(
                     resolvedStats.totalBaseStats
-                ),
-
-                FinalMovementStats.Copy(
-                    resolvedStats.movementStats
                 )
             );
 

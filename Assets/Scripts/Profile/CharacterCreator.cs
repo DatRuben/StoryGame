@@ -747,19 +747,12 @@ public class CharacterCreator : MonoBehaviour
             CharacterAppearanceData.Copy(
                 selectedAppearance
             ),
-
             CharacterAttributes.Copy(
                 resolvedStats.finalAttributes
             ),
-
             CharacterBaseStats.Copy(
                 resolvedStats.totalBaseStats
             ),
-
-            FinalMovementStats.Copy(
-                resolvedStats.movementStats
-            ),
-
             out profile,
             out errorMessage
         );
