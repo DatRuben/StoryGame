@@ -285,8 +285,18 @@ public class PlayerSpawner : MonoBehaviour
                 "",
                 new List<string>(),
                 CharacterAppearanceData.CreateDefault(),
-                CharacterAttributes.Copy(resolvedStats.finalAttributes),
-                CharacterBaseStats.Copy(resolvedStats.totalBaseStats)
+
+                CharacterAttributes.Copy(
+                    resolvedStats.finalAttributes
+                ),
+
+                CharacterBaseStats.Copy(
+                    resolvedStats.totalBaseStats
+                ),
+
+                FinalMovementStats.Copy(
+                    resolvedStats.movementStats
+                )
             );
 
         return profile != null;
