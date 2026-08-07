@@ -1,62 +1,54 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+[Serializable]
 public class PlacedInventoryItem
 {
-    public ItemDefinition ItemDefinition { get; private set; }
-    public Vector2Int Position { get; private set; }
+    [SerializeField]
+    private InventoryItemInstance itemInstance;
 
-    // 0 = 0°
-    // 1 = 90°
-    // 2 = 180°
-    // 3 = 270°
-    public int RotationSteps { get; private set; }
+    [SerializeField]
+    private Vector2Int position;
 
-    public int Quantity { get; private set; }
+    [SerializeField]
+    private int rotationSteps;
 
-    public bool IsStackable
-    {
-        get
-        {
-            return ItemDefinition != null &&
-                   ItemDefinition.isStackable;
-        }
-    }
+    public InventoryItemInstance ItemInstance =>
+        itemInstance;
 
-    public int MaxStackSize
-    {
-        get
-        {
-            if (ItemDefinition == null)
-                return 1;
+    public ItemDefinition ItemDefinition =>
+        itemInstance != null
+            ? itemInstance.Definition
+            : null;
 
-            return Mathf.Max(1, ItemDefinition.maxStackSize);
-        }
-    }
+    public Vector2Int Position =>
+        position;
 
-    public bool HasRoomInStack
-    {
-        get
-        {
-            return IsStackable &&
-                   Quantity < MaxStackSize;
-        }
-    }
+    public int RotationSteps =>
+        rotationSteps;
 
-    public PlacedInventoryItem(
-        ItemDefinition itemDefinition,
-        Vector2Int position,
-        int rotationSteps,
-        int quantity = 1)
-    {
-        ItemDefinition = itemDefinition;
-        Position = position;
+    public int Quantity =>
+        itemInstance != null
+            ? itemInstance.Quantity
+            : 0;
 
-        RotationSteps =
-            NormalizeRotationSteps(rotationSteps);
+    public bool IsStackable =>
+        itemInstance != null &&
+        itemInstance.IsStackable;
 
-        SetQuantity(quantity);
-    }
+    public int MaxStackSize =>
+        itemInstance != null
+            ? itemInstance.MaxStackSize
+            : 1;
+
+    public bool HasRoomInStack =>
+        itemInstance != null &&
+        itemInstance.HasRoomInStack;
+
+    public bool IsEmpty =>
+        itemInstance == null ||
+        itemInstance.IsEmpty;
 
     public int Width
     {
@@ -65,7 +57,9 @@ public class PlacedInventoryItem
             if (ItemDefinition == null)
                 return 1;
 
-            return ItemDefinition.GetWidth(RotationSteps);
+            return ItemDefinition.GetWidth(
+                rotationSteps
+            );
         }
     }
 
@@ -76,75 +70,99 @@ public class PlacedInventoryItem
             if (ItemDefinition == null)
                 return 1;
 
-            return ItemDefinition.GetHeight(RotationSteps);
+            return ItemDefinition.GetHeight(
+                rotationSteps
+            );
         }
+    }
+
+    public PlacedInventoryItem(
+        ItemDefinition itemDefinition,
+        Vector2Int position,
+        int rotationSteps,
+        int quantity = 1)
+        : this(
+            new InventoryItemInstance(
+                itemDefinition,
+                quantity
+            ),
+            position,
+            rotationSteps
+        )
+    {
+    }
+
+    public PlacedInventoryItem(
+        InventoryItemInstance itemInstance,
+        Vector2Int position,
+        int rotationSteps)
+    {
+        this.itemInstance =
+            itemInstance;
+
+        this.position =
+            position;
+
+        this.rotationSteps =
+            ItemDefinition.NormalizeRotationSteps(
+                rotationSteps
+            );
+
+        this.itemInstance?.EnsureValid();
+    }
+
+    public void SetPosition(
+        Vector2Int newPosition)
+    {
+        position =
+            newPosition;
     }
 
     public void RotateCounterClockwise()
     {
-        RotationSteps =
-            NormalizeRotationSteps(RotationSteps - 1);
-    }
-
-    public void SetRotationSteps(int rotationSteps)
-    {
-        RotationSteps =
-            NormalizeRotationSteps(rotationSteps);
-    }
-
-    public void SetQuantity(int quantity)
-    {
-        int max =
-            MaxStackSize;
-
-        Quantity =
-            Mathf.Clamp(
-                quantity,
-                1,
-                max
+        rotationSteps =
+            ItemDefinition.NormalizeRotationSteps(
+                rotationSteps - 1
             );
     }
 
-    public int AddQuantity(int amount)
+    public void SetRotationSteps(
+        int newRotationSteps)
     {
-        if (amount <= 0)
-            return 0;
-
-        if (!IsStackable)
-            return 0;
-
-        int room =
-            MaxStackSize - Quantity;
-
-        int added =
-            Mathf.Min(room, amount);
-
-        Quantity += added;
-
-        return added;
+        rotationSteps =
+            ItemDefinition.NormalizeRotationSteps(
+                newRotationSteps
+            );
     }
 
-    public int RemoveQuantity(int amount)
+    public void SetQuantity(
+        int quantity)
     {
-        if (amount <= 0)
-            return 0;
-
-        int removed =
-            Mathf.Min(Quantity, amount);
-
-        Quantity -= removed;
-
-        return removed;
+        itemInstance?.SetQuantity(
+            quantity
+        );
     }
 
-    private int NormalizeRotationSteps(int rotationSteps)
+    public int AddQuantity(
+        int amount)
     {
-        rotationSteps %= 4;
+        if (itemInstance == null)
+            return 0;
 
-        if (rotationSteps < 0)
-            rotationSteps += 4;
+        return itemInstance.AddQuantity(
+            amount
+        );
+    }
 
-        return rotationSteps;
+    public int RemoveQuantity(
+        int amount)
+    {
+        if (itemInstance == null)
+            return 0;
+
+        return itemInstance.RemoveQuantity(
+            amount
+        );
     }
 
     public List<Vector2Int> GetOccupiedCellsAt(
@@ -156,12 +174,15 @@ public class PlacedInventoryItem
         if (ItemDefinition == null)
             return occupiedCells;
 
-        IReadOnlyList<Vector2Int> rotatedCells =
-            ItemDefinition.GetOccupiedCells(
-                RotationSteps
-            );
+        IReadOnlyList<Vector2Int>
+            rotatedCells =
+                ItemDefinition.GetOccupiedCells(
+                    rotationSteps
+                );
 
-        for (int i = 0; i < rotatedCells.Count; i++)
+        for (int i = 0;
+             i < rotatedCells.Count;
+             i++)
         {
             occupiedCells.Add(
                 origin + rotatedCells[i]
@@ -178,15 +199,22 @@ public class PlacedInventoryItem
         if (ItemDefinition == null)
             return false;
 
-        IReadOnlyList<Vector2Int> rotatedCells =
-            ItemDefinition.GetOccupiedCells(
-                RotationSteps
-            );
+        IReadOnlyList<Vector2Int>
+            rotatedCells =
+                ItemDefinition.GetOccupiedCells(
+                    rotationSteps
+                );
 
-        for (int i = 0; i < rotatedCells.Count; i++)
+        for (int i = 0;
+             i < rotatedCells.Count;
+             i++)
         {
-            if (origin + rotatedCells[i] == cellCoordinate)
+            if (origin +
+                rotatedCells[i] ==
+                cellCoordinate)
+            {
                 return true;
+            }
         }
 
         return false;

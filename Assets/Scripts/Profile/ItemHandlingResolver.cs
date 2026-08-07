@@ -304,7 +304,12 @@ public static class ItemHandlingResolver
                     ItemHandlingFailureReason
                         .NoAvailableGrip;
             }
-            else
+            else if (
+                failure.useFailureReason ==
+                    ItemHandlingFailureReason.None ||
+                failure.useFailureReason ==
+                    ItemHandlingFailureReason
+                        .NotEnoughAssignedGrips)
             {
                 failure.useFailureReason =
                     ItemHandlingFailureReason
