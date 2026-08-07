@@ -103,8 +103,45 @@ public class ItemDefinition : ScriptableObject
 
     public bool[] occupiedCells = new bool[1] { true };
 
+    public void RefreshHandling()
+    {
+        weight =
+            Mathf.Max(
+                0f,
+                weight
+            );
+
+        minimumUseGripCount =
+            Mathf.Max(
+                1,
+                minimumUseGripCount
+            );
+
+        if (!canHoldWithHands)
+            canUseWithHands = false;
+
+        if (!canHoldWithMouth)
+            canUseWithMouth = false;
+
+        // Temporary compatibility with the old slot system.
+        handUsage =
+            minimumUseGripCount >= 2
+                ? ItemHandUsage.TwoHanded
+                : ItemHandUsage.OneHanded;
+
+        // The legacy enum cannot represent both.
+        // Prefer hand operation when both are allowed.
+        weaponUseType =
+            !canUseWithHands &&
+            canUseWithMouth
+                ? WeaponUseType.MouthWeapon
+                : WeaponUseType.HandWeapon;
+    }
+
     private void OnValidate()
     {
+        RefreshHandling();
+
         weight =
             Mathf.Max(
                 0f,
@@ -354,6 +391,7 @@ public class ItemDefinitionEditor : Editor
 
         if (EditorGUI.EndChangeCheck())
         {
+            item.RefreshHandling();
             EditorUtility.SetDirty(item);
         }
     }
@@ -403,12 +441,6 @@ public class ItemDefinitionEditor : Editor
                 item.itemIcon,
                 typeof(Sprite),
                 false
-            );
-
-        item.handUsage =
-            (ItemHandUsage)EditorGUILayout.EnumPopup(
-                "Hand Usage",
-                item.handUsage
             );
 
         EditorGUILayout.LabelField("Held Controls Text");
