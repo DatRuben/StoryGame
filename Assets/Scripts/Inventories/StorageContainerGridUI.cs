@@ -46,10 +46,9 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
     private int lastHeldPreviewRotationSteps = -1;
     private bool playerHasBeenBound;
 
-    private ItemDefinition dragOriginalItemData;
+    private InventoryItemInstance dragOriginalItemInstance;
     private Vector2Int dragOriginalPosition;
     private int dragOriginalRotationSteps;
-    private int dragOriginalQuantity;
 
     private static StorageContainerGridUI activeStorageDragUI;
 
@@ -847,16 +846,20 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
         }
 
         activeStorageDragUI = this;
-        dragOriginalItemData = sourceItem.ItemDefinition;
-        dragOriginalPosition = sourceItem.Position;
-        dragOriginalRotationSteps = sourceItem.RotationSteps;
-        dragOriginalQuantity = sourceItem.Quantity;
+
+        dragOriginalItemInstance =
+            sourceItem.ItemInstance;
+
+        dragOriginalPosition =
+            sourceItem.Position;
+
+        dragOriginalRotationSteps =
+            sourceItem.RotationSteps;
 
         playerInventory.SetMouseHeldItemFromExternal(
-            sourceItem.ItemDefinition,
+            sourceItem.ItemInstance,
             sourceItem.RotationSteps,
-            false,
-            sourceItem.Quantity
+            false
         );
 
         Refresh();
@@ -938,10 +941,9 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
         }
 
         playerInventory.SetMouseHeldItemFromExternal(
-            pickedItem.ItemDefinition,
+            pickedItem.ItemInstance,
             pickedItem.RotationSteps,
-            true,
-            pickedItem.Quantity
+            true
         );
 
         Refresh();
@@ -992,11 +994,16 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
 
         sourceStack.SetQuantity(remainingQuantity);
 
+        InventoryItemInstance splitInstance =
+            new InventoryItemInstance(
+                itemDefinition,
+                splitQuantity
+            );
+
         playerInventory.SetMouseHeldItemFromExternal(
-            itemDefinition,
+            splitInstance,
             sourceStack.RotationSteps,
-            true,
-            splitQuantity
+            true
         );
 
         storageContainer.NotifyChanged();
@@ -1020,11 +1027,25 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
         PlacedInventoryItem heldItem =
             playerInventory.HeldItem;
 
-        if (heldItem == null ||
-            heldItem.ItemDefinition == null)
+        InventoryItemInstance
+            instanceToPlace;
+
+        if (heldItem.Quantity == 1)
         {
-            return false;
+            instanceToPlace =
+                heldItem.ItemInstance;
         }
+        else
+        {
+            instanceToPlace =
+                new InventoryItemInstance(
+                    itemDefinition,
+                    1
+                );
+        }
+
+        if (instanceToPlace == null)
+            return false;
 
         Vector2Int placementOrigin =
             GetHeldPlacementOrigin(
@@ -1033,86 +1054,10 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
 
         bool placed =
             storageContainer.PlaceItem(
-                heldItem.ItemDefinition,
+                instanceToPlace,
                 placementOrigin.x,
                 placementOrigin.y,
-                heldItem.RotationSteps,
-                heldItem.Quantity
-            );
-
-        if (!placed)
-            return false;
-
-        playerInventory.ClearHeldItemAfterExternalMove();
-        Refresh();
-        return true;
-    }
-
-    private bool TryPlaceOneHeldItemIntoContainer(Vector2Int coordinate)
-    {
-        if (storageContainer == null ||
-            storageContainer.Grid == null ||
-            playerInventory == null ||
-            !playerInventory.IsHoldingItem)
-        {
-            return false;
-        }
-
-        PlacedInventoryItem heldItem =
-            playerInventory.HeldItem;
-
-        if (heldItem == null ||
-            heldItem.ItemDefinition == null)
-        {
-            return false;
-        }
-
-        ItemDefinition itemDefinition =
-            heldItem.ItemDefinition;
-
-        if (!itemDefinition.isStackable)
-            return false;
-
-        PlacedInventoryItem targetStack =
-            storageContainer.Grid.GetPlacedItem(
-                coordinate.x,
-                coordinate.y
-            );
-
-        if (targetStack != null)
-        {
-            if (targetStack.ItemDefinition != itemDefinition)
-                return false;
-
-            if (!targetStack.ItemDefinition.isStackable)
-                return false;
-
-            if (!targetStack.HasRoomInStack)
-                return false;
-
-            int addedQuantity =
-                targetStack.AddQuantity(1);
-
-            if (addedQuantity <= 0)
-                return false;
-
-            ReducePlayerHeldStackAfterPlacingOne();
-            storageContainer.NotifyChanged();
-            Refresh();
-
-            return true;
-        }
-
-        Vector2Int placementOrigin =
-            GetHeldPlacementOrigin(coordinate);
-
-        bool placed =
-            storageContainer.PlaceItem(
-                itemDefinition,
-                placementOrigin.x,
-                placementOrigin.y,
-                heldItem.RotationSteps,
-                1
+                heldItem.RotationSteps
             );
 
         if (!placed)
@@ -1237,20 +1182,18 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
         }
 
         playerInventory.TryAddItemToFirstAvailableSpace(
-            pickedItem.ItemDefinition,
+            pickedItem.ItemInstance,
             pickedItem.RotationSteps,
-            pickedItem.Quantity,
             out int remainingQuantity
         );
 
         if (remainingQuantity > 0)
         {
             storageContainer.PlaceItem(
-                pickedItem.ItemDefinition,
+                pickedItem.ItemInstance,
                 pickedItem.Position.x,
                 pickedItem.Position.y,
-                pickedItem.RotationSteps,
-                remainingQuantity
+                pickedItem.RotationSteps
             );
         }
 
@@ -1263,15 +1206,14 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
             return;
 
         if (storageContainer != null &&
-            dragOriginalItemData != null)
+            dragOriginalItemInstance != null)
         {
             bool restored =
                 storageContainer.PlaceItem(
-                    dragOriginalItemData,
+                    dragOriginalItemInstance,
                     dragOriginalPosition.x,
                     dragOriginalPosition.y,
-                    dragOriginalRotationSteps,
-                    dragOriginalQuantity
+                    dragOriginalRotationSteps
                 );
 
             if (!restored)
@@ -1298,10 +1240,7 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
         if (activeStorageDragUI == this)
             activeStorageDragUI = null;
 
-        dragOriginalItemData = null;
-        dragOriginalPosition = Vector2Int.zero;
-        dragOriginalRotationSteps = 0;
-        dragOriginalQuantity = 0;
+        dragOriginalItemInstance = null;
     }
 
     private Vector2Int GetHeldPlacementOrigin(

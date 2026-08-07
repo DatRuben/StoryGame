@@ -137,37 +137,41 @@ public class StorageContainer : MonoBehaviour
     }
 
     public bool TryAddItem(
-        ItemDefinition item,
+        InventoryItemInstance itemInstance,
         int rotationSteps,
-        int quantity,
         out int remainingQuantity)
     {
         remainingQuantity =
-            Mathf.Max(0, quantity);
+            itemInstance != null
+                ? Mathf.Max(
+                    0,
+                    itemInstance.Quantity
+                )
+                : 0;
 
         if (Grid == null ||
-            item == null ||
-            quantity <= 0)
+            itemInstance == null ||
+            itemInstance.Definition == null ||
+            itemInstance.IsEmpty)
         {
             return false;
         }
 
-        int safeQuantity =
-            GetSafeQuantityForItem(
-                item,
-                quantity
-            );
+        int originalQuantity =
+            itemInstance.Quantity;
 
         bool fullyAdded =
             Grid.TryAddItemTopLeft(
-                item,
+                itemInstance,
                 rotationSteps,
-                safeQuantity,
                 out remainingQuantity
             );
 
-        if (remainingQuantity < safeQuantity)
+        if (remainingQuantity <
+            originalQuantity)
+        {
             OnContainerChanged?.Invoke();
+        }
 
         return fullyAdded;
     }
@@ -194,28 +198,23 @@ public class StorageContainer : MonoBehaviour
     }
 
     public bool PlaceItem(
-        ItemDefinition item,
+        InventoryItemInstance itemInstance,
         int x,
         int y,
-        int rotationSteps,
-        int quantity)
+        int rotationSteps)
     {
-        if (Grid == null)
+        if (Grid == null ||
+            itemInstance == null)
+        {
             return false;
-
-        int safeQuantity =
-            GetSafeQuantityForItem(
-                item,
-                quantity
-            );
+        }
 
         bool placed =
-            Grid.SpawnItem(
-                item,
+            Grid.PlaceItem(
+                itemInstance,
                 x,
                 y,
-                rotationSteps,
-                safeQuantity
+                rotationSteps
             );
 
         if (placed)

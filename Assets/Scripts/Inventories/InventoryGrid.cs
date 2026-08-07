@@ -185,6 +185,90 @@ public class InventoryGrid
     }
 
     public bool TryAddItemTopLeft(
+    InventoryItemInstance itemInstance,
+    int startingRotationSteps,
+    out int remainingQuantity)
+    {
+        remainingQuantity =
+            itemInstance != null
+                ? Mathf.Max(
+                    0,
+                    itemInstance.Quantity
+                )
+                : 0;
+
+        if (itemInstance == null)
+            return false;
+
+        itemInstance.EnsureValid();
+
+        ItemDefinition item =
+            itemInstance.Definition;
+
+        if (item == null ||
+            itemInstance.IsEmpty)
+        {
+            return false;
+        }
+
+        int originalQuantity =
+            itemInstance.Quantity;
+
+        int remaining =
+            originalQuantity;
+
+        if (item.isStackable)
+        {
+            remaining =
+                AddToExistingStacksTopLeft(
+                    item,
+                    remaining
+                );
+        }
+
+        itemInstance.SetQuantity(
+            remaining
+        );
+
+        if (remaining <= 0)
+        {
+            remainingQuantity = 0;
+            return true;
+        }
+
+        bool foundSpace =
+            TryFindFirstAvailableSpaceTopLeft(
+                item,
+                startingRotationSteps,
+                out Vector2Int position,
+                out int rotationSteps
+            );
+
+        if (!foundSpace)
+        {
+            remainingQuantity = remaining;
+            return false;
+        }
+
+        bool placed =
+            PlaceItem(
+                itemInstance,
+                position.x,
+                position.y,
+                rotationSteps
+            );
+
+        if (!placed)
+        {
+            remainingQuantity = remaining;
+            return false;
+        }
+
+        remainingQuantity = 0;
+        return true;
+    }
+
+    public bool TryAddItemTopLeft(
     ItemDefinition item,
     int startingRotationSteps,
     int quantity,

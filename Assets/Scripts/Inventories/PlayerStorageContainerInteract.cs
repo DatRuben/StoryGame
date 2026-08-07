@@ -314,9 +314,8 @@ public class PlayerStorageContainerInteract : MonoBehaviour
         }
 
         currentOpenContainer.TryAddItem(
-            pickedItem.ItemDefinition,
+            pickedItem.ItemInstance,
             pickedItem.RotationSteps,
-            pickedItem.Quantity,
             out int remainingQuantity
         );
 
@@ -325,10 +324,6 @@ public class PlayerStorageContainerInteract : MonoBehaviour
             playerInventory.ClearHeldItemAfterExternalMove();
             return true;
         }
-
-        playerInventory.SetHeldItemQuantityAfterExternalMove(
-            remainingQuantity
-        );
 
         bool returned =
             playerInventory.TryPlaceHeldItem(

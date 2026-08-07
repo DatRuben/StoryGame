@@ -336,6 +336,46 @@ public class PlayerInventory : MonoBehaviour
         return fullyAdded;
     }
 
+    public bool TryAddItemToFirstAvailableSpace(
+        InventoryItemInstance itemInstance,
+        int rotationSteps,
+        out int remainingQuantity)
+    {
+        remainingQuantity =
+            itemInstance != null
+                ? Mathf.Max(
+                    0,
+                    itemInstance.Quantity
+                )
+                : 0;
+
+        if (Grid == null ||
+            itemInstance == null ||
+            itemInstance.Definition == null ||
+            itemInstance.IsEmpty)
+        {
+            return false;
+        }
+
+        int originalQuantity =
+            itemInstance.Quantity;
+
+        bool fullyAdded =
+            Grid.TryAddItemTopLeft(
+                itemInstance,
+                rotationSteps,
+                out remainingQuantity
+            );
+
+        if (remainingQuantity <
+            originalQuantity)
+        {
+            OnInventoryChanged?.Invoke();
+        }
+
+        return fullyAdded;
+    }
+
     public PlacedInventoryItem TryPickUpItemAt(
         int x,
         int y,
@@ -722,6 +762,58 @@ public class PlayerInventory : MonoBehaviour
 
         MouseHeldItemCountsAsHeld = countsAsHeld;
         CenterHeldItemOnCursorRequested = true;
+
+        OnHeldItemChanged?.Invoke();
+    }
+
+    public void SetMouseHeldItemFromExternal(
+        InventoryItemInstance itemInstance,
+        int rotationSteps = 0,
+        bool countsAsHeld = true)
+    {
+        if (itemInstance == null ||
+            itemInstance.Definition == null ||
+            itemInstance.IsEmpty)
+        {
+            HeldItem = null;
+            MouseHeldItemCountsAsHeld = false;
+            CenterHeldItemOnCursorRequested = false;
+
+            OnHeldItemChanged?.Invoke();
+            return;
+        }
+
+        ItemDefinition item =
+            itemInstance.Definition;
+
+        if (countsAsHeld)
+        {
+            if (playerWeaponSlots != null &&
+                playerWeaponSlots.WeaponsDrawn)
+            {
+                bool canKeepWeaponsDrawn =
+                    playerWeaponSlots
+                        .ActiveSetCanCoexistWithHeldItem(
+                            item
+                        );
+
+                if (!canKeepWeaponsDrawn)
+                    playerWeaponSlots.SheatheWeapons();
+            }
+        }
+
+        HeldItem =
+            new PlacedInventoryItem(
+                itemInstance,
+                Vector2Int.zero,
+                rotationSteps
+            );
+
+        MouseHeldItemCountsAsHeld =
+            countsAsHeld;
+
+        CenterHeldItemOnCursorRequested =
+            true;
 
         OnHeldItemChanged?.Invoke();
     }
