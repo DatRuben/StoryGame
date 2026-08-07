@@ -33,6 +33,16 @@ MonoBehaviour:
     willpower: 2
     spirit: 4
     perception: -6
+  attributeScaling:
+    strength: 1
+    dexterity: 1
+    agility: 1
+    vitality: 1
+    endurance: 1
+    intelligence: 1
+    willpower: 1
+    spirit: 1
+    perception: 1
   finalAttributesPreview:
     strength: 12
     dexterity: 4

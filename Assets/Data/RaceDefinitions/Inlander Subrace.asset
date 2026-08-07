@@ -53,6 +53,7 @@ MonoBehaviour:
   size: 7
   bodyType: 2
   previewPrefab: {fileID: 0}
-  canHoldItemInMouth: 1
-  canUseMouthWeapons: 1
+  gripProfile:
+    handGripCount: 2
+    mouthGripCount: 0
   canEquipSaddles: 1

@@ -52,7 +52,8 @@ MonoBehaviour:
   totalAttributePointsPreview: 90
   size: 0
   bodyType: 0
-  previewPrefab: {fileID: 1007992976067051819, guid: 01cdae9a1e74e6546b7d6a540c24baa9, type: 3}
-  canHoldItemInMouth: 0
-  canUseMouthWeapons: 0
+  previewPrefab: {fileID: 7170608024115322730, guid: 01cdae9a1e74e6546b7d6a540c24baa9, type: 3}
+  gripProfile:
+    handGripCount: 2
+    mouthGripCount: 0
   canEquipSaddles: 0
