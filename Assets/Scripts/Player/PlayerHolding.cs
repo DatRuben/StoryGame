@@ -202,31 +202,39 @@ public class PlayerHolding : MonoBehaviour
         return true;
     }
 
-    public bool TryHoldTwoHanded(ItemDefinition item)
+    public bool TryHoldTwoHanded(
+        ItemDefinition item)
     {
         if (item == null)
             return false;
 
-        if (item.handUsage != ItemHandUsage.TwoHanded)
+        if (availableHandGrips < 2)
             return false;
+
+        if (item.handUsage !=
+            ItemHandUsage.TwoHanded)
+        {
+            return false;
+        }
 
         leftHandItem = null;
         rightHandItem = null;
         twoHandedItem = item;
-
-        if (availableHandGrips < 2)
-            return false;
 
         OnHoldingChanged?.Invoke();
 
         return true;
     }
 
-    public bool TryHoldInMouth(ItemDefinition item)
+    public bool TryHoldInMouth(
+        ItemDefinition item)
     {
-        if (!canHoldItemInMouth)
+        if (!CanHoldItemInMouth)
         {
-            Debug.Log("This race cannot hold items in its mouth.");
+            Debug.Log(
+                "This character has no available mouth grip."
+            );
+
             return false;
         }
 

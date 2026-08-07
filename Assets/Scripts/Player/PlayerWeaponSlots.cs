@@ -532,7 +532,9 @@ public class PlayerWeaponSlots : MonoBehaviour
                 ? 2
                 : 1;
 
-        return occupiedHands + neededHands <= 2;
+        return occupiedHands +
+               neededHands <=
+               availableHandGrips;
     }
 
     private int GetActiveSetOccupiedHandCount()
