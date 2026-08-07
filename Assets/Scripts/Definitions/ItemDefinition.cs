@@ -49,21 +49,38 @@ public class ItemDefinition : ScriptableObject
     [Header("Held UI")]
     public Sprite itemIcon;
 
-    [Tooltip("Temporary/default hand usage. Later this can be calculated from race size, strength, carry size, and weight.")]
-    public ItemHandUsage handUsage = ItemHandUsage.OneHanded;
+    [Header("Physical Handling")]
+    [Min(0f)]
+    public float weight = 1f;
+
+    [Tooltip(
+        "The minimum number of grips mechanically required " +
+        "to operate this item. Strength cannot reduce it."
+    )]
+    [Min(1)]
+    public int minimumUseGripCount = 1;
+
+    [Header("Allowed Holding Grips")]
+    public bool canHoldWithHands = true;
+    public bool canHoldWithMouth;
+
+    [Header("Allowed Operating Grips")]
+    public bool canUseWithHands = true;
+    public bool canUseWithMouth;
+
+    [HideInInspector]
+    public ItemHandUsage handUsage =
+        ItemHandUsage.OneHanded;
+
+    [HideInInspector]
+    public WeaponUseType weaponUseType =
+        WeaponUseType.HandWeapon;
 
     [TextArea]
     public string heldControlsText;
 
     [TextArea]
     public string weaponControlsText;
-
-    [Header("Weapon Use")]
-    public WeaponUseType weaponUseType = WeaponUseType.HandWeapon;
-
-    [Header("Future Carry Requirements")]
-    [Min(1)] public int carrySize = 1;
-    [Min(0f)] public float carryWeight = 1f;
 
     [Header("Equipment")]
     public EquipmentSlotType equipmentSlotType = EquipmentSlotType.Saddle;
@@ -88,6 +105,38 @@ public class ItemDefinition : ScriptableObject
 
     private void OnValidate()
     {
+        weight =
+            Mathf.Max(
+                0f,
+                weight
+            );
+
+        minimumUseGripCount =
+            Mathf.Max(
+                1,
+                minimumUseGripCount
+            );
+
+        if (!canHoldWithHands)
+            canUseWithHands = false;
+
+        if (!canHoldWithMouth)
+            canUseWithMouth = false;
+
+        // Temporary compatibility with the old slot system.
+        handUsage =
+            minimumUseGripCount >= 2
+                ? ItemHandUsage.TwoHanded
+                : ItemHandUsage.OneHanded;
+
+        // The old enum cannot represent an item usable by both.
+        // Prefer hand use until the slot systems are converted.
+        weaponUseType =
+            !canUseWithHands &&
+            canUseWithMouth
+                ? WeaponUseType.MouthWeapon
+                : WeaponUseType.HandWeapon;
+
         int requiredSize =
             Mathf.Max(
                 1,
@@ -130,11 +179,6 @@ public class ItemDefinition : ScriptableObject
 
         if (!HasAnyOccupiedCell())
             occupiedCells[0] = true;
-
-        if (itemCategory != ItemCategory.Weapon)
-        {
-            weaponUseType = WeaponUseType.HandWeapon;
-        }
 
         if (itemCategory != ItemCategory.Equipment ||
             equipmentSlotType != EquipmentSlotType.Saddle)
@@ -303,8 +347,7 @@ public class ItemDefinitionEditor : Editor
         DrawIdentitySection(item);
         DrawItemTypeSection(item);
         DrawHeldSection(item);
-        DrawWeaponUseSection(item);
-        DrawCarryRequirementsSection(item);
+        DrawHandlingSection(item);
         DrawStackingSection(item);
         DrawSaddleEquipmentSection(item);
         DrawInventoryShapeSection(item);
@@ -387,52 +430,83 @@ public class ItemDefinitionEditor : Editor
         EditorGUILayout.Space();
     }
 
-    private void DrawWeaponUseSection(ItemDefinition item)
+    private void DrawHandlingSection(
+        ItemDefinition item)
     {
-        if (item.itemCategory != ItemCategory.Weapon)
-        {
-            item.weaponUseType = WeaponUseType.HandWeapon;
-            return;
-        }
-
         EditorGUILayout.LabelField(
-            "Weapon Use",
+            "Physical Handling",
             EditorStyles.boldLabel
         );
 
-        item.weaponUseType =
-            (WeaponUseType)EditorGUILayout.EnumPopup(
-                "Weapon Use Type",
-                item.weaponUseType
-            );
-
-        EditorGUILayout.Space();
-    }
-
-    private void DrawCarryRequirementsSection(ItemDefinition item)
-    {
-        EditorGUILayout.LabelField(
-            "Future Carry Requirements",
-            EditorStyles.boldLabel
-        );
-
-        item.carrySize =
-            Mathf.Max(
-                1,
-                EditorGUILayout.IntField(
-                    "Carry Size",
-                    item.carrySize
-                )
-            );
-
-        item.carryWeight =
+        item.weight =
             Mathf.Max(
                 0f,
                 EditorGUILayout.FloatField(
-                    "Carry Weight",
-                    item.carryWeight
+                    "Weight",
+                    item.weight
                 )
             );
+
+        item.minimumUseGripCount =
+            Mathf.Max(
+                1,
+                EditorGUILayout.IntField(
+                    "Minimum Use Grips",
+                    item.minimumUseGripCount
+                )
+            );
+
+        EditorGUILayout.Space(4f);
+
+        EditorGUILayout.LabelField(
+            "Allowed Holding Grips",
+            EditorStyles.boldLabel
+        );
+
+        item.canHoldWithHands =
+            EditorGUILayout.Toggle(
+                "Can Hold With Hands",
+                item.canHoldWithHands
+            );
+
+        item.canHoldWithMouth =
+            EditorGUILayout.Toggle(
+                "Can Hold With Mouth",
+                item.canHoldWithMouth
+            );
+
+        EditorGUILayout.Space(4f);
+
+        EditorGUILayout.LabelField(
+            "Allowed Operating Grips",
+            EditorStyles.boldLabel
+        );
+
+        using (new EditorGUI.DisabledScope(
+            !item.canHoldWithHands))
+        {
+            item.canUseWithHands =
+                EditorGUILayout.Toggle(
+                    "Can Use With Hands",
+                    item.canUseWithHands
+                );
+        }
+
+        using (new EditorGUI.DisabledScope(
+            !item.canHoldWithMouth))
+        {
+            item.canUseWithMouth =
+                EditorGUILayout.Toggle(
+                    "Can Use With Mouth",
+                    item.canUseWithMouth
+                );
+        }
+
+        if (!item.canHoldWithHands)
+            item.canUseWithHands = false;
+
+        if (!item.canHoldWithMouth)
+            item.canUseWithMouth = false;
 
         EditorGUILayout.Space();
     }
