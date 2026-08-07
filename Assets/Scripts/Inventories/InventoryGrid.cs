@@ -77,25 +77,75 @@ public class InventoryGrid
         return true;
     }
 
-    public bool PlaceItem(
+    public bool SpawnItem(
         ItemDefinition item,
         int startX,
         int startY,
         int rotationSteps,
         int quantity = 1)
     {
-        if (!CanPlaceItem(item, startX, startY, rotationSteps))
+        if (item == null ||
+            quantity <= 0)
+        {
+            return false;
+        }
+
+        InventoryItemInstance itemInstance =
+            new InventoryItemInstance(
+                item,
+                quantity
+            );
+
+        return PlaceItem(
+            itemInstance,
+            startX,
+            startY,
+            rotationSteps
+        );
+    }
+
+    public bool PlaceItem(
+        InventoryItemInstance itemInstance,
+        int startX,
+        int startY,
+        int rotationSteps)
+    {
+        if (itemInstance == null)
             return false;
 
+        itemInstance.EnsureValid();
+
+        ItemDefinition item =
+            itemInstance.Definition;
+
+        if (item == null ||
+            itemInstance.IsEmpty)
+        {
+            return false;
+        }
+
+        if (!CanPlaceItem(
+            item,
+            startX,
+            startY,
+            rotationSteps))
+        {
+            return false;
+        }
+
         rotationSteps =
-            ItemDefinition.NormalizeRotationSteps(rotationSteps);
+            ItemDefinition.NormalizeRotationSteps(
+                rotationSteps
+            );
 
         PlacedInventoryItem placedItem =
             new PlacedInventoryItem(
-                item,
-                new Vector2Int(startX, startY),
-                rotationSteps,
-                quantity
+                itemInstance,
+                new Vector2Int(
+                    startX,
+                    startY
+                ),
+                rotationSteps
             );
 
         int itemWidth =
@@ -104,17 +154,30 @@ public class InventoryGrid
         int itemHeight =
             item.GetHeight(rotationSteps);
 
-        for (int y = 0; y < itemHeight; y++)
+        for (int y = 0;
+             y < itemHeight;
+             y++)
         {
-            for (int x = 0; x < itemWidth; x++)
+            for (int x = 0;
+                 x < itemWidth;
+                 x++)
             {
-                if (!item.IsCellOccupied(x, y, rotationSteps))
+                if (!item.IsCellOccupied(
+                    x,
+                    y,
+                    rotationSteps))
+                {
                     continue;
+                }
 
-                int gridX = startX + x;
-                int gridY = startY + y;
+                int gridX =
+                    startX + x;
 
-                cells[gridX, gridY] = placedItem;
+                int gridY =
+                    startY + y;
+
+                cells[gridX, gridY] =
+                    placedItem;
             }
         }
 
@@ -167,7 +230,7 @@ public class InventoryGrid
                 break;
 
             bool placed =
-                PlaceItem(
+                SpawnItem(
                     item,
                     position.x,
                     position.y,

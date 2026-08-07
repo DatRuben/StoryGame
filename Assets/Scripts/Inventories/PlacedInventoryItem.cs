@@ -104,7 +104,7 @@ public class PlacedInventoryItem
             position;
 
         this.rotationSteps =
-            ItemDefinition.NormalizeRotationSteps(
+            global::ItemDefinition.NormalizeRotationSteps(
                 rotationSteps
             );
 
@@ -121,7 +121,7 @@ public class PlacedInventoryItem
     public void RotateCounterClockwise()
     {
         rotationSteps =
-            ItemDefinition.NormalizeRotationSteps(
+            global::ItemDefinition.NormalizeRotationSteps(
                 rotationSteps - 1
             );
     }
@@ -130,7 +130,7 @@ public class PlacedInventoryItem
         int newRotationSteps)
     {
         rotationSteps =
-            ItemDefinition.NormalizeRotationSteps(
+            global::ItemDefinition.NormalizeRotationSteps(
                 newRotationSteps
             );
     }

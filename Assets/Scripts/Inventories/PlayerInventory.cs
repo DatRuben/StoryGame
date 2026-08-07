@@ -207,7 +207,7 @@ public class PlayerInventory : MonoBehaviour
             );
 
         bool placed =
-            Grid.PlaceItem(
+            Grid.SpawnItem(
                 item,
                 x,
                 y,
@@ -487,27 +487,18 @@ public class PlayerInventory : MonoBehaviour
             return false;
 
         if (HeldItem == null ||
+            HeldItem.ItemInstance == null ||
             HeldItem.ItemDefinition == null)
         {
             return false;
         }
 
-        ItemDefinition itemDefinition =
-            HeldItem.ItemDefinition;
-
-        int rotationSteps =
-            HeldItem.RotationSteps;
-
-        int quantity =
-            Mathf.Max(1, HeldItem.Quantity);
-
         bool placed =
             Grid.PlaceItem(
-                itemDefinition,
+                HeldItem.ItemInstance,
                 x,
                 y,
-                rotationSteps,
-                quantity
+                HeldItem.RotationSteps
             );
 
         if (!placed)
@@ -575,13 +566,31 @@ public class PlayerInventory : MonoBehaviour
             return true;
         }
 
+        InventoryItemInstance instanceToPlace;
+
+        if (heldQuantity == 1)
+        {
+            instanceToPlace =
+                HeldItem.ItemInstance;
+        }
+        else
+        {
+            instanceToPlace =
+                new InventoryItemInstance(
+                    itemDefinition,
+                    1
+                );
+        }
+
+        if (instanceToPlace == null)
+            return false;
+
         bool placed =
             Grid.PlaceItem(
-                itemDefinition,
+                instanceToPlace,
                 x,
                 y,
-                HeldItem.RotationSteps,
-                1
+                HeldItem.RotationSteps
             );
 
         if (!placed)

@@ -111,7 +111,7 @@ public class StorageContainer : MonoBehaviour
             }
 
             bool placed =
-                Grid.PlaceItem(
+                Grid.SpawnItem(
                     startingItem.item,
                     startingItem.x,
                     startingItem.y,
@@ -210,7 +210,7 @@ public class StorageContainer : MonoBehaviour
             );
 
         bool placed =
-            Grid.PlaceItem(
+            Grid.SpawnItem(
                 item,
                 x,
                 y,
