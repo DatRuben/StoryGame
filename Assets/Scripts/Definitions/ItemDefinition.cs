@@ -33,6 +33,14 @@ public enum EquipmentSlotType
     ArmAttachment
 }
 
+[System.Flags]
+public enum EquipmentCombatRole
+{
+    None = 0,
+    Weapon = 1 << 0,
+    ActiveSkill = 1 << 1
+}
+
 public enum WeaponUseType
 {
     HandWeapon,
@@ -85,7 +93,20 @@ public class ItemDefinition : ScriptableObject
     public string weaponControlsText;
 
     [Header("Equipment")]
-    public EquipmentSlotType equipmentSlotType = EquipmentSlotType.Saddle;
+    public EquipmentSlotType equipmentSlotType =
+        EquipmentSlotType.Saddle;
+
+    public EquipmentCombatRole equipmentCombatRole =
+        EquipmentCombatRole.None;
+
+    public bool HasEquipmentCombatRole(
+        EquipmentCombatRole role)
+    {
+        return itemCategory ==
+                   ItemCategory.Equipment &&
+               (equipmentCombatRole & role) ==
+                   role;
+    }
 
     [Header("Saddle Equipment")]
     public bool hasManualSaddleTurret;
@@ -596,6 +617,13 @@ public class ItemDefinitionEditor : Editor
                 "Equipment Slot Type",
                 item.equipmentSlotType
             );
+
+        item.equipmentCombatRole =
+            (EquipmentCombatRole)
+                EditorGUILayout.EnumFlagsField(
+                    "Combat Role",
+                    item.equipmentCombatRole
+                );
 
         EditorGUILayout.Space();
 
