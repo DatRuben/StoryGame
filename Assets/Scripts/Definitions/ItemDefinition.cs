@@ -28,7 +28,9 @@ public enum EquipmentSlotType
     Armor,
     Helmet,
     Saddle,
-    Accessory
+    Accessory,
+    Gauntlets,
+    ArmAttachment
 }
 
 public enum WeaponUseType

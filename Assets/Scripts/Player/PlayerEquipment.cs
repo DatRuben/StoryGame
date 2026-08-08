@@ -1,50 +1,47 @@
 using System;
 using UnityEngine;
 
-public class PlayerEquipment : MonoBehaviour
+public sealed class PlayerEquipment :
+    MonoBehaviour
 {
-    [Header("References")]
-    [SerializeField] private PlayerWeaponSlots playerWeaponSlots;
+    public const int ArmAttachmentCount = 2;
 
-    [Header("Equipment")]
-    [SerializeField] private ItemDefinition equippedSaddle;
-    [SerializeField] private ItemDefinition equippedArmor;
-    [SerializeField] private ItemDefinition equippedHelmet;
-    [SerializeField] private ItemDefinition equippedAccessory;
+    private InventoryItemInstance equippedArmor;
+    private InventoryItemInstance equippedHelmet;
+    private InventoryItemInstance equippedSaddle;
+    private InventoryItemInstance equippedAccessory;
+    private InventoryItemInstance equippedGauntlets;
 
-    [Header("Body Equipment Rules")]
-    [SerializeField] private bool canEquipSaddles = false;
+    private readonly InventoryItemInstance[]
+        armAttachments =
+        new InventoryItemInstance[
+            ArmAttachmentCount
+        ];
 
-    [Header("Saddle Turret Settings")]
-    [Tooltip("0 = Weapon Set 1, 1 = Weapon Set 2")]
-    [SerializeField] private int manualSaddleTurretWeaponSetIndex = 1;
+    private bool canEquipSaddles;
 
-    public ItemDefinition EquippedSaddle => equippedSaddle;
-    public ItemDefinition EquippedArmor => equippedArmor;
-    public ItemDefinition EquippedHelmet => equippedHelmet;
-    public ItemDefinition EquippedAccessory => equippedAccessory;
+    public InventoryItemInstance EquippedArmor =>
+        equippedArmor;
 
-    public bool HasEquippedSaddle => equippedSaddle != null;
-    public bool CanEquipSaddles => canEquipSaddles;
+    public InventoryItemInstance EquippedHelmet =>
+        equippedHelmet;
+
+    public InventoryItemInstance EquippedSaddle =>
+        equippedSaddle;
+
+    public InventoryItemInstance EquippedAccessory =>
+        equippedAccessory;
+
+    public InventoryItemInstance EquippedGauntlets =>
+        equippedGauntlets;
+
+    public bool HasEquippedSaddle =>
+        equippedSaddle != null;
+
+    public bool CanEquipSaddles =>
+        canEquipSaddles;
 
     public event Action OnEquipmentChanged;
-
-    private void Awake()
-    {
-        if (playerWeaponSlots == null)
-            playerWeaponSlots = GetComponent<PlayerWeaponSlots>();
-    }
-
-    private void Start()
-    {
-        RefreshSaddleWeaponSlotReservation();
-    }
-
-    private void OnValidate()
-    {
-        manualSaddleTurretWeaponSetIndex =
-            Mathf.Clamp(manualSaddleTurretWeaponSetIndex, 0, 1);
-    }
 
     public void ApplySubraceDefinition(
         SubraceDefinition subraceDefinition)
@@ -52,63 +49,267 @@ public class PlayerEquipment : MonoBehaviour
         if (subraceDefinition == null)
             return;
 
-        canEquipSaddles =
+        bool newCanEquipSaddles =
             subraceDefinition.canEquipSaddles;
 
-        if (!canEquipSaddles && equippedSaddle != null)
+        bool changed =
+            canEquipSaddles !=
+            newCanEquipSaddles;
+
+        canEquipSaddles =
+            newCanEquipSaddles;
+
+        if (!canEquipSaddles &&
+            equippedSaddle != null)
         {
-            UnequipSaddle();
+            InventoryItemInstance oldSaddle =
+                equippedSaddle;
+
+            equippedSaddle = null;
+
+            UnsubscribeItem(
+                oldSaddle
+            );
+
+            changed = true;
         }
 
-        OnEquipmentChanged?.Invoke();
+        if (changed)
+            OnEquipmentChanged?.Invoke();
+    }
+
+    public InventoryItemInstance
+        GetEquippedItem(
+            EquipmentSlotType slotType,
+            int slotIndex = 0)
+    {
+        if (!IsValidSlot(
+            slotType,
+            slotIndex))
+        {
+            return null;
+        }
+
+        switch (slotType)
+        {
+            case EquipmentSlotType.Armor:
+                return equippedArmor;
+
+            case EquipmentSlotType.Helmet:
+                return equippedHelmet;
+
+            case EquipmentSlotType.Saddle:
+                return equippedSaddle;
+
+            case EquipmentSlotType.Accessory:
+                return equippedAccessory;
+
+            case EquipmentSlotType.Gauntlets:
+                return equippedGauntlets;
+
+            case EquipmentSlotType.ArmAttachment:
+                return armAttachments[
+                    slotIndex
+                ];
+
+            default:
+                return null;
+        }
+    }
+
+    public InventoryItemInstance
+        GetArmAttachment(
+            int armIndex)
+    {
+        return GetEquippedItem(
+            EquipmentSlotType.ArmAttachment,
+            armIndex
+        );
+    }
+
+    public bool IsEquipped(
+        InventoryItemInstance itemInstance)
+    {
+        return TryFindEquippedItem(
+            itemInstance,
+            out _,
+            out _
+        );
+    }
+
+    public bool TryFindEquippedItem(
+        InventoryItemInstance itemInstance,
+        out EquipmentSlotType slotType,
+        out int slotIndex)
+    {
+        slotType =
+            EquipmentSlotType.Armor;
+
+        slotIndex = -1;
+
+        if (itemInstance == null)
+            return false;
+
+        EquipmentSlotType[] singleSlots =
+        {
+            EquipmentSlotType.Armor,
+            EquipmentSlotType.Helmet,
+            EquipmentSlotType.Saddle,
+            EquipmentSlotType.Accessory,
+            EquipmentSlotType.Gauntlets
+        };
+
+        for (int i = 0;
+             i < singleSlots.Length;
+             i++)
+        {
+            EquipmentSlotType currentSlot =
+                singleSlots[i];
+
+            if (!ReferenceEquals(
+                GetEquippedItem(
+                    currentSlot
+                ),
+                itemInstance))
+            {
+                continue;
+            }
+
+            slotType =
+                currentSlot;
+
+            slotIndex = 0;
+
+            return true;
+        }
+
+        for (int armIndex = 0;
+             armIndex <
+                ArmAttachmentCount;
+             armIndex++)
+        {
+            if (!ReferenceEquals(
+                armAttachments[
+                    armIndex
+                ],
+                itemInstance))
+            {
+                continue;
+            }
+
+            slotType =
+                EquipmentSlotType
+                    .ArmAttachment;
+
+            slotIndex =
+                armIndex;
+
+            return true;
+        }
+
+        return false;
     }
 
     public bool CanEquipItemToSlot(
-        ItemDefinition item,
-        EquipmentSlotType slotType)
+        InventoryItemInstance itemInstance,
+        EquipmentSlotType slotType,
+        int slotIndex = 0)
     {
-        if (item == null)
+        if (itemInstance == null ||
+            itemInstance.IsEmpty ||
+            itemInstance.Definition == null)
+        {
             return false;
+        }
 
-        if (item.itemCategory != ItemCategory.Equipment)
+        if (!IsValidSlot(
+            slotType,
+            slotIndex))
+        {
             return false;
+        }
 
-        if (item.equipmentSlotType != slotType)
+        ItemDefinition definition =
+            itemInstance.Definition;
+
+        if (definition.itemCategory !=
+            ItemCategory.Equipment)
+        {
             return false;
+        }
 
-        if (slotType == EquipmentSlotType.Saddle &&
+        if (definition.equipmentSlotType !=
+            slotType)
+        {
+            return false;
+        }
+
+        if (slotType ==
+                EquipmentSlotType.Saddle &&
             !canEquipSaddles)
         {
             return false;
         }
 
-        return true;
+        if (!IsEquipped(itemInstance))
+            return true;
+
+        return ReferenceEquals(
+            GetEquippedItem(
+                slotType,
+                slotIndex
+            ),
+            itemInstance
+        );
     }
 
-    public bool TryEquipItemToSlot(
-        ItemDefinition item,
+    internal bool TryEquipItemToSlot(
+        InventoryItemInstance itemInstance,
         EquipmentSlotType slotType,
-        out ItemDefinition replacedItem)
+        int slotIndex,
+        out InventoryItemInstance replacedItem)
     {
         replacedItem = null;
 
-        if (!CanEquipItemToSlot(item, slotType))
-            return false;
-
-        if (slotType == EquipmentSlotType.Saddle)
+        if (!CanEquipItemToSlot(
+            itemInstance,
+            slotType,
+            slotIndex))
         {
-            return TryEquipSaddle(
-                item,
-                out replacedItem
+            return false;
+        }
+
+        InventoryItemInstance currentItem =
+            GetEquippedItem(
+                slotType,
+                slotIndex
+            );
+
+        if (ReferenceEquals(
+            currentItem,
+            itemInstance))
+        {
+            return true;
+        }
+
+        if (currentItem != null)
+        {
+            replacedItem =
+                currentItem;
+
+            UnsubscribeItem(
+                currentItem
             );
         }
 
-        replacedItem =
-            GetEquippedItem(slotType);
-
-        SetEquippedItemDirect(
+        SetEquippedItem(
             slotType,
-            item
+            slotIndex,
+            itemInstance
+        );
+
+        SubscribeItem(
+            itemInstance
         );
 
         OnEquipmentChanged?.Invoke();
@@ -116,20 +317,35 @@ public class PlayerEquipment : MonoBehaviour
         return true;
     }
 
-    public ItemDefinition UnequipSlot(EquipmentSlotType slotType)
+    internal InventoryItemInstance
+        UnequipSlot(
+            EquipmentSlotType slotType,
+            int slotIndex = 0)
     {
-        if (slotType == EquipmentSlotType.Saddle)
-            return UnequipSaddle();
+        if (!IsValidSlot(
+            slotType,
+            slotIndex))
+        {
+            return null;
+        }
 
-        ItemDefinition oldItem =
-            GetEquippedItem(slotType);
+        InventoryItemInstance oldItem =
+            GetEquippedItem(
+                slotType,
+                slotIndex
+            );
 
         if (oldItem == null)
             return null;
 
-        SetEquippedItemDirect(
+        SetEquippedItem(
             slotType,
+            slotIndex,
             null
+        );
+
+        UnsubscribeItem(
+            oldItem
         );
 
         OnEquipmentChanged?.Invoke();
@@ -137,202 +353,201 @@ public class PlayerEquipment : MonoBehaviour
         return oldItem;
     }
 
-    public ItemDefinition GetEquippedItem(EquipmentSlotType slotType)
-    {
-        switch (slotType)
-        {
-            case EquipmentSlotType.Saddle:
-                return equippedSaddle;
-
-            case EquipmentSlotType.Armor:
-                return equippedArmor;
-
-            case EquipmentSlotType.Helmet:
-                return equippedHelmet;
-
-            case EquipmentSlotType.Accessory:
-                return equippedAccessory;
-
-            default:
-                return null;
-        }
-    }
-
-    private void SetEquippedItemDirect(
+    private void SetEquippedItem(
         EquipmentSlotType slotType,
-        ItemDefinition item)
+        int slotIndex,
+        InventoryItemInstance itemInstance)
     {
         switch (slotType)
         {
-            case EquipmentSlotType.Saddle:
-                equippedSaddle = item;
-                break;
-
             case EquipmentSlotType.Armor:
-                equippedArmor = item;
+                equippedArmor =
+                    itemInstance;
                 break;
 
             case EquipmentSlotType.Helmet:
-                equippedHelmet = item;
+                equippedHelmet =
+                    itemInstance;
+                break;
+
+            case EquipmentSlotType.Saddle:
+                equippedSaddle =
+                    itemInstance;
                 break;
 
             case EquipmentSlotType.Accessory:
-                equippedAccessory = item;
+                equippedAccessory =
+                    itemInstance;
+                break;
+
+            case EquipmentSlotType.Gauntlets:
+                equippedGauntlets =
+                    itemInstance;
+                break;
+
+            case EquipmentSlotType.ArmAttachment:
+                armAttachments[
+                    slotIndex
+                ] = itemInstance;
                 break;
         }
     }
 
-    public bool CanEquipSaddle(ItemDefinition item)
+    private static bool IsValidSlot(
+        EquipmentSlotType slotType,
+        int slotIndex)
     {
-        return CanEquipItemToSlot(
-            item,
-            EquipmentSlotType.Saddle
-        );
-    }
-
-    public bool TryEquipSaddle(ItemDefinition saddleItem)
-    {
-        return TryEquipSaddle(
-            saddleItem,
-            out ItemDefinition ignoredOldSaddle
-        );
-    }
-
-    public bool TryEquipSaddle(
-        ItemDefinition saddleItem,
-        out ItemDefinition replacedSaddle)
-    {
-        replacedSaddle = null;
-
-        if (!CanEquipSaddle(saddleItem))
-            return false;
-
-        if (playerWeaponSlots == null)
-            playerWeaponSlots = GetComponent<PlayerWeaponSlots>();
-
-        ItemDefinition oldSaddle =
-            equippedSaddle;
-
-        if (oldSaddle == saddleItem)
-            return true;
-
-        if (oldSaddle != null &&
-            playerWeaponSlots != null)
+        if (slotType ==
+            EquipmentSlotType.ArmAttachment)
         {
-            playerWeaponSlots.ClearManualSaddleTurretReservation(
-                oldSaddle
-            );
+            return slotIndex >= 0 &&
+                   slotIndex <
+                       ArmAttachmentCount;
         }
 
-        equippedSaddle = null;
+        return slotIndex == 0;
+    }
 
-        if (saddleItem.hasManualSaddleTurret)
-        {
-            if (playerWeaponSlots == null)
-            {
-                RestoreOldSaddle(oldSaddle);
-                return false;
-            }
+    private void SubscribeItem(
+        InventoryItemInstance itemInstance)
+    {
+        if (itemInstance == null)
+            return;
 
-            bool reserved =
-                playerWeaponSlots.TryReserveSetForManualSaddleTurret(
-                    manualSaddleTurretWeaponSetIndex,
-                    saddleItem
-                );
+        itemInstance.Changed -=
+            OnEquippedItemChanged;
 
-            if (!reserved)
-            {
-                RestoreOldSaddle(oldSaddle);
+        itemInstance.Changed +=
+            OnEquippedItemChanged;
+    }
 
-                Debug.LogWarning(
-                    "Could not equip saddle. Its manual turret could not reserve the selected weapon set."
-                );
+    private void UnsubscribeItem(
+        InventoryItemInstance itemInstance)
+    {
+        if (itemInstance == null)
+            return;
 
-                return false;
-            }
-        }
+        itemInstance.Changed -=
+            OnEquippedItemChanged;
+    }
 
-        equippedSaddle = saddleItem;
-        replacedSaddle = oldSaddle;
+    private void OnEquippedItemChanged()
+    {
+        if (RemoveEmptyItems())
+            return;
 
         OnEquipmentChanged?.Invoke();
-
-        return true;
     }
 
-    public ItemDefinition UnequipSaddle()
+    private bool RemoveEmptyItems()
     {
-        ItemDefinition oldSaddle =
-            equippedSaddle;
+        bool changed = false;
 
-        if (oldSaddle == null)
-            return null;
-
-        if (playerWeaponSlots == null)
-            playerWeaponSlots = GetComponent<PlayerWeaponSlots>();
-
-        if (playerWeaponSlots != null)
+        EquipmentSlotType[] singleSlots =
         {
-            playerWeaponSlots.ClearManualSaddleTurretReservation(
-                oldSaddle
+            EquipmentSlotType.Armor,
+            EquipmentSlotType.Helmet,
+            EquipmentSlotType.Saddle,
+            EquipmentSlotType.Accessory,
+            EquipmentSlotType.Gauntlets
+        };
+
+        for (int i = 0;
+             i < singleSlots.Length;
+             i++)
+        {
+            EquipmentSlotType slotType =
+                singleSlots[i];
+
+            InventoryItemInstance item =
+                GetEquippedItem(
+                    slotType
+                );
+
+            if (item == null ||
+                !item.IsEmpty)
+            {
+                continue;
+            }
+
+            SetEquippedItem(
+                slotType,
+                0,
+                null
             );
+
+            UnsubscribeItem(
+                item
+            );
+
+            changed = true;
         }
 
-        equippedSaddle = null;
-
-        OnEquipmentChanged?.Invoke();
-
-        return oldSaddle;
-    }
-
-    public void RefreshSaddleWeaponSlotReservation()
-    {
-        if (equippedSaddle == null)
-            return;
-
-        if (!equippedSaddle.hasManualSaddleTurret)
-            return;
-
-        if (playerWeaponSlots == null)
-            playerWeaponSlots = GetComponent<PlayerWeaponSlots>();
-
-        if (playerWeaponSlots == null)
-            return;
-
-        bool reserved =
-            playerWeaponSlots.TryReserveSetForManualSaddleTurret(
-                manualSaddleTurretWeaponSetIndex,
-                equippedSaddle
-            );
-
-        if (!reserved)
+        for (int armIndex = 0;
+             armIndex <
+                ArmAttachmentCount;
+             armIndex++)
         {
-            Debug.LogWarning(
-                "Could not reserve weapon set for manual saddle turret. The selected weapon set may already be occupied."
+            InventoryItemInstance item =
+                armAttachments[
+                    armIndex
+                ];
+
+            if (item == null ||
+                !item.IsEmpty)
+            {
+                continue;
+            }
+
+            armAttachments[
+                armIndex
+            ] = null;
+
+            UnsubscribeItem(
+                item
             );
+
+            changed = true;
         }
-    }
 
-    private void RestoreOldSaddle(ItemDefinition oldSaddle)
-    {
-        if (oldSaddle == null)
-        {
-            equippedSaddle = null;
+        if (changed)
             OnEquipmentChanged?.Invoke();
-            return;
-        }
 
-        equippedSaddle = oldSaddle;
+        return changed;
+    }
 
-        if (oldSaddle.hasManualSaddleTurret &&
-            playerWeaponSlots != null)
+    private void OnDestroy()
+    {
+        UnsubscribeItem(
+            equippedArmor
+        );
+
+        UnsubscribeItem(
+            equippedHelmet
+        );
+
+        UnsubscribeItem(
+            equippedSaddle
+        );
+
+        UnsubscribeItem(
+            equippedAccessory
+        );
+
+        UnsubscribeItem(
+            equippedGauntlets
+        );
+
+        for (int armIndex = 0;
+             armIndex <
+                ArmAttachmentCount;
+             armIndex++)
         {
-            playerWeaponSlots.TryReserveSetForManualSaddleTurret(
-                manualSaddleTurretWeaponSetIndex,
-                oldSaddle
+            UnsubscribeItem(
+                armAttachments[
+                    armIndex
+                ]
             );
         }
-
-        OnEquipmentChanged?.Invoke();
     }
 }
