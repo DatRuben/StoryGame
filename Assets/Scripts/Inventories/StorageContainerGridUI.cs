@@ -1169,6 +1169,38 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
         return true;
     }
 
+    private void ReducePlayerHeldStackAfterPlacingOne()
+    {
+        if (playerInventory == null ||
+            !playerInventory.IsHoldingItem ||
+            playerInventory.HeldItem == null)
+        {
+            return;
+        }
+
+        int heldQuantity =
+            Mathf.Max(
+                1,
+                playerInventory.HeldItem.Quantity
+            );
+
+        int remainingQuantity =
+            heldQuantity - 1;
+
+        if (remainingQuantity <= 0)
+        {
+            playerInventory
+                .ClearHeldItemAfterExternalMove();
+
+            return;
+        }
+
+        playerInventory
+            .SetHeldItemQuantityAfterExternalMove(
+                remainingQuantity
+            );
+    }
+
     private bool TryMergeHeldItemIntoContainerStackAt(
         int x,
         int y)
@@ -1723,10 +1755,10 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
         }
 
         if (isDraggingStorageItem &&
-            dragOriginalItemData != null)
+            DragOriginalItemDefinition != null)
         {
             DrawItemOutline(
-                dragOriginalItemData,
+                DragOriginalItemDefinition,
                 dragOriginalPosition,
                 dragOriginalRotationSteps,
                 dragOriginalOutlineColor
