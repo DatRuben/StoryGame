@@ -954,7 +954,8 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
         Refresh();
     }
 
-    private void SplitContainerStackToHeldItem(Vector2Int coordinate)
+    private void SplitContainerStackToHeldItem(
+        Vector2Int coordinate)
     {
         if (storageContainer == null ||
             storageContainer.Grid == null ||
@@ -971,31 +972,22 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
             );
 
         if (sourceStack == null ||
-            sourceStack.ItemDefinition == null)
+            sourceStack.ItemInstance == null ||
+            !sourceStack.ItemInstance.IsStackable)
         {
             return;
         }
 
-        ItemDefinition itemDefinition =
-            sourceStack.ItemDefinition;
-
-        if (!itemDefinition.isStackable)
-            return;
-
         int sourceQuantity =
-            Mathf.Max(1, sourceStack.Quantity);
+            sourceStack.Quantity;
 
         if (sourceQuantity <= 1)
             return;
 
         int splitQuantity =
-            Mathf.CeilToInt(sourceQuantity * 0.5f);
-
-        int remainingQuantity =
-            sourceQuantity - splitQuantity;
-
-        if (remainingQuantity <= 0)
-            return;
+            Mathf.CeilToInt(
+                sourceQuantity * 0.5f
+            );
 
         bool split =
             sourceStack.ItemInstance.TrySplit(
@@ -1089,16 +1081,10 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
 
         if (heldItem == null ||
             heldItem.ItemInstance == null ||
-            heldItem.ItemDefinition == null)
+            !heldItem.ItemInstance.IsStackable)
         {
             return false;
         }
-
-        ItemDefinition itemDefinition =
-            heldItem.ItemDefinition;
-
-        if (!itemDefinition.isStackable)
-            return false;
 
         PlacedInventoryItem targetStack =
             storageContainer.Grid.GetPlacedItem(
@@ -1108,22 +1094,30 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
 
         if (targetStack != null)
         {
-            if (targetStack.ItemDefinition !=
-                itemDefinition)
+            if (targetStack.ItemInstance == null)
+                return false;
+
+            int moved =
+                heldItem.ItemInstance.MoveQuantityTo(
+                    targetStack.ItemInstance,
+                    1
+                );
+
+            if (moved != 1)
+                return false;
+
+            if (heldItem.ItemInstance.IsEmpty)
             {
-                return false;
+                playerInventory
+                    .ClearHeldItemAfterExternalMove();
             }
-
-            if (!targetStack.HasRoomInStack)
-                return false;
-
-            int addedQuantity =
-                targetStack.AddQuantity(1);
-
-            if (addedQuantity <= 0)
-                return false;
-
-            ReducePlayerHeldStackAfterPlacingOne();
+            else
+            {
+                playerInventory
+                    .SetHeldItemQuantityAfterExternalMove(
+                        heldItem.Quantity
+                    );
+            }
 
             storageContainer.NotifyChanged();
             Refresh();
@@ -1131,20 +1125,26 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
             return true;
         }
 
+        bool movingWholeInstance =
+            heldItem.Quantity == 1;
+
         InventoryItemInstance instanceToPlace;
 
-        if (heldItem.Quantity == 1)
+        if (movingWholeInstance)
         {
             instanceToPlace =
                 heldItem.ItemInstance;
         }
         else
         {
-            instanceToPlace =
-                new InventoryItemInstance(
-                    itemDefinition,
-                    1
+            bool split =
+                heldItem.ItemInstance.TrySplit(
+                    1,
+                    out instanceToPlace
                 );
+
+            if (!split)
+                return false;
         }
 
         Vector2Int placementOrigin =
@@ -1161,45 +1161,34 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
             );
 
         if (!placed)
-            return false;
+        {
+            if (!movingWholeInstance)
+            {
+                instanceToPlace.MoveQuantityTo(
+                    heldItem.ItemInstance,
+                    instanceToPlace.Quantity
+                );
+            }
 
-        ReducePlayerHeldStackAfterPlacingOne();
+            return false;
+        }
+
+        if (movingWholeInstance)
+        {
+            playerInventory
+                .ClearHeldItemAfterExternalMove();
+        }
+        else
+        {
+            playerInventory
+                .SetHeldItemQuantityAfterExternalMove(
+                    heldItem.Quantity
+                );
+        }
 
         Refresh();
 
         return true;
-    }
-
-    private void ReducePlayerHeldStackAfterPlacingOne()
-    {
-        if (playerInventory == null ||
-            !playerInventory.IsHoldingItem ||
-            playerInventory.HeldItem == null)
-        {
-            return;
-        }
-
-        int heldQuantity =
-            Mathf.Max(
-                1,
-                playerInventory.HeldItem.Quantity
-            );
-
-        int remainingQuantity =
-            heldQuantity - 1;
-
-        if (remainingQuantity <= 0)
-        {
-            playerInventory
-                .ClearHeldItemAfterExternalMove();
-
-            return;
-        }
-
-        playerInventory
-            .SetHeldItemQuantityAfterExternalMove(
-                remainingQuantity
-            );
     }
 
     private bool TryMergeHeldItemIntoContainerStackAt(
@@ -1218,8 +1207,7 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
             playerInventory.HeldItem;
 
         if (heldItem == null ||
-            heldItem.ItemDefinition == null ||
-            !heldItem.ItemDefinition.isStackable)
+            heldItem.ItemInstance == null)
         {
             return false;
         }
@@ -1231,37 +1219,35 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
             );
 
         if (targetStack == null ||
-            targetStack.ItemDefinition == null)
+            targetStack.ItemInstance == null)
         {
             return false;
         }
 
-        if (targetStack.ItemDefinition != heldItem.ItemDefinition)
-            return false;
-
-        int addedQuantity =
-            targetStack.AddQuantity(
+        int moved =
+            heldItem.ItemInstance.MoveQuantityTo(
+                targetStack.ItemInstance,
                 heldItem.Quantity
             );
 
-        if (addedQuantity <= 0)
+        if (moved <= 0)
             return false;
 
-        int remainingQuantity =
-            heldItem.Quantity - addedQuantity;
-
-        if (remainingQuantity <= 0)
+        if (heldItem.ItemInstance.IsEmpty)
         {
-            playerInventory.ClearHeldItemAfterExternalMove();
+            playerInventory
+                .ClearHeldItemAfterExternalMove();
         }
         else
         {
-            playerInventory.SetHeldItemQuantityAfterExternalMove(
-                remainingQuantity
-            );
+            playerInventory
+                .SetHeldItemQuantityAfterExternalMove(
+                    heldItem.Quantity
+                );
         }
 
         storageContainer.NotifyChanged();
+
         return true;
     }
 

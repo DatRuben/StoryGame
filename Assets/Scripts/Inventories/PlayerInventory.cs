@@ -423,7 +423,7 @@ public class PlayerInventory : MonoBehaviour
             Grid.GetPlacedItem(x, y);
 
         if (sourceStack == null ||
-            sourceStack.ItemInstance != null)
+            sourceStack.ItemInstance == null)
         {
             return false;
         }
@@ -678,7 +678,7 @@ public class PlayerInventory : MonoBehaviour
         int quantity)
     {
         if (HeldItem == null ||
-            HeldItem.ItemDefinition == null)
+            HeldItem.ItemInstance == null)
         {
             return;
         }
@@ -689,7 +689,9 @@ public class PlayerInventory : MonoBehaviour
                 quantity
             );
 
-        HeldItem.SetQuantity(safeQuantity);
+        HeldItem.ItemInstance.SetQuantity(
+            safeQuantity
+        );
         CenterHeldItemOnCursorRequested = true;
 
         OnHeldItemChanged?.Invoke();
