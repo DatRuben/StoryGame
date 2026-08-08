@@ -7,14 +7,6 @@ public sealed class InventoryCursor
 
     private int rotationSteps;
 
-    private InventoryContainer sourceContainer;
-
-    private Vector2Int sourcePosition;
-
-    private int sourceRotationSteps;
-
-    private bool hasOriginalPlacement;
-
     private Vector2Int grabOffset;
 
     public event Action Changed;
@@ -42,89 +34,34 @@ public sealed class InventoryCursor
     internal InventoryItemInstance ItemInstance =>
         itemInstance;
 
-    internal InventoryContainer SourceContainer =>
-        sourceContainer;
-
-    internal Vector2Int SourcePosition =>
-        sourcePosition;
-
-    internal int SourceRotationSteps =>
-        sourceRotationSteps;
-
-    internal bool HasOriginalPlacement =>
-        hasOriginalPlacement;
-
-    internal bool HoldPlacedItem(
-        InventoryContainer source,
-        PlacedInventoryItem placedItem,
-        Vector2Int itemGrabOffset)
+    internal bool Hold(
+        InventoryItemInstance newItemInstance,
+        int newRotationSteps,
+        Vector2Int newGrabOffset)
     {
         if (HasItem ||
-            source == null ||
-            placedItem == null ||
-            placedItem.ItemInstance == null)
+            newItemInstance == null ||
+            newItemInstance.IsEmpty)
         {
             return false;
         }
 
-        sourceContainer =
-            source;
+        itemInstance =
+            newItemInstance;
 
-        sourcePosition =
-            placedItem.Position;
-
-        sourceRotationSteps =
-            placedItem.RotationSteps;
-
-        hasOriginalPlacement =
-            true;
-
-        grabOffset =
-            itemGrabOffset;
-
-        SetItem(
-            placedItem.ItemInstance,
-            placedItem.RotationSteps
-        );
-
-        return true;
-    }
-
-    internal bool HoldSplitItem(
-        InventoryContainer source,
-        InventoryItemInstance splitInstance,
-        int itemRotationSteps,
-        Vector2Int itemGrabOffset)
-    {
-        if (HasItem ||
-            source == null ||
-            splitInstance == null ||
-            splitInstance.IsEmpty)
-        {
-            return false;
-        }
-
-        sourceContainer =
-            source;
-
-        sourcePosition =
-            Vector2Int.zero;
-
-        sourceRotationSteps =
-            ItemDefinition.NormalizeRotationSteps(
-                itemRotationSteps
+        rotationSteps =
+            global::ItemDefinition.NormalizeRotationSteps(
+                newRotationSteps
             );
 
-        hasOriginalPlacement =
-            false;
-
         grabOffset =
-            itemGrabOffset;
+            newGrabOffset;
 
-        SetItem(
-            splitInstance,
-            itemRotationSteps
-        );
+        ClampGrabOffset();
+
+        SubscribeItem();
+
+        Changed?.Invoke();
 
         return true;
     }
@@ -135,7 +72,7 @@ public sealed class InventoryCursor
             return;
 
         rotationSteps =
-            ItemDefinition.NormalizeRotationSteps(
+            global::ItemDefinition.NormalizeRotationSteps(
                 rotationSteps - 1
             );
 
@@ -146,36 +83,14 @@ public sealed class InventoryCursor
 
     internal void Clear()
     {
+        if (itemInstance == null)
+            return;
+
         UnsubscribeItem();
 
         itemInstance = null;
         rotationSteps = 0;
-        sourceContainer = null;
-        sourcePosition = Vector2Int.zero;
-        sourceRotationSteps = 0;
-        hasOriginalPlacement = false;
         grabOffset = Vector2Int.zero;
-
-        Changed?.Invoke();
-    }
-
-    private void SetItem(
-        InventoryItemInstance newItemInstance,
-        int newRotationSteps)
-    {
-        UnsubscribeItem();
-
-        itemInstance =
-            newItemInstance;
-
-        rotationSteps =
-            ItemDefinition.NormalizeRotationSteps(
-                newRotationSteps
-            );
-
-        SubscribeItem();
-
-        ClampGrabOffset();
 
         Changed?.Invoke();
     }
@@ -203,6 +118,15 @@ public sealed class InventoryCursor
 
     private void OnItemChanged()
     {
+        if (itemInstance == null)
+            return;
+
+        if (itemInstance.IsEmpty)
+        {
+            Clear();
+            return;
+        }
+
         Changed?.Invoke();
     }
 
