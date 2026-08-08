@@ -135,36 +135,6 @@ public class PlacedInventoryItem
             );
     }
 
-    public void SetQuantity(
-        int quantity)
-    {
-        itemInstance?.SetQuantity(
-            quantity
-        );
-    }
-
-    public int AddQuantity(
-        int amount)
-    {
-        if (itemInstance == null)
-            return 0;
-
-        return itemInstance.AddQuantity(
-            amount
-        );
-    }
-
-    public int RemoveQuantity(
-        int amount)
-    {
-        if (itemInstance == null)
-            return 0;
-
-        return itemInstance.RemoveQuantity(
-            amount
-        );
-    }
-
     public List<Vector2Int> GetOccupiedCellsAt(
         Vector2Int origin)
     {

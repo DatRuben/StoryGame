@@ -997,13 +997,14 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
         if (remainingQuantity <= 0)
             return;
 
-        sourceStack.SetQuantity(remainingQuantity);
-
-        InventoryItemInstance splitInstance =
-            new InventoryItemInstance(
-                itemDefinition,
-                splitQuantity
+        bool split =
+            sourceStack.ItemInstance.TrySplit(
+                splitQuantity,
+                out InventoryItemInstance splitInstance
             );
+
+        if (!split)
+            return;
 
         playerInventory.SetMouseHeldItemFromExternal(
             splitInstance,

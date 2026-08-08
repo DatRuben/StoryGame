@@ -407,7 +407,9 @@ public class InventoryGrid
                     continue;
 
                 int added =
-                    placedItem.AddQuantity(quantity);
+                    placedItem.ItemInstance.AddQuantity(
+                        quantity
+                    );
 
                 quantity -= added;
 

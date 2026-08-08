@@ -132,6 +132,73 @@ public class InventoryItemInstance
         return removed;
     }
 
+    public bool CanStackWith(
+    InventoryItemInstance other)
+    {
+        if (other == null ||
+            ReferenceEquals(this, other))
+        {
+            return false;
+        }
+
+        return IsStackable &&
+               other.IsStackable &&
+               Definition != null &&
+               Definition == other.Definition;
+    }
+
+    public int MoveQuantityTo(
+        InventoryItemInstance target,
+        int amount)
+    {
+        if (amount <= 0 ||
+            IsEmpty ||
+            !CanStackWith(target))
+        {
+            return 0;
+        }
+
+        int amountToMove =
+            Mathf.Min(
+                Quantity,
+                amount
+            );
+
+        int moved =
+            target.AddQuantity(
+                amountToMove
+            );
+
+        if (moved > 0)
+            RemoveQuantity(moved);
+
+        return moved;
+    }
+
+    public bool TrySplit(
+        int amount,
+        out InventoryItemInstance splitInstance)
+    {
+        splitInstance = null;
+
+        if (!IsStackable ||
+            amount <= 0 ||
+            amount >= Quantity)
+        {
+            return false;
+        }
+
+        RemoveQuantity(amount);
+
+        splitInstance =
+            new InventoryItemInstance(
+                Definition,
+                amount
+            );
+
+        return true;
+    }
+
     private void EnsureId()
     {
         if (!string.IsNullOrWhiteSpace(
