@@ -10,10 +10,10 @@ public enum GripType
 [Serializable]
 public class CharacterGripProfile
 {
-    [Min(0)]
+    [Range(0, 2)]
     public int handGripCount = 2;
 
-    [Min(0)]
+    [Range(0, 1)]
     public int mouthGripCount = 0;
 
     public bool HasHandGrips =>
@@ -39,15 +39,17 @@ public class CharacterGripProfile
     public void Clamp()
     {
         handGripCount =
-            Mathf.Max(
+            Mathf.Clamp(
+                handGripCount,
                 0,
-                handGripCount
+                2
             );
 
         mouthGripCount =
-            Mathf.Max(
+            Mathf.Clamp(
+                mouthGripCount,
                 0,
-                mouthGripCount
+                1
             );
     }
 

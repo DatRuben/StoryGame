@@ -3,7 +3,7 @@ using UnityEngine;
 
 public sealed class InventoryCursor
 {
-    private InventoryItemInstance itemInstance;
+    private InventoryItemInstance selectedItem;
 
     private int rotationSteps;
 
@@ -11,18 +11,18 @@ public sealed class InventoryCursor
 
     public event Action Changed;
 
-    public bool HasItem =>
-        itemInstance != null &&
-        !itemInstance.IsEmpty;
+    public bool HasSelection =>
+        selectedItem != null &&
+        !selectedItem.IsEmpty;
 
     public ItemDefinition ItemDefinition =>
-        itemInstance != null
-            ? itemInstance.Definition
+        selectedItem != null
+            ? selectedItem.Definition
             : null;
 
     public int Quantity =>
-        itemInstance != null
-            ? itemInstance.Quantity
+        selectedItem != null
+            ? selectedItem.Quantity
             : 0;
 
     public int RotationSteps =>
@@ -31,35 +31,41 @@ public sealed class InventoryCursor
     public Vector2Int GrabOffset =>
         grabOffset;
 
-    internal InventoryItemInstance ItemInstance =>
-        itemInstance;
+    internal InventoryItemInstance SelectedItem =>
+        selectedItem;
 
-    internal bool Hold(
-        InventoryItemInstance newItemInstance,
+    internal bool Select(
+        InventoryItemInstance itemInstance,
         int newRotationSteps,
         Vector2Int newGrabOffset)
     {
-        if (HasItem ||
-            newItemInstance == null ||
-            newItemInstance.IsEmpty)
+        if (itemInstance == null ||
+            itemInstance.IsEmpty)
         {
             return false;
         }
 
-        itemInstance =
-            newItemInstance;
+        if (selectedItem !=
+            itemInstance)
+        {
+            UnsubscribeItem();
+
+            selectedItem =
+                itemInstance;
+
+            SubscribeItem();
+        }
 
         rotationSteps =
-            global::ItemDefinition.NormalizeRotationSteps(
-                newRotationSteps
-            );
+            global::ItemDefinition
+                .NormalizeRotationSteps(
+                    newRotationSteps
+                );
 
         grabOffset =
             newGrabOffset;
 
         ClampGrabOffset();
-
-        SubscribeItem();
 
         Changed?.Invoke();
 
@@ -68,27 +74,28 @@ public sealed class InventoryCursor
 
     internal void RotateCounterClockwise()
     {
-        if (!HasItem)
+        if (!HasSelection)
             return;
 
         rotationSteps =
-            global::ItemDefinition.NormalizeRotationSteps(
-                rotationSteps - 1
-            );
+            global::ItemDefinition
+                .NormalizeRotationSteps(
+                    rotationSteps - 1
+                );
 
         ClampGrabOffset();
 
         Changed?.Invoke();
     }
 
-    internal void Clear()
+    internal void ClearSelection()
     {
-        if (itemInstance == null)
+        if (selectedItem == null)
             return;
 
         UnsubscribeItem();
 
-        itemInstance = null;
+        selectedItem = null;
         rotationSteps = 0;
         grabOffset = Vector2Int.zero;
 
@@ -97,33 +104,33 @@ public sealed class InventoryCursor
 
     private void SubscribeItem()
     {
-        if (itemInstance == null)
+        if (selectedItem == null)
             return;
 
-        itemInstance.Changed -=
+        selectedItem.Changed -=
             OnItemChanged;
 
-        itemInstance.Changed +=
+        selectedItem.Changed +=
             OnItemChanged;
     }
 
     private void UnsubscribeItem()
     {
-        if (itemInstance == null)
+        if (selectedItem == null)
             return;
 
-        itemInstance.Changed -=
+        selectedItem.Changed -=
             OnItemChanged;
     }
 
     private void OnItemChanged()
     {
-        if (itemInstance == null)
+        if (selectedItem == null)
             return;
 
-        if (itemInstance.IsEmpty)
+        if (selectedItem.IsEmpty)
         {
-            Clear();
+            ClearSelection();
             return;
         }
 
