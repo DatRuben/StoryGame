@@ -23,6 +23,8 @@ public class InventoryItemInstance
         }
     }
 
+    public event Action Changed;
+
     public ItemDefinition Definition =>
         definition;
 
@@ -78,7 +80,7 @@ public class InventoryItemInstance
     public void SetQuantity(
         int newQuantity)
     {
-        quantity =
+        int normalizedQuantity =
             Mathf.Clamp(
                 newQuantity,
                 0,
@@ -86,10 +88,21 @@ public class InventoryItemInstance
             );
 
         if (!IsStackable &&
-            quantity > 0)
+            normalizedQuantity > 0)
         {
-            quantity = 1;
+            normalizedQuantity = 1;
         }
+
+        if (quantity ==
+            normalizedQuantity)
+        {
+            return;
+        }
+
+        quantity =
+            normalizedQuantity;
+
+        Changed?.Invoke();
     }
 
     public int AddQuantity(
@@ -110,7 +123,12 @@ public class InventoryItemInstance
                 amount
             );
 
+        if (added <= 0)
+            return 0;
+
         quantity += added;
+
+        Changed?.Invoke();
 
         return added;
     }
@@ -127,7 +145,12 @@ public class InventoryItemInstance
                 amount
             );
 
+        if (removed <= 0)
+            return 0;
+
         quantity -= removed;
+
+        Changed?.Invoke();
 
         return removed;
     }
