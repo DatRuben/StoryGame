@@ -133,10 +133,16 @@ public class InventoryContainer : MonoBehaviour
                 rotationSteps
             );
 
-        if (placed)
-            Changed?.Invoke();
+        if (!placed)
+            return false;
 
-        return placed;
+        SubscribeItem(
+            itemInstance
+        );
+
+        Changed?.Invoke();
+
+        return true;
     }
 
     public PlacedInventoryItem TakeItemAt(
@@ -152,8 +158,14 @@ public class InventoryContainer : MonoBehaviour
                 y
             );
 
-        if (item != null)
-            Changed?.Invoke();
+        if (item == null)
+            return null;
+
+        UnsubscribeItem(
+            item.ItemInstance
+        );
+
+        Changed?.Invoke();
 
         return item;
     }
@@ -176,9 +188,6 @@ public class InventoryContainer : MonoBehaviour
             return false;
         }
 
-        int originalQuantity =
-            itemInstance.Quantity;
-
         MergeIntoExistingStacks(
             itemInstance
         );
@@ -186,10 +195,6 @@ public class InventoryContainer : MonoBehaviour
         if (itemInstance.IsEmpty)
         {
             remainingQuantity = 0;
-
-            if (originalQuantity > 0)
-                Changed?.Invoke();
-
             return true;
         }
 
@@ -206,12 +211,6 @@ public class InventoryContainer : MonoBehaviour
             remainingQuantity =
                 itemInstance.Quantity;
 
-            if (remainingQuantity !=
-                originalQuantity)
-            {
-                Changed?.Invoke();
-            }
-
             return false;
         }
 
@@ -223,20 +222,23 @@ public class InventoryContainer : MonoBehaviour
                 rotationSteps
             );
 
-        remainingQuantity =
-            placed
-                ? 0
-                : itemInstance.Quantity;
-
-        if (placed ||
-            itemInstance.Quantity !=
-            originalQuantity)
+        if (!placed)
         {
-            Changed?.Invoke();
+            remainingQuantity =
+                itemInstance.Quantity;
+
+            return false;
         }
 
-        return placed &&
-               remainingQuantity == 0;
+        SubscribeItem(
+            itemInstance
+        );
+
+        remainingQuantity = 0;
+
+        Changed?.Invoke();
+
+        return true;
     }
 
     public bool SpawnAt(
@@ -267,10 +269,16 @@ public class InventoryContainer : MonoBehaviour
                 rotationSteps
             );
 
-        if (placed)
-            Changed?.Invoke();
+        if (!placed)
+            return false;
 
-        return placed;
+        SubscribeItem(
+            itemInstance
+        );
+
+        Changed?.Invoke();
+
+        return true;
     }
 
     private void MergeIntoExistingStacks(
@@ -321,6 +329,34 @@ public class InventoryContainer : MonoBehaviour
         }
     }
 
+    private void SubscribeItem(
+        InventoryItemInstance itemInstance)
+    {
+        if (itemInstance == null)
+            return;
+
+        itemInstance.Changed -=
+            OnContainedItemChanged;
+
+        itemInstance.Changed +=
+            OnContainedItemChanged;
+    }
+
+    private void UnsubscribeItem(
+        InventoryItemInstance itemInstance)
+    {
+        if (itemInstance == null)
+            return;
+
+        itemInstance.Changed -=
+            OnContainedItemChanged;
+    }
+
+    private void OnContainedItemChanged()
+    {
+        Changed?.Invoke();
+    }
+
     private void SpawnStartingItems()
     {
         if (grid == null ||
@@ -368,6 +404,10 @@ public class InventoryContainer : MonoBehaviour
 
                 continue;
             }
+
+            SubscribeItem(
+                itemInstance
+            );
 
             placedAny = true;
         }

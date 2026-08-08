@@ -71,14 +71,14 @@ public class InventoryItemInstance
         );
     }
 
-    public void EnsureValid()
+    internal void EnsureValid()
     {
         EnsureId();
         SetQuantity(quantity);
     }
 
-    public void SetQuantity(
-        int newQuantity)
+    private void SetQuantity(
+            int newQuantity)
     {
         int normalizedQuantity =
             Mathf.Clamp(
@@ -105,8 +105,8 @@ public class InventoryItemInstance
         Changed?.Invoke();
     }
 
-    public int AddQuantity(
-        int amount)
+    private int AddQuantity(
+            int amount)
     {
         if (amount <= 0 ||
             !IsStackable)
@@ -133,8 +133,8 @@ public class InventoryItemInstance
         return added;
     }
 
-    public int RemoveQuantity(
-        int amount)
+    private int RemoveQuantity(
+            int amount)
     {
         if (amount <= 0)
             return 0;
@@ -155,8 +155,8 @@ public class InventoryItemInstance
         return removed;
     }
 
-    public bool CanStackWith(
-    InventoryItemInstance other)
+    internal bool CanStackWith(
+        InventoryItemInstance other)
     {
         if (other == null ||
             ReferenceEquals(this, other))
@@ -170,7 +170,7 @@ public class InventoryItemInstance
                Definition == other.Definition;
     }
 
-    public int MoveQuantityTo(
+    internal int MoveQuantityTo(
         InventoryItemInstance target,
         int amount)
     {
@@ -198,8 +198,8 @@ public class InventoryItemInstance
         return moved;
     }
 
-    public bool TrySplit(
-        int amount,
+    internal bool TrySplit(
+            int amount,
         out InventoryItemInstance splitInstance)
     {
         splitInstance = null;

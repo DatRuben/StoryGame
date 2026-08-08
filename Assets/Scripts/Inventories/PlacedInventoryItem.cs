@@ -77,22 +77,6 @@ public class PlacedInventoryItem
     }
 
     public PlacedInventoryItem(
-        ItemDefinition itemDefinition,
-        Vector2Int position,
-        int rotationSteps,
-        int quantity = 1)
-        : this(
-            new InventoryItemInstance(
-                itemDefinition,
-                quantity
-            ),
-            position,
-            rotationSteps
-        )
-    {
-    }
-
-    public PlacedInventoryItem(
         InventoryItemInstance itemInstance,
         Vector2Int position,
         int rotationSteps)
@@ -109,30 +93,6 @@ public class PlacedInventoryItem
             );
 
         this.itemInstance?.EnsureValid();
-    }
-
-    public void SetPosition(
-        Vector2Int newPosition)
-    {
-        position =
-            newPosition;
-    }
-
-    public void RotateCounterClockwise()
-    {
-        rotationSteps =
-            global::ItemDefinition.NormalizeRotationSteps(
-                rotationSteps - 1
-            );
-    }
-
-    public void SetRotationSteps(
-        int newRotationSteps)
-    {
-        rotationSteps =
-            global::ItemDefinition.NormalizeRotationSteps(
-                newRotationSteps
-            );
     }
 
     public List<Vector2Int> GetOccupiedCellsAt(
