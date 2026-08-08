@@ -50,6 +50,11 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
     private Vector2Int dragOriginalPosition;
     private int dragOriginalRotationSteps;
 
+    private ItemDefinition DragOriginalItemDefinition =>
+    dragOriginalItemInstance != null
+        ? dragOriginalItemInstance.Definition
+        : null;
+
     private static StorageContainerGridUI activeStorageDragUI;
 
     public static bool HasPendingStorageDrag =>
@@ -1010,8 +1015,17 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
         Refresh();
     }
 
-    private bool TryPlaceOrMergeHeldItemIntoContainer(Vector2Int coordinate)
+    private bool TryPlaceOrMergeHeldItemIntoContainer(
+        Vector2Int coordinate)
     {
+        if (storageContainer == null ||
+            storageContainer.Grid == null ||
+            playerInventory == null ||
+            !playerInventory.IsHoldingItem)
+        {
+            return false;
+        }
+
         bool merged =
             TryMergeHeldItemIntoContainerStackAt(
                 coordinate.x,
@@ -1027,8 +1041,96 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
         PlacedInventoryItem heldItem =
             playerInventory.HeldItem;
 
-        InventoryItemInstance
-            instanceToPlace;
+        if (heldItem == null ||
+            heldItem.ItemInstance == null ||
+            heldItem.ItemDefinition == null)
+        {
+            return false;
+        }
+
+        Vector2Int placementOrigin =
+            GetHeldPlacementOrigin(
+                coordinate
+            );
+
+        bool placed =
+            storageContainer.PlaceItem(
+                heldItem.ItemInstance,
+                placementOrigin.x,
+                placementOrigin.y,
+                heldItem.RotationSteps
+            );
+
+        if (!placed)
+            return false;
+
+        playerInventory
+            .ClearHeldItemAfterExternalMove();
+
+        Refresh();
+
+        return true;
+    }
+
+    private bool TryPlaceOneHeldItemIntoContainer(
+        Vector2Int coordinate)
+    {
+        if (storageContainer == null ||
+            storageContainer.Grid == null ||
+            playerInventory == null ||
+            !playerInventory.IsHoldingItem)
+        {
+            return false;
+        }
+
+        PlacedInventoryItem heldItem =
+            playerInventory.HeldItem;
+
+        if (heldItem == null ||
+            heldItem.ItemInstance == null ||
+            heldItem.ItemDefinition == null)
+        {
+            return false;
+        }
+
+        ItemDefinition itemDefinition =
+            heldItem.ItemDefinition;
+
+        if (!itemDefinition.isStackable)
+            return false;
+
+        PlacedInventoryItem targetStack =
+            storageContainer.Grid.GetPlacedItem(
+                coordinate.x,
+                coordinate.y
+            );
+
+        if (targetStack != null)
+        {
+            if (targetStack.ItemDefinition !=
+                itemDefinition)
+            {
+                return false;
+            }
+
+            if (!targetStack.HasRoomInStack)
+                return false;
+
+            int addedQuantity =
+                targetStack.AddQuantity(1);
+
+            if (addedQuantity <= 0)
+                return false;
+
+            ReducePlayerHeldStackAfterPlacingOne();
+
+            storageContainer.NotifyChanged();
+            Refresh();
+
+            return true;
+        }
+
+        InventoryItemInstance instanceToPlace;
 
         if (heldItem.Quantity == 1)
         {
@@ -1043,9 +1145,6 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
                     1
                 );
         }
-
-        if (instanceToPlace == null)
-            return false;
 
         Vector2Int placementOrigin =
             GetHeldPlacementOrigin(
@@ -1064,36 +1163,10 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
             return false;
 
         ReducePlayerHeldStackAfterPlacingOne();
-        storageContainer.NotifyChanged();
+
         Refresh();
 
         return true;
-    }
-
-    private void ReducePlayerHeldStackAfterPlacingOne()
-    {
-        if (playerInventory == null ||
-            !playerInventory.IsHoldingItem ||
-            playerInventory.HeldItem == null)
-        {
-            return;
-        }
-
-        int heldQuantity =
-            Mathf.Max(1, playerInventory.HeldItem.Quantity);
-
-        int remainingQuantity =
-            heldQuantity - 1;
-
-        if (remainingQuantity <= 0)
-        {
-            playerInventory.ClearHeldItemAfterExternalMove();
-            return;
-        }
-
-        playerInventory.SetHeldItemQuantityAfterExternalMove(
-            remainingQuantity
-        );
     }
 
     private bool TryMergeHeldItemIntoContainerStackAt(
@@ -1592,13 +1665,13 @@ public class StorageContainerGridUI : MonoBehaviour, IPointerClickHandler, IPoin
         Vector2Int coordinate)
     {
         if (!isDraggingStorageItem ||
-            dragOriginalItemData == null)
+            DragOriginalItemDefinition == null)
         {
             return false;
         }
 
         return InventoryShapeUtility.IsOccupiedInShape(
-            dragOriginalItemData,
+            DragOriginalItemDefinition,
             coordinate.x - dragOriginalPosition.x,
             coordinate.y - dragOriginalPosition.y,
             dragOriginalRotationSteps
