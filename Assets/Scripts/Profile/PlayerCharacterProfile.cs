@@ -488,24 +488,35 @@ public class PlayerCharacterProfile : MonoBehaviour
 
     private void ApplyEquipmentRules()
     {
-        PlayerHolding playerHolding =
-            GetComponent<PlayerHolding>();
+        CharacterGripProfile gripProfile =
+            SubraceDefinition != null
+                ? SubraceDefinition.gripProfile
+                : null;
 
-        if (playerHolding != null)
+        if (gripProfile == null)
         {
-            playerHolding.ApplySubraceDefinition(
-                SubraceDefinition
-            );
+            gripProfile =
+                CharacterGripProfile
+                    .CreateHumanoidDefault();
         }
 
-        PlayerWeaponSlots playerWeaponSlots =
-            GetComponent<PlayerWeaponSlots>();
+        PlayerGripState gripState =
+            GetComponent<PlayerGripState>();
 
-        if (playerWeaponSlots != null)
+        if (gripState != null)
         {
-            playerWeaponSlots.ApplySubraceDefinition(
-                SubraceDefinition
-            );
+            bool configured =
+                gripState.Configure(
+                    gripProfile
+                );
+
+            if (!configured)
+            {
+                Debug.LogWarning(
+                    "Player grip state could not apply the new body grip configuration because currently held items occupy unavailable grips.",
+                    this
+                );
+            }
         }
 
         PlayerEquipment playerEquipment =
@@ -513,9 +524,18 @@ public class PlayerCharacterProfile : MonoBehaviour
 
         if (playerEquipment != null)
         {
-            playerEquipment.ApplySubraceDefinition(
-                SubraceDefinition
-            );
+            bool configured =
+                playerEquipment.Configure(
+                    SubraceDefinition
+                );
+
+            if (!configured)
+            {
+                Debug.LogWarning(
+                    "Player equipment could not apply the new body equipment configuration because currently equipped items are incompatible with it.",
+                    this
+                );
+            }
         }
     }
 

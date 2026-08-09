@@ -240,11 +240,23 @@ public class ItemDefinition : ScriptableObject
         if (!HasAnyOccupiedCell())
             occupiedCells[0] = true;
 
+        if (itemCategory != ItemCategory.Equipment)
+        {
+            equipmentCombatRole =
+                EquipmentCombatRole.None;
+        }
+
         if (itemCategory != ItemCategory.Equipment ||
             equipmentSlotType != EquipmentSlotType.Saddle)
         {
             hasManualSaddleTurret = false;
             manualSaddleTurretControlsText = "";
+        }
+
+        if (hasManualSaddleTurret)
+        {
+            equipmentCombatRole |=
+                EquipmentCombatRole.Weapon;
         }
     }
 
