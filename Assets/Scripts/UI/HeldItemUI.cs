@@ -3,7 +3,8 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class HeldItemUI : MonoBehaviour
+public sealed class HeldItemUI :
+    MonoBehaviour
 {
     [Serializable]
     private class HeldItemCard
@@ -43,37 +44,51 @@ public class HeldItemUI : MonoBehaviour
             string fallbackName,
             string controls)
         {
-            if (root != null)
-                root.SetActive(true);
-
-            bool hasControls =
-                !string.IsNullOrWhiteSpace(controls);
-
-            if (controlsRoot != null)
-                controlsRoot.SetActive(hasControls);
-
             if (item == null)
             {
                 ShowEmpty();
                 return;
             }
 
+            if (root != null)
+                root.SetActive(true);
+
+            bool hasControls =
+                !string.IsNullOrWhiteSpace(
+                    controls
+                );
+
+            if (controlsRoot != null)
+            {
+                controlsRoot.SetActive(
+                    hasControls
+                );
+            }
+
             if (iconImage != null)
             {
-                iconImage.sprite = item.itemIcon;
-                iconImage.enabled = item.itemIcon != null;
+                iconImage.sprite =
+                    item.itemIcon;
+
+                iconImage.enabled =
+                    item.itemIcon != null;
             }
 
             if (nameText != null)
             {
                 nameText.text =
-                    string.IsNullOrWhiteSpace(item.itemName)
+                    string.IsNullOrWhiteSpace(
+                        item.itemName
+                    )
                         ? fallbackName
                         : item.itemName;
             }
 
             if (controlsText != null)
-                controlsText.text = controls;
+            {
+                controlsText.text =
+                    controls;
+            }
         }
 
         public void Hide()
@@ -82,7 +97,9 @@ public class HeldItemUI : MonoBehaviour
                 root.SetActive(false);
 
             if (controlsRoot != null)
+            {
                 controlsRoot.SetActive(false);
+            }
 
             if (controlsText != null)
                 controlsText.text = "";
@@ -90,36 +107,63 @@ public class HeldItemUI : MonoBehaviour
     }
 
     [Header("References")]
-    [SerializeField] private PlayerInventory playerInventory;
-    [SerializeField] private PlayerHolding playerHolding;
-    [SerializeField] private PlayerWeaponSlots playerWeaponSlots;
+    [SerializeField]
+    private PlayerGripState gripState;
+
+    [SerializeField]
+    private PlayerCharacterProfile characterProfile;
 
     [Header("Cards")]
-    [SerializeField] private HeldItemCard leftHandCard = new HeldItemCard();
-    [SerializeField] private HeldItemCard rightHandCard = new HeldItemCard();
-    [SerializeField] private HeldItemCard bothHandsCard = new HeldItemCard();
-    [SerializeField] private HeldItemCard mouthCard = new HeldItemCard();
-    [SerializeField] private HeldItemCard saddleTurretCard = new HeldItemCard();
+    [SerializeField]
+    private HeldItemCard leftHandCard =
+        new HeldItemCard();
+
+    [SerializeField]
+    private HeldItemCard rightHandCard =
+        new HeldItemCard();
+
+    [SerializeField]
+    private HeldItemCard bothHandsCard =
+        new HeldItemCard();
+
+    [SerializeField]
+    private HeldItemCard mouthCard =
+        new HeldItemCard();
 
     [Header("Labels")]
-    [SerializeField] private string leftHandEmptyText = "Left Hand Empty";
-    [SerializeField] private string rightHandEmptyText = "Right Hand Empty";
-    [SerializeField] private string bothHandsEmptyText = "Both Hands Empty";
-    [SerializeField] private string mouthEmptyText = "Mouth Empty";
-    [SerializeField] private string saddleTurretEmptyText = "Saddle Turret";
+    [SerializeField]
+    private string leftHandEmptyText =
+        "Left Hand Empty";
+
+    [SerializeField]
+    private string rightHandEmptyText =
+        "Right Hand Empty";
+
+    [SerializeField]
+    private string bothHandsEmptyText =
+        "Both Hands Empty";
+
+    [SerializeField]
+    private string mouthEmptyText =
+        "Mouth Empty";
 
     private void Awake()
     {
         EnsureCardsExist();
 
-        if (playerInventory == null)
-            playerInventory = GetComponentInParent<PlayerInventory>();
+        if (gripState == null)
+        {
+            gripState =
+                GetComponentInParent<
+                    PlayerGripState>();
+        }
 
-        if (playerHolding == null)
-            playerHolding = GetComponentInParent<PlayerHolding>();
-
-        if (playerWeaponSlots == null)
-            playerWeaponSlots = GetComponentInParent<PlayerWeaponSlots>();
+        if (characterProfile == null)
+        {
+            characterProfile =
+                GetComponentInParent<
+                    PlayerCharacterProfile>();
+        }
     }
 
     private void OnValidate()
@@ -129,341 +173,187 @@ public class HeldItemUI : MonoBehaviour
 
     private void OnEnable()
     {
-        if (playerInventory != null)
-            playerInventory.OnHeldItemChanged += Refresh;
-
-        if (playerHolding != null)
-            playerHolding.OnHoldingChanged += Refresh;
-
-        if (playerWeaponSlots != null)
-            playerWeaponSlots.OnWeaponSlotsChanged += Refresh;
-
+        Subscribe();
         Refresh();
     }
 
     private void OnDisable()
     {
-        if (playerInventory != null)
-            playerInventory.OnHeldItemChanged -= Refresh;
+        Unsubscribe();
+    }
 
-        if (playerHolding != null)
-            playerHolding.OnHoldingChanged -= Refresh;
+    public void BindPlayer(
+        PlayerGripState newGripState,
+        PlayerCharacterProfile
+            newCharacterProfile)
+    {
+        Unsubscribe();
 
-        if (playerWeaponSlots != null)
-            playerWeaponSlots.OnWeaponSlotsChanged -= Refresh;
+        gripState =
+            newGripState;
+
+        characterProfile =
+            newCharacterProfile;
+
+        if (isActiveAndEnabled)
+            Subscribe();
+
+        Refresh();
+    }
+
+    private void Subscribe()
+    {
+        if (gripState != null)
+        {
+            gripState.Changed +=
+                Refresh;
+        }
+
+        if (characterProfile != null)
+        {
+            characterProfile.AttributesChanged +=
+                Refresh;
+        }
+    }
+
+    private void Unsubscribe()
+    {
+        if (gripState != null)
+        {
+            gripState.Changed -=
+                Refresh;
+        }
+
+        if (characterProfile != null)
+        {
+            characterProfile.AttributesChanged -=
+                Refresh;
+        }
     }
 
     private void EnsureCardsExist()
     {
         if (leftHandCard == null)
-            leftHandCard = new HeldItemCard();
+        {
+            leftHandCard =
+                new HeldItemCard();
+        }
 
         if (rightHandCard == null)
-            rightHandCard = new HeldItemCard();
+        {
+            rightHandCard =
+                new HeldItemCard();
+        }
 
         if (bothHandsCard == null)
-            bothHandsCard = new HeldItemCard();
+        {
+            bothHandsCard =
+                new HeldItemCard();
+        }
 
         if (mouthCard == null)
-            mouthCard = new HeldItemCard();
-
-        if (saddleTurretCard == null)
-            saddleTurretCard = new HeldItemCard();
+        {
+            mouthCard =
+                new HeldItemCard();
+        }
     }
 
     private void Refresh()
     {
         EnsureCardsExist();
 
-        leftHandCard.emptyText = leftHandEmptyText;
-        rightHandCard.emptyText = rightHandEmptyText;
-        bothHandsCard.emptyText = bothHandsEmptyText;
-        mouthCard.emptyText = mouthEmptyText;
-        saddleTurretCard.emptyText = saddleTurretEmptyText;
+        leftHandCard.emptyText =
+            leftHandEmptyText;
 
-        ItemDefinition leftHandItem = null;
-        ItemDefinition rightHandItem = null;
-        ItemDefinition bothHandsItem = null;
-        ItemDefinition mouthItem = null;
-        ItemDefinition saddleTurretSource = null;
+        rightHandCard.emptyText =
+            rightHandEmptyText;
 
-        bool leftIsWeaponUse = false;
-        bool rightIsWeaponUse = false;
-        bool bothIsWeaponUse = false;
-        bool mouthIsWeaponUse = false;
+        bothHandsCard.emptyText =
+            bothHandsEmptyText;
 
-        LoadPlayerHoldingItems(
-            ref leftHandItem,
-            ref rightHandItem,
-            ref bothHandsItem,
-            ref mouthItem,
-            ref leftIsWeaponUse,
-            ref rightIsWeaponUse,
-            ref bothIsWeaponUse,
-            ref mouthIsWeaponUse
+        mouthCard.emptyText =
+            mouthEmptyText;
+
+        if (gripState == null)
+        {
+            leftHandCard.ShowEmpty();
+            rightHandCard.ShowEmpty();
+            bothHandsCard.Hide();
+            mouthCard.Hide();
+
+            return;
+        }
+
+        InventoryItemInstance leftItem =
+            gripState.GetItem(
+                GripType.Hand,
+                0
+            );
+
+        InventoryItemInstance rightItem =
+            gripState.GetItem(
+                GripType.Hand,
+                1
+            );
+
+        InventoryItemInstance mouthItem =
+            gripState.GetItem(
+                GripType.Mouth,
+                0
+            );
+
+        bool sameItemInBothHands =
+            leftItem != null &&
+            ReferenceEquals(
+                leftItem,
+                rightItem
+            );
+
+        RefreshHands(
+            leftItem,
+            rightItem,
+            sameItemInBothHands
         );
 
-        LoadDrawnWeaponSetItems(
-            ref leftHandItem,
-            ref rightHandItem,
-            ref bothHandsItem,
-            ref mouthItem,
-            ref saddleTurretSource,
-            ref leftIsWeaponUse,
-            ref rightIsWeaponUse,
-            ref bothIsWeaponUse,
-            ref mouthIsWeaponUse
-        );
-
-        LoadMouseHeldItem(
-            ref leftHandItem,
-            ref rightHandItem,
-            ref bothHandsItem,
-            ref mouthItem,
-            ref leftIsWeaponUse,
-            ref rightIsWeaponUse,
-            ref bothIsWeaponUse,
-            ref mouthIsWeaponUse
-        );
-
-        DrawCards(
-            leftHandItem,
-            rightHandItem,
-            bothHandsItem,
-            mouthItem,
-            saddleTurretSource,
-            leftIsWeaponUse,
-            rightIsWeaponUse,
-            bothIsWeaponUse,
-            mouthIsWeaponUse
+        RefreshMouth(
+            mouthItem
         );
     }
 
-    private void LoadPlayerHoldingItems(
-        ref ItemDefinition leftHandItem,
-        ref ItemDefinition rightHandItem,
-        ref ItemDefinition bothHandsItem,
-        ref ItemDefinition mouthItem,
-        ref bool leftIsWeaponUse,
-        ref bool rightIsWeaponUse,
-        ref bool bothIsWeaponUse,
-        ref bool mouthIsWeaponUse)
+    private void RefreshHands(
+        InventoryItemInstance leftItem,
+        InventoryItemInstance rightItem,
+        bool sameItemInBothHands)
     {
-        if (playerHolding == null)
-            return;
-
-        leftHandItem = playerHolding.LeftHandItem;
-        rightHandItem = playerHolding.RightHandItem;
-        bothHandsItem = playerHolding.TwoHandedItem;
-        mouthItem = playerHolding.MouthItem;
-
-        leftIsWeaponUse =
-            IsUsableHandWeapon(leftHandItem);
-
-        rightIsWeaponUse =
-            IsUsableHandWeapon(rightHandItem);
-
-        bothIsWeaponUse =
-            IsUsableHandWeapon(bothHandsItem);
-
-        mouthIsWeaponUse =
-            IsUsableMouthWeapon(mouthItem);
-    }
-
-    private void LoadDrawnWeaponSetItems(
-        ref ItemDefinition leftHandItem,
-        ref ItemDefinition rightHandItem,
-        ref ItemDefinition bothHandsItem,
-        ref ItemDefinition mouthItem,
-        ref ItemDefinition saddleTurretSource,
-        ref bool leftIsWeaponUse,
-        ref bool rightIsWeaponUse,
-        ref bool bothIsWeaponUse,
-        ref bool mouthIsWeaponUse)
-    {
-        if (playerWeaponSlots == null)
-            return;
-
-        if (!playerWeaponSlots.WeaponsDrawn)
-            return;
-
-        ItemDefinition drawnTwoHandedWeapon =
-            playerWeaponSlots.GetDrawnTwoHandedWeapon();
-
-        if (drawnTwoHandedWeapon != null)
-        {
-            bothHandsItem = drawnTwoHandedWeapon;
-            leftHandItem = null;
-            rightHandItem = null;
-
-            bothIsWeaponUse = true;
-            leftIsWeaponUse = false;
-            rightIsWeaponUse = false;
-
-            return;
-        }
-
-        ItemDefinition drawnLeftWeapon =
-            playerWeaponSlots.GetDrawnLeftHandWeapon();
-
-        if (drawnLeftWeapon != null)
-        {
-            leftHandItem = drawnLeftWeapon;
-            leftIsWeaponUse = true;
-        }
-
-        ItemDefinition drawnRightWeapon =
-            playerWeaponSlots.GetDrawnRightHandWeapon();
-
-        if (drawnRightWeapon != null)
-        {
-            rightHandItem = drawnRightWeapon;
-            rightIsWeaponUse = true;
-        }
-
-        ItemDefinition drawnMouthWeapon =
-            playerWeaponSlots.GetDrawnMouthWeapon();
-
-        if (drawnMouthWeapon != null)
-        {
-            mouthItem = drawnMouthWeapon;
-            mouthIsWeaponUse = true;
-        }
-
-        saddleTurretSource =
-            playerWeaponSlots.GetDrawnManualSaddleTurretSource();
-    }
-
-    private void LoadMouseHeldItem(
-        ref ItemDefinition leftHandItem,
-        ref ItemDefinition rightHandItem,
-        ref ItemDefinition bothHandsItem,
-        ref ItemDefinition mouthItem,
-        ref bool leftIsWeaponUse,
-        ref bool rightIsWeaponUse,
-        ref bool bothIsWeaponUse,
-        ref bool mouthIsWeaponUse)
-    {
-        if (playerInventory == null)
-            return;
-
-        if (!playerInventory.MouseHeldItemCountsAsHeld)
-            return;
-
-        if (playerInventory.HeldItem == null ||
-            playerInventory.HeldItem.ItemDefinition == null)
-        {
-            return;
-        }
-
-        ItemDefinition mouseHeldItem =
-            playerInventory.HeldItem.ItemDefinition;
-
-        bool isUsableHandWeapon =
-            IsUsableHandWeapon(mouseHeldItem);
-
-        bool isUsableMouthWeapon =
-            IsUsableMouthWeapon(mouseHeldItem);
-
-        bool canHoldInMouth =
-            playerHolding != null &&
-            playerHolding.CanHoldItemInMouth;
-
-        if (isUsableMouthWeapon &&
-            canHoldInMouth &&
-            mouthItem == null)
-        {
-            mouthItem = mouseHeldItem;
-            mouthIsWeaponUse = true;
-            return;
-        }
-
-        if (mouseHeldItem.handUsage == ItemHandUsage.TwoHanded)
-        {
-            if (bothHandsItem == null &&
-                leftHandItem == null &&
-                rightHandItem == null)
-            {
-                bothHandsItem = mouseHeldItem;
-                bothIsWeaponUse = isUsableHandWeapon;
-                return;
-            }
-
-            if (canHoldInMouth &&
-                mouthItem == null)
-            {
-                mouthItem = mouseHeldItem;
-                mouthIsWeaponUse = false;
-                return;
-            }
-
-            return;
-        }
-
-        if (rightHandItem == null &&
-            bothHandsItem == null)
-        {
-            rightHandItem = mouseHeldItem;
-            rightIsWeaponUse = isUsableHandWeapon;
-            return;
-        }
-
-        if (leftHandItem == null &&
-            bothHandsItem == null)
-        {
-            leftHandItem = mouseHeldItem;
-            leftIsWeaponUse = isUsableHandWeapon;
-            return;
-        }
-
-        if (canHoldInMouth &&
-            mouthItem == null)
-        {
-            mouthItem = mouseHeldItem;
-            mouthIsWeaponUse = false;
-        }
-    }
-
-    private void DrawCards(
-        ItemDefinition leftHandItem,
-        ItemDefinition rightHandItem,
-        ItemDefinition bothHandsItem,
-        ItemDefinition mouthItem,
-        ItemDefinition saddleTurretSource,
-        bool leftIsWeaponUse,
-        bool rightIsWeaponUse,
-        bool bothIsWeaponUse,
-        bool mouthIsWeaponUse)
-    {
-        bool hasBothHandsItem =
-            bothHandsItem != null;
-
-        if (hasBothHandsItem)
+        if (sameItemInBothHands)
         {
             leftHandCard.Hide();
             rightHandCard.Hide();
 
             bothHandsCard.ShowItem(
-                bothHandsItem,
+                leftItem.Definition,
                 "Both Hands",
                 GetControlsText(
-                    bothHandsItem,
-                    bothIsWeaponUse
+                    leftItem,
+                    GripType.Hand
                 )
             );
-        }
-        else
-        {
-            bothHandsCard.Hide();
 
-            if (leftHandItem != null)
+            return;
+        }
+
+        bothHandsCard.Hide();
+
+        if (gripState.HandGripCount >= 1)
+        {
+            if (leftItem != null)
             {
                 leftHandCard.ShowItem(
-                    leftHandItem,
+                    leftItem.Definition,
                     "Left Hand",
                     GetControlsText(
-                        leftHandItem,
-                        leftIsWeaponUse
+                        leftItem,
+                        GripType.Hand
                     )
                 );
             }
@@ -471,15 +361,22 @@ public class HeldItemUI : MonoBehaviour
             {
                 leftHandCard.ShowEmpty();
             }
+        }
+        else
+        {
+            leftHandCard.Hide();
+        }
 
-            if (rightHandItem != null)
+        if (gripState.HandGripCount >= 2)
+        {
+            if (rightItem != null)
             {
                 rightHandCard.ShowItem(
-                    rightHandItem,
+                    rightItem.Definition,
                     "Right Hand",
                     GetControlsText(
-                        rightHandItem,
-                        rightIsWeaponUse
+                        rightItem,
+                        GripType.Hand
                     )
                 );
             }
@@ -488,113 +385,97 @@ public class HeldItemUI : MonoBehaviour
                 rightHandCard.ShowEmpty();
             }
         }
-
-        bool shouldShowMouth =
-            mouthItem != null ||
-            (
-                playerHolding != null &&
-                playerHolding.CanHoldItemInMouth
-            );
-
-        if (shouldShowMouth)
-        {
-            if (mouthItem != null)
-            {
-                mouthCard.ShowItem(
-                    mouthItem,
-                    "Mouth",
-                    GetControlsText(
-                        mouthItem,
-                        mouthIsWeaponUse
-                    )
-                );
-            }
-            else
-            {
-                mouthCard.ShowEmpty();
-            }
-        }
         else
+        {
+            rightHandCard.Hide();
+        }
+    }
+
+    private void RefreshMouth(
+        InventoryItemInstance mouthItem)
+    {
+        if (gripState.MouthGripCount <= 0)
         {
             mouthCard.Hide();
+            return;
         }
 
-        if (saddleTurretSource != null)
+        if (mouthItem == null)
         {
-            saddleTurretCard.ShowItem(
-                saddleTurretSource,
-                "Manual Saddle Turret",
-                saddleTurretSource.manualSaddleTurretControlsText
-            );
-        }
-        else
-        {
-            saddleTurretCard.Hide();
-        }
-    }
-
-    private bool IsUsableHandWeapon(ItemDefinition item)
-    {
-        return item != null &&
-               item.itemCategory == ItemCategory.Weapon &&
-               item.weaponUseType == WeaponUseType.HandWeapon;
-    }
-
-    private bool IsUsableMouthWeapon(ItemDefinition item)
-    {
-        return item != null &&
-               item.itemCategory == ItemCategory.Weapon &&
-               item.weaponUseType == WeaponUseType.MouthWeapon &&
-               playerWeaponSlots != null &&
-               playerWeaponSlots.CanUseMouthWeapons;
-    }
-
-    public void BindPlayer(
-    PlayerInventory newPlayerInventory,
-    PlayerHolding newPlayerHolding,
-    PlayerWeaponSlots newPlayerWeaponSlots)
-    {
-        if (playerInventory != null)
-            playerInventory.OnHeldItemChanged -= Refresh;
-
-        if (playerHolding != null)
-            playerHolding.OnHoldingChanged -= Refresh;
-
-        if (playerWeaponSlots != null)
-            playerWeaponSlots.OnWeaponSlotsChanged -= Refresh;
-
-        playerInventory = newPlayerInventory;
-        playerHolding = newPlayerHolding;
-        playerWeaponSlots = newPlayerWeaponSlots;
-
-        if (isActiveAndEnabled)
-        {
-            if (playerInventory != null)
-                playerInventory.OnHeldItemChanged += Refresh;
-
-            if (playerHolding != null)
-                playerHolding.OnHoldingChanged += Refresh;
-
-            if (playerWeaponSlots != null)
-                playerWeaponSlots.OnWeaponSlotsChanged += Refresh;
+            mouthCard.ShowEmpty();
+            return;
         }
 
-        Refresh();
+        mouthCard.ShowItem(
+            mouthItem.Definition,
+            "Mouth",
+            GetControlsText(
+                mouthItem,
+                GripType.Mouth
+            )
+        );
     }
 
     private string GetControlsText(
-        ItemDefinition item,
-        bool isWeaponUse)
+        InventoryItemInstance itemInstance,
+        GripType gripType)
     {
-        if (item == null)
-            return "";
-
-        if (isWeaponUse &&
-            !string.IsNullOrWhiteSpace(item.weaponControlsText))
+        if (itemInstance == null ||
+            itemInstance.Definition == null)
         {
-            return item.weaponControlsText;
+            return "";
         }
 
-        return item.heldControlsText;
+        ItemDefinition definition =
+            itemInstance.Definition;
+
+        if (definition.itemCategory ==
+                ItemCategory.Weapon &&
+            CanCurrentlyUse(
+                itemInstance,
+                gripType
+            ) &&
+            !string.IsNullOrWhiteSpace(
+                definition.weaponControlsText
+            ))
+        {
+            return definition
+                .weaponControlsText;
+        }
+
+        return definition.heldControlsText;
+    }
+
+    private bool CanCurrentlyUse(
+        InventoryItemInstance itemInstance,
+        GripType gripType)
+    {
+        if (itemInstance == null ||
+            itemInstance.Definition == null ||
+            gripState == null ||
+            characterProfile == null ||
+            characterProfile
+                .EffectiveHandlingProfile ==
+                null)
+        {
+            return false;
+        }
+
+        int assignedGripCount =
+            gripState.GetAssignedGripCount(
+                itemInstance
+            );
+
+        ResolvedItemHandling handling =
+            ItemHandlingResolver.Resolve(
+                itemInstance.Definition,
+                characterProfile
+                    .EffectiveHandlingProfile,
+                gripType,
+                assignedGripCount
+            );
+
+        return handling != null &&
+               handling.canUse;
     }
 }
