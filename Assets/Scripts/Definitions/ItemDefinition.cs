@@ -409,7 +409,7 @@ public class ItemDefinitionEditor : Editor
         DrawHeldSection(item);
         DrawHandlingSection(item);
         DrawStackingSection(item);
-        DrawSaddleEquipmentSection(item);
+        DrawEquipmentSection(item);
         DrawInventoryShapeSection(item);
 
         if (EditorGUI.EndChangeCheck())
@@ -598,12 +598,16 @@ public class ItemDefinitionEditor : Editor
         EditorGUILayout.Space();
     }
 
-    private void DrawSaddleEquipmentSection(ItemDefinition item)
+    private void DrawEquipmentSection(ItemDefinition item)
     {
         if (item.itemCategory != ItemCategory.Equipment)
         {
+            item.equipmentCombatRole =
+                EquipmentCombatRole.None;
+
             item.hasManualSaddleTurret = false;
             item.manualSaddleTurretControlsText = "";
+
             return;
         }
 
@@ -647,6 +651,9 @@ public class ItemDefinitionEditor : Editor
 
         if (item.hasManualSaddleTurret)
         {
+            item.equipmentCombatRole |=
+                EquipmentCombatRole.Weapon;
+
             EditorGUILayout.LabelField(
                 "Manual Saddle Turret Controls Text"
             );

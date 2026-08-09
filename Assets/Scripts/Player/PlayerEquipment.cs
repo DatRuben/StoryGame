@@ -43,39 +43,33 @@ public sealed class PlayerEquipment :
 
     public event Action OnEquipmentChanged;
 
-    public void ApplySubraceDefinition(
+    public bool Configure(
         SubraceDefinition subraceDefinition)
     {
         if (subraceDefinition == null)
-            return;
+            return false;
 
         bool newCanEquipSaddles =
             subraceDefinition.canEquipSaddles;
 
-        bool changed =
-            canEquipSaddles !=
-            newCanEquipSaddles;
+        if (!newCanEquipSaddles &&
+            equippedSaddle != null)
+        {
+            return false;
+        }
+
+        if (canEquipSaddles ==
+            newCanEquipSaddles)
+        {
+            return true;
+        }
 
         canEquipSaddles =
             newCanEquipSaddles;
 
-        if (!canEquipSaddles &&
-            equippedSaddle != null)
-        {
-            InventoryItemInstance oldSaddle =
-                equippedSaddle;
+        OnEquipmentChanged?.Invoke();
 
-            equippedSaddle = null;
-
-            UnsubscribeItem(
-                oldSaddle
-            );
-
-            changed = true;
-        }
-
-        if (changed)
-            OnEquipmentChanged?.Invoke();
+        return true;
     }
 
     public InventoryItemInstance
