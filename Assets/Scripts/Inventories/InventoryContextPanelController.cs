@@ -1,35 +1,33 @@
 using TMPro;
 using UnityEngine;
 
-public class InventoryContextPanelController : MonoBehaviour
+public sealed class InventoryContextPanelController :
+    MonoBehaviour
 {
     [Header("Panels")]
-    [SerializeField] private GameObject defaultPanel;
-    [SerializeField] private GameObject storagePanel;
+    [SerializeField]
+    private GameObject defaultPanel;
+
+    [SerializeField]
+    private GameObject storagePanel;
 
     [Header("Storage UI")]
-    [SerializeField] private StorageContainerGridUI storageContainerGridUI;
+    [SerializeField]
+    private InventoryGridUI storageInventoryGridUI;
 
     [Header("Storage Title")]
-    [SerializeField] private TextMeshProUGUI storageTitleText;
-    [SerializeField] private string defaultStorageTitle = "Storage";
-    [SerializeField] private bool hideTitleWhenNoStorageOpen = true;
-    [SerializeField] private bool warnIfStorageTitleTextMissing = true;
+    [SerializeField]
+    private TextMeshProUGUI storageTitleText;
 
-    private void Reset()
-    {
-        ValidateReferences(true, false);
-    }
+    [SerializeField]
+    private string defaultStorageTitle = "Storage";
 
-    private void OnValidate()
-    {
-        ValidateReferences(true, false);
-        UpdateStorageTitle(null);
-    }
+    [SerializeField]
+    private bool hideTitleWhenNoStorageOpen = true;
 
     private void Awake()
     {
-        ValidateReferences(true, true);
+        ResolveReferences();
     }
 
     private void Start()
@@ -37,217 +35,31 @@ public class InventoryContextPanelController : MonoBehaviour
         ShowDefaultPanel();
     }
 
-    private void ValidateReferences(
-        bool logAutoFilled,
-        bool logMissing)
+    private void OnValidate()
     {
-        if (storageContainerGridUI == null)
-        {
-            StorageContainerGridUI foundStorageUI =
-                GetComponentInChildren<StorageContainerGridUI>(true);
-
-            if (foundStorageUI == null)
-                foundStorageUI = FindSceneComponent<StorageContainerGridUI>();
-
-            if (foundStorageUI != null)
-            {
-                storageContainerGridUI = foundStorageUI;
-
-                if (logAutoFilled)
-                {
-                    Debug.Log(
-                        "InventoryContextPanelController auto-filled StorageContainerGridUI.",
-                        this
-                    );
-                }
-            }
-        }
-
-        if (storagePanel == null &&
-            storageContainerGridUI != null)
-        {
-            storagePanel =
-                storageContainerGridUI.gameObject;
-
-            if (logAutoFilled)
-            {
-                Debug.Log(
-                    "InventoryContextPanelController auto-filled StoragePanel from StorageContainerGridUI.",
-                    this
-                );
-            }
-        }
-
-        if (defaultPanel == null)
-        {
-            defaultPanel =
-                FindDirectChildByName("CharacterInfoPanel");
-
-            if (defaultPanel == null)
-                defaultPanel = FindDirectChildByName("DefaultPanel");
-
-            if (defaultPanel == null)
-                defaultPanel = FindDirectChildByName("StatsPanel");
-
-            if (defaultPanel != null &&
-                logAutoFilled)
-            {
-                Debug.Log(
-                    "InventoryContextPanelController auto-filled DefaultPanel.",
-                    this
-                );
-            }
-        }
-
-        if (storageTitleText == null)
-        {
-            TextMeshProUGUI foundTitleText =
-                FindStorageTitleText();
-
-            if (foundTitleText != null)
-            {
-                storageTitleText = foundTitleText;
-
-                if (logAutoFilled)
-                {
-                    Debug.Log(
-                        "InventoryContextPanelController auto-filled Storage Title Text.",
-                        this
-                    );
-                }
-            }
-        }
-
-        if (!logMissing)
-            return;
-
-        if (defaultPanel == null)
-        {
-            Debug.LogWarning(
-                "InventoryContextPanelController is missing DefaultPanel.",
-                this
-            );
-        }
-
-        if (storagePanel == null)
-        {
-            Debug.LogWarning(
-                "InventoryContextPanelController is missing StoragePanel.",
-                this
-            );
-        }
-
-        if (storageContainerGridUI == null)
-        {
-            Debug.LogWarning(
-                "InventoryContextPanelController is missing StorageContainerGridUI.",
-                this
-            );
-        }
-
-        if (warnIfStorageTitleTextMissing &&
-            storageTitleText == null)
-        {
-            Debug.LogWarning(
-                "InventoryContextPanelController is missing Storage Title Text. Container names will not be shown.",
-                this
-            );
-        }
-    }
-
-    private GameObject FindDirectChildByName(string childName)
-    {
-        for (int i = 0; i < transform.childCount; i++)
-        {
-            Transform child = transform.GetChild(i);
-
-            if (child != null &&
-                child.name == childName)
-            {
-                return child.gameObject;
-            }
-        }
-
-        return null;
-    }
-
-    private TextMeshProUGUI FindStorageTitleText()
-    {
-        if (storagePanel == null)
-            return null;
-
-        TextMeshProUGUI[] texts =
-            storagePanel.GetComponentsInChildren<TextMeshProUGUI>(true);
-
-        if (texts == null ||
-            texts.Length == 0)
-        {
-            return null;
-        }
-
-        for (int i = 0; i < texts.Length; i++)
-        {
-            TextMeshProUGUI text =
-                texts[i];
-
-            if (text == null)
-                continue;
-
-            string lowerName =
-                text.gameObject.name.ToLowerInvariant();
-
-            if (lowerName.Contains("title") ||
-                lowerName.Contains("name") ||
-                lowerName.Contains("header"))
-            {
-                return text;
-            }
-        }
-
-        return texts[0];
-    }
-
-    private T FindSceneComponent<T>() where T : Component
-    {
-        T[] matches =
-            Resources.FindObjectsOfTypeAll<T>();
-
-        for (int i = 0; i < matches.Length; i++)
-        {
-            T match = matches[i];
-
-            if (match == null ||
-                !match.gameObject.scene.IsValid())
-            {
-                continue;
-            }
-
-            return match;
-        }
-
-        return null;
+        ResolveReferences();
     }
 
     public void ShowDefaultPanel()
     {
-        ValidateReferences(false, true);
-
         if (defaultPanel != null)
             defaultPanel.SetActive(true);
 
         if (storagePanel != null)
             storagePanel.SetActive(false);
 
-        if (storageContainerGridUI != null)
-            storageContainerGridUI.SetStorageContainer(null);
+        if (storageInventoryGridUI != null)
+        {
+            storageInventoryGridUI
+                .BindContainer(null);
+        }
 
         UpdateStorageTitle(null);
     }
 
-    public void ShowStorageContainer(StorageContainer storageContainer)
+    public void ShowStorageContainer(
+        InventoryContainer storageContainer)
     {
-        ValidateReferences(false, true);
-
         if (storageContainer == null)
         {
             ShowDefaultPanel();
@@ -260,19 +72,17 @@ public class InventoryContextPanelController : MonoBehaviour
         if (storagePanel != null)
             storagePanel.SetActive(true);
 
-        if (storageContainerGridUI != null)
+        if (storageInventoryGridUI != null)
         {
-            storageContainerGridUI.SetStorageContainer(storageContainer);
-        }
-        else
-        {
-            Debug.LogWarning(
-                "Cannot show storage container because StorageContainerGridUI is missing.",
-                this
-            );
+            storageInventoryGridUI
+                .BindContainer(
+                    storageContainer
+                );
         }
 
-        UpdateStorageTitle(storageContainer);
+        UpdateStorageTitle(
+            storageContainer
+        );
     }
 
     public void HideStorageContainer()
@@ -280,7 +90,117 @@ public class InventoryContextPanelController : MonoBehaviour
         ShowDefaultPanel();
     }
 
-    private void UpdateStorageTitle(StorageContainer storageContainer)
+    private void ResolveReferences()
+    {
+        if (defaultPanel == null)
+        {
+            defaultPanel =
+                FindDirectChild(
+                    "CharacterInfoPanel"
+                );
+
+            if (defaultPanel == null)
+            {
+                defaultPanel =
+                    FindDirectChild(
+                        "DefaultPanel"
+                    );
+            }
+        }
+
+        if (storagePanel == null)
+        {
+            storagePanel =
+                FindDirectChild(
+                    "StoragePanel"
+                );
+
+            if (storagePanel == null)
+            {
+                storagePanel =
+                    FindDirectChild(
+                        "ContainerPanel"
+                    );
+            }
+        }
+
+        if (storageInventoryGridUI == null &&
+            storagePanel != null)
+        {
+            storageInventoryGridUI =
+                storagePanel
+                    .GetComponentInChildren<
+                        InventoryGridUI>(
+                        true
+                    );
+        }
+
+        if (storageTitleText == null &&
+            storagePanel != null)
+        {
+            storageTitleText =
+                FindStorageTitle();
+        }
+    }
+
+    private GameObject FindDirectChild(
+        string childName)
+    {
+        for (int i = 0;
+             i < transform.childCount;
+             i++)
+        {
+            Transform child =
+                transform.GetChild(i);
+
+            if (child != null &&
+                child.name ==
+                    childName)
+            {
+                return child.gameObject;
+            }
+        }
+
+        return null;
+    }
+
+    private TextMeshProUGUI FindStorageTitle()
+    {
+        TextMeshProUGUI[] texts =
+            storagePanel.GetComponentsInChildren<
+                TextMeshProUGUI>(
+                true
+            );
+
+        for (int i = 0;
+             i < texts.Length;
+             i++)
+        {
+            TextMeshProUGUI text =
+                texts[i];
+
+            if (text == null)
+                continue;
+
+            string lowerName =
+                text.gameObject.name
+                    .ToLowerInvariant();
+
+            if (lowerName.Contains("title") ||
+                lowerName.Contains("name") ||
+                lowerName.Contains("header"))
+            {
+                return text;
+            }
+        }
+
+        return texts.Length > 0
+            ? texts[0]
+            : null;
+    }
+
+    private void UpdateStorageTitle(
+        InventoryContainer storageContainer)
     {
         if (storageTitleText == null)
             return;
@@ -290,37 +210,35 @@ public class InventoryContextPanelController : MonoBehaviour
             storageTitleText.text =
                 defaultStorageTitle;
 
-            storageTitleText.gameObject.SetActive(
-                !hideTitleWhenNoStorageOpen
-            );
+            storageTitleText.gameObject
+                .SetActive(
+                    !hideTitleWhenNoStorageOpen
+                );
 
             return;
         }
 
-        storageTitleText.gameObject.SetActive(true);
-
-        storageTitleText.text =
-            GetStorageContainerTitle(storageContainer);
-    }
-
-    private string GetStorageContainerTitle(
-        StorageContainer storageContainer)
-    {
-        if (storageContainer == null)
-            return defaultStorageTitle;
+        storageTitleText.gameObject
+            .SetActive(true);
 
         StorageContainerInteract interact =
-            storageContainer.GetComponent<StorageContainerInteract>();
+            storageContainer.GetComponent<
+                StorageContainerInteract>();
 
         if (interact != null &&
-            !string.IsNullOrWhiteSpace(interact.DisplayName))
+            !string.IsNullOrWhiteSpace(
+                interact.DisplayName))
         {
-            return interact.DisplayName;
+            storageTitleText.text =
+                interact.DisplayName;
+
+            return;
         }
 
-        if (!string.IsNullOrWhiteSpace(storageContainer.gameObject.name))
-            return storageContainer.gameObject.name;
-
-        return defaultStorageTitle;
+        storageTitleText.text =
+            string.IsNullOrWhiteSpace(
+                storageContainer.gameObject.name)
+                ? defaultStorageTitle
+                : storageContainer.gameObject.name;
     }
 }

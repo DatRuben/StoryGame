@@ -5,6 +5,9 @@ using UnityEngine;
 [RequireComponent(
     typeof(PlayerGripState),
     typeof(PlayerWeaponLoadout),
+    typeof(PlayerEquipment)
+)]
+[RequireComponent(
     typeof(PlayerCharacterProfile)
 )]
 public sealed class InventoryInteractionController :
@@ -19,6 +22,7 @@ public sealed class InventoryInteractionController :
 
     private PlayerGripState gripState;
     private PlayerWeaponLoadout weaponLoadout;
+    private PlayerEquipment equipment;
     private PlayerCharacterProfile characterProfile;
 
     public bool HasSelection =>
@@ -46,6 +50,9 @@ public sealed class InventoryInteractionController :
         weaponLoadout =
             GetComponent<PlayerWeaponLoadout>();
 
+        equipment =
+            GetComponent<PlayerEquipment>();
+
         characterProfile =
             GetComponent<PlayerCharacterProfile>();
 
@@ -56,6 +63,9 @@ public sealed class InventoryInteractionController :
             OnGripStateChanged;
 
         weaponLoadout.Changed +=
+            OnStateChanged;
+
+        equipment.OnEquipmentChanged +=
             OnStateChanged;
 
         characterProfile.AttributesChanged +=
@@ -125,6 +135,485 @@ public sealed class InventoryInteractionController :
         );
     }
 
+    public bool TryPickUpItemFromContainer(
+        InventoryContainer source,
+        Vector2Int coordinate)
+    {
+        if (source == null ||
+            cursor.HasSelection)
+        {
+            return false;
+        }
+
+        PlacedInventoryItem placedItem =
+            source.GetItemAt(
+                coordinate.x,
+                coordinate.y
+            );
+
+        if (placedItem == null ||
+            placedItem.ItemInstance == null ||
+            placedItem.ItemDefinition == null)
+        {
+            return false;
+        }
+
+        InventoryItemInstance itemInstance =
+            placedItem.ItemInstance;
+
+        if (!TryFindHoldPlan(
+            itemInstance,
+            out GripType gripType,
+            out int gripCount))
+        {
+            return false;
+        }
+
+        Vector2Int originalPosition =
+            placedItem.Position;
+
+        int originalRotation =
+            placedItem.RotationSteps;
+
+        Vector2Int grabOffset =
+            coordinate -
+            originalPosition;
+
+        PlacedInventoryItem removedItem =
+            source.TakeItemAt(
+                coordinate.x,
+                coordinate.y
+            );
+
+        if (removedItem == null ||
+            !ReferenceEquals(
+                removedItem.ItemInstance,
+                itemInstance))
+        {
+            return false;
+        }
+
+        if (!gripState.TryHold(
+            itemInstance,
+            gripType,
+            gripCount))
+        {
+            source.PlaceInstance(
+                itemInstance,
+                originalPosition.x,
+                originalPosition.y,
+                originalRotation
+            );
+
+            return false;
+        }
+
+        if (!cursor.Select(
+            itemInstance,
+            originalRotation,
+            grabOffset))
+        {
+            gripState.Release(
+                itemInstance
+            );
+
+            source.PlaceInstance(
+                itemInstance,
+                originalPosition.x,
+                originalPosition.y,
+                originalRotation
+            );
+
+            return false;
+        }
+
+        return true;
+    }
+
+    public bool CanPlaceSelection(
+        InventoryContainer target,
+        Vector2Int origin)
+    {
+        InventoryItemInstance selected =
+            cursor.SelectedItem;
+
+        if (target == null ||
+            !IsPlacementCandidate(
+                selected))
+        {
+            return false;
+        }
+
+        return target.CanPlace(
+            selected,
+            origin.x,
+            origin.y,
+            cursor.RotationSteps
+        );
+    }
+
+    public bool TryPlaceSelection(
+        InventoryContainer target,
+        Vector2Int origin)
+    {
+        InventoryItemInstance selected =
+            cursor.SelectedItem;
+
+        if (!CanPlaceSelection(
+            target,
+            origin))
+        {
+            return false;
+        }
+
+        bool placed =
+            target.PlaceInstance(
+                selected,
+                origin.x,
+                origin.y,
+                cursor.RotationSteps
+            );
+
+        if (!placed)
+            return false;
+
+        gripState.Release(
+            selected
+        );
+
+        cursor.ClearSelection();
+
+        return true;
+    }
+
+    public bool CanMergeSelectionIntoStackAt(
+        InventoryContainer target,
+        Vector2Int coordinate,
+        out bool fullyFits)
+    {
+        fullyFits = false;
+
+        InventoryItemInstance selected =
+            cursor.SelectedItem;
+
+        if (target == null ||
+            !IsPlacementCandidate(
+                selected))
+        {
+            return false;
+        }
+
+        PlacedInventoryItem placedTarget =
+            target.GetItemAt(
+                coordinate.x,
+                coordinate.y
+            );
+
+        if (placedTarget == null ||
+            placedTarget.ItemInstance == null)
+        {
+            return false;
+        }
+
+        InventoryItemInstance targetInstance =
+            placedTarget.ItemInstance;
+
+        if (!selected.CanStackWith(
+            targetInstance))
+        {
+            return false;
+        }
+
+        int availableSpace =
+            targetInstance.MaxStackSize -
+            targetInstance.Quantity;
+
+        if (availableSpace <= 0)
+            return false;
+
+        fullyFits =
+            selected.Quantity <=
+            availableSpace;
+
+        return true;
+    }
+
+    public bool TryMergeSelectionIntoStackAt(
+        InventoryContainer target,
+        Vector2Int coordinate)
+    {
+        if (!CanMergeSelectionIntoStackAt(
+            target,
+            coordinate,
+            out _))
+        {
+            return false;
+        }
+
+        InventoryItemInstance selected =
+            cursor.SelectedItem;
+
+        PlacedInventoryItem placedTarget =
+            target.GetItemAt(
+                coordinate.x,
+                coordinate.y
+            );
+
+        if (placedTarget == null ||
+            placedTarget.ItemInstance == null)
+        {
+            return false;
+        }
+
+        int moved =
+            selected.MoveQuantityTo(
+                placedTarget.ItemInstance,
+                selected.Quantity
+            );
+
+        return moved > 0;
+    }
+
+    public bool TryPlaceOneSelection(
+        InventoryContainer target,
+        Vector2Int origin)
+    {
+        InventoryItemInstance selected =
+            cursor.SelectedItem;
+
+        if (target == null ||
+            !IsPlacementCandidate(
+                selected) ||
+            !selected.IsStackable)
+        {
+            return false;
+        }
+
+        PlacedInventoryItem targetStack =
+            target.GetItemAt(
+                origin.x,
+                origin.y
+            );
+
+        if (targetStack != null)
+        {
+            if (targetStack.ItemInstance == null)
+                return false;
+
+            int moved =
+                selected.MoveQuantityTo(
+                    targetStack.ItemInstance,
+                    1
+                );
+
+            return moved > 0;
+        }
+
+        if (selected.Quantity <= 1)
+        {
+            return TryPlaceSelection(
+                target,
+                origin
+            );
+        }
+
+        if (!selected.TrySplit(
+            1,
+            out InventoryItemInstance
+                singleItem))
+        {
+            return false;
+        }
+
+        bool placed =
+            target.PlaceInstance(
+                singleItem,
+                origin.x,
+                origin.y,
+                cursor.RotationSteps
+            );
+
+        if (placed)
+            return true;
+
+        singleItem.MoveQuantityTo(
+            selected,
+            singleItem.Quantity
+        );
+
+        return false;
+    }
+
+    public bool TrySplitStackFromContainer(
+        InventoryContainer source,
+        Vector2Int coordinate)
+    {
+        if (source == null ||
+            cursor.HasSelection)
+        {
+            return false;
+        }
+
+        PlacedInventoryItem placedItem =
+            source.GetItemAt(
+                coordinate.x,
+                coordinate.y
+            );
+
+        if (placedItem == null ||
+            placedItem.ItemInstance == null ||
+            !placedItem.ItemInstance.IsStackable ||
+            placedItem.ItemInstance.Quantity <= 1)
+        {
+            return false;
+        }
+
+        InventoryItemInstance sourceInstance =
+            placedItem.ItemInstance;
+
+        int splitQuantity =
+            Mathf.CeilToInt(
+                sourceInstance.Quantity *
+                0.5f
+            );
+
+        if (!sourceInstance.TrySplit(
+            splitQuantity,
+            out InventoryItemInstance
+                splitInstance))
+        {
+            return false;
+        }
+
+        if (!TryFindHoldPlan(
+            splitInstance,
+            out GripType gripType,
+            out int gripCount))
+        {
+            splitInstance.MoveQuantityTo(
+                sourceInstance,
+                splitInstance.Quantity
+            );
+
+            return false;
+        }
+
+        if (!gripState.TryHold(
+            splitInstance,
+            gripType,
+            gripCount))
+        {
+            splitInstance.MoveQuantityTo(
+                sourceInstance,
+                splitInstance.Quantity
+            );
+
+            return false;
+        }
+
+        int rotation =
+            placedItem.RotationSteps;
+
+        Vector2Int grabOffset =
+            new Vector2Int(
+                placedItem.ItemDefinition
+                    .GetWidth(rotation) / 2,
+                placedItem.ItemDefinition
+                    .GetHeight(rotation) / 2
+            );
+
+        cursor.Select(
+            splitInstance,
+            rotation,
+            grabOffset
+        );
+
+        return true;
+    }
+
+    public bool TryTransferSelectionIntoContainer(
+        InventoryContainer target)
+    {
+        InventoryItemInstance selected =
+            cursor.SelectedItem;
+
+        if (target == null ||
+            !IsPlacementCandidate(
+                selected))
+        {
+            return false;
+        }
+
+        int quantityBefore =
+            selected.Quantity;
+
+        target.TryTransferIn(
+            selected,
+            cursor.RotationSteps,
+            out int remainingQuantity
+        );
+
+        int quantityAfter =
+            selected.IsEmpty
+                ? 0
+                : selected.Quantity;
+
+        bool movedAnything =
+            quantityAfter <
+                quantityBefore ||
+            remainingQuantity <= 0;
+
+        if (!movedAnything)
+            return false;
+
+        if (remainingQuantity <= 0)
+        {
+            if (gripState.IsHolding(
+                selected))
+            {
+                gripState.Release(
+                    selected
+                );
+            }
+
+            if (ReferenceEquals(
+                cursor.SelectedItem,
+                selected))
+            {
+                cursor.ClearSelection();
+            }
+        }
+
+        return true;
+    }
+
+    public bool TryQuickTransfer(
+        InventoryContainer source,
+        InventoryContainer target,
+        Vector2Int coordinate)
+    {
+        if (source == null ||
+            target == null ||
+            ReferenceEquals(
+                source,
+                target) ||
+            cursor.HasSelection)
+        {
+            return false;
+        }
+
+        if (!TryPickUpItemFromContainer(
+            source,
+            coordinate))
+        {
+            return false;
+        }
+
+        return TryTransferSelectionIntoContainer(
+            target
+        );
+    }
+
     public bool CanAssignSelectedWeapon(
         int setIndex,
         int slotIndex)
@@ -133,13 +622,9 @@ public sealed class InventoryInteractionController :
             cursor.SelectedItem;
 
         if (!IsPlacementCandidate(
-            selected))
-        {
-            return false;
-        }
-
-        if (!IsConventionalWeapon(
-            selected))
+            selected) ||
+            !IsConventionalWeapon(
+                selected))
         {
             return false;
         }
@@ -193,7 +678,7 @@ public sealed class InventoryInteractionController :
 
         if (currentWeapon == null)
         {
-            return TryAssignToEmptySlot(
+            return TryAssignToEmptyWeaponSlot(
                 setIndex,
                 slotIndex,
                 selected
@@ -227,7 +712,7 @@ public sealed class InventoryInteractionController :
         if (!gripState.Release(
             selected))
         {
-            RollbackLoadoutReplacement(
+            RestoreWeaponSlot(
                 setIndex,
                 slotIndex,
                 selected,
@@ -237,16 +722,12 @@ public sealed class InventoryInteractionController :
             return false;
         }
 
-        bool heldReplacement =
-            gripState.TryHold(
-                replacedWeapon,
-                replacementGripType,
-                replacementGripCount
-            );
-
-        if (!heldReplacement)
+        if (!gripState.TryHold(
+            replacedWeapon,
+            replacementGripType,
+            replacementGripCount))
         {
-            RollbackLoadoutReplacement(
+            RestoreWeaponSlot(
                 setIndex,
                 slotIndex,
                 selected,
@@ -275,6 +756,9 @@ public sealed class InventoryInteractionController :
         int setIndex,
         int slotIndex)
     {
+        if (cursor.HasSelection)
+            return false;
+
         InventoryItemInstance weapon =
             weaponLoadout.GetWeapon(
                 setIndex,
@@ -295,14 +779,18 @@ public sealed class InventoryInteractionController :
         int setIndex,
         int slotIndex)
     {
+        if (!CanTakeWeaponFromSlot(
+            setIndex,
+            slotIndex))
+        {
+            return false;
+        }
+
         InventoryItemInstance weapon =
             weaponLoadout.GetWeapon(
                 setIndex,
                 slotIndex
             );
-
-        if (weapon == null)
-            return false;
 
         if (!TryFindHoldPlan(
             weapon,
@@ -357,7 +845,261 @@ public sealed class InventoryInteractionController :
             );
     }
 
-    private bool TryAssignToEmptySlot(
+    public bool CanEquipSelectedItem(
+        EquipmentSlotType slotType,
+        int slotIndex = 0)
+    {
+        InventoryItemInstance selected =
+            cursor.SelectedItem;
+
+        if (!IsPlacementCandidate(
+            selected))
+        {
+            return false;
+        }
+
+        if (!equipment.CanEquipItemToSlot(
+            selected,
+            slotType,
+            slotIndex))
+        {
+            return false;
+        }
+
+        InventoryItemInstance currentItem =
+            equipment.GetEquippedItem(
+                slotType,
+                slotIndex
+            );
+
+        if (currentItem == null ||
+            ReferenceEquals(
+                currentItem,
+                selected))
+        {
+            return true;
+        }
+
+        return TryFindHoldPlanAfterRelease(
+            selected,
+            currentItem,
+            out _,
+            out _
+        );
+    }
+
+    public bool TryEquipSelectedItem(
+        EquipmentSlotType slotType,
+        int slotIndex = 0)
+    {
+        if (!CanEquipSelectedItem(
+            slotType,
+            slotIndex))
+        {
+            return false;
+        }
+
+        InventoryItemInstance selected =
+            cursor.SelectedItem;
+
+        InventoryItemInstance currentItem =
+            equipment.GetEquippedItem(
+                slotType,
+                slotIndex
+            );
+
+        GripType originalGripType =
+            GetHeldGripType(
+                selected
+            );
+
+        int originalGripCount =
+            gripState.GetAssignedGripCount(
+                selected
+            );
+
+        if (currentItem == null)
+        {
+            bool equipped =
+                equipment.TryEquipItemToSlot(
+                    selected,
+                    slotType,
+                    slotIndex,
+                    out _
+                );
+
+            if (!equipped)
+                return false;
+
+            if (!gripState.Release(
+                selected))
+            {
+                equipment.UnequipSlot(
+                    slotType,
+                    slotIndex
+                );
+
+                return false;
+            }
+
+            cursor.ClearSelection();
+
+            return true;
+        }
+
+        if (!TryFindHoldPlanAfterRelease(
+            selected,
+            currentItem,
+            out GripType replacementGripType,
+            out int replacementGripCount))
+        {
+            return false;
+        }
+
+        bool replaced =
+            equipment.TryEquipItemToSlot(
+                selected,
+                slotType,
+                slotIndex,
+                out InventoryItemInstance
+                    replacedItem
+            );
+
+        if (!replaced ||
+            replacedItem == null)
+        {
+            return false;
+        }
+
+        if (!gripState.Release(
+            selected))
+        {
+            RestoreEquipmentSlot(
+                slotType,
+                slotIndex,
+                selected,
+                replacedItem
+            );
+
+            return false;
+        }
+
+        if (!gripState.TryHold(
+            replacedItem,
+            replacementGripType,
+            replacementGripCount))
+        {
+            RestoreEquipmentSlot(
+                slotType,
+                slotIndex,
+                selected,
+                replacedItem
+            );
+
+            gripState.TryHold(
+                selected,
+                originalGripType,
+                originalGripCount
+            );
+
+            return false;
+        }
+
+        cursor.Select(
+            replacedItem,
+            0,
+            Vector2Int.zero
+        );
+
+        return true;
+    }
+
+    public bool CanTakeEquipmentFromSlot(
+        EquipmentSlotType slotType,
+        int slotIndex = 0)
+    {
+        if (cursor.HasSelection)
+            return false;
+
+        InventoryItemInstance item =
+            equipment.GetEquippedItem(
+                slotType,
+                slotIndex
+            );
+
+        if (item == null)
+            return false;
+
+        return TryFindHoldPlan(
+            item,
+            out _,
+            out _
+        );
+    }
+
+    public bool TryTakeEquipmentFromSlot(
+        EquipmentSlotType slotType,
+        int slotIndex = 0)
+    {
+        if (!CanTakeEquipmentFromSlot(
+            slotType,
+            slotIndex))
+        {
+            return false;
+        }
+
+        InventoryItemInstance item =
+            equipment.GetEquippedItem(
+                slotType,
+                slotIndex
+            );
+
+        if (!TryFindHoldPlan(
+            item,
+            out GripType gripType,
+            out int gripCount))
+        {
+            return false;
+        }
+
+        InventoryItemInstance removedItem =
+            equipment.UnequipSlot(
+                slotType,
+                slotIndex
+            );
+
+        if (!ReferenceEquals(
+            removedItem,
+            item))
+        {
+            return false;
+        }
+
+        if (!gripState.TryHold(
+            item,
+            gripType,
+            gripCount))
+        {
+            equipment.TryEquipItemToSlot(
+                item,
+                slotType,
+                slotIndex,
+                out _
+            );
+
+            return false;
+        }
+
+        cursor.Select(
+            item,
+            0,
+            Vector2Int.zero
+        );
+
+        return true;
+    }
+
+    private bool TryAssignToEmptyWeaponSlot(
         int setIndex,
         int slotIndex,
         InventoryItemInstance weapon)
@@ -386,7 +1128,7 @@ public sealed class InventoryInteractionController :
         return true;
     }
 
-    private void RollbackLoadoutReplacement(
+    private void RestoreWeaponSlot(
         int setIndex,
         int slotIndex,
         InventoryItemInstance newWeapon,
@@ -409,6 +1151,33 @@ public sealed class InventoryInteractionController :
             setIndex,
             slotIndex,
             oldWeapon
+        );
+    }
+
+    private void RestoreEquipmentSlot(
+        EquipmentSlotType slotType,
+        int slotIndex,
+        InventoryItemInstance newItem,
+        InventoryItemInstance oldItem)
+    {
+        InventoryItemInstance removed =
+            equipment.UnequipSlot(
+                slotType,
+                slotIndex
+            );
+
+        if (!ReferenceEquals(
+            removed,
+            newItem))
+        {
+            return;
+        }
+
+        equipment.TryEquipItemToSlot(
+            oldItem,
+            slotType,
+            slotIndex,
+            out _
         );
     }
 
@@ -446,7 +1215,9 @@ public sealed class InventoryInteractionController :
                 GripType.Mouth
             );
 
-        if (releasedItem != null)
+        if (releasedItem != null &&
+            gripState.IsHolding(
+                releasedItem))
         {
             GripType releasedGripType =
                 GetHeldGripType(
@@ -464,9 +1235,7 @@ public sealed class InventoryInteractionController :
                 freeHands +=
                     releasedGripCount;
             }
-            else if (
-                releasedGripType ==
-                GripType.Mouth)
+            else
             {
                 freeMouth +=
                     releasedGripCount;
@@ -513,6 +1282,13 @@ public sealed class InventoryInteractionController :
                 freeHands,
                 0,
                 gripState.HandGripCount
+            );
+
+        freeMouth =
+            Mathf.Clamp(
+                freeMouth,
+                0,
+                gripState.MouthGripCount
             );
 
         for (int count = 1;
@@ -595,9 +1371,6 @@ public sealed class InventoryInteractionController :
             return false;
         }
 
-        // A weapon that is still assigned to a loadout is
-        // being treated as a slotted/drawn weapon, not as
-        // a loose inventory-placement candidate.
         return !weaponLoadout
             .IsWeaponAssigned(
                 itemInstance
@@ -609,7 +1382,8 @@ public sealed class InventoryInteractionController :
     {
         return itemInstance != null &&
                itemInstance.Definition != null &&
-               itemInstance.Definition.itemCategory ==
+               itemInstance.Definition
+                   .itemCategory ==
                    ItemCategory.Weapon;
     }
 
@@ -660,6 +1434,12 @@ public sealed class InventoryInteractionController :
         if (weaponLoadout != null)
         {
             weaponLoadout.Changed -=
+                OnStateChanged;
+        }
+
+        if (equipment != null)
+        {
+            equipment.OnEquipmentChanged -=
                 OnStateChanged;
         }
 

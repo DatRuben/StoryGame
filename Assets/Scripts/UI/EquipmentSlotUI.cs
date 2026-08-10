@@ -2,36 +2,79 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class EquipmentSlotUI : MonoBehaviour
+public sealed class EquipmentSlotUI :
+    MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] private PlayerInventory playerInventory;
-    [SerializeField] private PlayerEquipment playerEquipment;
+    [SerializeField]
+    private PlayerEquipment playerEquipment;
 
-    [SerializeField] private Image slotImage;
-    [SerializeField] private TextMeshProUGUI slotText;
-    [SerializeField] private Button button;
-    [SerializeField] private CanvasGroup canvasGroup;
+    [SerializeField]
+    private InventoryInteractionController
+        interactionController;
+
+    [SerializeField]
+    private Image slotImage;
+
+    [SerializeField]
+    private TextMeshProUGUI slotText;
+
+    [SerializeField]
+    private Button button;
+
+    [SerializeField]
+    private CanvasGroup canvasGroup;
 
     [Header("Slot")]
-    [SerializeField] private EquipmentSlotType equipmentSlotType;
+    [SerializeField]
+    private EquipmentSlotType equipmentSlotType;
+
+    [SerializeField]
+    [Range(0, PlayerEquipment.ArmAttachmentCount - 1)]
+    private int slotIndex;
 
     [Header("Visibility")]
-    [SerializeField] private bool onlyShowWhenInventoryOpen = true;
+    [SerializeField]
+    private bool onlyShowWhenInventoryOpen = true;
 
     [Header("Text")]
-    [SerializeField] private string emptyText = "";
-    [SerializeField] private string equipText = "";
-    [SerializeField] private string swapText = "";
-    [SerializeField] private string cannotEquipText = "Cannot Equip";
-    [SerializeField] private string turretSuffix = " + Turret";
+    [SerializeField]
+    private string emptyText = "";
+
+    [SerializeField]
+    private string equipText = "";
+
+    [SerializeField]
+    private string swapText = "";
+
+    [SerializeField]
+    private string cannotEquipText =
+        "Cannot Equip";
+
+    [SerializeField]
+    private string turretSuffix =
+        " + Turret";
 
     [Header("Colors")]
-    [SerializeField] private Color emptyColor = new Color(0f, 0f, 0f, 0.35f);
-    [SerializeField] private Color equippedColor = new Color(1f, 1f, 1f, 0.85f);
-    [SerializeField] private Color turretColor = new Color(0.8f, 0.55f, 1f, 0.9f);
-    [SerializeField] private Color canEquipColor = new Color(0.2f, 1f, 0.2f, 0.85f);
-    [SerializeField] private Color invalidColor = new Color(1f, 0.2f, 0.2f, 0.85f);
+    [SerializeField]
+    private Color emptyColor =
+        new Color(0f, 0f, 0f, 0.35f);
+
+    [SerializeField]
+    private Color equippedColor =
+        new Color(1f, 1f, 1f, 0.85f);
+
+    [SerializeField]
+    private Color turretColor =
+        new Color(0.8f, 0.55f, 1f, 0.9f);
+
+    [SerializeField]
+    private Color canEquipColor =
+        new Color(0.2f, 1f, 0.2f, 0.85f);
+
+    [SerializeField]
+    private Color invalidColor =
+        new Color(1f, 0.2f, 0.2f, 0.85f);
 
     private void Awake()
     {
@@ -51,6 +94,23 @@ public class EquipmentSlotUI : MonoBehaviour
         }
     }
 
+    private void OnValidate()
+    {
+        if (equipmentSlotType !=
+            EquipmentSlotType.ArmAttachment)
+        {
+            slotIndex = 0;
+            return;
+        }
+
+        slotIndex =
+            Mathf.Clamp(
+                slotIndex,
+                0,
+                PlayerEquipment.ArmAttachmentCount - 1
+            );
+    }
+
     private void OnEnable()
     {
         Subscribe();
@@ -62,37 +122,53 @@ public class EquipmentSlotUI : MonoBehaviour
         Unsubscribe();
     }
 
-    private void Subscribe()
-    {
-        if (playerInventory != null)
-            playerInventory.OnHeldItemChanged += Refresh;
-
-        if (playerEquipment != null)
-            playerEquipment.OnEquipmentChanged += Refresh;
-    }
-
-    private void Unsubscribe()
-    {
-        if (playerInventory != null)
-            playerInventory.OnHeldItemChanged -= Refresh;
-
-        if (playerEquipment != null)
-            playerEquipment.OnEquipmentChanged -= Refresh;
-    }
-
     public void BindPlayer(
-        PlayerInventory newPlayerInventory,
-        PlayerEquipment newPlayerEquipment)
+        PlayerEquipment newPlayerEquipment,
+        InventoryInteractionController
+            newInteractionController)
     {
         Unsubscribe();
 
-        playerInventory = newPlayerInventory;
-        playerEquipment = newPlayerEquipment;
+        playerEquipment =
+            newPlayerEquipment;
+
+        interactionController =
+            newInteractionController;
 
         if (isActiveAndEnabled)
             Subscribe();
 
         Refresh();
+    }
+
+    private void Subscribe()
+    {
+        if (playerEquipment != null)
+        {
+            playerEquipment.OnEquipmentChanged +=
+                Refresh;
+        }
+
+        if (interactionController != null)
+        {
+            interactionController.Changed +=
+                Refresh;
+        }
+    }
+
+    private void Unsubscribe()
+    {
+        if (playerEquipment != null)
+        {
+            playerEquipment.OnEquipmentChanged -=
+                Refresh;
+        }
+
+        if (interactionController != null)
+        {
+            interactionController.Changed -=
+                Refresh;
+        }
     }
 
     private void Update()
@@ -102,86 +178,28 @@ public class EquipmentSlotUI : MonoBehaviour
 
     private void OnSlotClicked()
     {
-        if (playerInventory == null ||
-            playerEquipment == null)
+        if (playerEquipment == null ||
+            interactionController == null)
         {
             return;
         }
 
-        if (playerInventory.IsHoldingItem)
+        if (interactionController.HasSelection)
         {
-            TryEquipHeldItem();
-            Refresh();
-            return;
-        }
-
-        TryPickUpEquippedItem();
-        Refresh();
-    }
-
-    private void TryEquipHeldItem()
-    {
-        if (playerInventory.HeldItem == null ||
-            playerInventory.HeldItem.ItemDefinition == null)
-        {
-            return;
-        }
-
-        ItemDefinition heldItem =
-            playerInventory.HeldItem.ItemDefinition;
-
-        if (!playerEquipment.CanEquipItemToSlot(
-                heldItem,
-                equipmentSlotType))
-        {
-            Debug.Log(
-                "Held item cannot be equipped to " +
-                GetSlotName() +
-                "."
-            );
+            interactionController
+                .TryEquipSelectedItem(
+                    equipmentSlotType,
+                    slotIndex
+                );
 
             return;
         }
 
-        bool equipped =
-            playerEquipment.TryEquipItemToSlot(
-                heldItem,
+        interactionController
+            .TryTakeEquipmentFromSlot(
                 equipmentSlotType,
-                out ItemDefinition replacedItem
+                slotIndex
             );
-
-        if (!equipped)
-            return;
-
-        if (replacedItem != null)
-        {
-            playerInventory.SetMouseHeldItemFromExternal(
-                replacedItem,
-                0,
-                true
-            );
-        }
-        else
-        {
-            playerInventory.ClearHeldItemAfterExternalMove();
-        }
-    }
-
-    private void TryPickUpEquippedItem()
-    {
-        ItemDefinition removedItem =
-            playerEquipment.UnequipSlot(
-                equipmentSlotType
-            );
-
-        if (removedItem == null)
-            return;
-
-        playerInventory.SetMouseHeldItemFromExternal(
-            removedItem,
-            0,
-            true
-        );
     }
 
     private void Refresh()
@@ -196,19 +214,24 @@ public class EquipmentSlotUI : MonoBehaviour
             return;
         }
 
-        if (playerInventory != null &&
-            playerInventory.IsHoldingItem)
+        InventoryItemInstance equippedItem =
+            playerEquipment.GetEquippedItem(
+                equipmentSlotType,
+                slotIndex
+            );
+
+        if (interactionController != null &&
+            interactionController.HasSelection)
         {
-            RefreshWhileHoldingItem();
+            RefreshForSelection(
+                equippedItem
+            );
+
             return;
         }
 
-        ItemDefinition equippedItem =
-            playerEquipment.GetEquippedItem(
-                equipmentSlotType
-            );
-
-        if (equippedItem == null)
+        if (equippedItem == null ||
+            equippedItem.Definition == null)
         {
             SetSlot(
                 GetEmptyText(),
@@ -218,41 +241,41 @@ public class EquipmentSlotUI : MonoBehaviour
             return;
         }
 
+        ItemDefinition definition =
+            equippedItem.Definition;
+
         string text =
-            string.IsNullOrWhiteSpace(equippedItem.itemName)
+            string.IsNullOrWhiteSpace(
+                definition.itemName)
                 ? GetSlotName()
-                : equippedItem.itemName;
+                : definition.itemName;
 
         Color color =
             equippedColor;
 
-        if (equipmentSlotType == EquipmentSlotType.Saddle &&
-            equippedItem.hasManualSaddleTurret)
+        if (equipmentSlotType ==
+                EquipmentSlotType.Saddle &&
+            definition.hasManualSaddleTurret)
         {
             text += turretSuffix;
             color = turretColor;
         }
 
-        SetSlot(text, color);
+        SetSlot(
+            text,
+            color
+        );
     }
 
-    private void RefreshWhileHoldingItem()
+    private void RefreshForSelection(
+        InventoryItemInstance equippedItem)
     {
-        if (playerInventory == null ||
-            playerInventory.HeldItem == null ||
-            playerInventory.HeldItem.ItemDefinition == null)
-        {
-            return;
-        }
-
-        ItemDefinition heldItem =
-            playerInventory.HeldItem.ItemDefinition;
-
         bool canEquip =
-            playerEquipment.CanEquipItemToSlot(
-                heldItem,
-                equipmentSlotType
-            );
+            interactionController
+                .CanEquipSelectedItem(
+                    equipmentSlotType,
+                    slotIndex
+                );
 
         if (!canEquip)
         {
@@ -264,25 +287,12 @@ public class EquipmentSlotUI : MonoBehaviour
             return;
         }
 
-        ItemDefinition equippedItem =
-            playerEquipment.GetEquippedItem(
-                equipmentSlotType
-            );
-
-        if (equippedItem == null)
-        {
-            SetSlot(
-                GetEquipText(),
-                canEquipColor
-            );
-        }
-        else
-        {
-            SetSlot(
-                GetSwapText(),
-                canEquipColor
-            );
-        }
+        SetSlot(
+            equippedItem == null
+                ? GetEquipText()
+                : GetSwapText(),
+            canEquipColor
+        );
     }
 
     private string GetSlotName()
@@ -301,6 +311,14 @@ public class EquipmentSlotUI : MonoBehaviour
             case EquipmentSlotType.Accessory:
                 return "Accessory";
 
+            case EquipmentSlotType.Gauntlets:
+                return "Gauntlets";
+
+            case EquipmentSlotType.ArmAttachment:
+                return
+                    "Arm Attachment " +
+                    (slotIndex + 1);
+
             default:
                 return "Equipment";
         }
@@ -308,29 +326,42 @@ public class EquipmentSlotUI : MonoBehaviour
 
     private string GetEmptyText()
     {
-        if (!string.IsNullOrWhiteSpace(emptyText))
+        if (!string.IsNullOrWhiteSpace(
+            emptyText))
+        {
             return emptyText;
+        }
 
         return GetSlotName();
     }
 
     private string GetEquipText()
     {
-        if (!string.IsNullOrWhiteSpace(equipText))
+        if (!string.IsNullOrWhiteSpace(
+            equipText))
+        {
             return equipText;
+        }
 
-        return "Equip " + GetSlotName();
+        return "Equip " +
+               GetSlotName();
     }
 
     private string GetSwapText()
     {
-        if (!string.IsNullOrWhiteSpace(swapText))
+        if (!string.IsNullOrWhiteSpace(
+            swapText))
+        {
             return swapText;
+        }
 
-        return "Swap " + GetSlotName();
+        return "Swap " +
+               GetSlotName();
     }
 
-    private void SetSlot(string text, Color color)
+    private void SetSlot(
+        string text,
+        Color color)
     {
         if (slotImage != null)
             slotImage.color = color;
@@ -346,10 +377,16 @@ public class EquipmentSlotUI : MonoBehaviour
 
         bool shouldShow =
             !onlyShowWhenInventoryOpen ||
-            InventoryMenuController.IsInventoryOpen;
+            InventoryMenuController
+                .IsInventoryOpen;
 
-        canvasGroup.alpha = shouldShow ? 1f : 0f;
-        canvasGroup.interactable = shouldShow;
-        canvasGroup.blocksRaycasts = shouldShow;
+        canvasGroup.alpha =
+            shouldShow ? 1f : 0f;
+
+        canvasGroup.interactable =
+            shouldShow;
+
+        canvasGroup.blocksRaycasts =
+            shouldShow;
     }
 }

@@ -1,39 +1,88 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
-public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDownHandler
+public sealed class InventoryGridUI :
+    MonoBehaviour
 {
+    private static readonly
+        List<InventoryGridUI> activeGrids =
+            new List<InventoryGridUI>();
+
     [Header("References")]
-    [SerializeField] private PlayerInventory playerInventory;
-    [SerializeField] private PlayerStorageContainerInteract playerStorageContainerInteract;
-    [SerializeField] private Transform cellParent;
-    [SerializeField] private GameObject cellPrefab;
-    [SerializeField] private RectTransform itemOutline;
+    [SerializeField]
+    private InventoryContainer inventoryContainer;
+
+    [SerializeField]
+    private InventoryInteractionController
+        interactionController;
+
+    [SerializeField]
+    private InventoryGridUI quickTransferTarget;
+
+    [SerializeField]
+    private Transform cellParent;
+
+    [SerializeField]
+    private GameObject cellPrefab;
+
+    [SerializeField]
+    private RectTransform itemOutline;
 
     [Header("Drag Detection")]
-    [SerializeField] private float dragStartDistance = 12f;
+    [SerializeField]
+    private float dragStartDistance = 12f;
 
     [Header("Colors")]
-    [SerializeField] private Color emptyColor = new Color(0f, 0f, 0f, 0.35f);
-    [SerializeField] private Color occupiedColor = new Color(1f, 1f, 1f, 0.85f);
-    [SerializeField] private Color validPlacementColor = new Color(0.2f, 1f, 0.2f, 0.85f);
-    [SerializeField] private Color partialStackPlacementColor = new Color(1f, 0.85f, 0.15f, 0.85f);
-    [SerializeField] private Color invalidPlacementColor = new Color(1f, 0.2f, 0.2f, 0.85f);
-    [SerializeField] private Color heldPreviewColor = new Color(1f, 1f, 1f, 0.65f);
-    [SerializeField] private Color dragOriginalGhostColor = new Color(0.45f, 0.45f, 0.45f, 0.35f);
+    [SerializeField]
+    private Color emptyColor =
+        new Color(0f, 0f, 0f, 0.35f);
+
+    [SerializeField]
+    private Color occupiedColor =
+        new Color(1f, 1f, 1f, 0.85f);
+
+    [SerializeField]
+    private Color validPlacementColor =
+        new Color(0.2f, 1f, 0.2f, 0.85f);
+
+    [SerializeField]
+    private Color partialStackPlacementColor =
+        new Color(1f, 0.85f, 0.15f, 0.85f);
+
+    [SerializeField]
+    private Color invalidPlacementColor =
+        new Color(1f, 0.2f, 0.2f, 0.85f);
+
+    [SerializeField]
+    private Color heldPreviewColor =
+        new Color(1f, 1f, 1f, 0.65f);
+
+    [SerializeField]
+    private Color dragOriginalGhostColor =
+        new Color(0.45f, 0.45f, 0.45f, 0.35f);
 
     [Header("Item Outlines")]
-    [SerializeField] private Color itemOutlineColor = new Color(1f, 1f, 1f, 0.95f);
-    [SerializeField] private Color dragOriginalOutlineColor = new Color(0.15f, 0.15f, 0.15f, 0.9f);
-    [SerializeField] private float itemOutlineThickness = 3f;
-    [SerializeField] private bool fillPaddingBetweenCells = true;
+    [SerializeField]
+    private Color itemOutlineColor =
+        new Color(1f, 1f, 1f, 0.95f);
 
-    [Header("Held Item Mouse Preview")]
-    [SerializeField] private Vector2 heldPreviewOffset = Vector2.zero;
+    [SerializeField]
+    private Color dragOriginalOutlineColor =
+        new Color(0.15f, 0.15f, 0.15f, 0.9f);
+
+    [SerializeField]
+    private float itemOutlineThickness = 3f;
+
+    [SerializeField]
+    private bool fillPaddingBetweenCells = true;
+
+    [Header("Selected Item Mouse Preview")]
+    [SerializeField]
+    private Vector2 heldPreviewOffset =
+        Vector2.zero;
 
     private GridLayoutGroup gridLayoutGroup;
     private Canvas rootCanvas;
@@ -42,97 +91,84 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
     private RectTransform heldPreviewRoot;
     private GridLayoutGroup heldPreviewLayoutGroup;
     private CanvasGroup heldPreviewCanvasGroup;
-    private RectTransform heldPreviewOutlineRoot;
 
-    private readonly List<InventoryCellUI> cells = new List<InventoryCellUI>();
-    private readonly List<Vector2Int> cellCoordinates = new List<Vector2Int>();
+    private readonly List<InventoryCellUI> cells =
+        new List<InventoryCellUI>();
 
-    private Vector2Int hoveredCoordinate = new Vector2Int(-1, -1);
-    private Vector2Int heldGrabOffset = Vector2Int.zero;
-    private bool centerHeldPreviewOnMouse = false;
+    private readonly List<Vector2Int> cellCoordinates =
+        new List<Vector2Int>();
+
+    private Vector2Int hoveredCoordinate =
+        new Vector2Int(-1, -1);
 
     private bool pointerIsDown;
     private bool pendingDragPickup;
     private bool isDraggingItem;
     private bool suppressNextClick;
-    private bool wasShowingHeldPreview;
-    private Vector2 lastHeldPreviewMousePosition;
 
     private Vector2 pointerDownScreenPosition;
     private Vector2Int pointerDownCoordinate;
 
+    private InventoryContainer dragSourceContainer;
+    private InventoryItemInstance draggedItem;
     private Vector2Int dragOriginalPosition;
     private int dragOriginalRotationSteps;
 
-    private PlacedInventoryItem HeldItem
-    {
-        get
-        {
-            if (playerInventory == null)
-                return null;
-
-            return playerInventory.HeldItem;
-        }
-    }
+    public InventoryContainer Container =>
+        inventoryContainer;
 
     private void Awake()
     {
         if (cellParent != null)
-            gridLayoutGroup = cellParent.GetComponent<GridLayoutGroup>();
+        {
+            gridLayoutGroup =
+                cellParent.GetComponent<
+                    GridLayoutGroup>();
+        }
 
         if (gridLayoutGroup == null)
-            gridLayoutGroup = GetComponent<GridLayoutGroup>();
-
-        rootCanvas = GetComponentInParent<Canvas>();
-
-        if (playerStorageContainerInteract == null &&
-            playerInventory != null)
         {
-            playerStorageContainerInteract =
-                playerInventory.GetComponent<PlayerStorageContainerInteract>();
+            gridLayoutGroup =
+                GetComponent<GridLayoutGroup>();
         }
+
+        rootCanvas =
+            GetComponentInParent<Canvas>();
+
+        CreateHeldPreviewRoot();
     }
 
     private void OnEnable()
     {
+        if (!activeGrids.Contains(this))
+            activeGrids.Add(this);
+
         SubscribeInput();
+        SubscribeState();
+
+        BuildGrid();
+        HandleInteractionChanged();
     }
 
     private void OnDisable()
     {
+        activeGrids.Remove(this);
+
         UnsubscribeInput();
-    }
+        UnsubscribeState();
 
-    private void Start()
-    {
-        if (playerInventory == null)
-            return;
-
-        playerInventory.OnInventoryChanged += Refresh;
-        playerInventory.OnHeldItemChanged += HandleHeldItemChanged;
-
-        CreateHeldPreviewRoot();
-        BuildGrid();
-        HandleHeldItemChanged();
-        Refresh();
+        pointerIsDown = false;
+        pendingDragPickup = false;
+        isDraggingItem = false;
     }
 
     private void Update()
     {
         HandleDragDetection();
         HandleDragRelease();
-        RefreshHeldPreviewIfNeeded();
+        UpdateHoveredCoordinateFromMouse();
         UpdateHeldPreviewVisibility();
         UpdateHeldPreviewPosition();
-    }
-
-    private void OnDestroy()
-    {
-        if (playerInventory != null)
-        {
-            playerInventory.OnInventoryChanged -= Refresh;
-            playerInventory.OnHeldItemChanged -= HandleHeldItemChanged;
-        }
     }
 
     public void BindInput(
@@ -140,10 +176,89 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
     {
         UnsubscribeInput();
 
-        inputRouter = newInputRouter;
+        inputRouter =
+            newInputRouter;
 
         if (isActiveAndEnabled)
             SubscribeInput();
+    }
+
+    public void BindPlayer(
+        InventoryContainer newContainer,
+        InventoryInteractionController
+            newInteractionController)
+    {
+        UnsubscribeState();
+
+        inventoryContainer =
+            newContainer;
+
+        interactionController =
+            newInteractionController;
+
+        if (isActiveAndEnabled)
+            SubscribeState();
+
+        BuildGrid();
+        HandleInteractionChanged();
+    }
+
+    public void BindContainer(
+        InventoryContainer newContainer)
+    {
+        UnsubscribeState();
+
+        inventoryContainer =
+            newContainer;
+
+        if (isActiveAndEnabled)
+            SubscribeState();
+
+        BuildGrid();
+        Refresh();
+    }
+
+    public void SetQuickTransferTarget(
+        InventoryGridUI target)
+    {
+        quickTransferTarget =
+            target;
+    }
+
+    private void SubscribeState()
+    {
+        if (inventoryContainer != null)
+        {
+            inventoryContainer.Changed -=
+                Refresh;
+
+            inventoryContainer.Changed +=
+                Refresh;
+        }
+
+        if (interactionController != null)
+        {
+            interactionController.Changed -=
+                HandleInteractionChanged;
+
+            interactionController.Changed +=
+                HandleInteractionChanged;
+        }
+    }
+
+    private void UnsubscribeState()
+    {
+        if (inventoryContainer != null)
+        {
+            inventoryContainer.Changed -=
+                Refresh;
+        }
+
+        if (interactionController != null)
+        {
+            interactionController.Changed -=
+                HandleInteractionChanged;
+        }
     }
 
     private void SubscribeInput()
@@ -167,375 +282,80 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
             OnRotateItem;
     }
 
-    private void OnRotateItem(InputAction.CallbackContext context)
+    private void OnRotateItem(
+        InputAction.CallbackContext context)
     {
-        if (!InventoryMenuController.IsInventoryOpen)
-            return;
-
-        if (playerInventory == null ||
-            !playerInventory.IsHoldingItem)
+        if (!InventoryMenuController
+            .IsInventoryOpen)
         {
             return;
         }
 
-        bool rotated =
-            playerInventory.RotateHeldItemCounterClockwise();
-
-        if (!rotated)
+        if (interactionController == null ||
+            !interactionController.HasSelection)
+        {
             return;
+        }
 
-        if (centerHeldPreviewOnMouse)
-        {
-            CenterHeldItemOnMouse();
-        }
-        else
-        {
-            ClampHeldGrabOffsetToHeldItem();
-        }
+        interactionController
+            .RotateSelectionCounterClockwise();
 
         BuildHeldItemPreview();
-        Refresh();
-    }
-
-    private void HandleDragDetection()
-    {
-        if (!pointerIsDown ||
-            !pendingDragPickup ||
-            isDraggingItem ||
-            Mouse.current == null)
-        {
-            return;
-        }
-
-        if (!Mouse.current.leftButton.isPressed)
-        {
-            pointerIsDown = false;
-            pendingDragPickup = false;
-            return;
-        }
-
-        Vector2 currentMousePosition =
-            Mouse.current.position.ReadValue();
-
-        float movedDistance =
-            Vector2.Distance(
-                pointerDownScreenPosition,
-                currentMousePosition
-            );
-
-        if (movedDistance < dragStartDistance)
-            return;
-
-        StartDragPickup(pointerDownCoordinate);
-    }
-
-    private void HandleDragRelease()
-    {
-        if (!isDraggingItem)
-            return;
-
-        if (!InventoryMenuController.IsInventoryOpen)
-        {
-            ReturnDraggedItemToOriginalPosition();
-            return;
-        }
-
-        if (Mouse.current == null)
-            return;
-
-        if (Mouse.current.leftButton.wasReleasedThisFrame)
-        {
-            Vector2Int releaseCoordinate =
-                hoveredCoordinate;
-
-            if (!IsValidGridCoordinate(releaseCoordinate))
-            {
-                TryGetGridCoordinateFromScreenPoint(
-                    Mouse.current.position.ReadValue(),
-                    out releaseCoordinate
-                );
-            }
-
-            CompleteDragDrop(releaseCoordinate);
-        }
-    }
-
-    private void StartDragPickup(Vector2Int coordinate)
-    {
-        if (playerInventory == null ||
-            playerInventory.Grid == null)
-        {
-            return;
-        }
-
-        if (IsQuickTransferHeld() &&
-            !playerInventory.IsHoldingItem)
-        {
-            if (playerStorageContainerInteract != null)
-            {
-                playerStorageContainerInteract.TryQuickTransferPlayerItemToOpenContainer(
-                    playerInventory,
-                    coordinate
-                );
-            }
-
-            heldGrabOffset = Vector2Int.zero;
-            centerHeldPreviewOnMouse = false;
-
-            Refresh();
-            return;
-        }
-
-        if (playerInventory.IsHoldingItem)
-            return;
-
-        PlacedInventoryItem itemAtCell =
-            playerInventory.Grid.GetPlacedItem(
-                coordinate.x,
-                coordinate.y
-            );
-
-        if (itemAtCell == null)
-            return;
-
-        dragOriginalPosition = itemAtCell.Position;
-        dragOriginalRotationSteps = itemAtCell.RotationSteps;
-
-        PlacedInventoryItem pickedItem =
-            playerInventory.TryPickUpItemAt(
-                coordinate.x,
-                coordinate.y,
-                false
-            );
-
-        if (pickedItem == null)
-            return;
-
-        CenterHeldItemOnMouse();
-
-        isDraggingItem = true;
-        pendingDragPickup = false;
-        suppressNextClick = true;
-
-        Refresh();
-    }
-
-    private void CompleteDragDrop(Vector2Int releaseCoordinate)
-    {
-        if (!isDraggingItem)
-            return;
-
-        isDraggingItem = false;
-        pointerIsDown = false;
-        pendingDragPickup = false;
-        suppressNextClick = true;
-
-        bool releaseIsValid =
-            releaseCoordinate.x >= 0 &&
-            releaseCoordinate.y >= 0;
-
-        if (!StorageContainerGridUI.HasPendingStorageDrag &&
-            Mouse.current != null &&
-            playerStorageContainerInteract != null)
-        {
-            bool placedInStorage =
-                playerStorageContainerInteract
-                    .TryPlaceHeldPlayerItemInOpenContainerAtScreenPosition(
-                        Mouse.current.position.ReadValue()
-                    );
-
-            if (placedInStorage)
-            {
-                heldGrabOffset = Vector2Int.zero;
-                centerHeldPreviewOnMouse = false;
-                Refresh();
-                return;
-            }
-        }
-
-        if (releaseIsValid)
-        {
-            bool merged =
-                playerInventory.TryMergeHeldItemIntoStackAt(
-                    releaseCoordinate.x,
-                    releaseCoordinate.y
-                );
-
-            if (merged)
-            {
-                if (StorageContainerGridUI.HasPendingStorageDrag)
-                    StorageContainerGridUI.CommitPendingStorageDrag();
-
-                if (!playerInventory.IsHoldingItem)
-                {
-                    heldGrabOffset = Vector2Int.zero;
-                    centerHeldPreviewOnMouse = false;
-                }
-                else
-                {
-                    CenterHeldItemOnMouse();
-                }
-
-                Refresh();
-                return;
-            }
-
-            Vector2Int placementOrigin =
-                GetHeldPlacementOrigin(releaseCoordinate);
-
-            bool placed =
-                playerInventory.TryPlaceHeldItem(
-                    placementOrigin.x,
-                    placementOrigin.y
-                );
-
-            if (placed)
-            {
-                if (StorageContainerGridUI.HasPendingStorageDrag)
-                    StorageContainerGridUI.CommitPendingStorageDrag();
-
-                heldGrabOffset = Vector2Int.zero;
-                centerHeldPreviewOnMouse = false;
-                Refresh();
-                return;
-            }
-        }
-
-        if (StorageContainerGridUI.HasPendingStorageDrag)
-        {
-            StorageContainerGridUI.CancelPendingStorageDrag(
-                playerInventory
-            );
-
-            heldGrabOffset = Vector2Int.zero;
-            centerHeldPreviewOnMouse = false;
-            Refresh();
-            return;
-        }
-
-        ReturnDraggedItemToOriginalPosition();
-    }
-
-    private void ReturnDraggedItemToOriginalPosition()
-    {
-        isDraggingItem = false;
-        pointerIsDown = false;
-        pendingDragPickup = false;
-        suppressNextClick = true;
-
-        if (StorageContainerGridUI.HasPendingStorageDrag)
-        {
-            StorageContainerGridUI.CancelPendingStorageDrag(
-                playerInventory
-            );
-
-            heldGrabOffset = Vector2Int.zero;
-            centerHeldPreviewOnMouse = false;
-            Refresh();
-            return;
-        }
-
-        if (playerInventory == null ||
-            !playerInventory.IsHoldingItem ||
-            playerInventory.HeldItem == null)
-        {
-            heldGrabOffset = Vector2Int.zero;
-            centerHeldPreviewOnMouse = false;
-            Refresh();
-            return;
-        }
-
-        playerInventory.HeldItem.SetRotationSteps(
-            dragOriginalRotationSteps
-        );
-
-        bool returned =
-            playerInventory.TryPlaceHeldItem(
-                dragOriginalPosition.x,
-                dragOriginalPosition.y
-            );
-
-        if (!returned)
-        {
-            Debug.LogError(
-                "Could not return dragged item to its original inventory position."
-            );
-        }
-
-        heldGrabOffset = Vector2Int.zero;
-        centerHeldPreviewOnMouse = false;
-        Refresh();
-    }
-
-    private void ClampHeldGrabOffsetToHeldItem()
-    {
-        PlacedInventoryItem heldItem =
-            HeldItem;
-
-        if (heldItem == null)
-        {
-            heldGrabOffset = Vector2Int.zero;
-            return;
-        }
-
-        heldGrabOffset.x =
-            Mathf.Clamp(
-                heldGrabOffset.x,
-                0,
-                Mathf.Max(0, heldItem.Width - 1)
-            );
-
-        heldGrabOffset.y =
-            Mathf.Clamp(
-                heldGrabOffset.y,
-                0,
-                Mathf.Max(0, heldItem.Height - 1)
-            );
+        RefreshAllGrids();
     }
 
     private void BuildGrid()
     {
-        if (playerInventory.Grid == null ||
+        ClearGrid();
+
+        if (inventoryContainer == null ||
             cellParent == null ||
             cellPrefab == null)
         {
             return;
         }
 
-        foreach (Transform child in cellParent)
-        {
-            Destroy(child.gameObject);
-        }
-
-        cells.Clear();
-        cellCoordinates.Clear();
-
-        InventoryGrid grid = playerInventory.Grid;
-
         if (gridLayoutGroup != null)
         {
             gridLayoutGroup.constraint =
-                GridLayoutGroup.Constraint.FixedColumnCount;
+                GridLayoutGroup.Constraint
+                    .FixedColumnCount;
 
             gridLayoutGroup.constraintCount =
-                grid.Width;
+                inventoryContainer.Width;
         }
 
-        for (int y = grid.Height - 1; y >= 0; y--)
+        for (int y =
+                 inventoryContainer.Height - 1;
+             y >= 0;
+             y--)
         {
-            for (int x = 0; x < grid.Width; x++)
+            for (int x = 0;
+                 x < inventoryContainer.Width;
+                 x++)
             {
                 GameObject cellObject =
-                    Instantiate(cellPrefab, cellParent);
+                    Instantiate(
+                        cellPrefab,
+                        cellParent
+                    );
 
                 InventoryCellUI cellUI =
-                    cellObject.GetComponent<InventoryCellUI>();
+                    cellObject.GetComponent<
+                        InventoryCellUI>();
 
                 if (cellUI == null)
-                    cellUI = cellObject.AddComponent<InventoryCellUI>();
+                {
+                    cellUI =
+                        cellObject.AddComponent<
+                            InventoryCellUI>();
+                }
 
                 Vector2Int coordinate =
-                    new Vector2Int(x, y);
+                    new Vector2Int(
+                        x,
+                        y
+                    );
 
                 cellUI.Initialize(
                     coordinate,
@@ -548,52 +368,478 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
                     OnCellRightClicked
                 );
 
-                cells.Add(cellUI);
-                cellCoordinates.Add(coordinate);
+                cells.Add(
+                    cellUI
+                );
+
+                cellCoordinates.Add(
+                    coordinate
+                );
             }
         }
     }
 
-    private void Refresh()
+    private void ClearGrid()
     {
-        if (playerInventory == null ||
-            playerInventory.Grid == null)
+        if (cellParent != null)
+        {
+            for (int i =
+                     cellParent.childCount - 1;
+                 i >= 0;
+                 i--)
+            {
+                Transform child =
+                    cellParent.GetChild(i);
+
+                if (itemOutline != null &&
+                    child ==
+                    itemOutline.transform)
+                {
+                    continue;
+                }
+
+                Destroy(
+                    child.gameObject
+                );
+            }
+        }
+
+        cells.Clear();
+        cellCoordinates.Clear();
+
+        if (itemOutline != null)
+        {
+            InventoryUIUtility.ClearChildren(
+                itemOutline
+            );
+        }
+    }
+
+    private void OnCellClicked(
+        Vector2Int coordinate)
+    {
+        if (!InventoryMenuController
+            .IsInventoryOpen ||
+            inventoryContainer == null ||
+            interactionController == null)
         {
             return;
         }
 
-        InventoryGrid grid =
-            playerInventory.Grid;
+        if (suppressNextClick)
+        {
+            suppressNextClick = false;
+            return;
+        }
 
-        PlacedInventoryItem heldItem =
-            HeldItem;
+        if (interactionController.HasSelection)
+        {
+            if (interactionController
+                .TryMergeSelectionIntoStackAt(
+                    inventoryContainer,
+                    coordinate))
+            {
+                RefreshAllGrids();
+                return;
+            }
 
-        bool hasHeldItem =
-            heldItem != null &&
-            heldItem.ItemDefinition != null;
+            Vector2Int origin =
+                coordinate -
+                interactionController
+                    .SelectedGrabOffset;
 
-        bool hoverIsValid =
-            hoveredCoordinate.x >= 0 &&
-            hoveredCoordinate.y >= 0;
+            interactionController
+                .TryPlaceSelection(
+                    inventoryContainer,
+                    origin
+                );
 
-        bool inventoryOpen =
-            InventoryMenuController.IsInventoryOpen;
+            RefreshAllGrids();
+            return;
+        }
 
-        Vector2Int placementOrigin =
-            hoverIsValid
-            ? GetHeldPlacementOrigin(hoveredCoordinate)
-            : new Vector2Int(-999, -999);
+        if (IsQuickTransferHeld() &&
+            quickTransferTarget != null &&
+            quickTransferTarget.Container != null)
+        {
+            bool transferred =
+                interactionController
+                    .TryQuickTransfer(
+                        inventoryContainer,
+                        quickTransferTarget.Container,
+                        coordinate
+                    );
 
-        bool canPlaceHeldItem =
-            hasHeldItem &&
-            hoverIsValid &&
-            inventoryOpen &&
-            playerInventory.CanPlaceHeldItem(
-                placementOrigin.x,
-                placementOrigin.y
+            if (transferred)
+            {
+                RefreshAllGrids();
+                return;
+            }
+        }
+
+        interactionController
+            .TryPickUpItemFromContainer(
+                inventoryContainer,
+                coordinate
             );
 
-        for (int i = 0; i < cells.Count; i++)
+        RefreshAllGrids();
+    }
+
+    private void OnCellRightClicked(
+        Vector2Int coordinate)
+    {
+        if (!InventoryMenuController
+            .IsInventoryOpen ||
+            inventoryContainer == null ||
+            interactionController == null)
+        {
+            return;
+        }
+
+        if (interactionController.HasSelection)
+        {
+            Vector2Int origin =
+                coordinate -
+                interactionController
+                    .SelectedGrabOffset;
+
+            interactionController
+                .TryPlaceOneSelection(
+                    inventoryContainer,
+                    origin
+                );
+
+            RefreshAllGrids();
+            return;
+        }
+
+        interactionController
+            .TrySplitStackFromContainer(
+                inventoryContainer,
+                coordinate
+            );
+
+        RefreshAllGrids();
+    }
+
+    private void OnCellPointerDown(
+        Vector2Int coordinate)
+    {
+        if (!InventoryMenuController
+            .IsInventoryOpen ||
+            Mouse.current == null)
+        {
+            return;
+        }
+
+        if (suppressNextClick)
+            suppressNextClick = false;
+
+        pointerIsDown = true;
+        pendingDragPickup = false;
+
+        pointerDownScreenPosition =
+            Mouse.current.position.ReadValue();
+
+        pointerDownCoordinate =
+            coordinate;
+
+        if (inventoryContainer == null ||
+            interactionController == null ||
+            interactionController.HasSelection)
+        {
+            return;
+        }
+
+        pendingDragPickup =
+            inventoryContainer.GetItemAt(
+                coordinate.x,
+                coordinate.y
+            ) != null;
+    }
+
+    private void OnCellPointerUp(
+        Vector2Int coordinate)
+    {
+        if (isDraggingItem)
+        {
+            CompleteDragDrop();
+            return;
+        }
+
+        pointerIsDown = false;
+        pendingDragPickup = false;
+    }
+
+    private void OnCellPointerEntered(
+        Vector2Int coordinate)
+    {
+        hoveredCoordinate =
+            coordinate;
+
+        Refresh();
+    }
+
+    private void OnCellPointerExited(
+        Vector2Int coordinate)
+    {
+        if (hoveredCoordinate ==
+            coordinate)
+        {
+            hoveredCoordinate =
+                new Vector2Int(-1, -1);
+
+            Refresh();
+        }
+    }
+
+    private void HandleDragDetection()
+    {
+        if (!pointerIsDown ||
+            !pendingDragPickup ||
+            isDraggingItem ||
+            Mouse.current == null)
+        {
+            return;
+        }
+
+        if (!Mouse.current.leftButton
+            .isPressed)
+        {
+            pointerIsDown = false;
+            pendingDragPickup = false;
+            return;
+        }
+
+        float distance =
+            Vector2.Distance(
+                pointerDownScreenPosition,
+                Mouse.current.position
+                    .ReadValue()
+            );
+
+        if (distance <
+            dragStartDistance)
+        {
+            return;
+        }
+
+        StartDragPickup();
+    }
+
+    private void StartDragPickup()
+    {
+        if (inventoryContainer == null ||
+            interactionController == null)
+        {
+            return;
+        }
+
+        PlacedInventoryItem placedItem =
+            inventoryContainer.GetItemAt(
+                pointerDownCoordinate.x,
+                pointerDownCoordinate.y
+            );
+
+        if (placedItem == null)
+            return;
+
+        dragSourceContainer =
+            inventoryContainer;
+
+        dragOriginalPosition =
+            placedItem.Position;
+
+        dragOriginalRotationSteps =
+            placedItem.RotationSteps;
+
+        bool pickedUp =
+            interactionController
+                .TryPickUpItemFromContainer(
+                    inventoryContainer,
+                    pointerDownCoordinate
+                );
+
+        if (!pickedUp)
+            return;
+
+        draggedItem =
+            interactionController
+                .SelectedItem;
+
+        isDraggingItem = true;
+        pendingDragPickup = false;
+        suppressNextClick = true;
+
+        RefreshAllGrids();
+    }
+
+    private void HandleDragRelease()
+    {
+        if (!isDraggingItem ||
+            Mouse.current == null)
+        {
+            return;
+        }
+
+        if (Mouse.current.leftButton
+            .wasReleasedThisFrame)
+        {
+            CompleteDragDrop();
+        }
+    }
+
+    private void CompleteDragDrop()
+    {
+        isDraggingItem = false;
+        pointerIsDown = false;
+        pendingDragPickup = false;
+        suppressNextClick = true;
+
+        if (interactionController == null ||
+            !interactionController.HasSelection ||
+            Mouse.current == null)
+        {
+            RefreshAllGrids();
+            return;
+        }
+
+        Vector2 screenPosition =
+            Mouse.current.position.ReadValue();
+
+        for (int i = 0;
+             i < activeGrids.Count;
+             i++)
+        {
+            InventoryGridUI grid =
+                activeGrids[i];
+
+            if (grid == null ||
+                !grid.isActiveAndEnabled)
+            {
+                continue;
+            }
+
+            if (grid.TryDropSelectionAtScreenPoint(
+                screenPosition))
+            {
+                break;
+            }
+        }
+
+        // If no grid accepted the drop, the item deliberately
+        // remains physically held and selected.
+
+        RefreshAllGrids();
+    }
+
+    public bool TryDropSelectionAtScreenPoint(
+        Vector2 screenPosition)
+    {
+        if (inventoryContainer == null ||
+            interactionController == null ||
+            !interactionController.HasSelection)
+        {
+            return false;
+        }
+
+        if (!TryGetGridCoordinateFromScreenPoint(
+            screenPosition,
+            out Vector2Int coordinate))
+        {
+            return false;
+        }
+
+        if (interactionController
+            .TryMergeSelectionIntoStackAt(
+                inventoryContainer,
+                coordinate))
+        {
+            return true;
+        }
+
+        Vector2Int origin =
+            coordinate -
+            interactionController
+                .SelectedGrabOffset;
+
+        return interactionController
+            .TryPlaceSelection(
+                inventoryContainer,
+                origin
+            );
+    }
+
+    private bool IsQuickTransferHeld()
+    {
+        if (Keyboard.current == null)
+            return false;
+
+        return Keyboard.current.leftCtrlKey
+                   .isPressed ||
+               Keyboard.current.rightCtrlKey
+                   .isPressed;
+    }
+
+    private void Refresh()
+    {
+        if (inventoryContainer == null)
+        {
+            if (itemOutline != null)
+            {
+                InventoryUIUtility.ClearChildren(
+                    itemOutline
+                );
+            }
+
+            return;
+        }
+
+        int expectedCellCount =
+            inventoryContainer.Width *
+            inventoryContainer.Height;
+
+        if (cells.Count !=
+            expectedCellCount)
+        {
+            BuildGrid();
+        }
+
+        bool hasSelection =
+            interactionController != null &&
+            interactionController.HasSelection &&
+            interactionController
+                .SelectedDefinition != null;
+
+        bool hoverValid =
+            IsValidGridCoordinate(
+                hoveredCoordinate
+            );
+
+        Vector2Int previewOrigin =
+            hoverValid &&
+            interactionController != null
+                ? hoveredCoordinate -
+                  interactionController
+                      .SelectedGrabOffset
+                : new Vector2Int(
+                    -999,
+                    -999
+                );
+
+        bool canPlace =
+            hasSelection &&
+            hoverValid &&
+            interactionController
+                .CanPlaceSelection(
+                    inventoryContainer,
+                    previewOrigin
+                );
+
+        for (int i = 0;
+             i < cells.Count;
+             i++)
         {
             InventoryCellUI cell =
                 cells[i];
@@ -604,24 +850,18 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
             Vector2Int coordinate =
                 cellCoordinates[i];
 
-            if (hasHeldItem &&
-                hoverIsValid &&
-                inventoryOpen &&
+            if (hasSelection &&
+                hoverValid &&
                 TryGetStackPreviewColor(
                     coordinate,
-                    out Color stackPreviewColor))
+                    out Color stackColor))
             {
-                cell.SetColor(stackPreviewColor);
-
-                PlacedInventoryItem placedItemForQuantity =
-                    grid.GetPlacedItem(
-                        coordinate.x,
-                        coordinate.y
-                    );
+                cell.SetColor(
+                    stackColor
+                );
 
                 cell.SetQuantityText(
-                    GetQuantityTextForCell(
-                        placedItemForQuantity,
+                    GetQuantityText(
                         coordinate
                     )
                 );
@@ -629,473 +869,202 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
                 continue;
             }
 
-            if (hasHeldItem &&
-                hoverIsValid &&
-                inventoryOpen &&
-                IsHeldItemPreview(coordinate, placementOrigin))
+            if (hasSelection &&
+                hoverValid &&
+                IsSelectionPreviewCell(
+                    coordinate,
+                    previewOrigin))
             {
                 cell.SetColor(
-                    canPlaceHeldItem
-                    ? validPlacementColor
-                    : invalidPlacementColor
+                    canPlace
+                        ? validPlacementColor
+                        : invalidPlacementColor
                 );
 
                 cell.SetQuantityText("");
                 continue;
             }
 
-            if (isDraggingItem && IsOriginalFootprint(coordinate))
+            if (isDraggingItem &&
+                ReferenceEquals(
+                    inventoryContainer,
+                    dragSourceContainer) &&
+                IsOriginalDragFootprint(
+                    coordinate))
             {
-                cell.SetColor(dragOriginalGhostColor);
+                cell.SetColor(
+                    dragOriginalGhostColor
+                );
+
                 cell.SetQuantityText("");
                 continue;
             }
 
-            PlacedInventoryItem placedItem =
-                grid.GetPlacedItem(
+            PlacedInventoryItem item =
+                inventoryContainer.GetItemAt(
                     coordinate.x,
                     coordinate.y
                 );
 
-            ItemDefinition item =
-                placedItem != null
-                    ? placedItem.ItemDefinition
-                    : null;
-
             cell.SetColor(
                 item == null
-                ? emptyColor
-                : occupiedColor
+                    ? emptyColor
+                    : occupiedColor
             );
 
             cell.SetQuantityText(
-                GetQuantityTextForCell(
-                    placedItem,
-                    coordinate
-                )
+                InventoryQuantityTextUtility
+                    .GetTextForCell(
+                        item,
+                        coordinate
+                    )
             );
         }
 
         BuildItemOutlines();
     }
 
-
-    private string GetQuantityTextForCell(
-        PlacedInventoryItem placedItem,
+    private string GetQuantityText(
         Vector2Int coordinate)
     {
-        return InventoryQuantityTextUtility.GetTextForCell(
-            placedItem,
-            coordinate
-        );
+        PlacedInventoryItem item =
+            inventoryContainer.GetItemAt(
+                coordinate.x,
+                coordinate.y
+            );
+
+        return InventoryQuantityTextUtility
+            .GetTextForCell(
+                item,
+                coordinate
+            );
     }
 
     private bool TryGetStackPreviewColor(
         Vector2Int coordinate,
-        out Color previewColor)
+        out Color color)
     {
-        previewColor = invalidPlacementColor;
+        color =
+            invalidPlacementColor;
 
-        if (playerInventory == null ||
-            playerInventory.Grid == null)
+        if (interactionController == null ||
+            inventoryContainer == null ||
+            !IsValidGridCoordinate(
+                hoveredCoordinate))
         {
             return false;
         }
 
-        PlacedInventoryItem heldItem =
-            HeldItem;
+        if (!interactionController
+            .CanMergeSelectionIntoStackAt(
+                inventoryContainer,
+                hoveredCoordinate,
+                out bool fullyFits))
+        {
+            return false;
+        }
 
-        if (!IsValidGridCoordinate(hoveredCoordinate))
+        PlacedInventoryItem target =
+            inventoryContainer.GetItemAt(
+                hoveredCoordinate.x,
+                hoveredCoordinate.y
+            );
+
+        if (target == null)
             return false;
 
-        return InventoryStackPreviewUtility.TryGetPreviewColor(
-            playerInventory.Grid,
-            heldItem,
-            hoveredCoordinate,
-            coordinate,
-            validPlacementColor,
-            partialStackPlacementColor,
-            invalidPlacementColor,
-            out previewColor
+        PlacedInventoryItem cellItem =
+            inventoryContainer.GetItemAt(
+                coordinate.x,
+                coordinate.y
+            );
+
+        if (!ReferenceEquals(
+            target,
+            cellItem))
+        {
+            return false;
+        }
+
+        color =
+            fullyFits
+                ? validPlacementColor
+                : partialStackPlacementColor;
+
+        return true;
+    }
+
+    private bool IsSelectionPreviewCell(
+        Vector2Int coordinate,
+        Vector2Int origin)
+    {
+        if (interactionController == null)
+            return false;
+
+        ItemDefinition definition =
+            interactionController
+                .SelectedDefinition;
+
+        if (definition == null)
+            return false;
+
+        int localX =
+            coordinate.x -
+            origin.x;
+
+        int localY =
+            coordinate.y -
+            origin.y;
+
+        if (localX < 0 ||
+            localY < 0 ||
+            localX >= definition.GetWidth(
+                interactionController
+                    .SelectedRotationSteps) ||
+            localY >= definition.GetHeight(
+                interactionController
+                    .SelectedRotationSteps))
+        {
+            return false;
+        }
+
+        return definition.IsCellOccupied(
+            localX,
+            localY,
+            interactionController
+                .SelectedRotationSteps
         );
     }
 
-    public void OnPointerDown(PointerEventData eventData)
+    private bool IsOriginalDragFootprint(
+        Vector2Int coordinate)
     {
-        if (eventData.button != PointerEventData.InputButton.Left)
-            return;
-
-        if (suppressNextClick)
-            suppressNextClick = false;
-    }
-
-    public void OnPointerClick(PointerEventData eventData)
-    {
-        if (eventData.button != PointerEventData.InputButton.Left)
-            return;
-
-        if (playerInventory == null ||
-            playerInventory.Grid == null)
-        {
-            return;
-        }
-
-        if (!InventoryMenuController.IsInventoryOpen)
-            return;
-
-        if (!playerInventory.IsHoldingItem)
-            return;
-
-        if (!TryGetGridCoordinateFromScreenPoint(
-                eventData.position,
-                out Vector2Int coordinate))
-        {
-            return;
-        }
-
-        OnCellClicked(coordinate);
-    }
-
-
-    public bool TryDropHeldItemAtScreenPoint(
-        Vector2 screenPosition)
-    {
-        if (playerInventory == null ||
-            playerInventory.Grid == null ||
-            !playerInventory.IsHoldingItem)
+        if (!isDraggingItem ||
+            draggedItem == null ||
+            draggedItem.Definition == null)
         {
             return false;
         }
 
-        if (!InventoryMenuController.IsInventoryOpen)
-            return false;
-
-        if (!TryGetGridCoordinateFromScreenPoint(
-                screenPosition,
-                out Vector2Int coordinate))
-        {
-            return false;
-        }
-
-        bool hadPendingStorageDrag =
-            StorageContainerGridUI.HasPendingStorageDrag;
-
-        PlacedInventoryItem heldItemBefore =
-            playerInventory.HeldItem;
-
-        int quantityBefore =
-            heldItemBefore != null
-                ? heldItemBefore.Quantity
-                : 0;
-
-        OnCellClicked(coordinate);
-
-        if (!hadPendingStorageDrag)
-            return true;
-
-        if (!StorageContainerGridUI.HasPendingStorageDrag)
-            return true;
-
-        if (!playerInventory.IsHoldingItem)
-            return true;
-
-        if (playerInventory.HeldItem != heldItemBefore)
-            return true;
-
-        if (playerInventory.HeldItem != null &&
-            playerInventory.HeldItem.Quantity != quantityBefore)
-        {
-            return true;
-        }
-
-        return false;
-    }
-
-    private bool IsQuickTransferHeld()
-    {
-        if (Keyboard.current == null)
-            return false;
-
-        return Keyboard.current.leftCtrlKey.isPressed ||
-               Keyboard.current.rightCtrlKey.isPressed;
-    }
-
-    private void OnCellClicked(Vector2Int coordinate)
-    {
-        if (suppressNextClick)
-        {
-            if (!StorageContainerGridUI.HasPendingStorageDrag)
-            {
-                suppressNextClick = false;
-                return;
-            }
-
-            suppressNextClick = false;
-        }
-
-        if (playerInventory == null ||
-            playerInventory.Grid == null)
-        {
-            return;
-        }
-
-        if (IsQuickTransferHeld() &&
-            !playerInventory.IsHoldingItem)
-        {
-            if (playerStorageContainerInteract != null)
-            {
-                bool transferred =
-                    playerStorageContainerInteract.TryQuickTransferPlayerItemToOpenContainer(
-                        playerInventory,
-                        coordinate
-                    );
-
-                if (transferred)
-                {
-                    heldGrabOffset = Vector2Int.zero;
-                    centerHeldPreviewOnMouse = false;
-                    Refresh();
-                    return;
-                }
-            }
-        }
-
-        if (playerInventory.IsHoldingItem)
-        {
-            bool merged =
-                playerInventory.TryMergeHeldItemIntoStackAt(
-                    coordinate.x,
-                    coordinate.y
-                );
-
-            if (merged)
-            {
-                if (StorageContainerGridUI.HasPendingStorageDrag)
-                    StorageContainerGridUI.CommitPendingStorageDrag();
-
-                if (!playerInventory.IsHoldingItem)
-                {
-                    heldGrabOffset = Vector2Int.zero;
-                    centerHeldPreviewOnMouse = false;
-                }
-                else
-                {
-                    CenterHeldItemOnMouse();
-                }
-
-                Refresh();
-                return;
-            }
-
-            Vector2Int placementOrigin =
-                GetHeldPlacementOrigin(coordinate);
-
-            bool placed =
-                playerInventory.TryPlaceHeldItem(
-                    placementOrigin.x,
-                    placementOrigin.y
-                );
-
-            if (!placed)
-            {
-                if (StorageContainerGridUI.HasPendingStorageDrag)
-                {
-                    StorageContainerGridUI.CancelPendingStorageDrag(
-                        playerInventory
-                    );
-
-                    heldGrabOffset = Vector2Int.zero;
-                    centerHeldPreviewOnMouse = false;
-                    Refresh();
-                    return;
-                }
-
-                Debug.Log(
-                    "Cannot place held item at: " +
-                    placementOrigin
-                );
-            }
-            else
-            {
-                if (StorageContainerGridUI.HasPendingStorageDrag)
-                    StorageContainerGridUI.CommitPendingStorageDrag();
-
-                heldGrabOffset = Vector2Int.zero;
-                centerHeldPreviewOnMouse = false;
-            }
-
-            Refresh();
-            return;
-        }
-
-        TryPickUpItem(coordinate);
-    }
-
-    private void OnCellRightClicked(Vector2Int coordinate)
-    {
-        if (!InventoryMenuController.IsInventoryOpen)
-            return;
-
-        if (playerInventory == null ||
-            playerInventory.Grid == null)
-        {
-            return;
-        }
-
-        if (playerInventory.IsHoldingItem)
-        {
-            bool placedOne =
-                playerInventory.TryPlaceOneHeldItem(
-                    coordinate.x,
-                    coordinate.y
-                );
-
-            if (!placedOne)
-                return;
-
-            if (!playerInventory.IsHoldingItem)
-            {
-                heldGrabOffset = Vector2Int.zero;
-                centerHeldPreviewOnMouse = false;
-            }
-            else
-            {
-                CenterHeldItemOnMouse();
-            }
-
-            Refresh();
-            return;
-        }
-
-        bool split =
-            playerInventory.TrySplitStackAt(
-                coordinate.x,
-                coordinate.y
+        return InventoryShapeUtility
+            .IsOccupiedInShape(
+                draggedItem.Definition,
+                coordinate.x -
+                    dragOriginalPosition.x,
+                coordinate.y -
+                    dragOriginalPosition.y,
+                dragOriginalRotationSteps
             );
-
-        if (!split)
-            return;
-
-        CenterHeldItemOnMouse();
-        Refresh();
-    }
-
-    private void OnCellPointerDown(Vector2Int coordinate)
-    {
-        if (!InventoryMenuController.IsInventoryOpen)
-            return;
-
-        if (Mouse.current == null)
-            return;
-
-        if (suppressNextClick)
-            suppressNextClick = false;
-
-        pointerIsDown = true;
-        pendingDragPickup = false;
-        isDraggingItem = false;
-
-        pointerDownScreenPosition =
-            Mouse.current.position.ReadValue();
-
-        pointerDownCoordinate = coordinate;
-
-        if (playerInventory == null ||
-            playerInventory.Grid == null ||
-            playerInventory.IsHoldingItem)
-        {
-            return;
-        }
-
-        PlacedInventoryItem itemAtCell =
-            playerInventory.Grid.GetPlacedItem(
-                coordinate.x,
-                coordinate.y
-            );
-
-        pendingDragPickup =
-            itemAtCell != null;
-    }
-
-    private void OnCellPointerUp(Vector2Int coordinate)
-    {
-        if (isDraggingItem)
-        {
-            CompleteDragDrop(hoveredCoordinate);
-            return;
-        }
-
-        pointerIsDown = false;
-        pendingDragPickup = false;
-    }
-
-    private void TryPickUpItem(Vector2Int coordinate)
-    {
-        PlacedInventoryItem pickedItem =
-            playerInventory.TryPickUpItemAt(
-                coordinate.x,
-                coordinate.y
-            );
-
-        if (pickedItem == null)
-        {
-            Debug.Log(
-                "Clicked empty inventory cell: " +
-                coordinate
-            );
-
-            return;
-        }
-
-        CenterHeldItemOnMouse();
-
-        Debug.Log(
-            "Picked up item: " +
-            pickedItem.ItemDefinition.itemName +
-            " with grab offset: " +
-            heldGrabOffset
-        );
-
-        Refresh();
-    }
-
-    private void OnCellPointerEntered(Vector2Int coordinate)
-    {
-        hoveredCoordinate = coordinate;
-        Refresh();
-    }
-
-    private void OnCellPointerExited(Vector2Int coordinate)
-    {
-        if (hoveredCoordinate != coordinate)
-            return;
-
-        if (playerInventory != null &&
-            playerInventory.IsHoldingItem &&
-            Mouse.current != null &&
-            TryGetGridCoordinateFromScreenPoint(
-                Mouse.current.position.ReadValue(),
-                out Vector2Int mouseCoordinate))
-        {
-            hoveredCoordinate = mouseCoordinate;
-            Refresh();
-            return;
-        }
-
-        hoveredCoordinate =
-            new Vector2Int(-1, -1);
-
-        Refresh();
     }
 
     private bool TryGetGridCoordinateFromScreenPoint(
         Vector2 screenPosition,
         out Vector2Int coordinate)
     {
-        coordinate = new Vector2Int(-1, -1);
+        coordinate =
+            new Vector2Int(-1, -1);
 
-        if (playerInventory == null ||
-            playerInventory.Grid == null ||
+        if (inventoryContainer == null ||
             cellParent == null ||
             gridLayoutGroup == null ||
             rootCanvas == null)
@@ -1103,39 +1072,40 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
             return false;
         }
 
-        RectTransform cellParentRect =
+        RectTransform rect =
             cellParent as RectTransform;
 
-        if (cellParentRect == null)
+        if (rect == null)
             return false;
 
         Camera canvasCamera =
-            rootCanvas.renderMode == RenderMode.ScreenSpaceOverlay
+            rootCanvas.renderMode ==
+                RenderMode.ScreenSpaceOverlay
                 ? null
                 : rootCanvas.worldCamera;
 
-        bool hasPoint =
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                cellParentRect,
+        if (!RectTransformUtility
+            .ScreenPointToLocalPointInRectangle(
+                rect,
                 screenPosition,
                 canvasCamera,
-                out Vector2 localPoint
-            );
-
-        if (!hasPoint)
+                out Vector2 localPoint))
+        {
             return false;
+        }
 
-        Rect rect =
-            cellParentRect.rect;
+        Rect bounds =
+            rect.rect;
 
         float xFromLeft =
-            localPoint.x - rect.xMin;
+            localPoint.x -
+            bounds.xMin -
+            gridLayoutGroup.padding.left;
 
         float yFromTop =
-            rect.yMax - localPoint.y;
-
-        xFromLeft -= gridLayoutGroup.padding.left;
-        yFromTop -= gridLayoutGroup.padding.top;
+            bounds.yMax -
+            localPoint.y -
+            gridLayoutGroup.padding.top;
 
         if (xFromLeft < 0f ||
             yFromTop < 0f)
@@ -1150,10 +1120,12 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
             gridLayoutGroup.spacing;
 
         float pitchX =
-            cellSize.x + spacing.x;
+            cellSize.x +
+            spacing.x;
 
         float pitchY =
-            cellSize.y + spacing.y;
+            cellSize.y +
+            spacing.y;
 
         if (pitchX <= 0f ||
             pitchY <= 0f)
@@ -1162,208 +1134,116 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
         }
 
         int x =
-            GetNearestGridIndex(
-                xFromLeft,
-                cellSize.x,
-                spacing.x,
-                pitchX,
-                playerInventory.Grid.Width
+            Mathf.FloorToInt(
+                xFromLeft /
+                pitchX
             );
 
         int rowFromTop =
-            GetNearestGridIndex(
-                yFromTop,
-                cellSize.y,
-                spacing.y,
-                pitchY,
-                playerInventory.Grid.Height
+            Mathf.FloorToInt(
+                yFromTop /
+                pitchY
             );
 
         if (x < 0 ||
-            rowFromTop < 0)
+            rowFromTop < 0 ||
+            x >= inventoryContainer.Width ||
+            rowFromTop >=
+                inventoryContainer.Height)
         {
             return false;
         }
 
         int y =
-            playerInventory.Grid.Height - 1 - rowFromTop;
+            inventoryContainer.Height -
+            1 -
+            rowFromTop;
 
         coordinate =
-            new Vector2Int(x, y);
+            new Vector2Int(
+                x,
+                y
+            );
 
-        return IsValidGridCoordinate(coordinate);
+        return true;
     }
 
-    private int GetNearestGridIndex(
-        float distance,
-        float cellSize,
-        float spacing,
-        float pitch,
-        int count)
+    private bool IsValidGridCoordinate(
+        Vector2Int coordinate)
     {
-        if (count <= 0)
-            return -1;
-
-        int index =
-            Mathf.FloorToInt(distance / pitch);
-
-        if (index < 0 ||
-            index >= count)
-        {
-            return -1;
-        }
-
-        float insidePitch =
-            distance - index * pitch;
-
-        if (insidePitch > cellSize &&
-            spacing > 0f)
-        {
-            float gapPosition =
-                insidePitch - cellSize;
-
-            if (gapPosition > spacing * 0.5f)
-                index++;
-        }
-
-        if (index < 0 ||
-            index >= count)
-        {
-            return -1;
-        }
-
-        return index;
-    }
-
-    private bool IsValidGridCoordinate(Vector2Int coordinate)
-    {
-        if (playerInventory == null ||
-            playerInventory.Grid == null)
-        {
-            return false;
-        }
-
-        return coordinate.x >= 0 &&
+        return inventoryContainer != null &&
+               coordinate.x >= 0 &&
                coordinate.y >= 0 &&
-               coordinate.x < playerInventory.Grid.Width &&
-               coordinate.y < playerInventory.Grid.Height;
+               coordinate.x <
+                   inventoryContainer.Width &&
+               coordinate.y <
+                   inventoryContainer.Height;
     }
 
-    private Vector2Int GetHeldPlacementOrigin(Vector2Int hoveredCell)
+    private void HandleInteractionChanged()
     {
-        return hoveredCell - heldGrabOffset;
+        BuildHeldItemPreview();
+        RefreshAllGrids();
     }
 
-    private void CenterHeldItemOnMouse()
+    private void UpdateHoveredCoordinateFromMouse()
     {
-        PlacedInventoryItem heldItem =
-            HeldItem;
-
-        if (heldItem == null ||
-            heldItem.ItemDefinition == null)
+        if (interactionController == null ||
+            !interactionController.HasSelection ||
+            Mouse.current == null ||
+            !InventoryMenuController
+                .IsInventoryOpen)
         {
-            heldGrabOffset = Vector2Int.zero;
-            centerHeldPreviewOnMouse = false;
+            if (hoveredCoordinate.x >= 0 ||
+                hoveredCoordinate.y >= 0)
+            {
+                hoveredCoordinate =
+                    new Vector2Int(-1, -1);
+
+                Refresh();
+            }
+
             return;
         }
 
-        int centerX =
-            Mathf.Max(
-                0,
-                heldItem.Width / 2
+        Vector2Int newCoordinate;
+
+        bool found =
+            TryGetGridCoordinateFromScreenPoint(
+                Mouse.current.position
+                    .ReadValue(),
+                out newCoordinate
             );
 
-        int centerY =
-            Mathf.Max(
-                0,
-                heldItem.Height / 2
-            );
-
-        heldGrabOffset =
-            new Vector2Int(
-                centerX,
-                centerY
-            );
-
-        centerHeldPreviewOnMouse = true;
-    }
-
-    private bool IsHeldItemPreview(
-        Vector2Int coordinate,
-        Vector2Int origin)
-    {
-        PlacedInventoryItem heldItem =
-            HeldItem;
-
-        if (heldItem == null ||
-            heldItem.ItemDefinition == null)
+        if (!found)
         {
-            return false;
+            newCoordinate =
+                new Vector2Int(-1, -1);
         }
 
-        int localX =
-            coordinate.x - origin.x;
-
-        int localY =
-            coordinate.y - origin.y;
-
-        if (localX < 0 ||
-            localY < 0 ||
-            localX >= heldItem.Width ||
-            localY >= heldItem.Height)
+        if (newCoordinate ==
+            hoveredCoordinate)
         {
-            return false;
+            return;
         }
 
-        return heldItem.ItemDefinition.IsCellOccupied(
-            localX,
-            localY,
-            heldItem.RotationSteps
-        );
-    }
+        hoveredCoordinate =
+            newCoordinate;
 
-    private bool IsOriginalFootprint(Vector2Int coordinate)
-    {
-        if (!isDraggingItem)
-            return false;
-
-        PlacedInventoryItem heldItem =
-            HeldItem;
-
-        if (heldItem == null ||
-            heldItem.ItemDefinition == null)
-        {
-            return false;
-        }
-
-        return InventoryShapeUtility.IsOccupiedInShape(
-            heldItem.ItemDefinition,
-            coordinate.x - dragOriginalPosition.x,
-            coordinate.y - dragOriginalPosition.y,
-            dragOriginalRotationSteps
-        );
-    }
-
-    private void HandleHeldItemChanged()
-    {
-        if (playerInventory != null &&
-            playerInventory.ConsumeCenterHeldItemOnCursorRequest())
-        {
-            CenterHeldItemOnMouse();
-        }
-
-        BuildHeldItemPreview();
         Refresh();
     }
 
     private void CreateHeldPreviewRoot()
     {
-        if (rootCanvas == null)
+        if (rootCanvas == null ||
+            heldPreviewRoot != null)
+        {
             return;
+        }
 
         GameObject previewObject =
             new GameObject(
-                "InventoryMouseHeldItemPreview",
+                "InventorySelectedItemPreview",
                 typeof(RectTransform),
                 typeof(CanvasGroup),
                 typeof(GridLayoutGroup)
@@ -1375,7 +1255,8 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
         );
 
         heldPreviewRoot =
-            previewObject.GetComponent<RectTransform>();
+            previewObject.GetComponent<
+                RectTransform>();
 
         heldPreviewRoot.anchorMin =
             new Vector2(0.5f, 0.5f);
@@ -1387,13 +1268,18 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
             new Vector2(0f, 1f);
 
         heldPreviewCanvasGroup =
-            previewObject.GetComponent<CanvasGroup>();
+            previewObject.GetComponent<
+                CanvasGroup>();
 
-        heldPreviewCanvasGroup.blocksRaycasts = false;
-        heldPreviewCanvasGroup.interactable = false;
+        heldPreviewCanvasGroup.blocksRaycasts =
+            false;
+
+        heldPreviewCanvasGroup.interactable =
+            false;
 
         heldPreviewLayoutGroup =
-            previewObject.GetComponent<GridLayoutGroup>();
+            previewObject.GetComponent<
+                GridLayoutGroup>();
 
         heldPreviewLayoutGroup.startCorner =
             GridLayoutGroup.Corner.UpperLeft;
@@ -1405,7 +1291,8 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
             TextAnchor.UpperLeft;
 
         heldPreviewLayoutGroup.constraint =
-            GridLayoutGroup.Constraint.FixedColumnCount;
+            GridLayoutGroup.Constraint
+                .FixedColumnCount;
 
         if (gridLayoutGroup != null)
         {
@@ -1415,39 +1302,6 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
             heldPreviewLayoutGroup.spacing =
                 gridLayoutGroup.spacing;
         }
-        else
-        {
-            heldPreviewLayoutGroup.cellSize =
-                new Vector2(40f, 40f);
-
-            heldPreviewLayoutGroup.spacing =
-                new Vector2(2f, 2f);
-        }
-
-        GameObject outlineObject =
-            new GameObject(
-                "InventoryMouseHeldItemPreviewOutline",
-                typeof(RectTransform)
-            );
-
-        outlineObject.transform.SetParent(
-            rootCanvas.transform,
-            false
-        );
-
-        heldPreviewOutlineRoot =
-            outlineObject.GetComponent<RectTransform>();
-
-        heldPreviewOutlineRoot.anchorMin =
-            new Vector2(0.5f, 0.5f);
-
-        heldPreviewOutlineRoot.anchorMax =
-            new Vector2(0.5f, 0.5f);
-
-        heldPreviewOutlineRoot.pivot =
-            new Vector2(0f, 1f);
-
-        outlineObject.SetActive(false);
 
         previewObject.SetActive(false);
     }
@@ -1455,6 +1309,7 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
     private void BuildHeldItemPreview()
     {
         if (heldPreviewRoot == null ||
+            heldPreviewLayoutGroup == null ||
             cellPrefab == null)
         {
             return;
@@ -1464,32 +1319,48 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
             heldPreviewRoot
         );
 
-        PlacedInventoryItem heldItem =
-            HeldItem;
-
-        if (heldItem == null ||
-            heldItem.ItemDefinition == null)
+        if (interactionController == null ||
+            !interactionController.HasSelection ||
+            interactionController
+                .SelectedDefinition == null)
         {
-            heldPreviewRoot.gameObject.SetActive(false);
+            heldPreviewRoot.gameObject
+                .SetActive(false);
 
-            if (heldPreviewOutlineRoot != null)
-                heldPreviewOutlineRoot.gameObject.SetActive(false);
-
-            centerHeldPreviewOnMouse = false;
             return;
         }
 
+        ItemDefinition definition =
+            interactionController
+                .SelectedDefinition;
+
+        int rotation =
+            interactionController
+                .SelectedRotationSteps;
+
+        int width =
+            definition.GetWidth(
+                rotation
+            );
+
+        int height =
+            definition.GetHeight(
+                rotation
+            );
+
         heldPreviewLayoutGroup.constraintCount =
-            heldItem.Width;
+            width;
 
-        ItemDefinition itemDefinition =
-            heldItem.ItemDefinition;
+        bool quantityAssigned =
+            false;
 
-        bool quantityTextAssigned = false;
-
-        for (int y = heldItem.Height - 1; y >= 0; y--)
+        for (int y = height - 1;
+             y >= 0;
+             y--)
         {
-            for (int x = 0; x < heldItem.Width; x++)
+            for (int x = 0;
+                 x < width;
+                 x++)
             {
                 GameObject cellObject =
                     Instantiate(
@@ -1498,22 +1369,24 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
                     );
 
                 InventoryCellUI cellUI =
-                    cellObject.GetComponent<InventoryCellUI>();
+                    cellObject.GetComponent<
+                        InventoryCellUI>();
 
                 if (cellUI != null)
                     cellUI.enabled = false;
 
-                Button button =
-                    cellObject.GetComponent<Button>();
+                Button cellButton =
+                    cellObject.GetComponent<
+                        Button>();
 
-                if (button != null)
-                    button.interactable = false;
+                if (cellButton != null)
+                    cellButton.interactable = false;
 
                 bool occupied =
-                    itemDefinition.IsCellOccupied(
+                    definition.IsCellOccupied(
                         x,
                         y,
-                        heldItem.RotationSteps
+                        rotation
                     );
 
                 Image image =
@@ -1525,100 +1398,55 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
 
                     image.color =
                         occupied
-                        ? heldPreviewColor
-                        : new Color(0f, 0f, 0f, 0f);
+                            ? heldPreviewColor
+                            : new Color(
+                                0f,
+                                0f,
+                                0f,
+                                0f
+                            );
                 }
 
                 TextMeshProUGUI quantityText =
-                    cellObject.GetComponentInChildren<TextMeshProUGUI>(true);
+                    cellObject.GetComponentInChildren<
+                        TextMeshProUGUI>(
+                        true
+                    );
 
                 bool showQuantity =
                     occupied &&
-                    !quantityTextAssigned &&
-                    itemDefinition.isStackable &&
-                    heldItem.Quantity > 1;
+                    !quantityAssigned &&
+                    interactionController
+                        .SelectedItem != null &&
+                    interactionController
+                        .SelectedItem
+                        .IsStackable &&
+                    interactionController
+                        .SelectedItem
+                        .Quantity > 1;
 
                 if (quantityText != null)
                 {
                     quantityText.text =
                         showQuantity
-                        ? heldItem.Quantity.ToString()
-                        : "";
+                            ? interactionController
+                                .SelectedItem
+                                .Quantity
+                                .ToString()
+                            : "";
 
-                    quantityText.gameObject.SetActive(showQuantity);
+                    quantityText.gameObject
+                        .SetActive(
+                            showQuantity
+                        );
                 }
 
                 if (showQuantity)
-                    quantityTextAssigned = true;
+                    quantityAssigned = true;
             }
         }
 
-        BuildHeldPreviewOutline();
         UpdateHeldPreviewVisibility();
-        UpdateHeldPreviewPosition();
-    }
-
-    private void RefreshHeldPreviewIfNeeded()
-    {
-        bool shouldTrackHeldPreview =
-            InventoryMenuController.IsInventoryOpen &&
-            playerInventory != null &&
-            playerInventory.Grid != null &&
-            playerInventory.IsHoldingItem &&
-            Mouse.current != null;
-
-        if (shouldTrackHeldPreview != wasShowingHeldPreview)
-        {
-            wasShowingHeldPreview = shouldTrackHeldPreview;
-
-            if (shouldTrackHeldPreview)
-            {
-                lastHeldPreviewMousePosition =
-                    Mouse.current.position.ReadValue();
-
-                UpdateHoveredCoordinateFromMouse();
-            }
-            else
-            {
-                hoveredCoordinate =
-                    new Vector2Int(-1, -1);
-            }
-
-            Refresh();
-            return;
-        }
-
-        if (!shouldTrackHeldPreview)
-            return;
-
-        Vector2 mousePosition =
-            Mouse.current.position.ReadValue();
-
-        if ((mousePosition - lastHeldPreviewMousePosition).sqrMagnitude < 0.01f)
-            return;
-
-        lastHeldPreviewMousePosition =
-            mousePosition;
-
-        UpdateHoveredCoordinateFromMouse();
-        Refresh();
-    }
-
-    private void UpdateHoveredCoordinateFromMouse()
-    {
-        if (Mouse.current == null)
-            return;
-
-        if (TryGetGridCoordinateFromScreenPoint(
-                Mouse.current.position.ReadValue(),
-                out Vector2Int coordinate))
-        {
-            hoveredCoordinate = coordinate;
-            return;
-        }
-
-        hoveredCoordinate =
-            new Vector2Int(-1, -1);
     }
 
     private void UpdateHeldPreviewVisibility()
@@ -1627,18 +1455,18 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
             return;
 
         bool shouldShow =
-            HeldItem != null &&
-            InventoryMenuController.IsInventoryOpen;
+            interactionController != null &&
+            interactionController.HasSelection &&
+            InventoryMenuController
+                .IsInventoryOpen;
 
-        if (heldPreviewRoot.gameObject.activeSelf != shouldShow)
+        if (heldPreviewRoot.gameObject
+            .activeSelf != shouldShow)
         {
-            heldPreviewRoot.gameObject.SetActive(shouldShow);
-        }
-
-        if (heldPreviewOutlineRoot != null &&
-            heldPreviewOutlineRoot.gameObject.activeSelf != shouldShow)
-        {
-            heldPreviewOutlineRoot.gameObject.SetActive(shouldShow);
+            heldPreviewRoot.gameObject
+                .SetActive(
+                    shouldShow
+                );
         }
     }
 
@@ -1646,59 +1474,61 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
     {
         if (heldPreviewRoot == null ||
             !heldPreviewRoot.gameObject.activeSelf ||
+            heldPreviewLayoutGroup == null ||
+            interactionController == null ||
             rootCanvas == null ||
             Mouse.current == null)
         {
             return;
         }
 
-        Vector2 screenPosition =
-            Mouse.current.position.ReadValue();
-
         RectTransform canvasRect =
-            rootCanvas.transform as RectTransform;
+            rootCanvas.transform
+                as RectTransform;
 
-        Camera canvasCamera =
-            rootCanvas.renderMode == RenderMode.ScreenSpaceOverlay
-            ? null
-            : rootCanvas.worldCamera;
-
-        bool hasPoint =
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                canvasRect,
-                screenPosition,
-                canvasCamera,
-                out Vector2 localPoint
-            );
-
-        if (!hasPoint)
+        if (canvasRect == null)
             return;
 
-        Vector2 previewPosition =
-            localPoint -
-            GetHeldPreviewGrabPoint() +
-            heldPreviewOffset;
+        Camera canvasCamera =
+            rootCanvas.renderMode ==
+                RenderMode.ScreenSpaceOverlay
+                ? null
+                : rootCanvas.worldCamera;
+
+        if (!RectTransformUtility
+            .ScreenPointToLocalPointInRectangle(
+                canvasRect,
+                Mouse.current.position
+                    .ReadValue(),
+                canvasCamera,
+                out Vector2 localPoint))
+        {
+            return;
+        }
 
         heldPreviewRoot.anchoredPosition =
-            previewPosition;
-
-        if (heldPreviewOutlineRoot != null)
-        {
-            heldPreviewOutlineRoot.anchoredPosition =
-                previewPosition;
-        }
+            localPoint -
+            GetPreviewGrabPoint() +
+            heldPreviewOffset;
     }
 
-    private Vector2 GetHeldPreviewGrabPoint()
+    private Vector2 GetPreviewGrabPoint()
     {
-        PlacedInventoryItem heldItem =
-            HeldItem;
+        ItemDefinition definition =
+            interactionController
+                .SelectedDefinition;
 
-        if (heldItem == null ||
-            heldPreviewLayoutGroup == null)
-        {
+        if (definition == null)
             return Vector2.zero;
-        }
+
+        int rotation =
+            interactionController
+                .SelectedRotationSteps;
+
+        int height =
+            definition.GetHeight(
+                rotation
+            );
 
         Vector2 cellSize =
             heldPreviewLayoutGroup.cellSize;
@@ -1706,723 +1536,36 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
         Vector2 spacing =
             heldPreviewLayoutGroup.spacing;
 
-        if (centerHeldPreviewOnMouse)
-        {
-            float width =
-                heldItem.Width * cellSize.x +
-                Mathf.Max(0, heldItem.Width - 1) * spacing.x;
-
-            float height =
-                heldItem.Height * cellSize.y +
-                Mathf.Max(0, heldItem.Height - 1) * spacing.y;
-
-            return new Vector2(
-                width * 0.5f,
-                -height * 0.5f
-            );
-        }
+        Vector2Int grabOffset =
+            interactionController
+                .SelectedGrabOffset;
 
         int visualRowFromTop =
-            heldItem.Height - 1 - heldGrabOffset.y;
+            height -
+            1 -
+            grabOffset.y;
 
         float x =
-            heldGrabOffset.x * (cellSize.x + spacing.x) +
+            grabOffset.x *
+            (cellSize.x + spacing.x) +
             cellSize.x * 0.5f;
 
         float y =
-            -visualRowFromTop * (cellSize.y + spacing.y) -
+            -visualRowFromTop *
+            (cellSize.y + spacing.y) -
             cellSize.y * 0.5f;
 
-        return new Vector2(x, y);
-    }
-
-    private void BuildHeldPreviewOutline()
-    {
-        if (heldPreviewOutlineRoot == null)
-            return;
-
-        InventoryUIUtility.ClearChildren(
-            heldPreviewOutlineRoot
-        );
-
-        PlacedInventoryItem heldItem =
-            HeldItem;
-
-        if (heldItem == null ||
-            heldItem.ItemDefinition == null ||
-            heldPreviewLayoutGroup == null)
-        {
-            return;
-        }
-
-        ItemDefinition itemDefinition =
-            heldItem.ItemDefinition;
-
-        int width =
-            heldItem.Width;
-
-        int height =
-            heldItem.Height;
-
-        int rotationSteps =
-            heldItem.RotationSteps;
-
-        for (int y = 0; y < height; y++)
-        {
-            for (int x = 0; x < width; x++)
-            {
-                if (!InventoryShapeUtility.IsOccupiedInShape(
-                        itemDefinition,
-                        x,
-                        y,
-                        rotationSteps))
-                {
-                    continue;
-                }
-
-                bool topOpen =
-                    !InventoryShapeUtility.IsOccupiedInShape(
-                        itemDefinition,
-                        x,
-                        y + 1,
-                        rotationSteps
-                    );
-
-                bool bottomOpen =
-                    !InventoryShapeUtility.IsOccupiedInShape(
-                        itemDefinition,
-                        x,
-                        y - 1,
-                        rotationSteps
-                    );
-
-                bool leftOpen =
-                    !InventoryShapeUtility.IsOccupiedInShape(
-                        itemDefinition,
-                        x - 1,
-                        y,
-                        rotationSteps
-                    );
-
-                bool rightOpen =
-                    !InventoryShapeUtility.IsOccupiedInShape(
-                        itemDefinition,
-                        x + 1,
-                        y,
-                        rotationSteps
-                    );
-
-                if (topOpen)
-                    DrawHeldPreviewOutlineEdge(x, y, InventoryOutlineSide.Top);
-
-                if (bottomOpen)
-                    DrawHeldPreviewOutlineEdge(x, y, InventoryOutlineSide.Bottom);
-
-                if (leftOpen)
-                    DrawHeldPreviewOutlineEdge(x, y, InventoryOutlineSide.Left);
-
-                if (rightOpen)
-                    DrawHeldPreviewOutlineEdge(x, y, InventoryOutlineSide.Right);
-
-                if (fillPaddingBetweenCells)
-                {
-                    bool rightFilled =
-                        InventoryShapeUtility.IsOccupiedInShape(
-                            itemDefinition,
-                            x + 1,
-                            y,
-                            rotationSteps
-                        );
-
-                    bool downFilled =
-                        InventoryShapeUtility.IsOccupiedInShape(
-                            itemDefinition,
-                            x,
-                            y - 1,
-                            rotationSteps
-                        );
-
-                    if (topOpen &&
-                        rightFilled &&
-                        !InventoryShapeUtility.IsOccupiedInShape(
-                            itemDefinition,
-                            x + 1,
-                            y + 1,
-                            rotationSteps))
-                    {
-                        DrawHeldPreviewBridge(x, y, InventoryOutlineSide.Top);
-                    }
-
-                    if (bottomOpen &&
-                        rightFilled &&
-                        !InventoryShapeUtility.IsOccupiedInShape(
-                            itemDefinition,
-                            x + 1,
-                            y - 1,
-                            rotationSteps))
-                    {
-                        DrawHeldPreviewBridge(x, y, InventoryOutlineSide.Bottom);
-                    }
-
-                    if (leftOpen &&
-                        downFilled &&
-                        !InventoryShapeUtility.IsOccupiedInShape(
-                            itemDefinition,
-                            x - 1,
-                            y - 1,
-                            rotationSteps))
-                    {
-                        DrawHeldPreviewBridge(x, y, InventoryOutlineSide.Left);
-                    }
-
-                    if (rightOpen &&
-                        downFilled &&
-                        !InventoryShapeUtility.IsOccupiedInShape(
-                            itemDefinition,
-                            x + 1,
-                            y - 1,
-                            rotationSteps))
-                    {
-                        DrawHeldPreviewBridge(x, y, InventoryOutlineSide.Right);
-                    }
-                }
-
-                if (topOpen && leftOpen)
-                    DrawHeldPreviewCorner(x, y, InventoryOutlineCorner.TopLeft);
-
-                if (topOpen && rightOpen)
-                    DrawHeldPreviewCorner(x, y, InventoryOutlineCorner.TopRight);
-
-                if (bottomOpen && leftOpen)
-                    DrawHeldPreviewCorner(x, y, InventoryOutlineCorner.BottomLeft);
-
-                if (bottomOpen && rightOpen)
-                    DrawHeldPreviewCorner(x, y, InventoryOutlineCorner.BottomRight);
-            }
-        }
-
-        if (fillPaddingBetweenCells)
-        {
-            DrawHeldPreviewInnerCorners(
-                itemDefinition,
-                rotationSteps,
-                width,
-                height
-            );
-        }
-    }
-
-    private void DrawHeldPreviewOutlineEdge(
-        int localX,
-        int localY,
-        InventoryOutlineSide side)
-    {
-        if (heldPreviewLayoutGroup == null)
-            return;
-
-        Vector2 cellSize =
-            heldPreviewLayoutGroup.cellSize;
-
-        Vector2 spacing =
-            heldPreviewLayoutGroup.spacing;
-
-        PlacedInventoryItem heldItem =
-            HeldItem;
-
-        if (heldItem == null)
-            return;
-
-        int rowFromTop =
-            heldItem.Height - 1 - localY;
-
-        float cellLeft =
-            localX * (cellSize.x + spacing.x);
-
-        float cellTop =
-            -rowFromTop * (cellSize.y + spacing.y);
-
-        float halfSpacingX =
-            InventoryUIUtility.GetHalfSpacing(
-                spacing.x,
-                fillPaddingBetweenCells
-            );
-
-        float halfSpacingY =
-            InventoryUIUtility.GetHalfSpacing(
-                spacing.y,
-                fillPaddingBetweenCells
-            );
-
-        Vector2 position;
-        Vector2 size;
-
-        switch (side)
-        {
-            case InventoryOutlineSide.Top:
-                position =
-                    new Vector2(
-                        cellLeft + cellSize.x * 0.5f,
-                        cellTop + halfSpacingY
-                    );
-
-                size =
-                    InventoryUIUtility.GetHorizontalEdgeSize(
-                        cellSize.x,
-                        itemOutlineThickness
-                    );
-                break;
-
-            case InventoryOutlineSide.Bottom:
-                position =
-                    new Vector2(
-                        cellLeft + cellSize.x * 0.5f,
-                        cellTop - cellSize.y - halfSpacingY
-                    );
-
-                size =
-                    InventoryUIUtility.GetHorizontalEdgeSize(
-                        cellSize.x,
-                        itemOutlineThickness
-                    );
-                break;
-
-            case InventoryOutlineSide.Left:
-                position =
-                    new Vector2(
-                        cellLeft - halfSpacingX,
-                        cellTop - cellSize.y * 0.5f
-                    );
-
-                size =
-                    InventoryUIUtility.GetVerticalEdgeSize(
-                        itemOutlineThickness,
-                        cellSize.y
-                    );
-                break;
-
-            default:
-                position =
-                    new Vector2(
-                        cellLeft + cellSize.x + halfSpacingX,
-                        cellTop - cellSize.y * 0.5f
-                    );
-
-                size =
-                    InventoryUIUtility.GetVerticalEdgeSize(
-                        itemOutlineThickness,
-                        cellSize.y
-                    );
-                break;
-        }
-
-        CreateHeldPreviewOutlineRect(position, size);
-    }
-
-    private void DrawHeldPreviewBridge(
-        int localX,
-        int localY,
-        InventoryOutlineSide side)
-    {
-        if (heldPreviewLayoutGroup == null ||
-            !fillPaddingBetweenCells)
-        {
-            return;
-        }
-
-        Vector2 cellSize =
-            heldPreviewLayoutGroup.cellSize;
-
-        Vector2 spacing =
-            heldPreviewLayoutGroup.spacing;
-
-        PlacedInventoryItem heldItem =
-            HeldItem;
-
-        if (heldItem == null)
-            return;
-
-        int rowFromTop =
-            heldItem.Height - 1 - localY;
-
-        float cellLeft =
-            localX * (cellSize.x + spacing.x);
-
-        float cellTop =
-            -rowFromTop * (cellSize.y + spacing.y);
-
-        float halfSpacingX =
-            InventoryUIUtility.GetHalfSpacing(
-                spacing.x,
-                fillPaddingBetweenCells
-            );
-
-        float halfSpacingY =
-            InventoryUIUtility.GetHalfSpacing(
-                spacing.y,
-                fillPaddingBetweenCells
-            );
-
-        Vector2 position;
-        Vector2 size;
-
-        switch (side)
-        {
-            case InventoryOutlineSide.Top:
-                if (spacing.x <= 0f)
-                    return;
-
-                position =
-                    new Vector2(
-                        cellLeft + cellSize.x + halfSpacingX,
-                        cellTop + halfSpacingY
-                    );
-
-                size =
-                    InventoryUIUtility.GetHorizontalBridgeSize(
-                        spacing.x,
-                        itemOutlineThickness
-                    );
-                break;
-
-            case InventoryOutlineSide.Bottom:
-                if (spacing.x <= 0f)
-                    return;
-
-                position =
-                    new Vector2(
-                        cellLeft + cellSize.x + halfSpacingX,
-                        cellTop - cellSize.y - halfSpacingY
-                    );
-
-                size =
-                    InventoryUIUtility.GetHorizontalBridgeSize(
-                        spacing.x,
-                        itemOutlineThickness
-                    );
-                break;
-
-            case InventoryOutlineSide.Left:
-                if (spacing.y <= 0f)
-                    return;
-
-                position =
-                    new Vector2(
-                        cellLeft - halfSpacingX,
-                        cellTop - cellSize.y - halfSpacingY
-                    );
-
-                size =
-                    InventoryUIUtility.GetVerticalBridgeSize(
-                        itemOutlineThickness,
-                        spacing.y
-                    );
-                break;
-
-            default:
-                if (spacing.y <= 0f)
-                    return;
-
-                position =
-                    new Vector2(
-                        cellLeft + cellSize.x + halfSpacingX,
-                        cellTop - cellSize.y - halfSpacingY
-                    );
-
-                size =
-                    InventoryUIUtility.GetVerticalBridgeSize(
-                        itemOutlineThickness,
-                        spacing.y
-                    );
-                break;
-        }
-
-        CreateHeldPreviewOutlineRect(position, size);
-    }
-
-    private void DrawHeldPreviewCorner(
-        int localX,
-        int localY,
-        InventoryOutlineCorner corner)
-    {
-        if (heldPreviewLayoutGroup == null)
-            return;
-
-        Vector2 cellSize =
-            heldPreviewLayoutGroup.cellSize;
-
-        Vector2 spacing =
-            heldPreviewLayoutGroup.spacing;
-
-        PlacedInventoryItem heldItem =
-            HeldItem;
-
-        if (heldItem == null)
-            return;
-
-        int rowFromTop =
-            heldItem.Height - 1 - localY;
-
-        float cellLeft =
-            localX * (cellSize.x + spacing.x);
-
-        float cellTop =
-            -rowFromTop * (cellSize.y + spacing.y);
-
-        float halfSpacingX =
-            InventoryUIUtility.GetHalfSpacing(
-                spacing.x,
-                fillPaddingBetweenCells
-            );
-
-        float halfSpacingY =
-            InventoryUIUtility.GetHalfSpacing(
-                spacing.y,
-                fillPaddingBetweenCells
-            );
-
-        Vector2 position;
-
-        switch (corner)
-        {
-            case InventoryOutlineCorner.TopLeft:
-                position =
-                    new Vector2(
-                        cellLeft - halfSpacingX,
-                        cellTop + halfSpacingY
-                    );
-                break;
-
-            case InventoryOutlineCorner.TopRight:
-                position =
-                    new Vector2(
-                        cellLeft + cellSize.x + halfSpacingX,
-                        cellTop + halfSpacingY
-                    );
-                break;
-
-            case InventoryOutlineCorner.BottomLeft:
-                position =
-                    new Vector2(
-                        cellLeft - halfSpacingX,
-                        cellTop - cellSize.y - halfSpacingY
-                    );
-                break;
-
-            default:
-                position =
-                    new Vector2(
-                        cellLeft + cellSize.x + halfSpacingX,
-                        cellTop - cellSize.y - halfSpacingY
-                    );
-                break;
-        }
-
-        CreateHeldPreviewOutlineRect(
-            position,
-            InventoryUIUtility.GetCornerSize(
-                itemOutlineThickness
-            )
-        );
-    }
-
-    private void DrawHeldPreviewInnerCorners(
-        ItemDefinition itemDefinition,
-        int rotationSteps,
-        int width,
-        int height)
-    {
-        if (itemDefinition == null)
-            return;
-
-        for (int y = 0; y < height; y++)
-        {
-            for (int x = 0; x < width; x++)
-            {
-                if (InventoryShapeUtility.IsOccupiedInShape(
-                        itemDefinition,
-                        x,
-                        y,
-                        rotationSteps))
-                {
-                    continue;
-                }
-
-                bool leftFilled =
-                    InventoryShapeUtility.IsOccupiedInShape(
-                        itemDefinition,
-                        x - 1,
-                        y,
-                        rotationSteps
-                    );
-
-                bool rightFilled =
-                    InventoryShapeUtility.IsOccupiedInShape(
-                        itemDefinition,
-                        x + 1,
-                        y,
-                        rotationSteps
-                    );
-
-                bool upFilled =
-                    InventoryShapeUtility.IsOccupiedInShape(
-                        itemDefinition,
-                        x,
-                        y + 1,
-                        rotationSteps
-                    );
-
-                bool downFilled =
-                    InventoryShapeUtility.IsOccupiedInShape(
-                        itemDefinition,
-                        x,
-                        y - 1,
-                        rotationSteps
-                    );
-
-                if (rightFilled && downFilled)
-                {
-                    DrawHeldPreviewGapCorner(
-                        x,
-                        y,
-                        InventoryOutlineCorner.BottomRight
-                    );
-                }
-
-                if (leftFilled && downFilled)
-                {
-                    DrawHeldPreviewGapCorner(
-                        x,
-                        y,
-                        InventoryOutlineCorner.BottomLeft
-                    );
-                }
-
-                if (rightFilled && upFilled)
-                {
-                    DrawHeldPreviewGapCorner(
-                        x,
-                        y,
-                        InventoryOutlineCorner.TopRight
-                    );
-                }
-
-                if (leftFilled && upFilled)
-                {
-                    DrawHeldPreviewGapCorner(
-                        x,
-                        y,
-                        InventoryOutlineCorner.TopLeft
-                    );
-                }
-            }
-        }
-    }
-
-    private void DrawHeldPreviewGapCorner(
-        int localX,
-        int localY,
-        InventoryOutlineCorner corner)
-    {
-        if (heldPreviewLayoutGroup == null)
-            return;
-
-        Vector2 cellSize =
-            heldPreviewLayoutGroup.cellSize;
-
-        Vector2 spacing =
-            heldPreviewLayoutGroup.spacing;
-
-        PlacedInventoryItem heldItem =
-            HeldItem;
-
-        if (heldItem == null)
-            return;
-
-        int rowFromTop =
-            heldItem.Height - 1 - localY;
-
-        float cellLeft =
-            localX * (cellSize.x + spacing.x);
-
-        float cellTop =
-            -rowFromTop * (cellSize.y + spacing.y);
-
-        float halfSpacingX =
-            InventoryUIUtility.GetHalfSpacing(
-                spacing.x,
-                fillPaddingBetweenCells
-            );
-
-        float halfSpacingY =
-            InventoryUIUtility.GetHalfSpacing(
-                spacing.y,
-                fillPaddingBetweenCells
-            );
-
-        Vector2 position;
-
-        switch (corner)
-        {
-            case InventoryOutlineCorner.TopLeft:
-                position =
-                    new Vector2(
-                        cellLeft - halfSpacingX,
-                        cellTop + halfSpacingY
-                    );
-                break;
-
-            case InventoryOutlineCorner.TopRight:
-                position =
-                    new Vector2(
-                        cellLeft + cellSize.x + halfSpacingX,
-                        cellTop + halfSpacingY
-                    );
-                break;
-
-            case InventoryOutlineCorner.BottomLeft:
-                position =
-                    new Vector2(
-                        cellLeft - halfSpacingX,
-                        cellTop - cellSize.y - halfSpacingY
-                    );
-                break;
-
-            default:
-                position =
-                    new Vector2(
-                        cellLeft + cellSize.x + halfSpacingX,
-                        cellTop - cellSize.y - halfSpacingY
-                    );
-                break;
-        }
-
-        CreateHeldPreviewOutlineRect(
-            position,
-            InventoryUIUtility.GetCornerSize(
-                itemOutlineThickness
-            )
-        );
-    }
-
-    private void CreateHeldPreviewOutlineRect(
-        Vector2 position,
-        Vector2 size)
-    {
-        InventoryUIUtility.CreateImageRect(
-            heldPreviewOutlineRoot,
-            "HeldPreviewOutlinePiece",
-            position,
-            size,
-            itemOutlineColor
+        return new Vector2(
+            x,
+            y
         );
     }
 
     private void BuildItemOutlines()
     {
         if (itemOutline == null ||
-            gridLayoutGroup == null ||
-            playerInventory == null ||
-            playerInventory.Grid == null)
+            inventoryContainer == null ||
+            gridLayoutGroup == null)
         {
             return;
         }
@@ -2431,173 +1574,218 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
             itemOutline
         );
 
-        HashSet<PlacedInventoryItem> outlinedItems =
+        HashSet<PlacedInventoryItem> outlined =
             new HashSet<PlacedInventoryItem>();
 
-        InventoryGrid grid =
-            playerInventory.Grid;
-
-        for (int y = 0; y < grid.Height; y++)
+        for (int y = 0;
+             y < inventoryContainer.Height;
+             y++)
         {
-            for (int x = 0; x < grid.Width; x++)
+            for (int x = 0;
+                 x < inventoryContainer.Width;
+                 x++)
             {
-                PlacedInventoryItem placedItem =
-                    grid.GetPlacedItem(x, y);
+                PlacedInventoryItem item =
+                    inventoryContainer.GetItemAt(
+                        x,
+                        y
+                    );
 
-                if (placedItem == null)
+                if (item == null ||
+                    outlined.Contains(item))
+                {
                     continue;
+                }
 
-                if (outlinedItems.Contains(placedItem))
-                    continue;
-
-                outlinedItems.Add(placedItem);
+                outlined.Add(item);
 
                 DrawItemOutline(
-                    placedItem.ItemDefinition,
-                    placedItem.Position,
-                    placedItem.RotationSteps,
+                    item.ItemDefinition,
+                    item.Position,
+                    item.RotationSteps,
                     itemOutlineColor
                 );
             }
         }
 
         if (isDraggingItem &&
-            HeldItem != null &&
-            HeldItem.ItemDefinition != null)
+            ReferenceEquals(
+                inventoryContainer,
+                dragSourceContainer) &&
+            draggedItem != null)
         {
             DrawItemOutline(
-                HeldItem.ItemDefinition,
+                draggedItem.Definition,
                 dragOriginalPosition,
                 dragOriginalRotationSteps,
                 dragOriginalOutlineColor
             );
         }
 
-        PlacedInventoryItem heldItem =
-            HeldItem;
-
-        if (heldItem != null &&
-            heldItem.ItemDefinition != null &&
-            InventoryMenuController.IsInventoryOpen &&
-            IsValidGridCoordinate(hoveredCoordinate))
+        if (interactionController != null &&
+            interactionController.HasSelection &&
+            interactionController
+                .SelectedDefinition != null &&
+            IsValidGridCoordinate(
+                hoveredCoordinate))
         {
-            Vector2Int previewOrigin =
-                GetHeldPlacementOrigin(hoveredCoordinate);
+            Vector2Int origin =
+                hoveredCoordinate -
+                interactionController
+                    .SelectedGrabOffset;
 
             DrawItemOutline(
-                heldItem.ItemDefinition,
-                previewOrigin,
-                heldItem.RotationSteps,
+                interactionController
+                    .SelectedDefinition,
+                origin,
+                interactionController
+                    .SelectedRotationSteps,
                 itemOutlineColor
             );
         }
     }
 
     private void DrawItemOutline(
-        ItemDefinition itemDefinition,
+        ItemDefinition definition,
         Vector2Int origin,
         int rotationSteps,
         Color color)
     {
-        if (itemDefinition == null)
+        if (definition == null)
             return;
 
         int width =
-            itemDefinition.GetWidth(rotationSteps);
+            definition.GetWidth(
+                rotationSteps
+            );
 
         int height =
-            itemDefinition.GetHeight(rotationSteps);
+            definition.GetHeight(
+                rotationSteps
+            );
 
-        for (int y = 0; y < height; y++)
+        for (int y = 0;
+             y < height;
+             y++)
         {
-            for (int x = 0; x < width; x++)
+            for (int x = 0;
+                 x < width;
+                 x++)
             {
-                if (!itemDefinition.IsCellOccupied(x, y, rotationSteps))
-                    continue;
-
-                bool topOpen =
-                    !InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x, y + 1, rotationSteps);
-
-                bool bottomOpen =
-                    !InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x, y - 1, rotationSteps);
-
-                bool leftOpen =
-                    !InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x - 1, y, rotationSteps);
-
-                bool rightOpen =
-                    !InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x + 1, y, rotationSteps);
-
-                if (topOpen)
-                    DrawOutlineEdge(origin.x + x, origin.y + y, InventoryOutlineSide.Top, color);
-
-                if (bottomOpen)
-                    DrawOutlineEdge(origin.x + x, origin.y + y, InventoryOutlineSide.Bottom, color);
-
-                if (leftOpen)
-                    DrawOutlineEdge(origin.x + x, origin.y + y, InventoryOutlineSide.Left, color);
-
-                if (rightOpen)
-                    DrawOutlineEdge(origin.x + x, origin.y + y, InventoryOutlineSide.Right, color);
-
-                if (fillPaddingBetweenCells)
+                if (!definition.IsCellOccupied(
+                    x,
+                    y,
+                    rotationSteps))
                 {
-                    bool rightFilled =
-                        InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x + 1, y, rotationSteps);
-
-                    bool downFilled =
-                        InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x, y - 1, rotationSteps);
-
-                    if (topOpen &&
-                        rightFilled &&
-                        !InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x + 1, y + 1, rotationSteps))
-                    {
-                        DrawBridge(origin.x + x, origin.y + y, InventoryOutlineSide.Top, color);
-                    }
-
-                    if (bottomOpen &&
-                        rightFilled &&
-                        !InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x + 1, y - 1, rotationSteps))
-                    {
-                        DrawBridge(origin.x + x, origin.y + y, InventoryOutlineSide.Bottom, color);
-                    }
-
-                    if (leftOpen &&
-                        downFilled &&
-                        !InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x - 1, y - 1, rotationSteps))
-                    {
-                        DrawBridge(origin.x + x, origin.y + y, InventoryOutlineSide.Left, color);
-                    }
-
-                    if (rightOpen &&
-                        downFilled &&
-                        !InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x + 1, y - 1, rotationSteps))
-                    {
-                        DrawBridge(origin.x + x, origin.y + y, InventoryOutlineSide.Right, color);
-                    }
+                    continue;
                 }
 
+                bool topOpen =
+                    !InventoryShapeUtility
+                        .IsOccupiedInShape(
+                            definition,
+                            x,
+                            y + 1,
+                            rotationSteps
+                        );
+
+                bool bottomOpen =
+                    !InventoryShapeUtility
+                        .IsOccupiedInShape(
+                            definition,
+                            x,
+                            y - 1,
+                            rotationSteps
+                        );
+
+                bool leftOpen =
+                    !InventoryShapeUtility
+                        .IsOccupiedInShape(
+                            definition,
+                            x - 1,
+                            y,
+                            rotationSteps
+                        );
+
+                bool rightOpen =
+                    !InventoryShapeUtility
+                        .IsOccupiedInShape(
+                            definition,
+                            x + 1,
+                            y,
+                            rotationSteps
+                        );
+
+                int gridX =
+                    origin.x + x;
+
+                int gridY =
+                    origin.y + y;
+
+                if (topOpen)
+                    DrawOutlineEdge(
+                        gridX,
+                        gridY,
+                        InventoryOutlineSide.Top,
+                        color
+                    );
+
+                if (bottomOpen)
+                    DrawOutlineEdge(
+                        gridX,
+                        gridY,
+                        InventoryOutlineSide.Bottom,
+                        color
+                    );
+
+                if (leftOpen)
+                    DrawOutlineEdge(
+                        gridX,
+                        gridY,
+                        InventoryOutlineSide.Left,
+                        color
+                    );
+
+                if (rightOpen)
+                    DrawOutlineEdge(
+                        gridX,
+                        gridY,
+                        InventoryOutlineSide.Right,
+                        color
+                    );
+
                 if (topOpen && leftOpen)
-                    DrawCorner(origin.x + x, origin.y + y, InventoryOutlineCorner.TopLeft, color);
+                    DrawCorner(
+                        gridX,
+                        gridY,
+                        InventoryOutlineCorner.TopLeft,
+                        color
+                    );
 
                 if (topOpen && rightOpen)
-                    DrawCorner(origin.x + x, origin.y + y, InventoryOutlineCorner.TopRight, color);
+                    DrawCorner(
+                        gridX,
+                        gridY,
+                        InventoryOutlineCorner.TopRight,
+                        color
+                    );
 
                 if (bottomOpen && leftOpen)
-                    DrawCorner(origin.x + x, origin.y + y, InventoryOutlineCorner.BottomLeft, color);
+                    DrawCorner(
+                        gridX,
+                        gridY,
+                        InventoryOutlineCorner.BottomLeft,
+                        color
+                    );
 
                 if (bottomOpen && rightOpen)
-                    DrawCorner(origin.x + x, origin.y + y, InventoryOutlineCorner.BottomRight, color);
+                    DrawCorner(
+                        gridX,
+                        gridY,
+                        InventoryOutlineCorner.BottomRight,
+                        color
+                    );
             }
-        }
-
-        if (fillPaddingBetweenCells)
-        {
-            DrawInnerCorners(
-                itemDefinition,
-                origin,
-                rotationSteps,
-                color
-            );
         }
     }
 
@@ -2607,129 +1795,50 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
         InventoryOutlineSide side,
         Color color)
     {
-        Vector2 cellSize = gridLayoutGroup.cellSize;
-        Vector2 spacing = gridLayoutGroup.spacing;
-        RectOffset padding = gridLayoutGroup.padding;
-
-        float halfSpacingX =
-            InventoryUIUtility.GetHalfSpacing(
-                spacing.x,
-                fillPaddingBetweenCells
-            );
-
-        float halfSpacingY =
-            InventoryUIUtility.GetHalfSpacing(
-                spacing.y,
-                fillPaddingBetweenCells
-            );
-
-        int rowFromTop =
-            playerInventory.Grid.Height - 1 - gridY;
-
-        float cellLeft =
-            padding.left +
-            gridX * (cellSize.x + spacing.x);
-
-        float cellTop =
-            -padding.top -
-            rowFromTop * (cellSize.y + spacing.y);
-
-        Vector2 position;
-        Vector2 size;
-
-        switch (side)
+        if (itemOutline == null ||
+            gridLayoutGroup == null ||
+            inventoryContainer == null)
         {
-            case InventoryOutlineSide.Top:
-                position = new Vector2(
-                    cellLeft + cellSize.x * 0.5f,
-                    cellTop + halfSpacingY
-                );
-
-                size =
-                    InventoryUIUtility.GetHorizontalEdgeSize(
-                        cellSize.x,
-                        itemOutlineThickness
-                    );
-                break;
-
-            case InventoryOutlineSide.Bottom:
-                position = new Vector2(
-                    cellLeft + cellSize.x * 0.5f,
-                    cellTop - cellSize.y - halfSpacingY
-                );
-
-                size =
-                    InventoryUIUtility.GetHorizontalEdgeSize(
-                        cellSize.x,
-                        itemOutlineThickness
-                    );
-                break;
-
-            case InventoryOutlineSide.Left:
-                position = new Vector2(
-                    cellLeft - halfSpacingX,
-                    cellTop - cellSize.y * 0.5f
-                );
-
-                size =
-                    InventoryUIUtility.GetVerticalEdgeSize(
-                        itemOutlineThickness,
-                        cellSize.y
-                    );
-                break;
-
-            default:
-                position = new Vector2(
-                    cellLeft + cellSize.x + halfSpacingX,
-                    cellTop - cellSize.y * 0.5f
-                );
-
-                size =
-                    InventoryUIUtility.GetVerticalEdgeSize(
-                        itemOutlineThickness,
-                        cellSize.y
-                    );
-                break;
-        }
-
-        CreateOutlineRect(position, size, color);
-    }
-
-    private void DrawBridge(
-        int gridX,
-        int gridY,
-        InventoryOutlineSide side,
-        Color color)
-    {
-        Vector2 cellSize = gridLayoutGroup.cellSize;
-        Vector2 spacing = gridLayoutGroup.spacing;
-        RectOffset padding = gridLayoutGroup.padding;
-
-        if (!fillPaddingBetweenCells)
             return;
+        }
+
+        Vector2 cellSize =
+            gridLayoutGroup.cellSize;
+
+        Vector2 spacing =
+            gridLayoutGroup.spacing;
+
+        RectOffset padding =
+            gridLayoutGroup.padding;
+
+        float halfSpacingX =
+            InventoryUIUtility
+                .GetHalfSpacing(
+                    spacing.x,
+                    fillPaddingBetweenCells
+                );
+
+        float halfSpacingY =
+            InventoryUIUtility
+                .GetHalfSpacing(
+                    spacing.y,
+                    fillPaddingBetweenCells
+                );
 
         int rowFromTop =
-            playerInventory.Grid.Height - 1 - gridY;
+            inventoryContainer.Height -
+            1 -
+            gridY;
 
         float cellLeft =
             padding.left +
-            gridX * (cellSize.x + spacing.x);
+            gridX *
+            (cellSize.x + spacing.x);
 
         float cellTop =
             -padding.top -
-            rowFromTop * (cellSize.y + spacing.y);
-
-        float halfSpacingX =
-            InventoryUIUtility.GetHalfSpacing(
-                spacing.x,
-                fillPaddingBetweenCells
-            );
-
-        float halfSpacingY =
-            InventoryUIUtility.GetHalfSpacing(
-                spacing.y,
-                fillPaddingBetweenCells
-            );
+            rowFromTop *
+            (cellSize.y + spacing.y);
 
         Vector2 position;
         Vector2 size;
@@ -2737,71 +1846,83 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
         switch (side)
         {
             case InventoryOutlineSide.Top:
-                if (spacing.x <= 0f)
-                    return;
-
-                position = new Vector2(
-                    cellLeft + cellSize.x + halfSpacingX,
-                    cellTop + halfSpacingY
-                );
+                position =
+                    new Vector2(
+                        cellLeft +
+                            cellSize.x * 0.5f,
+                        cellTop +
+                            halfSpacingY
+                    );
 
                 size =
-                    InventoryUIUtility.GetHorizontalBridgeSize(
-                        spacing.x,
-                        itemOutlineThickness
-                    );
+                    InventoryUIUtility
+                        .GetHorizontalEdgeSize(
+                            cellSize.x,
+                            itemOutlineThickness
+                        );
                 break;
 
             case InventoryOutlineSide.Bottom:
-                if (spacing.x <= 0f)
-                    return;
-
-                position = new Vector2(
-                    cellLeft + cellSize.x + halfSpacingX,
-                    cellTop - cellSize.y - halfSpacingY
-                );
+                position =
+                    new Vector2(
+                        cellLeft +
+                            cellSize.x * 0.5f,
+                        cellTop -
+                            cellSize.y -
+                            halfSpacingY
+                    );
 
                 size =
-                    InventoryUIUtility.GetHorizontalBridgeSize(
-                        spacing.x,
-                        itemOutlineThickness
-                    );
+                    InventoryUIUtility
+                        .GetHorizontalEdgeSize(
+                            cellSize.x,
+                            itemOutlineThickness
+                        );
                 break;
 
             case InventoryOutlineSide.Left:
-                if (spacing.y <= 0f)
-                    return;
-
-                position = new Vector2(
-                    cellLeft - halfSpacingX,
-                    cellTop - cellSize.y - halfSpacingY
-                );
+                position =
+                    new Vector2(
+                        cellLeft -
+                            halfSpacingX,
+                        cellTop -
+                            cellSize.y * 0.5f
+                    );
 
                 size =
-                    InventoryUIUtility.GetVerticalBridgeSize(
-                        itemOutlineThickness,
-                        spacing.y
-                    );
+                    InventoryUIUtility
+                        .GetVerticalEdgeSize(
+                            itemOutlineThickness,
+                            cellSize.y
+                        );
                 break;
 
             default:
-                if (spacing.y <= 0f)
-                    return;
-
-                position = new Vector2(
-                    cellLeft + cellSize.x + halfSpacingX,
-                    cellTop - cellSize.y - halfSpacingY
-                );
+                position =
+                    new Vector2(
+                        cellLeft +
+                            cellSize.x +
+                            halfSpacingX,
+                        cellTop -
+                            cellSize.y * 0.5f
+                    );
 
                 size =
-                    InventoryUIUtility.GetVerticalBridgeSize(
-                        itemOutlineThickness,
-                        spacing.y
-                    );
+                    InventoryUIUtility
+                        .GetVerticalEdgeSize(
+                            itemOutlineThickness,
+                            cellSize.y
+                        );
                 break;
         }
 
-        CreateOutlineRect(position, size, color);
+        InventoryUIUtility.CreateImageRect(
+            itemOutline,
+            "ItemOutlineEdge",
+            position,
+            size,
+            color
+        );
     }
 
     private void DrawCorner(
@@ -2810,271 +1931,123 @@ public class InventoryGridUI : MonoBehaviour, IPointerClickHandler, IPointerDown
         InventoryOutlineCorner corner,
         Color color)
     {
-        Vector2 cellSize = gridLayoutGroup.cellSize;
-        Vector2 spacing = gridLayoutGroup.spacing;
-        RectOffset padding = gridLayoutGroup.padding;
-
-        float halfSpacingX =
-            InventoryUIUtility.GetHalfSpacing(
-                spacing.x,
-                fillPaddingBetweenCells
-            );
-
-        float halfSpacingY =
-            InventoryUIUtility.GetHalfSpacing(
-                spacing.y,
-                fillPaddingBetweenCells
-            );
-
-        int rowFromTop =
-            playerInventory.Grid.Height - 1 - gridY;
-
-        float cellLeft =
-            padding.left +
-            gridX * (cellSize.x + spacing.x);
-
-        float cellTop =
-            -padding.top -
-            rowFromTop * (cellSize.y + spacing.y);
-
-        Vector2 position;
-
-        switch (corner)
+        if (itemOutline == null ||
+            gridLayoutGroup == null ||
+            inventoryContainer == null)
         {
-            case InventoryOutlineCorner.TopLeft:
-                position = new Vector2(
-                    cellLeft - halfSpacingX,
-                    cellTop + halfSpacingY
-                );
-                break;
-
-            case InventoryOutlineCorner.TopRight:
-                position = new Vector2(
-                    cellLeft + cellSize.x + halfSpacingX,
-                    cellTop + halfSpacingY
-                );
-                break;
-
-            case InventoryOutlineCorner.BottomLeft:
-                position = new Vector2(
-                    cellLeft - halfSpacingX,
-                    cellTop - cellSize.y - halfSpacingY
-                );
-                break;
-
-            default:
-                position = new Vector2(
-                    cellLeft + cellSize.x + halfSpacingX,
-                    cellTop - cellSize.y - halfSpacingY
-                );
-                break;
-        }
-
-        CreateOutlineRect(
-            position,
-            InventoryUIUtility.GetCornerSize(
-                itemOutlineThickness
-            ),
-            color
-        );
-    }
-
-    private void DrawInnerCorners(
-        ItemDefinition itemDefinition,
-        Vector2Int origin,
-        int rotationSteps,
-        Color color)
-    {
-        if (itemDefinition == null)
             return;
-
-        int width =
-            itemDefinition.GetWidth(rotationSteps);
-
-        int height =
-            itemDefinition.GetHeight(rotationSteps);
-
-        for (int y = 0; y < height; y++)
-        {
-            for (int x = 0; x < width; x++)
-            {
-                if (InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x, y, rotationSteps))
-                    continue;
-
-                bool leftFilled =
-                    InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x - 1, y, rotationSteps);
-
-                bool rightFilled =
-                    InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x + 1, y, rotationSteps);
-
-                bool upFilled =
-                    InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x, y + 1, rotationSteps);
-
-                bool downFilled =
-                    InventoryShapeUtility.IsOccupiedInShape(itemDefinition, x, y - 1, rotationSteps);
-
-                if (rightFilled && downFilled)
-                {
-                    DrawGapCorner(
-                        origin.x + x,
-                        origin.y + y,
-                        InventoryOutlineCorner.BottomRight,
-                        color
-                    );
-                }
-
-                if (leftFilled && downFilled)
-                {
-                    DrawGapCorner(
-                        origin.x + x,
-                        origin.y + y,
-                        InventoryOutlineCorner.BottomLeft,
-                        color
-                    );
-                }
-
-                if (rightFilled && upFilled)
-                {
-                    DrawGapCorner(
-                        origin.x + x,
-                        origin.y + y,
-                        InventoryOutlineCorner.TopRight,
-                        color
-                    );
-                }
-
-                if (leftFilled && upFilled)
-                {
-                    DrawGapCorner(
-                        origin.x + x,
-                        origin.y + y,
-                        InventoryOutlineCorner.TopLeft,
-                        color
-                    );
-                }
-            }
         }
-    }
 
-    private void DrawGapCorner(
-        int gridX,
-        int gridY,
-        InventoryOutlineCorner corner,
-        Color color)
-    {
-        Vector2 cellSize = gridLayoutGroup.cellSize;
-        Vector2 spacing = gridLayoutGroup.spacing;
-        RectOffset padding = gridLayoutGroup.padding;
+        Vector2 cellSize =
+            gridLayoutGroup.cellSize;
+
+        Vector2 spacing =
+            gridLayoutGroup.spacing;
+
+        RectOffset padding =
+            gridLayoutGroup.padding;
+
+        float halfSpacingX =
+            InventoryUIUtility
+                .GetHalfSpacing(
+                    spacing.x,
+                    fillPaddingBetweenCells
+                );
+
+        float halfSpacingY =
+            InventoryUIUtility
+                .GetHalfSpacing(
+                    spacing.y,
+                    fillPaddingBetweenCells
+                );
 
         int rowFromTop =
-            playerInventory.Grid.Height - 1 - gridY;
+            inventoryContainer.Height -
+            1 -
+            gridY;
 
         float cellLeft =
             padding.left +
-            gridX * (cellSize.x + spacing.x);
+            gridX *
+            (cellSize.x + spacing.x);
 
         float cellTop =
             -padding.top -
-            rowFromTop * (cellSize.y + spacing.y);
-
-        float halfSpacingX =
-            InventoryUIUtility.GetHalfSpacing(
-                spacing.x,
-                fillPaddingBetweenCells
-            );
-
-        float halfSpacingY =
-            InventoryUIUtility.GetHalfSpacing(
-                spacing.y,
-                fillPaddingBetweenCells
-            );
+            rowFromTop *
+            (cellSize.y + spacing.y);
 
         Vector2 position;
 
         switch (corner)
         {
             case InventoryOutlineCorner.TopLeft:
-                position = new Vector2(
-                    cellLeft - halfSpacingX,
-                    cellTop + halfSpacingY
-                );
+                position =
+                    new Vector2(
+                        cellLeft -
+                            halfSpacingX,
+                        cellTop +
+                            halfSpacingY
+                    );
                 break;
 
             case InventoryOutlineCorner.TopRight:
-                position = new Vector2(
-                    cellLeft + cellSize.x + halfSpacingX,
-                    cellTop + halfSpacingY
-                );
+                position =
+                    new Vector2(
+                        cellLeft +
+                            cellSize.x +
+                            halfSpacingX,
+                        cellTop +
+                            halfSpacingY
+                    );
                 break;
 
             case InventoryOutlineCorner.BottomLeft:
-                position = new Vector2(
-                    cellLeft - halfSpacingX,
-                    cellTop - cellSize.y - halfSpacingY
-                );
+                position =
+                    new Vector2(
+                        cellLeft -
+                            halfSpacingX,
+                        cellTop -
+                            cellSize.y -
+                            halfSpacingY
+                    );
                 break;
 
             default:
-                position = new Vector2(
-                    cellLeft + cellSize.x + halfSpacingX,
-                    cellTop - cellSize.y - halfSpacingY
-                );
+                position =
+                    new Vector2(
+                        cellLeft +
+                            cellSize.x +
+                            halfSpacingX,
+                        cellTop -
+                            cellSize.y -
+                            halfSpacingY
+                    );
                 break;
         }
 
-        CreateOutlineRect(
-            position,
-            InventoryUIUtility.GetCornerSize(
-                itemOutlineThickness
-            ),
-            color
-        );
-    }
-
-    public void BindPlayer(
-    PlayerInventory newPlayerInventory,
-    PlayerStorageContainerInteract newStorageInteract)
-    {
-        if (playerInventory != null)
-        {
-            playerInventory.OnInventoryChanged -= Refresh;
-            playerInventory.OnHeldItemChanged -= HandleHeldItemChanged;
-        }
-
-        playerInventory = newPlayerInventory;
-
-        playerStorageContainerInteract =
-            newStorageInteract != null
-                ? newStorageInteract
-                : playerInventory != null
-                    ? playerInventory.GetComponent<PlayerStorageContainerInteract>()
-                    : null;
-
-        if (playerInventory != null)
-        {
-            playerInventory.OnInventoryChanged += Refresh;
-            playerInventory.OnHeldItemChanged += HandleHeldItemChanged;
-        }
-
-        if (heldPreviewRoot == null)
-            CreateHeldPreviewRoot();
-
-        BuildGrid();
-        HandleHeldItemChanged();
-        Refresh();
-    }
-
-    private void CreateOutlineRect(
-        Vector2 position,
-        Vector2 size,
-        Color color)
-    {
         InventoryUIUtility.CreateImageRect(
             itemOutline,
-            "ItemOutlinePiece",
+            "ItemOutlineCorner",
             position,
-            size,
+            InventoryUIUtility
+                .GetCornerSize(
+                    itemOutlineThickness
+                ),
             color
         );
+    }
+
+    private static void RefreshAllGrids()
+    {
+        for (int i = 0;
+             i < activeGrids.Count;
+             i++)
+        {
+            InventoryGridUI grid =
+                activeGrids[i];
+
+            if (grid != null)
+                grid.Refresh();
+        }
     }
 }

@@ -81,9 +81,12 @@ public class PlayerInput : MonoBehaviour
     [Header("UI")]
     [SerializeField] private TextMeshProUGUI speedText;
 
-    [Header("Inventory / Equipment")]
-    [SerializeField] private PlayerInventory playerInventory;
-    [SerializeField] private PlayerWeaponSlots playerWeaponSlots;
+    [Header("Weapons")]
+    [SerializeField]
+    private PlayerWeaponLoadout weaponLoadout;
+
+    [SerializeField]
+    private PlayerWeaponDeployment weaponDeployment;
 
     [SerializeField]
     private PlayerStorageContainerInteract storageInteract;
@@ -130,10 +133,17 @@ public class PlayerInput : MonoBehaviour
 
         if (inputRouter == null)
             inputRouter = GetComponent<PlayerInputRouter>();
-        if (playerInventory == null)
-            playerInventory = GetComponent<PlayerInventory>();
-        if (playerWeaponSlots == null)
-            playerWeaponSlots = GetComponent<PlayerWeaponSlots>();
+        if (weaponLoadout == null)
+        {
+            weaponLoadout =
+                GetComponent<PlayerWeaponLoadout>();
+        }
+
+        if (weaponDeployment == null)
+        {
+            weaponDeployment =
+                GetComponent<PlayerWeaponDeployment>();
+        }
         if (storageInteract == null)
         {
             storageInteract =
@@ -877,26 +887,31 @@ public class PlayerInput : MonoBehaviour
                wallNormal.sqrMagnitude > 0.001f;
     }
 
-    private void ToggleWeaponSheathe(InputAction.CallbackContext context)
+    private void ToggleWeaponSheathe(
+        InputAction.CallbackContext context)
     {
-        if (playerWeaponSlots == null)
+        if (weaponDeployment == null)
             return;
 
-        playerWeaponSlots.ToggleWeaponsDrawn();
+        weaponDeployment.ToggleWeaponsDrawn();
     }
 
-    private void SwitchWeaponSet(InputAction.CallbackContext context)
+    private void SwitchWeaponSet(
+        InputAction.CallbackContext context)
     {
-        if (playerWeaponSlots == null)
+        if (weaponLoadout == null)
             return;
 
         int nextWeaponSetIndex =
-            playerWeaponSlots.ActiveWeaponSetIndex == 0
+            weaponLoadout.ActiveWeaponSetIndex == 0
                 ? 1
                 : 0;
 
-        playerWeaponSlots.SetActiveWeaponSet(nextWeaponSetIndex);
+        weaponLoadout.SetActiveWeaponSet(
+            nextWeaponSetIndex
+        );
     }
+
     private void OnDrawGizmosSelected()
     {
         if (groundCheck == null)
