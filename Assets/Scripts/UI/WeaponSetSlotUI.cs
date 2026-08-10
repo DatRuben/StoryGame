@@ -2,68 +2,153 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class WeaponSetSlotUI : MonoBehaviour
+public sealed class WeaponSetSlotUI :
+    MonoBehaviour
 {
-    private enum WeaponSetSlotViewType
-    {
-        LeftHand,
-        RightHand,
-        BothHands,
-        Mouth,
-        SaddleTurret
-    }
-
     [Header("References")]
-    [SerializeField] private PlayerInventory playerInventory;
-    [SerializeField] private PlayerWeaponSlots playerWeaponSlots;
+    [SerializeField]
+    private PlayerWeaponLoadout weaponLoadout;
 
-    [SerializeField] private Image slotImage;
-    [SerializeField] private TextMeshProUGUI slotText;
-    [SerializeField] private Button button;
-    [SerializeField] private CanvasGroup canvasGroup;
+    [SerializeField]
+    private InventoryInteractionController
+        interactionController;
 
-    [Header("Slot")]
-    [Tooltip("0 = Weapon Set 1, 1 = Weapon Set 2")]
-    [SerializeField] private int weaponSetIndex = 0;
+    [SerializeField]
+    private Image slotImage;
 
-    [SerializeField] private WeaponSetSlotViewType slotType;
+    [SerializeField]
+    private TextMeshProUGUI slotText;
+
+    [SerializeField]
+    private Button button;
+
+    [SerializeField]
+    private CanvasGroup canvasGroup;
+
+    [Header("Weapon Position")]
+    [SerializeField]
+    [Range(0, PlayerWeaponLoadout.WeaponSetCount - 1)]
+    private int weaponSetIndex;
+
+    [SerializeField]
+    [Range(0, WeaponSet.SlotCount - 1)]
+    private int slotIndex;
 
     [Header("Visibility")]
-    [SerializeField] private bool onlyShowWhenInventoryOpen = true;
+    [SerializeField]
+    private bool onlyShowWhenInventoryOpen = true;
 
     [Header("Text")]
-    [SerializeField] private string emptyText = "Empty";
-    [SerializeField] private string cannotEquipText = "Cannot Equip";
-    [SerializeField] private string equipText = "Equip";
-    [SerializeField] private string swapText = "Swap";
-    [SerializeField] private string activePrefix = "> ";
-    [SerializeField] private string drawnSuffix = " (Drawn)";
+    [SerializeField]
+    private string emptyText = "Empty";
+
+    [SerializeField]
+    private string cannotEquipText =
+        "Cannot Equip";
+
+    [SerializeField]
+    private string equipText = "Equip";
+
+    [SerializeField]
+    private string swapText = "Swap";
+
+    [SerializeField]
+    private string activePrefix = "> ";
 
     [Header("Colors")]
-    [SerializeField] private Color emptyColor = new Color(0f, 0f, 0f, 0.35f);
-    [SerializeField] private Color weaponColor = new Color(1f, 1f, 1f, 0.85f);
-    [SerializeField] private Color activeWeaponColor = new Color(0.6f, 0.85f, 1f, 0.9f);
-    [SerializeField] private Color drawnWeaponColor = new Color(0.25f, 0.85f, 1f, 0.95f);
-    [SerializeField] private Color canEquipColor = new Color(0.2f, 1f, 0.2f, 0.85f);
-    [SerializeField] private Color invalidColor = new Color(1f, 0.2f, 0.2f, 0.85f);
-    [SerializeField] private Color reservedColor = new Color(0.8f, 0.55f, 1f, 0.9f);
+    [SerializeField]
+    private Color emptyColor =
+        new Color(
+            0f,
+            0f,
+            0f,
+            0.35f
+        );
+
+    [SerializeField]
+    private Color weaponColor =
+        new Color(
+            1f,
+            1f,
+            1f,
+            0.85f
+        );
+
+    [SerializeField]
+    private Color activeWeaponColor =
+        new Color(
+            0.6f,
+            0.85f,
+            1f,
+            0.9f
+        );
+
+    [SerializeField]
+    private Color canEquipColor =
+        new Color(
+            0.2f,
+            1f,
+            0.2f,
+            0.85f
+        );
+
+    [SerializeField]
+    private Color invalidColor =
+        new Color(
+            1f,
+            0.2f,
+            0.2f,
+            0.85f
+        );
 
     private void Awake()
     {
         if (slotImage == null)
-            slotImage = GetComponent<Image>();
+        {
+            slotImage =
+                GetComponent<Image>();
+        }
 
         if (button == null)
-            button = GetComponent<Button>();
+        {
+            button =
+                GetComponent<Button>();
+        }
 
         if (canvasGroup == null)
-            canvasGroup = GetComponent<CanvasGroup>();
+        {
+            canvasGroup =
+                GetComponent<CanvasGroup>();
+        }
 
         if (button != null)
         {
-            button.onClick.RemoveAllListeners();
-            button.onClick.AddListener(OnSlotClicked);
+            button.onClick
+                .RemoveAllListeners();
+
+            button.onClick
+                .AddListener(
+                    OnSlotClicked
+                );
         }
+    }
+
+    private void OnValidate()
+    {
+        weaponSetIndex =
+            Mathf.Clamp(
+                weaponSetIndex,
+                0,
+                PlayerWeaponLoadout
+                    .WeaponSetCount - 1
+            );
+
+        slotIndex =
+            Mathf.Clamp(
+                slotIndex,
+                0,
+                WeaponSet.SlotCount - 1
+            );
     }
 
     private void OnEnable()
@@ -77,37 +162,53 @@ public class WeaponSetSlotUI : MonoBehaviour
         Unsubscribe();
     }
 
-    private void Subscribe()
-    {
-        if (playerInventory != null)
-            playerInventory.OnHeldItemChanged += Refresh;
-
-        if (playerWeaponSlots != null)
-            playerWeaponSlots.OnWeaponSlotsChanged += Refresh;
-    }
-
-    private void Unsubscribe()
-    {
-        if (playerInventory != null)
-            playerInventory.OnHeldItemChanged -= Refresh;
-
-        if (playerWeaponSlots != null)
-            playerWeaponSlots.OnWeaponSlotsChanged -= Refresh;
-    }
-
     public void BindPlayer(
-        PlayerInventory newPlayerInventory,
-        PlayerWeaponSlots newPlayerWeaponSlots)
+        PlayerWeaponLoadout newWeaponLoadout,
+        InventoryInteractionController
+            newInteractionController)
     {
         Unsubscribe();
 
-        playerInventory = newPlayerInventory;
-        playerWeaponSlots = newPlayerWeaponSlots;
+        weaponLoadout =
+            newWeaponLoadout;
+
+        interactionController =
+            newInteractionController;
 
         if (isActiveAndEnabled)
             Subscribe();
 
         Refresh();
+    }
+
+    private void Subscribe()
+    {
+        if (weaponLoadout != null)
+        {
+            weaponLoadout.Changed +=
+                Refresh;
+        }
+
+        if (interactionController != null)
+        {
+            interactionController.Changed +=
+                Refresh;
+        }
+    }
+
+    private void Unsubscribe()
+    {
+        if (weaponLoadout != null)
+        {
+            weaponLoadout.Changed -=
+                Refresh;
+        }
+
+        if (interactionController != null)
+        {
+            interactionController.Changed -=
+                Refresh;
+        }
     }
 
     private void Update()
@@ -117,314 +218,168 @@ public class WeaponSetSlotUI : MonoBehaviour
 
     private void OnSlotClicked()
     {
-        if (playerInventory == null ||
-            playerWeaponSlots == null)
+        if (weaponLoadout == null ||
+            interactionController == null)
         {
             return;
         }
 
-        if (slotType == WeaponSetSlotViewType.SaddleTurret)
-            return;
-
-        if (playerInventory.IsHoldingItem)
+        if (interactionController.HasSelection)
         {
-            TryEquipHeldItemToSlot();
-            Refresh();
-            return;
-        }
-
-        TryPickUpWeaponFromSlot();
-        Refresh();
-    }
-
-    private void TryEquipHeldItemToSlot()
-    {
-        if (playerInventory.HeldItem == null ||
-            playerInventory.HeldItem.ItemDefinition == null)
-        {
-            return;
-        }
-
-        WeaponEquipPoint equipPoint =
-            GetEquipPoint();
-
-        ItemDefinition heldItem =
-            playerInventory.HeldItem.ItemDefinition;
-
-        int heldRotationSteps =
-            playerInventory.HeldItemRotationSteps;
-
-        ItemDefinition oldWeapon =
-            playerWeaponSlots.RemoveWeaponFromSetSlot(
-                weaponSetIndex,
-                equipPoint
-            );
-
-        bool equipped =
-            playerWeaponSlots.TryEquipWeaponToSet(
-                weaponSetIndex,
-                heldItem,
-                equipPoint
-            );
-
-        if (equipped)
-        {
-            if (oldWeapon != null)
-            {
-                playerInventory.SetMouseHeldItemFromExternal(
-                    oldWeapon,
-                    0,
-                    true
+            interactionController
+                .TryAssignSelectedWeapon(
+                    weaponSetIndex,
+                    slotIndex
                 );
-            }
-            else
-            {
-                playerInventory.ClearHeldItemAfterExternalMove();
-            }
 
             return;
         }
 
-        if (oldWeapon != null)
-        {
-            playerWeaponSlots.TryEquipWeaponToSet(
+        interactionController
+            .TryTakeWeaponFromSlot(
                 weaponSetIndex,
-                oldWeapon,
-                equipPoint
+                slotIndex
             );
-        }
-
-        Debug.Log("Held item cannot be equipped to this weapon slot.");
-    }
-
-    private void TryPickUpWeaponFromSlot()
-    {
-        WeaponEquipPoint equipPoint =
-            GetEquipPoint();
-
-        ItemDefinition removedWeapon =
-            playerWeaponSlots.RemoveWeaponFromSetSlot(
-                weaponSetIndex,
-                equipPoint
-            );
-
-        if (removedWeapon == null)
-            return;
-
-        playerInventory.SetMouseHeldItemFromExternal(
-            removedWeapon,
-            0,
-            true
-        );
     }
 
     private void Refresh()
     {
-        if (playerWeaponSlots == null)
-        {
-            SetSlot(emptyText, emptyColor);
-            return;
-        }
-
-        if (slotType == WeaponSetSlotViewType.SaddleTurret)
-        {
-            RefreshSaddleTurretSlot();
-            return;
-        }
-
-        WeaponEquipPoint equipPoint =
-            GetEquipPoint();
-
-        ItemDefinition slotWeapon =
-            playerWeaponSlots.GetWeaponInSetSlot(
-                weaponSetIndex,
-                equipPoint
-            );
-
-        if (playerInventory != null &&
-            playerInventory.IsHoldingItem)
-        {
-            RefreshWhileHoldingItem(slotWeapon);
-            return;
-        }
-
-        if (slotWeapon == null)
+        if (weaponLoadout == null)
         {
             SetSlot(
-                GetDefaultEmptyText(),
+                GetEmptyText(),
                 emptyColor
             );
 
             return;
         }
 
-        string text =
-            slotWeapon.itemName;
+        InventoryItemInstance weapon =
+            weaponLoadout.GetWeapon(
+                weaponSetIndex,
+                slotIndex
+            );
 
-        Color color =
-            weaponColor;
-
-        bool isActiveSet =
-            playerWeaponSlots.ActiveWeaponSetIndex == weaponSetIndex;
-
-        if (isActiveSet)
+        if (interactionController != null &&
+            interactionController.HasSelection)
         {
-            text = activePrefix + text;
-            color = activeWeaponColor;
-        }
+            RefreshForSelection(
+                weapon
+            );
 
-        if (isActiveSet &&
-            playerWeaponSlots.WeaponsDrawn)
-        {
-            text += drawnSuffix;
-            color = drawnWeaponColor;
-        }
-
-        SetSlot(text, color);
-    }
-
-    private void RefreshWhileHoldingItem(ItemDefinition slotWeapon)
-    {
-        if (playerInventory == null ||
-            playerInventory.HeldItem == null ||
-            playerInventory.HeldItem.ItemDefinition == null)
-        {
             return;
         }
 
-        ItemDefinition heldItem =
-            playerInventory.HeldItem.ItemDefinition;
-
-        bool canEquip =
-            CanHeldItemEquipHere(heldItem);
-
-        if (!canEquip)
+        if (weapon == null ||
+            weapon.Definition == null)
         {
-            SetSlot(cannotEquipText, invalidColor);
+            SetSlot(
+                GetEmptyText(),
+                emptyColor
+            );
+
             return;
         }
 
-        if (slotWeapon == null)
+        string weaponName =
+            string.IsNullOrWhiteSpace(
+                weapon.Definition.itemName
+            )
+                ? GetDefaultSlotName()
+                : weapon.Definition.itemName;
+
+        bool activeSet =
+            weaponLoadout
+                .ActiveWeaponSetIndex ==
+            weaponSetIndex;
+
+        if (activeSet)
         {
-            SetSlot(equipText, canEquipColor);
+            weaponName =
+                activePrefix +
+                weaponName;
         }
-        else
-        {
-            SetSlot(swapText, canEquipColor);
-        }
+
+        SetSlot(
+            weaponName,
+            activeSet
+                ? activeWeaponColor
+                : weaponColor
+        );
     }
 
-    private void RefreshSaddleTurretSlot()
+    private void RefreshForSelection(
+        InventoryItemInstance currentWeapon)
     {
-        WeaponSet set =
-            playerWeaponSlots.GetWeaponSet(weaponSetIndex);
+        if (interactionController == null)
+            return;
 
-        if (set == null ||
-            set.Mode != WeaponSetMode.ManualSaddleTurret ||
-            set.SaddleSourceEquipment == null)
+        bool canAssign =
+            interactionController
+                .CanAssignSelectedWeapon(
+                    weaponSetIndex,
+                    slotIndex
+                );
+
+        if (!canAssign)
         {
-            SetSlot("Saddle Turret", emptyColor);
+            SetSlot(
+                cannotEquipText,
+                invalidColor
+            );
+
             return;
         }
 
-        string text =
-            set.SaddleSourceEquipment.itemName;
-
-        bool isActiveSet =
-            playerWeaponSlots.ActiveWeaponSetIndex == weaponSetIndex;
-
-        if (isActiveSet)
-            text = activePrefix + text;
-
-        if (isActiveSet &&
-            playerWeaponSlots.WeaponsDrawn)
+        if (currentWeapon == null)
         {
-            text += drawnSuffix;
+            SetSlot(
+                equipText,
+                canEquipColor
+            );
+
+            return;
         }
 
-        SetSlot(text, reservedColor);
+        SetSlot(
+            swapText,
+            canEquipColor
+        );
     }
 
-    private bool CanHeldItemEquipHere(ItemDefinition item)
+    private string GetEmptyText()
     {
-        if (item == null)
-            return false;
-
-        if (item.itemCategory != ItemCategory.Weapon)
-            return false;
-
-        switch (slotType)
+        if (!string.IsNullOrWhiteSpace(
+            emptyText))
         {
-            case WeaponSetSlotViewType.LeftHand:
-            case WeaponSetSlotViewType.RightHand:
-                return item.weaponUseType == WeaponUseType.HandWeapon &&
-                       item.handUsage == ItemHandUsage.OneHanded;
-
-            case WeaponSetSlotViewType.BothHands:
-                return item.weaponUseType == WeaponUseType.HandWeapon &&
-                       item.handUsage == ItemHandUsage.TwoHanded;
-
-            case WeaponSetSlotViewType.Mouth:
-                return playerWeaponSlots.CanUseMouthWeapons &&
-                       item.weaponUseType == WeaponUseType.MouthWeapon;
-
-            default:
-                return false;
+            return emptyText;
         }
+
+        return GetDefaultSlotName();
     }
 
-    private WeaponEquipPoint GetEquipPoint()
+    private string GetDefaultSlotName()
     {
-        switch (slotType)
-        {
-            case WeaponSetSlotViewType.LeftHand:
-                return WeaponEquipPoint.LeftHand;
-
-            case WeaponSetSlotViewType.RightHand:
-                return WeaponEquipPoint.RightHand;
-
-            case WeaponSetSlotViewType.BothHands:
-                return WeaponEquipPoint.BothHands;
-
-            case WeaponSetSlotViewType.Mouth:
-                return WeaponEquipPoint.Mouth;
-
-            default:
-                return WeaponEquipPoint.RightHand;
-        }
+        return slotIndex == 0
+            ? "Weapon 1"
+            : "Weapon 2";
     }
 
-    private string GetDefaultEmptyText()
-    {
-        switch (slotType)
-        {
-            case WeaponSetSlotViewType.LeftHand:
-                return "Left Weapon";
-
-            case WeaponSetSlotViewType.RightHand:
-                return "Right Weapon";
-
-            case WeaponSetSlotViewType.BothHands:
-                return "Two-Hand Weapon";
-
-            case WeaponSetSlotViewType.Mouth:
-                return "Mouth Weapon";
-
-            case WeaponSetSlotViewType.SaddleTurret:
-                return "Saddle Turret";
-
-            default:
-                return emptyText;
-        }
-    }
-
-    private void SetSlot(string text, Color color)
+    private void SetSlot(
+        string text,
+        Color color)
     {
         if (slotImage != null)
-            slotImage.color = color;
+        {
+            slotImage.color =
+                color;
+        }
 
         if (slotText != null)
-            slotText.text = text;
+        {
+            slotText.text =
+                text;
+        }
     }
 
     private void UpdateVisibility()
@@ -434,10 +389,18 @@ public class WeaponSetSlotUI : MonoBehaviour
 
         bool shouldShow =
             !onlyShowWhenInventoryOpen ||
-            InventoryMenuController.IsInventoryOpen;
+            InventoryMenuController
+                .IsInventoryOpen;
 
-        canvasGroup.alpha = shouldShow ? 1f : 0f;
-        canvasGroup.interactable = shouldShow;
-        canvasGroup.blocksRaycasts = shouldShow;
+        canvasGroup.alpha =
+            shouldShow
+                ? 1f
+                : 0f;
+
+        canvasGroup.interactable =
+            shouldShow;
+
+        canvasGroup.blocksRaycasts =
+            shouldShow;
     }
 }
