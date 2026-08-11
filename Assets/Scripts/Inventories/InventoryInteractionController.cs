@@ -885,15 +885,6 @@ public sealed class InventoryInteractionController :
         return true;
     }
 
-    public bool SetActiveWeaponSet(
-        int setIndex)
-    {
-        return weaponLoadout
-            .SetActiveWeaponSet(
-                setIndex
-            );
-    }
-
     public bool CanEquipSelectedItem(
         EquipmentSlotType slotType,
         int slotIndex = 0)

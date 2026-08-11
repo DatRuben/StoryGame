@@ -104,8 +104,8 @@ public sealed class PlayerWeaponDeployment :
             characterProfile
                 .EffectiveHandlingProfile;
 
-        if (!ItemHandlingResolver
-            .TryResolveUseSet(
+        if (!WeaponUsePlanResolver
+            .TryResolve(
                 activeDefinitions,
                 handling,
                 gripState.GetFreeGripCount(

@@ -394,7 +394,7 @@ public sealed class PlayerWeaponLoadout :
         return true;
     }
 
-    public bool SetActiveWeaponSet(
+    internal bool SetActiveWeaponSet(
         int setIndex)
     {
         if (!IsValidSet(setIndex))
