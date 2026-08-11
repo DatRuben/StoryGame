@@ -899,15 +899,18 @@ public class PlayerInput : MonoBehaviour
     private void SwitchWeaponSet(
         InputAction.CallbackContext context)
     {
-        if (weaponLoadout == null)
+        if (weaponLoadout == null ||
+            weaponDeployment == null)
+        {
             return;
+        }
 
         int nextWeaponSetIndex =
             weaponLoadout.ActiveWeaponSetIndex == 0
                 ? 1
                 : 0;
 
-        weaponLoadout.SetActiveWeaponSet(
+        weaponDeployment.SetActiveWeaponSet(
             nextWeaponSetIndex
         );
     }

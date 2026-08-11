@@ -181,10 +181,6 @@ public sealed class CharacterRuntimeBinder :
 
         if (inventoryGridUI != null)
         {
-            inventoryGridUI.BindInput(
-                inputRouter
-            );
-
             inventoryGridUI.BindPlayer(
                 playerInventory,
                 interactionController
@@ -193,10 +189,6 @@ public sealed class CharacterRuntimeBinder :
 
         if (storageInventoryGridUI != null)
         {
-            storageInventoryGridUI.BindInput(
-                inputRouter
-            );
-
             storageInventoryGridUI.BindPlayer(
                 null,
                 interactionController

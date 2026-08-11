@@ -86,7 +86,6 @@ public sealed class InventoryGridUI :
 
     private GridLayoutGroup gridLayoutGroup;
     private Canvas rootCanvas;
-    private PlayerInputRouter inputRouter;
 
     private RectTransform heldPreviewRoot;
     private GridLayoutGroup heldPreviewLayoutGroup;
@@ -143,7 +142,6 @@ public sealed class InventoryGridUI :
         if (!activeGrids.Contains(this))
             activeGrids.Add(this);
 
-        SubscribeInput();
         SubscribeState();
 
         BuildGrid();
@@ -152,14 +150,33 @@ public sealed class InventoryGridUI :
 
     private void OnDisable()
     {
+        if (isDraggingItem &&
+            interactionController != null &&
+            interactionController.HasSelection &&
+            dragSourceContainer != null &&
+            draggedItem != null &&
+            ReferenceEquals(
+                interactionController.SelectedItem,
+                draggedItem))
+        {
+            interactionController
+                .TryReturnSelectionToContainer(
+                    dragSourceContainer,
+                    dragOriginalPosition,
+                    dragOriginalRotationSteps
+                );
+        }
+
         activeGrids.Remove(this);
 
-        UnsubscribeInput();
         UnsubscribeState();
 
         pointerIsDown = false;
         pendingDragPickup = false;
         isDraggingItem = false;
+
+        dragSourceContainer = null;
+        draggedItem = null;
     }
 
     private void Update()
@@ -169,18 +186,6 @@ public sealed class InventoryGridUI :
         UpdateHoveredCoordinateFromMouse();
         UpdateHeldPreviewVisibility();
         UpdateHeldPreviewPosition();
-    }
-
-    public void BindInput(
-        PlayerInputRouter newInputRouter)
-    {
-        UnsubscribeInput();
-
-        inputRouter =
-            newInputRouter;
-
-        if (isActiveAndEnabled)
-            SubscribeInput();
     }
 
     public void BindPlayer(
@@ -259,49 +264,6 @@ public sealed class InventoryGridUI :
             interactionController.Changed -=
                 HandleInteractionChanged;
         }
-    }
-
-    private void SubscribeInput()
-    {
-        if (inputRouter == null)
-            return;
-
-        inputRouter.RotateItemAction.started -=
-            OnRotateItem;
-
-        inputRouter.RotateItemAction.started +=
-            OnRotateItem;
-    }
-
-    private void UnsubscribeInput()
-    {
-        if (inputRouter == null)
-            return;
-
-        inputRouter.RotateItemAction.started -=
-            OnRotateItem;
-    }
-
-    private void OnRotateItem(
-        InputAction.CallbackContext context)
-    {
-        if (!InventoryMenuController
-            .IsInventoryOpen)
-        {
-            return;
-        }
-
-        if (interactionController == null ||
-            !interactionController.HasSelection)
-        {
-            return;
-        }
-
-        interactionController
-            .RotateSelectionCounterClockwise();
-
-        BuildHeldItemPreview();
-        RefreshAllGrids();
     }
 
     private void BuildGrid()
@@ -692,7 +654,6 @@ public sealed class InventoryGridUI :
 
     private void CompleteDragDrop()
     {
-        isDraggingItem = false;
         pointerIsDown = false;
         pendingDragPickup = false;
         suppressNextClick = true;
@@ -701,12 +662,18 @@ public sealed class InventoryGridUI :
             !interactionController.HasSelection ||
             Mouse.current == null)
         {
+            isDraggingItem = false;
+            dragSourceContainer = null;
+            draggedItem = null;
+
             RefreshAllGrids();
             return;
         }
 
         Vector2 screenPosition =
             Mouse.current.position.ReadValue();
+
+        bool acceptedDrop = false;
 
         for (int i = 0;
              i < activeGrids.Count;
@@ -721,15 +688,43 @@ public sealed class InventoryGridUI :
                 continue;
             }
 
-            if (grid.TryDropSelectionAtScreenPoint(
+            if (!grid.TryDropSelectionAtScreenPoint(
                 screenPosition))
             {
-                break;
+                continue;
+            }
+
+            acceptedDrop = true;
+            break;
+        }
+
+        if (!acceptedDrop &&
+            dragSourceContainer != null &&
+            draggedItem != null &&
+            ReferenceEquals(
+                interactionController.SelectedItem,
+                draggedItem))
+        {
+            bool returned =
+                interactionController
+                    .TryReturnSelectionToContainer(
+                        dragSourceContainer,
+                        dragOriginalPosition,
+                        dragOriginalRotationSteps
+                    );
+
+            if (!returned)
+            {
+                Debug.LogWarning(
+                    "Dragged item could not be returned to its original inventory position.",
+                    this
+                );
             }
         }
 
-        // If no grid accepted the drop, the item deliberately
-        // remains physically held and selected.
+        isDraggingItem = false;
+        dragSourceContainer = null;
+        draggedItem = null;
 
         RefreshAllGrids();
     }

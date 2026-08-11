@@ -1,7 +1,11 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
+[RequireComponent(
+    typeof(PlayerInputRouter)
+)]
 [RequireComponent(
     typeof(PlayerGripState),
     typeof(PlayerWeaponLoadout),
@@ -10,6 +14,7 @@ using UnityEngine;
 [RequireComponent(
     typeof(PlayerCharacterProfile)
 )]
+
 public sealed class InventoryInteractionController :
     MonoBehaviour
 {
@@ -20,6 +25,7 @@ public sealed class InventoryInteractionController :
         heldItems =
             new List<InventoryItemInstance>();
 
+    private PlayerInputRouter inputRouter;
     private PlayerGripState gripState;
     private PlayerWeaponLoadout weaponLoadout;
     private PlayerEquipment equipment;
@@ -44,6 +50,9 @@ public sealed class InventoryInteractionController :
 
     private void Awake()
     {
+        inputRouter =
+            GetComponent<PlayerInputRouter>();
+
         gripState =
             GetComponent<PlayerGripState>();
 
@@ -70,6 +79,46 @@ public sealed class InventoryInteractionController :
 
         characterProfile.AttributesChanged +=
             OnStateChanged;
+    }
+
+    private void OnEnable()
+    {
+        if (inputRouter == null)
+        {
+            inputRouter =
+                GetComponent<PlayerInputRouter>();
+        }
+
+        if (inputRouter == null)
+            return;
+
+        inputRouter.RotateItemAction.started -=
+            OnRotateItem;
+
+        inputRouter.RotateItemAction.started +=
+            OnRotateItem;
+    }
+
+    private void OnDisable()
+    {
+        if (inputRouter == null)
+            return;
+
+        inputRouter.RotateItemAction.started -=
+            OnRotateItem;
+    }
+
+    private void OnRotateItem(
+        InputAction.CallbackContext context)
+    {
+        if (!InventoryMenuController
+            .IsInventoryOpen ||
+            !cursor.HasSelection)
+        {
+            return;
+        }
+
+        cursor.RotateCounterClockwise();
     }
 
     public bool SelectHeldItem(
@@ -1448,5 +1497,55 @@ public sealed class InventoryInteractionController :
             characterProfile.AttributesChanged -=
                 OnStateChanged;
         }
+    }
+
+    public bool TryReturnSelectionToContainer(
+    InventoryContainer target,
+    Vector2Int originalPosition,
+    int originalRotationSteps)
+    {
+        InventoryItemInstance selected =
+            cursor.SelectedItem;
+
+        if (target == null ||
+            !IsPlacementCandidate(
+                selected))
+        {
+            return false;
+        }
+
+        if (!cursor.Select(
+            selected,
+            originalRotationSteps,
+            Vector2Int.zero))
+        {
+            return false;
+        }
+
+        bool placed =
+            target.PlaceInstance(
+                selected,
+                originalPosition.x,
+                originalPosition.y,
+                originalRotationSteps
+            );
+
+        if (!placed)
+            return false;
+
+        if (!gripState.Release(
+            selected))
+        {
+            target.TakeItemAt(
+                originalPosition.x,
+                originalPosition.y
+            );
+
+            return false;
+        }
+
+        cursor.ClearSelection();
+
+        return true;
     }
 }
