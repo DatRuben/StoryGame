@@ -1322,74 +1322,26 @@ public sealed class InventoryInteractionController :
             return false;
         }
 
-        CharacterHandlingProfile handling =
-            characterProfile
-                .EffectiveHandlingProfile;
-
-        freeHands =
-            Mathf.Clamp(
+        if (!ItemHandlingResolver
+            .TryResolveBestHold(
+                itemInstance.Definition,
+                characterProfile
+                    .EffectiveHandlingProfile,
                 freeHands,
-                0,
-                gripState.HandGripCount
-            );
-
-        freeMouth =
-            Mathf.Clamp(
                 freeMouth,
-                0,
-                gripState.MouthGripCount
-            );
-
-        for (int count = 1;
-             count <= freeHands;
-             count++)
+                out ResolvedItemHandling
+                    resolved))
         {
-            ResolvedItemHandling resolved =
-                ItemHandlingResolver.Resolve(
-                    itemInstance.Definition,
-                    handling,
-                    GripType.Hand,
-                    count
-                );
-
-            if (resolved == null ||
-                !resolved.canHold)
-            {
-                continue;
-            }
-
-            gripType =
-                GripType.Hand;
-
-            gripCount =
-                count;
-
-            return true;
+            return false;
         }
 
-        if (freeMouth > 0)
-        {
-            ResolvedItemHandling resolved =
-                ItemHandlingResolver.Resolve(
-                    itemInstance.Definition,
-                    handling,
-                    GripType.Mouth,
-                    1
-                );
+        gripType =
+            resolved.gripType;
 
-            if (resolved != null &&
-                resolved.canHold)
-            {
-                gripType =
-                    GripType.Mouth;
+        gripCount =
+            resolved.assignedGripCount;
 
-                gripCount = 1;
-
-                return true;
-            }
-        }
-
-        return false;
+        return true;
     }
 
     private GripType GetHeldGripType(

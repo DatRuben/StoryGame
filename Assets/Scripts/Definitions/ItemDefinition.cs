@@ -17,12 +17,6 @@ public enum ItemCategory
     Unique
 }
 
-public enum ItemHandUsage
-{
-    OneHanded,
-    TwoHanded
-}
-
 public enum EquipmentSlotType
 {
     Armor,
@@ -39,12 +33,6 @@ public enum EquipmentCombatRole
     None = 0,
     Weapon = 1 << 0,
     ActiveSkill = 1 << 1
-}
-
-public enum WeaponUseType
-{
-    HandWeapon,
-    MouthWeapon
 }
 
 [CreateAssetMenu(menuName = "Game/Item Definition")]
@@ -64,11 +52,23 @@ public class ItemDefinition : ScriptableObject
     public float weight = 1f;
 
     [Tooltip(
-        "The minimum number of grips mechanically required " +
-        "to operate this item. Strength cannot reduce it."
+    "Minimum number of hands mechanically required " +
+    "when this item is operated with hands. " +
+    "Strength cannot reduce this requirement."
     )]
     [Min(1)]
-    public int minimumUseGripCount = 1;
+    public int minimumHandUseGripCount = 1;
+
+    public int GetMinimumUseGripCount(
+        GripType gripType)
+    {
+        return gripType == GripType.Mouth
+            ? 1
+            : Mathf.Max(
+                1,
+                minimumHandUseGripCount
+            );
+    }
 
     [Header("Allowed Holding Grips")]
     public bool canHoldWithHands = true;
@@ -77,14 +77,6 @@ public class ItemDefinition : ScriptableObject
     [Header("Allowed Operating Grips")]
     public bool canUseWithHands = true;
     public bool canUseWithMouth;
-
-    [HideInInspector]
-    public ItemHandUsage handUsage =
-        ItemHandUsage.OneHanded;
-
-    [HideInInspector]
-    public WeaponUseType weaponUseType =
-        WeaponUseType.HandWeapon;
 
     [TextArea]
     public string heldControlsText;
@@ -134,10 +126,10 @@ public class ItemDefinition : ScriptableObject
                 weight
             );
 
-        minimumUseGripCount =
+        minimumHandUseGripCount =
             Mathf.Max(
                 1,
-                minimumUseGripCount
+                minimumHandUseGripCount
             );
 
         if (!canHoldWithHands)
@@ -145,20 +137,6 @@ public class ItemDefinition : ScriptableObject
 
         if (!canHoldWithMouth)
             canUseWithMouth = false;
-
-        // Temporary compatibility with the old slot system.
-        handUsage =
-            minimumUseGripCount >= 2
-                ? ItemHandUsage.TwoHanded
-                : ItemHandUsage.OneHanded;
-
-        // The legacy enum cannot represent both.
-        // Prefer hand operation when both are allowed.
-        weaponUseType =
-            !canUseWithHands &&
-            canUseWithMouth
-                ? WeaponUseType.MouthWeapon
-                : WeaponUseType.HandWeapon;
     }
 
     private void OnValidate()
@@ -514,15 +492,6 @@ public class ItemDefinitionEditor : Editor
                 )
             );
 
-        item.minimumUseGripCount =
-            Mathf.Max(
-                1,
-                EditorGUILayout.IntField(
-                    "Minimum Use Grips",
-                    item.minimumUseGripCount
-                )
-            );
-
         EditorGUILayout.Space(4f);
 
         EditorGUILayout.LabelField(
@@ -556,6 +525,18 @@ public class ItemDefinitionEditor : Editor
                 EditorGUILayout.Toggle(
                     "Can Use With Hands",
                     item.canUseWithHands
+                );
+        }
+
+        if (item.canUseWithHands)
+        {
+            item.minimumHandUseGripCount =
+                Mathf.Max(
+                    1,
+                    EditorGUILayout.IntField(
+                        "Minimum Hands To Use",
+                        item.minimumHandUseGripCount
+                    )
                 );
         }
 

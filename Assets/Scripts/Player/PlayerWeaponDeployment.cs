@@ -11,19 +11,48 @@ public sealed class PlayerWeaponDeployment :
     MonoBehaviour
 {
     private readonly List<InventoryItemInstance>
-        deployedWeapons =
+        activeWeapons =
             new List<InventoryItemInstance>();
 
-    private readonly List<InventoryItemInstance>
-        newlyDeployedWeapons =
-            new List<InventoryItemInstance>();
+    private readonly List<ItemDefinition>
+        activeDefinitions =
+            new List<ItemDefinition>();
+
+    private readonly List<ResolvedItemHandling>
+        usePlan =
+            new List<ResolvedItemHandling>();
 
     private PlayerWeaponLoadout weaponLoadout;
     private PlayerGripState gripState;
     private PlayerCharacterProfile characterProfile;
 
-    public bool WeaponsDrawn =>
-        deployedWeapons.Count > 0;
+    public bool WeaponsDrawn
+    {
+        get
+        {
+            ResolveReferences();
+            CollectActiveWeapons();
+
+            if (activeWeapons.Count == 0 ||
+                gripState == null)
+            {
+                return false;
+            }
+
+            for (int i = 0;
+                 i < activeWeapons.Count;
+                 i++)
+            {
+                if (!gripState.IsHolding(
+                    activeWeapons[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+    }
 
     public event Action Changed;
 
@@ -32,36 +61,15 @@ public sealed class PlayerWeaponDeployment :
         ResolveReferences();
     }
 
-    private void OnEnable()
-    {
-        ResolveReferences();
-
-        if (weaponLoadout != null)
-        {
-            weaponLoadout.Changed -=
-                OnLoadoutChanged;
-
-            weaponLoadout.Changed +=
-                OnLoadoutChanged;
-        }
-
-        ValidateDeployment();
-    }
-
-    private void OnDisable()
-    {
-        if (weaponLoadout != null)
-        {
-            weaponLoadout.Changed -=
-                OnLoadoutChanged;
-        }
-    }
-
     public bool IsDeployed(
         InventoryItemInstance weapon)
     {
-        return weapon != null &&
-               deployedWeapons.Contains(
+        ResolveReferences();
+
+        return IsActiveWeapon(
+                   weapon) &&
+               gripState != null &&
+               gripState.IsHolding(
                    weapon
                );
     }
@@ -72,55 +80,69 @@ public sealed class PlayerWeaponDeployment :
 
         if (weaponLoadout == null ||
             gripState == null ||
-            characterProfile == null)
+            characterProfile == null ||
+            characterProfile
+                .EffectiveHandlingProfile ==
+                null)
         {
             return false;
         }
 
-        WeaponSet activeSet =
-            weaponLoadout.ActiveWeaponSet;
+        CollectActiveWeapons();
 
-        if (activeSet == null ||
-            !activeSet.HasAnyWeapon)
+        if (activeWeapons.Count == 0)
+            return false;
+
+        if (WeaponsDrawn)
+            return true;
+
+        // Clear any partial deployment before planning
+        // the complete set again.
+        ReleaseActiveWeapons();
+
+        CharacterHandlingProfile handling =
+            characterProfile
+                .EffectiveHandlingProfile;
+
+        if (!ItemHandlingResolver
+            .TryResolveUseSet(
+                activeDefinitions,
+                handling,
+                gripState.GetFreeGripCount(
+                    GripType.Hand
+                ),
+                gripState.GetFreeGripCount(
+                    GripType.Mouth
+                ),
+                usePlan))
         {
             return false;
         }
 
-        newlyDeployedWeapons.Clear();
+        int deployedCount = 0;
 
-        for (int slotIndex = 0;
-             slotIndex <
-                WeaponSet.SlotCount;
-             slotIndex++)
+        for (int i = 0;
+             i < activeWeapons.Count;
+             i++)
         {
-            InventoryItemInstance weapon =
-                activeSet.GetWeapon(
-                    slotIndex
-                );
+            ResolvedItemHandling resolved =
+                usePlan[i];
 
-            if (weapon == null)
-                continue;
-
-            if (IsDeployed(weapon))
-                continue;
-
-            if (!TryDeployWeapon(
-                weapon))
+            if (resolved == null ||
+                !gripState.TryHold(
+                    activeWeapons[i],
+                    resolved.gripType,
+                    resolved.assignedGripCount))
             {
-                RollbackNewDeployments();
+                RollbackDeployment(
+                    deployedCount
+                );
 
                 return false;
             }
 
-            newlyDeployedWeapons.Add(
-                weapon
-            );
+            deployedCount++;
         }
-
-        newlyDeployedWeapons.Clear();
-
-        if (deployedWeapons.Count == 0)
-            return false;
 
         Changed?.Invoke();
 
@@ -129,62 +151,36 @@ public sealed class PlayerWeaponDeployment :
 
     public bool SheatheWeapons()
     {
-        if (deployedWeapons.Count == 0)
-            return false;
+        ResolveReferences();
 
-        for (int i =
-                 deployedWeapons.Count - 1;
-             i >= 0;
-             i--)
-        {
-            InventoryItemInstance weapon =
-                deployedWeapons[i];
+        bool changed =
+            ReleaseActiveWeapons();
 
-            if (weapon != null &&
-                gripState != null &&
-                gripState.IsHolding(
-                    weapon))
-            {
-                gripState.Release(
-                    weapon
-                );
-            }
-        }
+        if (changed)
+            Changed?.Invoke();
 
-        deployedWeapons.Clear();
-        newlyDeployedWeapons.Clear();
-
-        Changed?.Invoke();
-
-        return true;
+        return changed;
     }
 
     internal bool SheatheWeapon(
         InventoryItemInstance weapon)
     {
-        if (weapon == null)
-            return false;
+        ResolveReferences();
 
-        int index =
-            deployedWeapons.IndexOf(
-                weapon
-            );
-
-        if (index < 0)
-            return false;
-
-        if (gripState != null &&
-            gripState.IsHolding(
+        if (!IsActiveWeapon(
+                weapon) ||
+            gripState == null ||
+            !gripState.IsHolding(
                 weapon))
         {
-            gripState.Release(
-                weapon
-            );
+            return false;
         }
 
-        deployedWeapons.RemoveAt(
-            index
-        );
+        if (!gripState.Release(
+            weapon))
+        {
+            return false;
+        }
 
         Changed?.Invoke();
 
@@ -222,11 +218,10 @@ public sealed class PlayerWeaponDeployment :
             weaponLoadout
                 .ActiveWeaponSetIndex;
 
-        bool redrawWeapons =
+        bool redraw =
             WeaponsDrawn;
 
-        if (redrawWeapons)
-            SheatheWeapons();
+        ReleaseActiveWeapons();
 
         if (!weaponLoadout
             .SetActiveWeaponSet(
@@ -235,8 +230,11 @@ public sealed class PlayerWeaponDeployment :
             return false;
         }
 
-        if (!redrawWeapons)
+        if (!redraw)
+        {
+            Changed?.Invoke();
             return true;
+        }
 
         if (DrawWeapons())
             return true;
@@ -250,186 +248,96 @@ public sealed class PlayerWeaponDeployment :
         return false;
     }
 
-    internal void GetDeployedWeapons(
-        List<InventoryItemInstance> results)
+    private bool ReleaseActiveWeapons()
     {
-        if (results == null)
-            return;
+        if (gripState == null)
+            return false;
 
-        results.Clear();
+        CollectActiveWeapons();
+
+        bool changed = false;
 
         for (int i = 0;
-             i < deployedWeapons.Count;
+             i < activeWeapons.Count;
              i++)
         {
-            results.Add(
-                deployedWeapons[i]
-            );
-        }
-    }
+            InventoryItemInstance weapon =
+                activeWeapons[i];
 
-    private bool TryDeployWeapon(
-        InventoryItemInstance weapon)
-    {
-        if (weapon == null ||
-            weapon.IsEmpty ||
-            weapon.Definition == null ||
-            gripState == null)
-        {
-            return false;
-        }
-
-        if (!IsInActiveSet(
-            weapon))
-        {
-            return false;
-        }
-
-        if (gripState.IsHolding(
-            weapon))
-        {
-            return false;
-        }
-
-        if (!TryFindUsePlan(
-            weapon,
-            out GripType gripType,
-            out int gripCount))
-        {
-            return false;
-        }
-
-        if (!gripState.TryHold(
-            weapon,
-            gripType,
-            gripCount))
-        {
-            return false;
-        }
-
-        deployedWeapons.Add(
-            weapon
-        );
-
-        return true;
-    }
-
-    private bool TryFindUsePlan(
-        InventoryItemInstance weapon,
-        out GripType gripType,
-        out int gripCount)
-    {
-        gripType =
-            GripType.Hand;
-
-        gripCount = 0;
-
-        if (weapon == null ||
-            weapon.Definition == null ||
-            characterProfile == null ||
-            characterProfile
-                .EffectiveHandlingProfile ==
-                null ||
-            gripState == null)
-        {
-            return false;
-        }
-
-        CharacterHandlingProfile handling =
-            characterProfile
-                .EffectiveHandlingProfile;
-
-        int freeHands =
-            gripState.GetFreeGripCount(
-                GripType.Hand
-            );
-
-        for (int count = 1;
-             count <= freeHands;
-             count++)
-        {
-            ResolvedItemHandling resolved =
-                ItemHandlingResolver.Resolve(
-                    weapon.Definition,
-                    handling,
-                    GripType.Hand,
-                    count
-                );
-
-            if (resolved == null ||
-                !resolved.canUse)
+            if (!gripState.IsHolding(
+                weapon))
             {
                 continue;
             }
 
-            gripType =
-                GripType.Hand;
-
-            gripCount =
-                count;
-
-            return true;
-        }
-
-        int freeMouth =
-            gripState.GetFreeGripCount(
-                GripType.Mouth
-            );
-
-        if (freeMouth > 0)
-        {
-            ResolvedItemHandling resolved =
-                ItemHandlingResolver.Resolve(
-                    weapon.Definition,
-                    handling,
-                    GripType.Mouth,
-                    1
-                );
-
-            if (resolved != null &&
-                resolved.canUse)
+            if (gripState.Release(
+                weapon))
             {
-                gripType =
-                    GripType.Mouth;
-
-                gripCount = 1;
-
-                return true;
+                changed = true;
             }
         }
 
-        return false;
+        return changed;
     }
 
-    private void RollbackNewDeployments()
+    private void RollbackDeployment(
+        int deployedCount)
     {
-        for (int i =
-                 newlyDeployedWeapons.Count - 1;
-             i >= 0;
-             i--)
+        for (int i = 0;
+             i < deployedCount &&
+             i < activeWeapons.Count;
+             i++)
         {
             InventoryItemInstance weapon =
-                newlyDeployedWeapons[i];
+                activeWeapons[i];
 
-            if (weapon != null &&
-                gripState != null &&
-                gripState.IsHolding(
-                    weapon))
+            if (gripState.IsHolding(
+                weapon))
             {
                 gripState.Release(
                     weapon
                 );
             }
-
-            deployedWeapons.Remove(
-                weapon
-            );
         }
-
-        newlyDeployedWeapons.Clear();
     }
 
-    private bool IsInActiveSet(
+    private void CollectActiveWeapons()
+    {
+        activeWeapons.Clear();
+        activeDefinitions.Clear();
+
+        if (weaponLoadout == null)
+            return;
+
+        for (int slotIndex = 0;
+             slotIndex <
+                WeaponSet.SlotCount;
+             slotIndex++)
+        {
+            InventoryItemInstance weapon =
+                weaponLoadout
+                    .GetActiveWeapon(
+                        slotIndex
+                    );
+
+            if (weapon == null ||
+                weapon.IsEmpty ||
+                weapon.Definition == null)
+            {
+                continue;
+            }
+
+            activeWeapons.Add(
+                weapon
+            );
+
+            activeDefinitions.Add(
+                weapon.Definition
+            );
+        }
+    }
+
+    private bool IsActiveWeapon(
         InventoryItemInstance weapon)
     {
         if (weaponLoadout == null ||
@@ -444,9 +352,10 @@ public sealed class PlayerWeaponDeployment :
              slotIndex++)
         {
             if (ReferenceEquals(
-                weaponLoadout.GetActiveWeapon(
-                    slotIndex
-                ),
+                weaponLoadout
+                    .GetActiveWeapon(
+                        slotIndex
+                    ),
                 weapon))
             {
                 return true;
@@ -454,57 +363,6 @@ public sealed class PlayerWeaponDeployment :
         }
 
         return false;
-    }
-
-    private void ValidateDeployment()
-    {
-        bool changed = false;
-
-        for (int i =
-                 deployedWeapons.Count - 1;
-             i >= 0;
-             i--)
-        {
-            InventoryItemInstance weapon =
-                deployedWeapons[i];
-
-            bool stillValid =
-                weapon != null &&
-                IsInActiveSet(
-                    weapon
-                ) &&
-                gripState != null &&
-                gripState.IsHolding(
-                    weapon
-                );
-
-            if (stillValid)
-                continue;
-
-            if (weapon != null &&
-                gripState != null &&
-                gripState.IsHolding(
-                    weapon))
-            {
-                gripState.Release(
-                    weapon
-                );
-            }
-
-            deployedWeapons.RemoveAt(
-                i
-            );
-
-            changed = true;
-        }
-
-        if (changed)
-            Changed?.Invoke();
-    }
-
-    private void OnLoadoutChanged()
-    {
-        ValidateDeployment();
     }
 
     private void ResolveReferences()

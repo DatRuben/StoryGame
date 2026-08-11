@@ -13,6 +13,26 @@ public class CharacterHandlingProfile
     [Min(0)]
     public int mouthGripCount = 0;
 
+    public bool canOperateWithHands = true;
+
+    public bool canOperateWithMouth;
+
+    public bool CanOperateWith(
+        GripType gripType)
+    {
+        switch (gripType)
+        {
+            case GripType.Mouth:
+                return mouthGripCount > 0 &&
+                       canOperateWithMouth;
+
+            case GripType.Hand:
+            default:
+                return handGripCount > 0 &&
+                       canOperateWithHands;
+        }
+    }
+
     [Min(0f)]
     public float strengthOutput = 10f;
 
@@ -79,6 +99,16 @@ public static class CharacterHandlingResolver
                 Mathf.Max(
                     0,
                     gripProfile.mouthGripCount
+                ),
+
+            canOperateWithHands =
+                gripProfile.CanOperateWith(
+                    GripType.Hand
+                ),
+
+            canOperateWithMouth =
+                gripProfile.CanOperateWith(
+                    GripType.Mouth
                 ),
 
             strengthOutput =

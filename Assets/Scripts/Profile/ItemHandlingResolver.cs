@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using System.Collections.Generic;
 
 public enum ItemHandlingTier
 {
@@ -225,6 +226,7 @@ public static class ItemHandlingResolver
 
         if (!CanUseWith(
             item,
+            character,
             gripType))
         {
             result.useFailureReason =
@@ -277,9 +279,8 @@ public static class ItemHandlingResolver
 
         int minimumGripCount =
             resolvingUse
-                ? Mathf.Max(
-                    1,
-                    item.minimumUseGripCount
+                ? item.GetMinimumUseGripCount(
+                    gripType
                 )
                 : 1;
 
@@ -386,9 +387,8 @@ public static class ItemHandlingResolver
 
             minimumUseGripCount =
                 item != null
-                    ? Mathf.Max(
-                        1,
-                        item.minimumUseGripCount
+                    ? item.GetMinimumUseGripCount(
+                        gripType
                     )
                     : 1,
 
@@ -469,10 +469,16 @@ public static class ItemHandlingResolver
 
     private static bool CanUseWith(
         ItemDefinition item,
+        CharacterHandlingProfile character,
         GripType gripType)
     {
-        if (item == null)
+        if (item == null ||
+            character == null ||
+            !character.CanOperateWith(
+                gripType))
+        {
             return false;
+        }
 
         switch (gripType)
         {
@@ -483,6 +489,357 @@ public static class ItemHandlingResolver
             default:
                 return item.canUseWithHands;
         }
+    }
+
+    public static bool TryResolveBestHold(
+        ItemDefinition item,
+        CharacterHandlingProfile character,
+        int availableHands,
+        int availableMouth,
+        out ResolvedItemHandling result)
+    {
+        result = null;
+
+        if (item == null ||
+            character == null)
+        {
+            return false;
+        }
+
+        availableHands =
+            Mathf.Clamp(
+                availableHands,
+                0,
+                character.handGripCount
+            );
+
+        availableMouth =
+            Mathf.Clamp(
+                availableMouth,
+                0,
+                character.mouthGripCount
+            );
+
+        if (TryResolveAvailableGrip(
+            item,
+            character,
+            GripType.Hand,
+            availableHands,
+            false,
+            out result))
+        {
+            return true;
+        }
+
+        return TryResolveAvailableGrip(
+            item,
+            character,
+            GripType.Mouth,
+            availableMouth,
+            false,
+            out result
+        );
+    }
+
+    public static bool TryResolveUseSet(
+        IReadOnlyList<ItemDefinition> items,
+        CharacterHandlingProfile character,
+        int availableHands,
+        int availableMouth,
+        List<ResolvedItemHandling> results)
+    {
+        if (results == null)
+            return false;
+
+        results.Clear();
+
+        if (items == null ||
+            character == null ||
+            items.Count == 0)
+        {
+            return false;
+        }
+
+        availableHands =
+            Mathf.Clamp(
+                availableHands,
+                0,
+                character.handGripCount
+            );
+
+        availableMouth =
+            Mathf.Clamp(
+                availableMouth,
+                0,
+                character.mouthGripCount
+            );
+
+        for (int i = 0;
+             i < items.Count;
+             i++)
+        {
+            if (items[i] == null)
+            {
+                results.Clear();
+                return false;
+            }
+
+            results.Add(null);
+        }
+
+        if (TryResolveUseSet(
+            items,
+            character,
+            0,
+            availableHands,
+            availableMouth,
+            results))
+        {
+            return true;
+        }
+
+        results.Clear();
+
+        return false;
+    }
+
+    private static bool TryResolveAvailableGrip(
+        ItemDefinition item,
+        CharacterHandlingProfile character,
+        GripType gripType,
+        int availableGripCount,
+        bool resolvingUse,
+        out ResolvedItemHandling result)
+    {
+        result = null;
+
+        int minimumGripCount =
+            resolvingUse
+                ? item.GetMinimumUseGripCount(
+                    gripType
+                )
+                : 1;
+
+        if (availableGripCount <
+            minimumGripCount)
+        {
+            return false;
+        }
+
+        ResolvedItemHandling severeResult =
+            null;
+
+        for (int gripCount =
+                 minimumGripCount;
+             gripCount <=
+                 availableGripCount;
+             gripCount++)
+        {
+            ResolvedItemHandling current =
+                Resolve(
+                    item,
+                    character,
+                    gripType,
+                    gripCount
+                );
+
+            bool valid =
+                resolvingUse
+                    ? current.canUse
+                    : current.canHold;
+
+            if (!valid)
+                continue;
+
+            if (current.tier <=
+                ItemHandlingTier.Strained)
+            {
+                result = current;
+                return true;
+            }
+
+            if (severeResult == null)
+            {
+                severeResult =
+                    current;
+            }
+        }
+
+        result =
+            severeResult;
+
+        return result != null;
+    }
+
+    private static bool TryResolveUseSet(
+        IReadOnlyList<ItemDefinition> items,
+        CharacterHandlingProfile character,
+        int itemIndex,
+        int availableHands,
+        int availableMouth,
+        List<ResolvedItemHandling> results)
+    {
+        if (itemIndex >=
+            items.Count)
+        {
+            return true;
+        }
+
+        ItemDefinition item =
+            items[itemIndex];
+
+        // First search combinations that avoid severe strain.
+        if (TryResolveUseCandidates(
+            items,
+            character,
+            itemIndex,
+            item,
+            GripType.Hand,
+            availableHands,
+            availableMouth,
+            false,
+            results))
+        {
+            return true;
+        }
+
+        if (TryResolveUseCandidates(
+            items,
+            character,
+            itemIndex,
+            item,
+            GripType.Mouth,
+            availableHands,
+            availableMouth,
+            false,
+            results))
+        {
+            return true;
+        }
+
+        // Only use severely strained plans when no normal
+        // combination can deploy the complete set.
+        if (TryResolveUseCandidates(
+            items,
+            character,
+            itemIndex,
+            item,
+            GripType.Hand,
+            availableHands,
+            availableMouth,
+            true,
+            results))
+        {
+            return true;
+        }
+
+        return TryResolveUseCandidates(
+            items,
+            character,
+            itemIndex,
+            item,
+            GripType.Mouth,
+            availableHands,
+            availableMouth,
+            true,
+            results
+        );
+    }
+
+    private static bool TryResolveUseCandidates(
+        IReadOnlyList<ItemDefinition> items,
+        CharacterHandlingProfile character,
+        int itemIndex,
+        ItemDefinition item,
+        GripType gripType,
+        int availableHands,
+        int availableMouth,
+        bool severeOnly,
+        List<ResolvedItemHandling> results)
+    {
+        if (!character.CanOperateWith(
+            gripType))
+        {
+            return false;
+        }
+
+        int availableGripCount =
+            gripType == GripType.Hand
+                ? availableHands
+                : availableMouth;
+
+        int minimumGripCount =
+            item.GetMinimumUseGripCount(
+                gripType
+            );
+
+        if (availableGripCount <
+            minimumGripCount)
+        {
+            return false;
+        }
+
+        for (int gripCount =
+                 minimumGripCount;
+             gripCount <=
+                 availableGripCount;
+             gripCount++)
+        {
+            ResolvedItemHandling resolved =
+                Resolve(
+                    item,
+                    character,
+                    gripType,
+                    gripCount
+                );
+
+            if (!resolved.canUse)
+                continue;
+
+            bool severe =
+                resolved.tier ==
+                ItemHandlingTier
+                    .SeverelyStrained;
+
+            if (severe != severeOnly)
+                continue;
+
+            results[itemIndex] =
+                resolved;
+
+            int remainingHands =
+                availableHands;
+
+            int remainingMouth =
+                availableMouth;
+
+            if (gripType ==
+                GripType.Hand)
+            {
+                remainingHands -=
+                    gripCount;
+            }
+            else
+            {
+                remainingMouth -=
+                    gripCount;
+            }
+
+            if (TryResolveUseSet(
+                items,
+                character,
+                itemIndex + 1,
+                remainingHands,
+                remainingMouth,
+                results))
+            {
+                return true;
+            }
+        }
+
+        results[itemIndex] = null;
+
+        return false;
     }
 
     private static float CalculateLoadRatio(

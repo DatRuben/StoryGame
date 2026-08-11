@@ -16,6 +16,10 @@ public class CharacterGripProfile
     [Range(0, 1)]
     public int mouthGripCount = 0;
 
+    [Header("Operating Capability")]
+    public bool canOperateWithHands = true;
+    public bool canOperateWithMouth;
+
     public bool HasHandGrips =>
         handGripCount > 0;
 
@@ -36,6 +40,22 @@ public class CharacterGripProfile
         }
     }
 
+    public bool CanOperateWith(
+        GripType gripType)
+    {
+        switch (gripType)
+        {
+            case GripType.Mouth:
+                return mouthGripCount > 0 &&
+                       canOperateWithMouth;
+
+            case GripType.Hand:
+            default:
+                return handGripCount > 0 &&
+                       canOperateWithHands;
+        }
+    }
+
     public void Clamp()
     {
         handGripCount =
@@ -51,6 +71,12 @@ public class CharacterGripProfile
                 0,
                 1
             );
+
+        if (handGripCount == 0)
+            canOperateWithHands = false;
+
+        if (mouthGripCount == 0)
+            canOperateWithMouth = false;
     }
 
     public static CharacterGripProfile
@@ -59,7 +85,9 @@ public class CharacterGripProfile
         return new CharacterGripProfile
         {
             handGripCount = 2,
-            mouthGripCount = 0
+            mouthGripCount = 0,
+            canOperateWithHands = true,
+            canOperateWithMouth = false
         };
     }
 }
