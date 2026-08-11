@@ -510,6 +510,12 @@ public class ItemDefinitionEditor : Editor
                 );
         }
 
+        item.canUseWithMouth =
+            EditorGUILayout.Toggle(
+                "Can Use With Mouth",
+                item.canUseWithMouth
+            );
+
         if (!item.canHoldWithHands)
             item.canUseWithHands = false;
 

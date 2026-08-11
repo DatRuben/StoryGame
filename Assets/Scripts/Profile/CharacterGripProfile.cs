@@ -35,7 +35,7 @@ public class CharacterGripProfile
         mouthGripCount > 0;
 
     public ConventionalWeaponMode weaponMode =
-    ConventionalWeaponMode.Humanoid;
+        ConventionalWeaponMode.Humanoid;
 
     public int GetGripCount(
         GripType gripType)
@@ -90,8 +90,12 @@ public class CharacterGripProfile
         {
             handGripCount = 2,
             mouthGripCount = 0,
+
             canOperateWithHands = true,
-            canOperateWithMouth = false
+            canOperateWithMouth = false,
+
+            weaponMode =
+                ConventionalWeaponMode.Humanoid
         };
     }
 }

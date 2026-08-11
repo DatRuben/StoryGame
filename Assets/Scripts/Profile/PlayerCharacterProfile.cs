@@ -108,6 +108,7 @@ public class PlayerCharacterProfile : MonoBehaviour
     public event Action AttributesChanged;
 
     private PlayerStatusEffects statusEffects;
+    private PlayerFormState formState;
 
     private void Awake()
     {
@@ -176,6 +177,23 @@ public class PlayerCharacterProfile : MonoBehaviour
         ProfileData = profileData;
         RaceDefinition = raceDefinition;
         SubraceDefinition = subraceDefinition;
+
+        formState =
+            GetComponent<PlayerFormState>();
+
+        if (formState == null)
+        {
+            formState =
+                gameObject.AddComponent<
+                    PlayerFormState>();
+        }
+
+        formState.Configure(
+            SubraceDefinition != null
+                ? SubraceDefinition.bodyType
+                : BodyType.Humanoid
+        );
+
         LineageSelections =
             lineageSelections ??
             new LineageSelection[0];
@@ -245,6 +263,30 @@ public class PlayerCharacterProfile : MonoBehaviour
         LogResolvedCharacter();
     }
 
+    private CharacterGripProfile
+        GetCurrentGripProfile()
+    {
+        CharacterForm form =
+            formState != null
+                ? formState.CurrentForm
+                : CharacterForm.Standing;
+
+        if (SubraceDefinition == null)
+        {
+            return CharacterGripProfile
+                .CreateHumanoidDefault();
+        }
+
+        CharacterGripProfile gripProfile =
+            SubraceDefinition.GetGripProfile(
+                form
+            );
+
+        return gripProfile ??
+               CharacterGripProfile
+                   .CreateHumanoidDefault();
+    }
+
     private void ResolvePermanentAttributes()
     {
         List<LineageSelection> lineages =
@@ -294,6 +336,7 @@ public class PlayerCharacterProfile : MonoBehaviour
         PermanentHandlingProfile =
             CharacterHandlingResolver.Resolve(
                 SubraceDefinition,
+                GetCurrentGripProfile(),
                 PermanentAttributeOutput
             );
     }
@@ -325,6 +368,7 @@ public class PlayerCharacterProfile : MonoBehaviour
         EffectiveHandlingProfile =
             CharacterHandlingResolver.Resolve(
                 SubraceDefinition,
+                GetCurrentGripProfile(),
                 EffectiveAttributeOutput
             );
 
@@ -489,16 +533,7 @@ public class PlayerCharacterProfile : MonoBehaviour
     private void ApplyEquipmentRules()
     {
         CharacterGripProfile gripProfile =
-            SubraceDefinition != null
-                ? SubraceDefinition.gripProfile
-                : null;
-
-        if (gripProfile == null)
-        {
-            gripProfile =
-                CharacterGripProfile
-                    .CreateHumanoidDefault();
-        }
+            GetCurrentGripProfile();
 
         PlayerGripState gripState =
             GetComponent<PlayerGripState>();

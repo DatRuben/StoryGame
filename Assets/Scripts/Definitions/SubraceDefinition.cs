@@ -295,6 +295,23 @@ public class SubraceDefinition : ScriptableObject
 
         gripProfile.Clamp();
 
+        if (standingGripProfile == null)
+        {
+            standingGripProfile =
+                CharacterGripProfile
+                    .CreateHumanoidDefault();
+        }
+
+        if (feralGripProfile == null)
+        {
+            feralGripProfile =
+                CharacterGripProfile
+                    .CreateHumanoidDefault();
+        }
+
+        standingGripProfile.Clamp();
+        feralGripProfile.Clamp();
+
         RecalculatePreview();
     }
 

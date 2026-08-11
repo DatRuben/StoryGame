@@ -11,29 +11,27 @@ public class CharacterHandlingProfile
     public int handGripCount = 2;
 
     [Min(0)]
-    public int mouthGripCount = 0;
+    public int mouthGripCount;
 
     public bool canOperateWithHands = true;
 
     public bool canOperateWithMouth;
 
     public ConventionalWeaponMode weaponMode =
-    ConventionalWeaponMode.Humanoid;
+        ConventionalWeaponMode.Humanoid;
 
     public bool CanOperateWith(
         GripType gripType)
     {
-        switch (gripType)
+        if (gripType ==
+            GripType.Mouth)
         {
-            case GripType.Mouth:
-                return mouthGripCount > 0 &&
-                       canOperateWithMouth;
-
-            case GripType.Hand:
-            default:
-                return handGripCount > 0 &&
-                       canOperateWithHands;
+            return mouthGripCount > 0 &&
+                   canOperateWithMouth;
         }
+
+        return handGripCount > 0 &&
+               canOperateWithHands;
     }
 
     [Min(0f)]
@@ -56,17 +54,13 @@ public static class CharacterHandlingResolver
 {
     public static CharacterHandlingProfile Resolve(
         SubraceDefinition subraceDefinition,
+        CharacterGripProfile gripProfile,
         CharacterAttributeOutput attributeOutput)
     {
         RaceSize raceSize =
             subraceDefinition != null
                 ? subraceDefinition.size
                 : RaceSize.Size2;
-
-        CharacterGripProfile gripProfile =
-            subraceDefinition != null
-                ? subraceDefinition.gripProfile
-                : null;
 
         if (gripProfile == null)
         {
@@ -90,7 +84,8 @@ public static class CharacterHandlingResolver
 
         return new CharacterHandlingProfile
         {
-            raceSize = raceSize,
+            raceSize =
+                raceSize,
 
             handGripCount =
                 Mathf.Max(
@@ -114,6 +109,9 @@ public static class CharacterHandlingResolver
                     GripType.Mouth
                 ),
 
+            weaponMode =
+                gripProfile.weaponMode,
+
             strengthOutput =
                 strengthOutput,
 
@@ -129,8 +127,6 @@ public static class CharacterHandlingResolver
     public static float GetSizeStrengthMultiplier(
         RaceSize raceSize)
     {
-        // Kept separate from visual body scaling so
-        // physical balance can be changed independently.
         switch (raceSize)
         {
             case RaceSize.Size1:
