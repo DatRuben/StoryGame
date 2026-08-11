@@ -286,15 +286,6 @@ public class SubraceDefinition : ScriptableObject
             baseSubrace = null;
         }
 
-        if (gripProfile == null)
-        {
-            gripProfile =
-                CharacterGripProfile
-                    .CreateHumanoidDefault();
-        }
-
-        gripProfile.Clamp();
-
         if (standingGripProfile == null)
         {
             standingGripProfile =

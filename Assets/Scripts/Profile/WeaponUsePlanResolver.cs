@@ -3,9 +3,11 @@ using UnityEngine;
 
 public static class WeaponUsePlanResolver
 {
+    private const int MaxOptionsPerWeapon = 3;
+
     public static bool TryResolve(
-        IReadOnlyList<ItemDefinition> items,
-        CharacterHandlingProfile character,
+        IReadOnlyList<ItemDefinition> weapons,
+        CharacterHandlingProfile handling,
         int availableHands,
         int availableMouth,
         List<ResolvedItemHandling> results)
@@ -15,9 +17,10 @@ public static class WeaponUsePlanResolver
 
         results.Clear();
 
-        if (items == null ||
-            character == null ||
-            items.Count == 0)
+        if (weapons == null ||
+            handling == null ||
+            weapons.Count == 0 ||
+            weapons.Count > WeaponSet.SlotCount)
         {
             return false;
         }
@@ -26,315 +29,335 @@ public static class WeaponUsePlanResolver
             Mathf.Clamp(
                 availableHands,
                 0,
-                character.handGripCount
+                handling.handGripCount
             );
 
         availableMouth =
             Mathf.Clamp(
                 availableMouth,
                 0,
-                character.mouthGripCount
+                handling.mouthGripCount
             );
 
-        ResolvedItemHandling[] currentPlan =
+        if (handling.weaponMode !=
+                ConventionalWeaponMode.Humanoid &&
+            weapons.Count > 1)
+        {
+            return false;
+        }
+
+        ResolvedItemHandling[] firstOptions =
             new ResolvedItemHandling[
-                items.Count
+                MaxOptionsPerWeapon
             ];
 
-        ResolvedItemHandling[] bestPlan =
-            new ResolvedItemHandling[
-                items.Count
-            ];
+        int firstCount =
+            GetOptions(
+                weapons[0],
+                handling,
+                availableHands,
+                availableMouth,
+                firstOptions
+            );
 
-        bool foundPlan = false;
-
-        int bestWorstTier =
-            int.MaxValue;
-
-        int bestTotalTier =
-            int.MaxValue;
-
-        Search(
-            items,
-            character,
-            0,
-            availableHands,
-            availableMouth,
-            currentPlan,
-            bestPlan,
-            0,
-            0,
-            ref foundPlan,
-            ref bestWorstTier,
-            ref bestTotalTier
-        );
-
-        if (!foundPlan)
+        if (firstCount == 0)
             return false;
 
-        for (int i = 0;
-             i < bestPlan.Length;
-             i++)
+        if (weapons.Count == 1)
         {
-            results.Add(
-                bestPlan[i]
-            );
+            ResolvedItemHandling best =
+                GetBest(
+                    firstOptions,
+                    firstCount
+                );
+
+            if (best == null)
+                return false;
+
+            results.Add(best);
+
+            return true;
         }
+
+        ResolvedItemHandling[] secondOptions =
+            new ResolvedItemHandling[
+                MaxOptionsPerWeapon
+            ];
+
+        int secondCount =
+            GetOptions(
+                weapons[1],
+                handling,
+                availableHands,
+                availableMouth,
+                secondOptions
+            );
+
+        if (secondCount == 0)
+            return false;
+
+        ResolvedItemHandling bestFirst = null;
+        ResolvedItemHandling bestSecond = null;
+
+        int bestScore =
+            int.MaxValue;
+
+        for (int firstIndex = 0;
+             firstIndex < firstCount;
+             firstIndex++)
+        {
+            for (int secondIndex = 0;
+                 secondIndex < secondCount;
+                 secondIndex++)
+            {
+                ResolvedItemHandling first =
+                    firstOptions[firstIndex];
+
+                ResolvedItemHandling second =
+                    secondOptions[secondIndex];
+
+                if (!FitsTogether(
+                    first,
+                    second,
+                    availableHands,
+                    availableMouth))
+                {
+                    continue;
+                }
+
+                int score =
+                    GetPairScore(
+                        first,
+                        second
+                    );
+
+                if (score >= bestScore)
+                    continue;
+
+                bestScore = score;
+
+                bestFirst = first;
+                bestSecond = second;
+            }
+        }
+
+        if (bestFirst == null ||
+            bestSecond == null)
+        {
+            return false;
+        }
+
+        results.Add(bestFirst);
+        results.Add(bestSecond);
 
         return true;
     }
 
-    private static void Search(
-        IReadOnlyList<ItemDefinition> items,
-        CharacterHandlingProfile character,
-        int itemIndex,
+    private static int GetOptions(
+        ItemDefinition weapon,
+        CharacterHandlingProfile handling,
         int availableHands,
         int availableMouth,
-        ResolvedItemHandling[] currentPlan,
-        ResolvedItemHandling[] bestPlan,
-        int currentWorstTier,
-        int currentTotalTier,
-        ref bool foundPlan,
-        ref int bestWorstTier,
-        ref int bestTotalTier)
+        ResolvedItemHandling[] options)
     {
-        if (itemIndex >=
-            items.Count)
+        if (weapon == null ||
+            handling == null ||
+            options == null)
         {
-            if (!IsBetterPlan(
-                foundPlan,
-                currentWorstTier,
-                currentTotalTier,
-                bestWorstTier,
-                bestTotalTier))
-            {
-                return;
-            }
-
-            for (int i = 0;
-                 i < currentPlan.Length;
-                 i++)
-            {
-                bestPlan[i] =
-                    currentPlan[i];
-            }
-
-            foundPlan = true;
-
-            bestWorstTier =
-                currentWorstTier;
-
-            bestTotalTier =
-                currentTotalTier;
-
-            return;
+            return 0;
         }
 
-        ItemDefinition item =
-            items[itemIndex];
+        int count = 0;
 
-        if (item == null)
-            return;
+        bool allowHands =
+            handling.weaponMode !=
+            ConventionalWeaponMode.MouthOnly;
 
-        SearchGrip(
-            items,
-            character,
-            itemIndex,
-            item,
-            GripType.Hand,
-            availableHands,
-            availableMouth,
-            currentPlan,
-            bestPlan,
-            currentWorstTier,
-            currentTotalTier,
-            ref foundPlan,
-            ref bestWorstTier,
-            ref bestTotalTier
-        );
+        if (allowHands)
+        {
+            int minimumHands =
+                weapon.GetMinimumUseGripCount(
+                    GripType.Hand
+                );
 
-        SearchGrip(
-            items,
-            character,
-            itemIndex,
-            item,
-            GripType.Mouth,
-            availableHands,
-            availableMouth,
-            currentPlan,
-            bestPlan,
-            currentWorstTier,
-            currentTotalTier,
-            ref foundPlan,
-            ref bestWorstTier,
-            ref bestTotalTier
-        );
+            int maximumHands =
+                handling.weaponMode ==
+                    ConventionalWeaponMode
+                        .MouthOrOneHand
+                    ? Mathf.Min(
+                        1,
+                        availableHands
+                    )
+                    : availableHands;
 
-        currentPlan[itemIndex] =
-            null;
+            for (int handCount =
+                     minimumHands;
+                 handCount <= maximumHands &&
+                 count < options.Length;
+                 handCount++)
+            {
+                ResolvedItemHandling resolved =
+                    ItemHandlingResolver.Resolve(
+                        weapon,
+                        handling,
+                        GripType.Hand,
+                        handCount
+                    );
+
+                if (resolved == null ||
+                    !resolved.canUse)
+                {
+                    continue;
+                }
+
+                options[count] = resolved;
+                count++;
+            }
+        }
+
+        bool allowMouth =
+            handling.mouthGripCount > 0 &&
+            handling.canOperateWithMouth &&
+            availableMouth > 0 &&
+            weapon.canUseWithMouth;
+
+        if (allowMouth &&
+            count < options.Length)
+        {
+            if (weapon.GetMinimumUseGripCount(
+                    GripType.Hand) <= 2)
+            {
+                ResolvedItemHandling resolved =
+                    ItemHandlingResolver.Resolve(
+                        weapon,
+                        handling,
+                        GripType.Mouth,
+                        1
+                    );
+
+                if (resolved != null &&
+                    resolved.canUse)
+                {
+                    options[count] = resolved;
+                    count++;
+                }
+            }
+        }
+
+        return count;
     }
 
-    private static void SearchGrip(
-        IReadOnlyList<ItemDefinition> items,
-        CharacterHandlingProfile character,
-        int itemIndex,
-        ItemDefinition item,
-        GripType gripType,
+    private static bool FitsTogether(
+        ResolvedItemHandling first,
+        ResolvedItemHandling second,
         int availableHands,
-        int availableMouth,
-        ResolvedItemHandling[] currentPlan,
-        ResolvedItemHandling[] bestPlan,
-        int currentWorstTier,
-        int currentTotalTier,
-        ref bool foundPlan,
-        ref int bestWorstTier,
-        ref int bestTotalTier)
+        int availableMouth)
     {
-        if (!character.CanOperateWith(
-            gripType))
-        {
-            return;
-        }
-
-        int availableGripCount =
-            gripType == GripType.Hand
-                ? availableHands
-                : availableMouth;
-
-        int minimumGripCount =
-            item.GetMinimumUseGripCount(
-                gripType
-            );
-
-        if (availableGripCount <
-            minimumGripCount)
-        {
-            return;
-        }
-
-        for (int gripCount =
-                 minimumGripCount;
-             gripCount <=
-                 availableGripCount;
-             gripCount++)
-        {
-            ResolvedItemHandling resolved =
-                ItemHandlingResolver.Resolve(
-                    item,
-                    character,
-                    gripType,
-                    gripCount
-                );
-
-            if (resolved == null ||
-                !resolved.canUse)
-            {
-                continue;
-            }
-
-            int newWorstTier =
-                Mathf.Max(
-                    currentWorstTier,
-                    (int)resolved.tier
-                );
-
-            int newTotalTier =
-                currentTotalTier +
-                (int)resolved.tier;
-
-            if (CannotBeatBest(
-                foundPlan,
-                newWorstTier,
-                newTotalTier,
-                bestWorstTier,
-                bestTotalTier))
-            {
-                continue;
-            }
-
-            currentPlan[itemIndex] =
-                resolved;
-
-            int remainingHands =
-                availableHands;
-
-            int remainingMouth =
-                availableMouth;
-
-            if (gripType ==
-                GripType.Hand)
-            {
-                remainingHands -=
-                    gripCount;
-            }
-            else
-            {
-                remainingMouth -=
-                    gripCount;
-            }
-
-            Search(
-                items,
-                character,
-                itemIndex + 1,
-                remainingHands,
-                remainingMouth,
-                currentPlan,
-                bestPlan,
-                newWorstTier,
-                newTotalTier,
-                ref foundPlan,
-                ref bestWorstTier,
-                ref bestTotalTier
-            );
-        }
-    }
-
-    private static bool IsBetterPlan(
-        bool foundPlan,
-        int worstTier,
-        int totalTier,
-        int bestWorstTier,
-        int bestTotalTier)
-    {
-        if (!foundPlan)
-            return true;
-
-        if (worstTier <
-            bestWorstTier)
-        {
-            return true;
-        }
-
-        if (worstTier >
-            bestWorstTier)
+        if (first == null ||
+            second == null)
         {
             return false;
         }
 
-        return totalTier <
-               bestTotalTier;
+        int usedHands =
+            GetGripUse(
+                first,
+                GripType.Hand
+            ) +
+            GetGripUse(
+                second,
+                GripType.Hand
+            );
+
+        int usedMouth =
+            GetGripUse(
+                first,
+                GripType.Mouth
+            ) +
+            GetGripUse(
+                second,
+                GripType.Mouth
+            );
+
+        return usedHands <= availableHands &&
+               usedMouth <= availableMouth;
     }
 
-    private static bool CannotBeatBest(
-        bool foundPlan,
-        int worstTier,
-        int totalTier,
-        int bestWorstTier,
-        int bestTotalTier)
+    private static int GetGripUse(
+        ResolvedItemHandling handling,
+        GripType gripType)
     {
-        if (!foundPlan)
-            return false;
-
-        if (worstTier >
-            bestWorstTier)
+        if (handling == null ||
+            handling.gripType != gripType)
         {
-            return true;
+            return 0;
         }
 
-        return worstTier ==
-                   bestWorstTier &&
-               totalTier >=
-                   bestTotalTier;
+        return handling.assignedGripCount;
+    }
+
+    private static ResolvedItemHandling GetBest(
+        ResolvedItemHandling[] options,
+        int count)
+    {
+        ResolvedItemHandling best = null;
+
+        int bestScore =
+            int.MaxValue;
+
+        for (int i = 0;
+             i < count;
+             i++)
+        {
+            int score =
+                GetScore(
+                    options[i]
+                );
+
+            if (score >= bestScore)
+                continue;
+
+            bestScore = score;
+            best = options[i];
+        }
+
+        return best;
+    }
+
+    private static int GetPairScore(
+        ResolvedItemHandling first,
+        ResolvedItemHandling second)
+    {
+        int worstTier =
+            Mathf.Max(
+                (int)first.tier,
+                (int)second.tier
+            );
+
+        return
+            worstTier * 100 +
+            GetScore(first) +
+            GetScore(second);
+    }
+
+    private static int GetScore(
+        ResolvedItemHandling handling)
+    {
+        if (handling == null)
+            return int.MaxValue;
+
+        int score =
+            (int)handling.tier * 10;
+
+        score +=
+            handling.assignedGripCount;
+
+        if (handling.gripType ==
+            GripType.Mouth)
+        {
+            score++;
+        }
+
+        return score;
     }
 }
