@@ -143,38 +143,6 @@ public class ItemDefinition : ScriptableObject
     {
         RefreshHandling();
 
-        weight =
-            Mathf.Max(
-                0f,
-                weight
-            );
-
-        minimumUseGripCount =
-            Mathf.Max(
-                1,
-                minimumUseGripCount
-            );
-
-        if (!canHoldWithHands)
-            canUseWithHands = false;
-
-        if (!canHoldWithMouth)
-            canUseWithMouth = false;
-
-        // Temporary compatibility with the old slot system.
-        handUsage =
-            minimumUseGripCount >= 2
-                ? ItemHandUsage.TwoHanded
-                : ItemHandUsage.OneHanded;
-
-        // The old enum cannot represent an item usable by both.
-        // Prefer hand use until the slot systems are converted.
-        weaponUseType =
-            !canUseWithHands &&
-            canUseWithMouth
-                ? WeaponUseType.MouthWeapon
-                : WeaponUseType.HandWeapon;
-
         int requiredSize =
             Mathf.Max(
                 1,
@@ -208,27 +176,39 @@ public class ItemDefinition : ScriptableObject
                         newCells.Length
                     );
 
-                for (int i = 0; i < copyLength; i++)
-                    newCells[i] = occupiedCells[i];
+                for (int i = 0;
+                     i < copyLength;
+                     i++)
+                {
+                    newCells[i] =
+                        occupiedCells[i];
+                }
             }
 
-            occupiedCells = newCells;
+            occupiedCells =
+                newCells;
         }
 
         if (!HasAnyOccupiedCell())
             occupiedCells[0] = true;
 
-        if (itemCategory != ItemCategory.Equipment)
+        if (itemCategory !=
+            ItemCategory.Equipment)
         {
             equipmentCombatRole =
                 EquipmentCombatRole.None;
         }
 
-        if (itemCategory != ItemCategory.Equipment ||
-            equipmentSlotType != EquipmentSlotType.Saddle)
+        if (itemCategory !=
+                ItemCategory.Equipment ||
+            equipmentSlotType !=
+                EquipmentSlotType.Saddle)
         {
-            hasManualSaddleTurret = false;
-            manualSaddleTurretControlsText = "";
+            hasManualSaddleTurret =
+                false;
+
+            manualSaddleTurretControlsText =
+                "";
         }
 
         if (hasManualSaddleTurret)
