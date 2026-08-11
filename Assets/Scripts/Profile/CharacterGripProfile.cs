@@ -14,10 +14,11 @@ public class CharacterGripProfile
     public int handGripCount = 2;
 
     [Range(0, 1)]
-    public int mouthGripCount = 0;
+    public int mouthGripCount;
 
     [Header("Operating Capability")]
     public bool canOperateWithHands = true;
+
     public bool canOperateWithMouth;
 
     public bool HasHandGrips =>
@@ -29,31 +30,24 @@ public class CharacterGripProfile
     public int GetGripCount(
         GripType gripType)
     {
-        switch (gripType)
-        {
-            case GripType.Mouth:
-                return mouthGripCount;
-
-            case GripType.Hand:
-            default:
-                return handGripCount;
-        }
+        return gripType ==
+               GripType.Mouth
+            ? mouthGripCount
+            : handGripCount;
     }
 
     public bool CanOperateWith(
         GripType gripType)
     {
-        switch (gripType)
+        if (gripType ==
+            GripType.Mouth)
         {
-            case GripType.Mouth:
-                return mouthGripCount > 0 &&
-                       canOperateWithMouth;
-
-            case GripType.Hand:
-            default:
-                return handGripCount > 0 &&
-                       canOperateWithHands;
+            return mouthGripCount > 0 &&
+                   canOperateWithMouth;
         }
+
+        return handGripCount > 0 &&
+               canOperateWithHands;
     }
 
     public void Clamp()

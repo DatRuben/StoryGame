@@ -72,7 +72,6 @@ public class ItemDefinition : ScriptableObject
 
     [Header("Allowed Holding Grips")]
     public bool canHoldWithHands = true;
-    public bool canHoldWithMouth;
 
     [Header("Allowed Operating Grips")]
     public bool canUseWithHands = true;
@@ -134,9 +133,6 @@ public class ItemDefinition : ScriptableObject
 
         if (!canHoldWithHands)
             canUseWithHands = false;
-
-        if (!canHoldWithMouth)
-            canUseWithMouth = false;
     }
 
     private void OnValidate()

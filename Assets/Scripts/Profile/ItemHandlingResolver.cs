@@ -450,20 +450,22 @@ public static class ItemHandlingResolver
 
     private static bool CanHoldWith(
         ItemDefinition item,
+        CharacterHandlingProfile character,
         GripType gripType)
     {
-        if (item == null)
-            return false;
-
-        switch (gripType)
+        if (item == null ||
+            character == null)
         {
-            case GripType.Mouth:
-                return item.canHoldWithMouth;
-
-            case GripType.Hand:
-            default:
-                return item.canHoldWithHands;
+            return false;
         }
+
+        if (gripType ==
+            GripType.Mouth)
+        {
+            return character.mouthGripCount > 0;
+        }
+
+        return item.canHoldWithHands;
     }
 
     private static bool CanUseWith(
