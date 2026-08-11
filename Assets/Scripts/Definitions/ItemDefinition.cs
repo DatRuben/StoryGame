@@ -481,12 +481,6 @@ public class ItemDefinitionEditor : Editor
                 item.canHoldWithHands
             );
 
-        item.canHoldWithMouth =
-            EditorGUILayout.Toggle(
-                "Can Hold With Mouth",
-                item.canHoldWithMouth
-            );
-
         EditorGUILayout.Space(4f);
 
         EditorGUILayout.LabelField(
@@ -516,21 +510,8 @@ public class ItemDefinitionEditor : Editor
                 );
         }
 
-        using (new EditorGUI.DisabledScope(
-            !item.canHoldWithMouth))
-        {
-            item.canUseWithMouth =
-                EditorGUILayout.Toggle(
-                    "Can Use With Mouth",
-                    item.canUseWithMouth
-                );
-        }
-
         if (!item.canHoldWithHands)
             item.canUseWithHands = false;
-
-        if (!item.canHoldWithMouth)
-            item.canUseWithMouth = false;
 
         EditorGUILayout.Space();
     }

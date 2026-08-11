@@ -61,8 +61,11 @@ public class SubraceDefinition : ScriptableObject
     [Header("Character Preview")]
     public GameObject previewPrefab;
 
-    [Header("Grip Profile")]
-    public CharacterGripProfile gripProfile =
+    [Header("Form Handling")]
+    public CharacterGripProfile standingGripProfile =
+        CharacterGripProfile.CreateHumanoidDefault();
+
+    public CharacterGripProfile feralGripProfile =
         CharacterGripProfile.CreateHumanoidDefault();
 
     [Header("Equipment Rules")]
@@ -293,6 +296,27 @@ public class SubraceDefinition : ScriptableObject
         gripProfile.Clamp();
 
         RecalculatePreview();
+    }
+
+    public CharacterGripProfile GetGripProfile(
+        CharacterForm form)
+    {
+        switch (bodyType)
+        {
+            case BodyType.Humanoid:
+                return standingGripProfile;
+
+            case BodyType.Quadruped:
+                return feralGripProfile;
+
+            case BodyType.StanceSwitching:
+                return form == CharacterForm.Feral
+                    ? feralGripProfile
+                    : standingGripProfile;
+
+            default:
+                return standingGripProfile;
+        }
     }
 
     private string MakeId(string value)

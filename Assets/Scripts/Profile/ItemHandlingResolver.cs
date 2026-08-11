@@ -133,21 +133,6 @@ public static class ItemHandlingResolver
             return result;
         }
 
-        if (!CanHoldWith(
-            item,
-            gripType))
-        {
-            result.holdFailureReason =
-                ItemHandlingFailureReason
-                    .GripCannotHoldItem;
-
-            result.useFailureReason =
-                ItemHandlingFailureReason
-                    .GripCannotHoldItem;
-
-            return result;
-        }
-
         if (result.availableGripCount <= 0)
         {
             result.holdFailureReason =

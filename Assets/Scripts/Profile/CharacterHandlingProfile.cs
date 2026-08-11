@@ -17,6 +17,9 @@ public class CharacterHandlingProfile
 
     public bool canOperateWithMouth;
 
+    public ConventionalWeaponMode weaponMode =
+    ConventionalWeaponMode.Humanoid;
+
     public bool CanOperateWith(
         GripType gripType)
     {

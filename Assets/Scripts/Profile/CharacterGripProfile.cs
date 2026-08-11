@@ -7,6 +7,13 @@ public enum GripType
     Mouth
 }
 
+public enum ConventionalWeaponMode
+{
+    Humanoid,
+    MouthOnly,
+    MouthOrOneHand
+}
+
 [Serializable]
 public class CharacterGripProfile
 {
@@ -26,6 +33,9 @@ public class CharacterGripProfile
 
     public bool HasMouthGrips =>
         mouthGripCount > 0;
+
+    public ConventionalWeaponMode weaponMode =
+    ConventionalWeaponMode.Humanoid;
 
     public int GetGripCount(
         GripType gripType)
