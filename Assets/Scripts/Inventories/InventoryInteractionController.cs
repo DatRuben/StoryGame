@@ -30,9 +30,15 @@ public sealed class InventoryInteractionController :
     private PlayerWeaponLoadout weaponLoadout;
     private PlayerEquipment equipment;
     private PlayerCharacterProfile characterProfile;
+    private InventoryItemInstance
+    loadoutAssignmentItem;
 
     public bool HasSelection =>
         cursor.HasSelection;
+
+    public bool HasWeaponSlotSelection =>
+        cursor.HasSelection ||
+        loadoutAssignmentItem != null;
 
     public InventoryItemInstance SelectedItem =>
         cursor.SelectedItem;
@@ -47,6 +53,82 @@ public sealed class InventoryInteractionController :
         cursor.GrabOffset;
 
     public event Action Changed;
+
+    public bool NeedsLoadoutAssignment(
+        EquipmentSlotType slotType,
+        int slotIndex = 0)
+    {
+        if (slotType !=
+            EquipmentSlotType.ArmAttachment)
+        {
+            return false;
+        }
+
+        InventoryItemInstance item =
+            equipment.GetEquippedItem(
+                slotType,
+                slotIndex
+            );
+
+        if (item == null ||
+            item.IsEmpty ||
+            item.Definition == null ||
+            !item.Definition.IsAttachedWeapon)
+        {
+            return false;
+        }
+
+        return !weaponLoadout
+            .IsWeaponAssigned(
+                item
+            );
+    }
+
+    public bool BeginLoadoutAssignment(
+        EquipmentSlotType slotType,
+        int slotIndex = 0)
+    {
+        if (!NeedsLoadoutAssignment(
+            slotType,
+            slotIndex))
+        {
+            return false;
+        }
+
+        InventoryItemInstance item =
+            equipment.GetEquippedItem(
+                slotType,
+                slotIndex
+            );
+
+        loadoutAssignmentItem =
+            item;
+
+        Changed?.Invoke();
+
+        return true;
+    }
+
+    private bool BeginLoadoutAssignment(
+        InventoryItemInstance item)
+    {
+        if (item == null ||
+            item.IsEmpty ||
+            item.Definition == null ||
+            !item.Definition.IsAttachedWeapon ||
+            !equipment.IsEquipped(item) ||
+            weaponLoadout.IsWeaponAssigned(item))
+        {
+            return false;
+        }
+
+        loadoutAssignmentItem =
+            item;
+
+        Changed?.Invoke();
+
+        return true;
+    }
 
     private void Awake()
     {
@@ -667,13 +749,40 @@ public sealed class InventoryInteractionController :
         int setIndex,
         int slotIndex)
     {
+        if (loadoutAssignmentItem != null)
+        {
+            InventoryItemInstance attachedWeapon =
+                loadoutAssignmentItem;
+
+            if (attachedWeapon.IsEmpty ||
+                attachedWeapon.Definition == null ||
+                !attachedWeapon.Definition
+                    .IsAttachedWeapon ||
+                !equipment.IsEquipped(
+                    attachedWeapon) ||
+                weaponLoadout.IsWeaponAssigned(
+                    attachedWeapon))
+            {
+                return false;
+            }
+
+            // Attached equipment assignment does not
+            // swap weapons. Player explicitly chooses
+            // an available empty loadout slot.
+            return weaponLoadout.GetWeapon(
+                setIndex,
+                slotIndex
+            ) == null;
+        }
+
         InventoryItemInstance selected =
             cursor.SelectedItem;
 
         if (!IsPlacementCandidate(
-            selected) ||
-            !IsConventionalWeapon(
-                selected))
+                selected) ||
+            selected.Definition == null ||
+            !selected.Definition
+                .IsConventionalWeapon)
         {
             return false;
         }
@@ -704,6 +813,28 @@ public sealed class InventoryInteractionController :
             slotIndex))
         {
             return false;
+        }
+
+        if (loadoutAssignmentItem != null)
+        {
+            InventoryItemInstance attachedWeapon =
+                loadoutAssignmentItem;
+
+            bool assigned =
+                weaponLoadout.TryAssignWeapon(
+                    setIndex,
+                    slotIndex,
+                    attachedWeapon
+                );
+
+            if (!assigned)
+                return false;
+
+            loadoutAssignmentItem = null;
+
+            Changed?.Invoke();
+
+            return true;
         }
 
         InventoryItemInstance selected =
@@ -984,6 +1115,14 @@ public sealed class InventoryInteractionController :
 
             cursor.ClearSelection();
 
+            if (selected.Definition != null &&
+                selected.Definition.IsAttachedWeapon)
+            {
+                BeginLoadoutAssignment(
+                    selected
+                );
+            }
+
             return true;
         }
 
@@ -1050,6 +1189,14 @@ public sealed class InventoryInteractionController :
             0,
             Vector2Int.zero
         );
+
+        if (selected.Definition != null &&
+            selected.Definition.IsAttachedWeapon)
+        {
+            BeginLoadoutAssignment(
+                selected
+            );
+        }
 
         return true;
     }
@@ -1409,7 +1556,27 @@ public sealed class InventoryInteractionController :
 
     private void OnStateChanged()
     {
+        ValidateLoadoutAssignment();
+
         Changed?.Invoke();
+    }
+
+    private void ValidateLoadoutAssignment()
+    {
+        if (loadoutAssignmentItem == null)
+            return;
+
+        if (loadoutAssignmentItem.IsEmpty ||
+            loadoutAssignmentItem.Definition == null ||
+            !loadoutAssignmentItem.Definition
+                .IsAttachedWeapon ||
+            !equipment.IsEquipped(
+                loadoutAssignmentItem) ||
+            weaponLoadout.IsWeaponAssigned(
+                loadoutAssignmentItem))
+        {
+            loadoutAssignmentItem = null;
+        }
     }
 
     private void OnDestroy()

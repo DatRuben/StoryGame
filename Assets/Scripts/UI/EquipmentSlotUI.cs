@@ -23,6 +23,9 @@ public sealed class EquipmentSlotUI :
     private Button button;
 
     [SerializeField]
+    private Button loadoutWarningButton;
+
+    [SerializeField]
     private CanvasGroup canvasGroup;
 
     [Header("Slot")]
@@ -92,6 +95,29 @@ public sealed class EquipmentSlotUI :
             button.onClick.RemoveAllListeners();
             button.onClick.AddListener(OnSlotClicked);
         }
+
+        if (loadoutWarningButton != null)
+        {
+            loadoutWarningButton.onClick
+                .RemoveAllListeners();
+
+            loadoutWarningButton.onClick
+                .AddListener(
+                    OnLoadoutWarningClicked
+                );
+        }
+    }
+
+    private void OnLoadoutWarningClicked()
+    {
+        if (interactionController == null)
+            return;
+
+        interactionController
+            .BeginLoadoutAssignment(
+                equipmentSlotType,
+                slotIndex
+            );
     }
 
     private void OnValidate()
@@ -206,6 +232,8 @@ public sealed class EquipmentSlotUI :
     {
         if (playerEquipment == null)
         {
+            SetLoadoutWarning(false);
+
             SetSlot(
                 GetEmptyText(),
                 emptyColor
@@ -219,6 +247,8 @@ public sealed class EquipmentSlotUI :
                 equipmentSlotType,
                 slotIndex
             );
+
+        RefreshLoadoutWarning();
 
         if (interactionController != null &&
             interactionController.HasSelection)
@@ -265,6 +295,33 @@ public sealed class EquipmentSlotUI :
             text,
             color
         );
+    }
+
+    private void RefreshLoadoutWarning()
+    {
+        bool showWarning =
+            interactionController != null &&
+            interactionController
+                .NeedsLoadoutAssignment(
+                    equipmentSlotType,
+                    slotIndex
+                );
+
+        SetLoadoutWarning(
+            showWarning
+        );
+    }
+
+    private void SetLoadoutWarning(
+        bool visible)
+    {
+        if (loadoutWarningButton == null)
+            return;
+
+        loadoutWarningButton.gameObject
+            .SetActive(
+                visible
+            );
     }
 
     private void RefreshForSelection(

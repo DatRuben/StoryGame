@@ -15,18 +15,23 @@ MonoBehaviour:
   itemName: BigSword
   itemCategory: 0
   itemIcon: {fileID: 0}
-  handUsage: 1
+  weight: 1
+  minimumHandUseGripCount: 1
+  canHoldWithHands: 1
+  canUseWithHands: 1
+  canUseWithMouth: 0
   heldControlsText: 'LMB: Attack
 
     RMB: Block'
   weaponControlsText: 'LMB: Attack
 
     RMB: Block'
-  weaponUseType: 0
-  carrySize: 1
-  carryWeight: 1
+  equipmentSlotType: 2
+  equipmentCombatRole: 0
   hasManualSaddleTurret: 0
   manualSaddleTurretControlsText: 
+  isStackable: 0
+  maxStackSize: 1
   shapeWidth: 3
   shapeHeight: 8
   occupiedCells: 000100000100010101010101010101010101010101000100

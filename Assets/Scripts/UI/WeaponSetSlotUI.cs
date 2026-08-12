@@ -224,7 +224,8 @@ public sealed class WeaponSetSlotUI :
             return;
         }
 
-        if (interactionController.HasSelection)
+        if (interactionController
+            .HasWeaponSlotSelection)
         {
             interactionController
                 .TryAssignSelectedWeapon(
@@ -261,7 +262,8 @@ public sealed class WeaponSetSlotUI :
             );
 
         if (interactionController != null &&
-            interactionController.HasSelection)
+            interactionController
+                .HasWeaponSlotSelection)
         {
             RefreshForSelection(
                 weapon
