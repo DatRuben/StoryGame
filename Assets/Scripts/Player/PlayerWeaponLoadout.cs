@@ -241,7 +241,7 @@ public sealed class PlayerWeaponLoadout :
 
         if (!IsValidSet(setIndex) ||
             !IsValidSlot(slotIndex) ||
-            !IsWeapon(weapon))
+            !IsLoadoutWeapon(weapon))
         {
             return false;
         }
@@ -421,7 +421,7 @@ public sealed class PlayerWeaponLoadout :
     {
         if (!IsValidSet(setIndex) ||
             !IsValidSlot(slotIndex) ||
-            !IsWeapon(weapon))
+            !IsLoadoutWeapon(weapon))
         {
             return false;
         }
@@ -437,14 +437,13 @@ public sealed class PlayerWeaponLoadout :
         );
     }
 
-    private static bool IsWeapon(
+    private static bool IsLoadoutWeapon(
         InventoryItemInstance weapon)
     {
         return weapon != null &&
                !weapon.IsEmpty &&
                weapon.Definition != null &&
-               weapon.Definition.itemCategory ==
-                   ItemCategory.Weapon;
+               weapon.Definition.IsLoadoutWeapon;
     }
 
     private static bool IsValidSet(

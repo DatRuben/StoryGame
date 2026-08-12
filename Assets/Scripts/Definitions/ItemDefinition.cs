@@ -99,6 +99,23 @@ public class ItemDefinition : ScriptableObject
                    role;
     }
 
+    public bool IsConventionalWeapon =>
+    itemCategory ==
+    ItemCategory.Weapon;
+
+    public bool IsAttachedWeapon =>
+        itemCategory ==
+            ItemCategory.Equipment &&
+        equipmentSlotType ==
+            EquipmentSlotType.ArmAttachment &&
+        HasEquipmentCombatRole(
+            EquipmentCombatRole.Weapon
+        );
+
+    public bool IsLoadoutWeapon =>
+        IsConventionalWeapon ||
+        IsAttachedWeapon;
+
     [Header("Saddle Equipment")]
     public bool hasManualSaddleTurret;
 
