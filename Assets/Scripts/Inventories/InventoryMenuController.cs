@@ -15,6 +15,9 @@ public class InventoryMenuController : MonoBehaviour
 
     private PlayerStorageContainerInteract storageInteract;
 
+    private InventoryInteractionController
+    interactionController;
+
     public static bool IsInventoryOpen { get; private set; }
 
     private void Awake()
@@ -96,8 +99,20 @@ public class InventoryMenuController : MonoBehaviour
         isOpen = open;
         IsInventoryOpen = open;
 
-        if (!open && storageInteract != null)
-            storageInteract.CloseOpenContainer();
+        if (!open)
+        {
+            if (storageInteract != null)
+            {
+                storageInteract
+                    .CloseOpenContainer();
+            }
+
+            if (interactionController != null)
+            {
+                interactionController
+                    .CancelLoadoutAssignment();
+            }
+        }
 
         if (inventoryCanvasGroup != null)
         {
@@ -123,6 +138,21 @@ public class InventoryMenuController : MonoBehaviour
         {
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
+        }
+    }
+
+    public void BindInteractionController(
+        InventoryInteractionController
+        newInteractionController)
+    {
+        interactionController =
+            newInteractionController;
+
+        if (!isOpen &&
+            interactionController != null)
+        {
+            interactionController
+                .CancelLoadoutAssignment();
         }
     }
 }

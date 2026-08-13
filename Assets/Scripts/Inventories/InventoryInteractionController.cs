@@ -84,6 +84,16 @@ public sealed class InventoryInteractionController :
             );
     }
 
+    public void CancelLoadoutAssignment()
+    {
+        if (loadoutAssignmentItem == null)
+            return;
+
+        loadoutAssignmentItem = null;
+
+        Changed?.Invoke();
+    }
+
     public bool BeginLoadoutAssignment(
         EquipmentSlotType slotType,
         int slotIndex = 0)

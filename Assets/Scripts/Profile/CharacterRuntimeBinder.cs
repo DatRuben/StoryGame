@@ -228,6 +228,11 @@ public sealed class CharacterRuntimeBinder :
                 .BindPlayerStorageInteract(
                     storageInteract
                 );
+
+            inventoryMenuController
+                .BindInteractionController(
+                    interactionController
+                );
         }
 
         if (inventoryFollow != null)
