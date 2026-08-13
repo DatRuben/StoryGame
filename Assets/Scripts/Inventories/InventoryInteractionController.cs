@@ -858,16 +858,6 @@ public sealed class InventoryInteractionController :
             currentWeapon.Definition.IsAttachedWeapon &&
             equipment.IsEquipped(currentWeapon))
         {
-            GripType originalGripType =
-                GetHeldGripType(
-                    selected
-                );
-
-            int originalGripCount =
-                gripState.GetAssignedGripCount(
-                    selected
-                );
-
             InventoryItemInstance removedWeapon =
                 weaponLoadout.RemoveWeapon(
                     setIndex,
@@ -1409,18 +1399,9 @@ public sealed class InventoryInteractionController :
                 );
 
             if (!ReferenceEquals(
-                removedItem,
+                removedWeapon,
                 item))
             {
-                if (wasAssigned)
-                {
-                    weaponLoadout.TryAssignWeapon(
-                        assignedSetIndex,
-                        assignedSlotIndex,
-                        item
-                    );
-                }
-
                 return false;
             }
         }
@@ -1435,6 +1416,15 @@ public sealed class InventoryInteractionController :
             removedItem,
             item))
         {
+            if (wasAssigned)
+            {
+                weaponLoadout.TryAssignWeapon(
+                    assignedSetIndex,
+                    assignedSlotIndex,
+                    item
+                );
+            }
+
             return false;
         }
 
@@ -1449,6 +1439,15 @@ public sealed class InventoryInteractionController :
                 slotIndex,
                 out _
             );
+
+            if (wasAssigned)
+            {
+                weaponLoadout.TryAssignWeapon(
+                    assignedSetIndex,
+                    assignedSlotIndex,
+                    item
+                );
+            }
 
             return false;
         }
