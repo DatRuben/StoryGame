@@ -1043,14 +1043,14 @@ public sealed class InventoryInteractionController :
             weapon.Definition.IsAttachedWeapon &&
             equipment.IsEquipped(weapon))
         {
-            InventoryItemInstance removedWeapon =
+            InventoryItemInstance removedAttachedWeapon =
                 weaponLoadout.RemoveWeapon(
                     setIndex,
                     slotIndex
                 );
 
             return ReferenceEquals(
-                removedWeapon,
+                removedAttachedWeapon,
                 weapon
             );
         }
@@ -1162,12 +1162,15 @@ public sealed class InventoryInteractionController :
                 slotIndex
             );
 
+        int currentSetIndex = -1;
+        int currentWeaponSlotIndex = -1;
+
         bool currentItemWasAssigned =
             currentItem != null &&
             weaponLoadout.TryFindWeapon(
                 currentItem,
-                out int currentSetIndex,
-                out int currentWeaponSlotIndex
+                out currentSetIndex,
+                out currentWeaponSlotIndex
             );
 
         GripType originalGripType =
