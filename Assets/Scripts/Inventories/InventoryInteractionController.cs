@@ -796,6 +796,13 @@ public sealed class InventoryInteractionController :
         if (currentWeapon == null)
             return true;
 
+        if (currentWeapon.Definition != null &&
+            currentWeapon.Definition.IsAttachedWeapon &&
+            equipment.IsEquipped(currentWeapon))
+        {
+            return true;
+        }
+
         return TryFindHoldPlanAfterRelease(
             selected,
             currentWeapon,
@@ -845,6 +852,69 @@ public sealed class InventoryInteractionController :
                 setIndex,
                 slotIndex
             );
+
+        if (currentWeapon != null &&
+            currentWeapon.Definition != null &&
+            currentWeapon.Definition.IsAttachedWeapon &&
+            equipment.IsEquipped(currentWeapon))
+        {
+            GripType originalGripType =
+                GetHeldGripType(
+                    selected
+                );
+
+            int originalGripCount =
+                gripState.GetAssignedGripCount(
+                    selected
+                );
+
+            InventoryItemInstance removedWeapon =
+                weaponLoadout.RemoveWeapon(
+                    setIndex,
+                    slotIndex
+                );
+
+            if (!ReferenceEquals(
+                removedWeapon,
+                currentWeapon))
+            {
+                return false;
+            }
+
+            if (!weaponLoadout.TryAssignWeapon(
+                setIndex,
+                slotIndex,
+                selected))
+            {
+                weaponLoadout.TryAssignWeapon(
+                    setIndex,
+                    slotIndex,
+                    currentWeapon
+                );
+
+                return false;
+            }
+
+            if (!gripState.Release(selected))
+            {
+                weaponLoadout.RemoveWeapon(
+                    setIndex,
+                    slotIndex
+                );
+
+                weaponLoadout.TryAssignWeapon(
+                    setIndex,
+                    slotIndex,
+                    currentWeapon
+                );
+
+                return false;
+            }
+
+            cursor.ClearSelection();
+
+            return true;
+        }
 
         GripType originalGripType =
             GetHeldGripType(
@@ -948,6 +1018,13 @@ public sealed class InventoryInteractionController :
         if (weapon == null)
             return false;
 
+        if (weapon.Definition != null &&
+            weapon.Definition.IsAttachedWeapon &&
+            equipment.IsEquipped(weapon))
+        {
+            return true;
+        }
+
         return TryFindHoldPlan(
             weapon,
             out _,
@@ -971,6 +1048,22 @@ public sealed class InventoryInteractionController :
                 setIndex,
                 slotIndex
             );
+
+        if (weapon.Definition != null &&
+            weapon.Definition.IsAttachedWeapon &&
+            equipment.IsEquipped(weapon))
+        {
+            InventoryItemInstance removedWeapon =
+                weaponLoadout.RemoveWeapon(
+                    setIndex,
+                    slotIndex
+                );
+
+            return ReferenceEquals(
+                removedWeapon,
+                weapon
+            );
+        }
 
         if (!TryFindHoldPlan(
             weapon,
@@ -1079,6 +1172,14 @@ public sealed class InventoryInteractionController :
                 slotIndex
             );
 
+        bool currentItemWasAssigned =
+            currentItem != null &&
+            weaponLoadout.TryFindWeapon(
+                currentItem,
+                out int currentSetIndex,
+                out int currentWeaponSlotIndex
+            );
+
         GripType originalGripType =
             GetHeldGripType(
                 selected
@@ -1135,6 +1236,22 @@ public sealed class InventoryInteractionController :
             return false;
         }
 
+        if (currentItemWasAssigned)
+        {
+            InventoryItemInstance removedWeapon =
+                weaponLoadout.RemoveWeapon(
+                    currentSetIndex,
+                    currentWeaponSlotIndex
+                );
+
+            if (!ReferenceEquals(
+                removedWeapon,
+                currentItem))
+            {
+                return false;
+            }
+        }
+
         bool replaced =
             equipment.TryEquipItemToSlot(
                 selected,
@@ -1147,6 +1264,15 @@ public sealed class InventoryInteractionController :
         if (!replaced ||
             replacedItem == null)
         {
+            if (currentItemWasAssigned)
+            {
+                weaponLoadout.TryAssignWeapon(
+                    currentSetIndex,
+                    currentWeaponSlotIndex,
+                    currentItem
+                );
+            }
+
             return false;
         }
 
@@ -1159,6 +1285,15 @@ public sealed class InventoryInteractionController :
                 selected,
                 replacedItem
             );
+
+            if (currentItemWasAssigned)
+            {
+                weaponLoadout.TryAssignWeapon(
+                    currentSetIndex,
+                    currentWeaponSlotIndex,
+                    replacedItem
+                );
+            }
 
             return false;
         }
@@ -1174,6 +1309,15 @@ public sealed class InventoryInteractionController :
                 selected,
                 replacedItem
             );
+
+            if (currentItemWasAssigned)
+            {
+                weaponLoadout.TryAssignWeapon(
+                    currentSetIndex,
+                    currentWeaponSlotIndex,
+                    replacedItem
+                );
+            }
 
             gripState.TryHold(
                 selected,
@@ -1247,6 +1391,38 @@ public sealed class InventoryInteractionController :
             out int gripCount))
         {
             return false;
+        }
+
+        bool wasAssigned =
+            weaponLoadout.TryFindWeapon(
+                item,
+                out int assignedSetIndex,
+                out int assignedSlotIndex
+            );
+
+        if (wasAssigned)
+        {
+            InventoryItemInstance removedWeapon =
+                weaponLoadout.RemoveWeapon(
+                    assignedSetIndex,
+                    assignedSlotIndex
+                );
+
+            if (!ReferenceEquals(
+                removedItem,
+                item))
+            {
+                if (wasAssigned)
+                {
+                    weaponLoadout.TryAssignWeapon(
+                        assignedSetIndex,
+                        assignedSlotIndex,
+                        item
+                    );
+                }
+
+                return false;
+            }
         }
 
         InventoryItemInstance removedItem =
@@ -1514,16 +1690,6 @@ public sealed class InventoryInteractionController :
             .IsWeaponAssigned(
                 itemInstance
             );
-    }
-
-    private static bool IsConventionalWeapon(
-        InventoryItemInstance itemInstance)
-    {
-        return itemInstance != null &&
-               itemInstance.Definition != null &&
-               itemInstance.Definition
-                   .itemCategory ==
-                   ItemCategory.Weapon;
     }
 
     private void RemoveNonCandidates()
