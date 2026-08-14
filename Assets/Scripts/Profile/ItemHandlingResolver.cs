@@ -477,43 +477,35 @@ public static class ItemHandlingResolver
                 character.GripProfile.MouthGripCount
             );
 
-        if (TryResolveAvailableGrip(
+        if (TryResolveAvailableHold(
             item,
             character,
             GripType.Hand,
             availableHands,
-            false,
             out result))
         {
             return true;
         }
 
-        return TryResolveAvailableGrip(
+        return TryResolveAvailableHold(
             item,
             character,
             GripType.Mouth,
             availableMouth,
-            false,
             out result
         );
     }
 
-    private static bool TryResolveAvailableGrip(
+    private static bool TryResolveAvailableHold(
         ItemDefinition item,
         CharacterHandlingProfile character,
         GripType gripType,
         int availableGripCount,
-        bool resolvingUse,
         out ResolvedItemHandling result)
     {
         result = null;
 
-        int minimumGripCount =
-            resolvingUse
-                ? item.GetMinimumUseGripCount(
-                    gripType
-                )
-                : 1;
+        const int minimumGripCount = 1;
 
         if (availableGripCount <
             minimumGripCount)
@@ -538,12 +530,7 @@ public static class ItemHandlingResolver
                     gripCount
                 );
 
-            bool valid =
-                resolvingUse
-                    ? current.canUse
-                    : current.canHold;
-
-            if (!valid)
+            if (!current.canHold)
                 continue;
 
             if (current.tier <=
