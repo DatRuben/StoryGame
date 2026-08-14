@@ -5,14 +5,8 @@ using UnityEngine;
 public sealed class PlayerGripState :
     MonoBehaviour
 {
-    [Header("Available Grips")]
-    [SerializeField]
-    [Range(1, 2)]
-    private int handGripCount = 2;
-
-    [SerializeField]
-    [Range(0, 1)]
-    private int mouthGripCount = 0;
+    private CharacterGripProfile gripProfile =
+        CharacterGripProfile.CreateHumanoidDefault();
 
     public int OccupiedHandGripCount
     {
@@ -21,7 +15,7 @@ public sealed class PlayerGripState :
             int count = 0;
 
             for (int i = 0;
-                 i < handGripCount;
+                 i < HandGripCount;
                  i++)
             {
                 if (handItems[i] != null)
@@ -38,10 +32,18 @@ public sealed class PlayerGripState :
     private InventoryItemInstance mouthItem;
 
     public int HandGripCount =>
-        handGripCount;
+        Mathf.Clamp(
+            gripProfile.handGripCount,
+            1,
+            2
+        );
 
     public int MouthGripCount =>
-        mouthGripCount;
+        Mathf.Clamp(
+            gripProfile.mouthGripCount,
+            0,
+            1
+        );
 
     public bool HasAnyHeldItem =>
         handItems[0] != null ||
@@ -87,16 +89,13 @@ public sealed class PlayerGripState :
         }
 
         bool changed =
-            handGripCount !=
-                newHandGripCount ||
-            mouthGripCount !=
-                newMouthGripCount;
+            !ReferenceEquals(
+                gripProfile,
+                profile
+            );
 
-        handGripCount =
-            newHandGripCount;
-
-        mouthGripCount =
-            newMouthGripCount;
+        gripProfile =
+            profile;
 
         if (changed)
             Changed?.Invoke();
@@ -112,7 +111,7 @@ public sealed class PlayerGripState :
         {
             case GripType.Hand:
                 if (gripIndex < 0 ||
-                    gripIndex >= handGripCount)
+                    gripIndex >= HandGripCount)
                 {
                     return null;
                 }
@@ -121,7 +120,7 @@ public sealed class PlayerGripState :
 
             case GripType.Mouth:
                 if (gripIndex != 0 ||
-                    mouthGripCount == 0)
+                    MouthGripCount == 0)
                 {
                     return null;
                 }
@@ -185,7 +184,7 @@ public sealed class PlayerGripState :
                 int freeHands = 0;
 
                 for (int i = 0;
-                     i < handGripCount;
+                     i < HandGripCount;
                      i++)
                 {
                     if (handItems[i] == null)
@@ -195,7 +194,7 @@ public sealed class PlayerGripState :
                 return freeHands;
 
             case GripType.Mouth:
-                return mouthGripCount > 0 &&
+                return MouthGripCount > 0 &&
                        mouthItem == null
                     ? 1
                     : 0;
@@ -324,10 +323,10 @@ public sealed class PlayerGripState :
         int gripCount)
     {
         if (gripCount >
-                handGripCount ||
-            GetFreeGripCount(
+                HandGripCount ||
+                GetFreeGripCount(
                 GripType.Hand
-            ) < gripCount)
+                ) < gripCount)
         {
             return false;
         }
@@ -335,7 +334,7 @@ public sealed class PlayerGripState :
         int assigned = 0;
 
         for (int i = 0;
-             i < handGripCount;
+             i < HandGripCount;
              i++)
         {
             if (handItems[i] != null)
@@ -361,7 +360,7 @@ public sealed class PlayerGripState :
         int gripCount)
     {
         if (gripCount != 1 ||
-            mouthGripCount == 0 ||
+            MouthGripCount == 0 ||
             mouthItem != null)
         {
             return false;
