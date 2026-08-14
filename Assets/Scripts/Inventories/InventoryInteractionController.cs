@@ -926,6 +926,12 @@ public sealed class InventoryInteractionController :
                 selected
             );
 
+        int originalRotationSteps =
+            cursor.RotationSteps;
+
+        Vector2Int originalGrabOffset =
+            cursor.GrabOffset;
+
         if (currentWeapon == null)
         {
             return TryAssignToEmptyWeaponSlot(
@@ -984,10 +990,12 @@ public sealed class InventoryInteractionController :
                 replacedWeapon
             );
 
-            gripState.TryHold(
+            RestoreHeldSelection(
                 selected,
                 originalGripType,
-                originalGripCount
+                originalGripCount,
+                originalRotationSteps,
+                originalGrabOffset
             );
 
             return false;
@@ -1193,6 +1201,12 @@ public sealed class InventoryInteractionController :
                 selected
             );
 
+        int originalRotationSteps =
+            cursor.RotationSteps;
+
+        Vector2Int originalGrabOffset =
+            cursor.GrabOffset;
+
         if (currentItem == null)
         {
             bool equipped =
@@ -1322,10 +1336,12 @@ public sealed class InventoryInteractionController :
                 );
             }
 
-            gripState.TryHold(
+            RestoreHeldSelection(
                 selected,
                 originalGripType,
-                originalGripCount
+                originalGripCount,
+                originalRotationSteps,
+                originalGrabOffset
             );
 
             return false;
@@ -1553,6 +1569,28 @@ public sealed class InventoryInteractionController :
             slotType,
             slotIndex,
             out _
+        );
+    }
+
+    private bool RestoreHeldSelection(
+        InventoryItemInstance item,
+        GripType gripType,
+        int gripCount,
+        int rotationSteps,
+        Vector2Int grabOffset)
+    {
+        if (!gripState.TryHold(
+            item,
+            gripType,
+            gripCount))
+        {
+            return false;
+        }
+
+        return cursor.Select(
+            item,
+            rotationSteps,
+            grabOffset
         );
     }
 
