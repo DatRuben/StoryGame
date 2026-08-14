@@ -964,13 +964,13 @@ public class PlayerInput : MonoBehaviour
             return 1f;
 
         if (occupiedHands >
-            handling.maxHandGripsWhileMoving)
+            handling.MaxHandGripsWhileMoving)
         {
             return 0f;
         }
 
         return Mathf.Clamp01(
-            handling.handCarryMoveMultiplier
+            handling.HandCarryMoveMultiplier
         );
     }
 }

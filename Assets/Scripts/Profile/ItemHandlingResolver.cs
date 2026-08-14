@@ -403,7 +403,7 @@ public static class ItemHandlingResolver
                 character != null
                     ? Mathf.Max(
                         0f,
-                        character.physicalStrength
+                        character.PhysicalStrength
                     )
                     : 0f,
 
@@ -436,14 +436,14 @@ public static class ItemHandlingResolver
             case GripType.Mouth:
                 return Mathf.Max(
                     0,
-                    character.mouthGripCount
+                    character.MouthGripCount
                 );
 
             case GripType.Hand:
             default:
                 return Mathf.Max(
                     0,
-                    character.handGripCount
+                    character.HandGripCount
                 );
         }
     }
@@ -458,11 +458,11 @@ public static class ItemHandlingResolver
         switch (gripType)
         {
             case GripType.Mouth:
-                return character.mouthGripCount > 0;
+                return character.MouthGripCount > 0;
 
             case GripType.Hand:
             default:
-                return character.handGripCount > 0;
+                return character.HandGripCount > 0;
         }
     }
 
@@ -509,14 +509,14 @@ public static class ItemHandlingResolver
             Mathf.Clamp(
                 availableHands,
                 0,
-                character.handGripCount
+                character.HandGripCount
             );
 
         availableMouth =
             Mathf.Clamp(
                 availableMouth,
                 0,
-                character.mouthGripCount
+                character.MouthGripCount
             );
 
         if (TryResolveAvailableGrip(

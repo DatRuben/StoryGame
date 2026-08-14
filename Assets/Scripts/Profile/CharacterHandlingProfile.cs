@@ -1,58 +1,108 @@
-using System;
 using UnityEngine;
 
-[Serializable]
-public class CharacterHandlingProfile
+public sealed class CharacterHandlingProfile
 {
-    public RaceSize raceSize =
-        RaceSize.Size2;
+    public SubraceDefinition SubraceDefinition
+    {
+        get;
+    }
 
-    [Min(1)]
-    public int handGripCount = 2;
+    public CharacterGripProfile GripProfile
+    {
+        get;
+    }
 
-    [Min(0)]
-    public int mouthGripCount;
+    public CharacterAttributeOutput AttributeOutput
+    {
+        get;
+    }
 
-    [Range(0, 2)]
-    public int maxHandGripsWhileMoving = 2;
+    public RaceSize Size =>
+        SubraceDefinition != null
+            ? SubraceDefinition.size
+            : RaceSize.Size2;
 
-    [Range(0, 2)]
-    public int maxHandGripsWhileSprinting = 2;
+    public int HandGripCount =>
+        Mathf.Clamp(
+            GripProfile.handGripCount,
+            1,
+            2
+        );
 
-    [Range(0f, 1f)]
-    public float handCarryMoveMultiplier = 1f;
+    public int MouthGripCount =>
+        Mathf.Clamp(
+            GripProfile.mouthGripCount,
+            0,
+            1
+        );
 
-    public bool canOperateWithHands = true;
+    public int MaxHandGripsWhileMoving =>
+        Mathf.Clamp(
+            GripProfile.maxHandGripsWhileMoving,
+            0,
+            HandGripCount
+        );
 
-    public bool canOperateWithMouth;
+    public int MaxHandGripsWhileSprinting =>
+        Mathf.Clamp(
+            GripProfile.maxHandGripsWhileSprinting,
+            0,
+            HandGripCount
+        );
 
-    public ConventionalWeaponMode weaponMode =
-        ConventionalWeaponMode.Humanoid;
+    public float HandCarryMoveMultiplier =>
+        Mathf.Clamp01(
+            GripProfile.handCarryMoveMultiplier
+        );
+
+    public ConventionalWeaponMode WeaponMode =>
+        GripProfile.weaponMode;
+
+    public bool HasMouthGrips =>
+        MouthGripCount > 0;
+
+    public float StrengthOutput =>
+        AttributeOutput != null
+            ? Mathf.Max(
+                0f,
+                AttributeOutput.strength
+            )
+            : 10f;
+
+    public float SizeStrengthMultiplier =>
+        CharacterHandlingResolver
+            .GetSizeStrengthMultiplier(
+                Size
+            );
+
+    public float PhysicalStrength =>
+        StrengthOutput *
+        SizeStrengthMultiplier;
+
+    internal CharacterHandlingProfile(
+        SubraceDefinition subraceDefinition,
+        CharacterGripProfile gripProfile,
+        CharacterAttributeOutput attributeOutput)
+    {
+        SubraceDefinition =
+            subraceDefinition;
+
+        GripProfile =
+            gripProfile ??
+            CharacterGripProfile
+                .CreateHumanoidDefault();
+
+        AttributeOutput =
+            attributeOutput;
+    }
 
     public bool CanOperateWith(
         GripType gripType)
     {
-        if (gripType ==
-            GripType.Mouth)
-        {
-            return mouthGripCount > 0 &&
-                   canOperateWithMouth;
-        }
-
-        return canOperateWithHands;
+        return GripProfile.CanOperateWith(
+            gripType
+        );
     }
-
-    [Min(0f)]
-    public float strengthOutput = 10f;
-
-    [Min(0f)]
-    public float sizeStrengthMultiplier = 1f;
-
-    [Min(0f)]
-    public float physicalStrength = 10f;
-
-    public bool HasMouthGrips =>
-        mouthGripCount > 0;
 }
 
 public static class CharacterHandlingResolver
@@ -62,90 +112,11 @@ public static class CharacterHandlingResolver
         CharacterGripProfile gripProfile,
         CharacterAttributeOutput attributeOutput)
     {
-        RaceSize raceSize =
-            subraceDefinition != null
-                ? subraceDefinition.size
-                : RaceSize.Size2;
-
-        if (gripProfile == null)
-        {
-            gripProfile =
-                CharacterGripProfile
-                    .CreateHumanoidDefault();
-        }
-
-        float strengthOutput =
-            attributeOutput != null
-                ? Mathf.Max(
-                    0f,
-                    attributeOutput.strength
-                )
-                : 10f;
-
-        float sizeStrengthMultiplier =
-            GetSizeStrengthMultiplier(
-                raceSize
-            );
-
-        return new CharacterHandlingProfile
-        {
-            raceSize =
-                raceSize,
-
-            handGripCount =
-                Mathf.Max(
-                    1,
-                    gripProfile.handGripCount
-                ),
-
-            maxHandGripsWhileMoving =
-                Mathf.Clamp(
-                    gripProfile.maxHandGripsWhileMoving,
-                    0,
-                    gripProfile.handGripCount
-                ),
-
-            maxHandGripsWhileSprinting =
-                Mathf.Clamp(
-                    gripProfile.maxHandGripsWhileSprinting,
-                    0,
-                    gripProfile.handGripCount
-                ),
-
-            handCarryMoveMultiplier =
-                Mathf.Clamp01(
-                    gripProfile.handCarryMoveMultiplier
-                    ),
-
-            mouthGripCount =
-                Mathf.Max(
-                    0,
-                    gripProfile.mouthGripCount
-                ),
-
-            canOperateWithHands =
-                gripProfile.CanOperateWith(
-                    GripType.Hand
-                ),
-
-            canOperateWithMouth =
-                gripProfile.CanOperateWith(
-                    GripType.Mouth
-                ),
-
-            weaponMode =
-                gripProfile.weaponMode,
-
-            strengthOutput =
-                strengthOutput,
-
-            sizeStrengthMultiplier =
-                sizeStrengthMultiplier,
-
-            physicalStrength =
-                strengthOutput *
-                sizeStrengthMultiplier
-        };
+        return new CharacterHandlingProfile(
+            subraceDefinition,
+            gripProfile,
+            attributeOutput
+        );
     }
 
     public static float GetSizeStrengthMultiplier(
