@@ -53,7 +53,16 @@ MonoBehaviour:
   size: 8
   bodyType: 2
   previewPrefab: {fileID: 0}
-  gripProfile:
+  standingGripProfile:
     handGripCount: 2
     mouthGripCount: 0
+    canOperateWithHands: 1
+    canOperateWithMouth: 0
+    weaponMode: 0
+  feralGripProfile:
+    handGripCount: 2
+    mouthGripCount: 0
+    canOperateWithHands: 1
+    canOperateWithMouth: 0
+    weaponMode: 0
   canEquipSaddles: 1
