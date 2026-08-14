@@ -114,7 +114,7 @@ public sealed class EquipmentSlotUI :
             return;
 
         interactionController
-            .BeginLoadoutAssignment(
+            .ToggleLoadoutAssignment(
                 equipmentSlotType,
                 slotIndex
             );

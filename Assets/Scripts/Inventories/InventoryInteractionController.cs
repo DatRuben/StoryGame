@@ -40,6 +40,9 @@ public sealed class InventoryInteractionController :
         cursor.HasSelection ||
         loadoutAssignmentItem != null;
 
+    public bool IsLoadoutAssignmentActive =>
+        loadoutAssignmentItem != null;
+
     public InventoryItemInstance SelectedItem =>
         cursor.SelectedItem;
 
@@ -94,13 +97,43 @@ public sealed class InventoryInteractionController :
         Changed?.Invoke();
     }
 
+    public bool ToggleLoadoutAssignment(
+        EquipmentSlotType slotType,
+        int slotIndex = 0)
+    {
+        InventoryItemInstance item =
+            equipment.GetEquippedItem(
+                slotType,
+                slotIndex
+            );
+
+        if (loadoutAssignmentItem != null)
+        {
+            if (!ReferenceEquals(
+                loadoutAssignmentItem,
+                item))
+            {
+                return false;
+            }
+
+            CancelLoadoutAssignment();
+            return true;
+        }
+
+        return BeginLoadoutAssignment(
+            slotType,
+            slotIndex
+        );
+    }
+
     public bool BeginLoadoutAssignment(
         EquipmentSlotType slotType,
         int slotIndex = 0)
     {
-        if (!NeedsLoadoutAssignment(
-            slotType,
-            slotIndex))
+        if (cursor.HasSelection ||
+            !NeedsLoadoutAssignment(
+                slotType,
+                slotIndex))
         {
             return false;
         }
@@ -218,6 +251,9 @@ public sealed class InventoryInteractionController :
         int rotationSteps = 0,
         Vector2Int grabOffset = default)
     {
+        if (loadoutAssignmentItem != null)
+            return false;
+
         if (!IsPlacementCandidate(
             itemInstance))
         {
@@ -243,6 +279,9 @@ public sealed class InventoryInteractionController :
 
     public bool CycleHeldSelection()
     {
+        if (loadoutAssignmentItem != null)
+            return false;
+
         gripState.GetHeldItemsInCycleOrder(
             heldItems
         );
@@ -280,7 +319,8 @@ public sealed class InventoryInteractionController :
         InventoryContainer source,
         Vector2Int coordinate)
     {
-        if (source == null ||
+        if (loadoutAssignmentItem != null ||
+            source == null ||
             cursor.HasSelection)
         {
             return false;
@@ -589,7 +629,8 @@ public sealed class InventoryInteractionController :
         InventoryContainer source,
         Vector2Int coordinate)
     {
-        if (source == null ||
+        if (loadoutAssignmentItem != null ||
+            source == null ||
             cursor.HasSelection)
         {
             return false;
@@ -776,9 +817,6 @@ public sealed class InventoryInteractionController :
                 return false;
             }
 
-            // Attached equipment assignment does not
-            // swap weapons. Player explicitly chooses
-            // an available empty loadout slot.
             return weaponLoadout.GetWeapon(
                 setIndex,
                 slotIndex
@@ -1014,8 +1052,11 @@ public sealed class InventoryInteractionController :
         int setIndex,
         int slotIndex)
     {
-        if (cursor.HasSelection)
+        if (loadoutAssignmentItem != null ||
+            cursor.HasSelection)
+        {
             return false;
+        }
 
         InventoryItemInstance weapon =
             weaponLoadout.GetWeapon(
@@ -1368,8 +1409,11 @@ public sealed class InventoryInteractionController :
         EquipmentSlotType slotType,
         int slotIndex = 0)
     {
-        if (cursor.HasSelection)
+        if (loadoutAssignmentItem != null ||
+            cursor.HasSelection)
+        {
             return false;
+        }
 
         InventoryItemInstance item =
             equipment.GetEquippedItem(
