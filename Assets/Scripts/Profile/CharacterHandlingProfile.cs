@@ -22,27 +22,6 @@ public sealed class CharacterHandlingProfile
             ? SubraceDefinition.size
             : RaceSize.Size2;
 
-    public int HandGripCount =>
-        GripProfile.HandGripCount;
-
-    public int MouthGripCount =>
-        GripProfile.MouthGripCount;
-
-    public int MaxHandGripsWhileMoving =>
-        GripProfile.MaxHandGripsWhileMoving;
-
-    public int MaxHandGripsWhileSprinting =>
-        GripProfile.MaxHandGripsWhileSprinting;
-
-    public float HandCarryMoveMultiplier =>
-        GripProfile.HandCarryMoveMultiplier;
-
-    public ConventionalWeaponMode WeaponMode =>
-        GripProfile.WeaponMode;
-
-    public bool HasMouthGrips =>
-        MouthGripCount > 0;
-
     public float StrengthOutput =>
         AttributeOutput != null
             ? Mathf.Max(
@@ -76,14 +55,6 @@ public sealed class CharacterHandlingProfile
 
         AttributeOutput =
             attributeOutput;
-    }
-
-    public bool CanOperateWith(
-        GripType gripType)
-    {
-        return GripProfile.CanOperateWith(
-            gripType
-        );
     }
 }
 

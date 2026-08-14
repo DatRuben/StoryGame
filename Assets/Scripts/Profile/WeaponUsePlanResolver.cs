@@ -29,17 +29,17 @@ public static class WeaponUsePlanResolver
             Mathf.Clamp(
                 availableHands,
                 0,
-                handling.HandGripCount
+                handling.GripProfile.HandGripCount
             );
 
         availableMouth =
             Mathf.Clamp(
                 availableMouth,
                 0,
-                handling.MouthGripCount
+                handling.GripProfile.MouthGripCount
             );
 
-        if (handling.WeaponMode !=
+        if (handling.GripProfile.WeaponMode !=
                 ConventionalWeaponMode.Humanoid &&
             weapons.Count > 1)
         {
@@ -170,7 +170,7 @@ public static class WeaponUsePlanResolver
         int count = 0;
 
         bool allowHands =
-            handling.WeaponMode !=
+            handling.GripProfile.WeaponMode !=
             ConventionalWeaponMode.MouthOnly;
 
         if (allowHands)
@@ -181,7 +181,7 @@ public static class WeaponUsePlanResolver
                 );
 
             int maximumHands =
-                handling.WeaponMode ==
+                handling.GripProfile.WeaponMode ==
                     ConventionalWeaponMode
                         .MouthOrOneHand
                     ? Mathf.Min(
@@ -216,7 +216,7 @@ public static class WeaponUsePlanResolver
         }
 
         bool allowMouth =
-            handling.CanOperateWith(
+            handling.GripProfile.CanOperateWith(
                 GripType.Mouth
             ) &&
             availableMouth > 0 &&

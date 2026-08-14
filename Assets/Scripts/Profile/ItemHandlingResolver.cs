@@ -436,14 +436,14 @@ public static class ItemHandlingResolver
             case GripType.Mouth:
                 return Mathf.Max(
                     0,
-                    character.MouthGripCount
+                    character.GripProfile.MouthGripCount
                 );
 
             case GripType.Hand:
             default:
                 return Mathf.Max(
                     0,
-                    character.HandGripCount
+                    character.GripProfile.HandGripCount
                 );
         }
     }
@@ -458,11 +458,11 @@ public static class ItemHandlingResolver
         switch (gripType)
         {
             case GripType.Mouth:
-                return character.MouthGripCount > 0;
+                return character.GripProfile.MouthGripCount > 0;
 
             case GripType.Hand:
             default:
-                return character.HandGripCount > 0;
+                return character.GripProfile.HandGripCount > 0;
         }
     }
 
@@ -473,7 +473,7 @@ public static class ItemHandlingResolver
     {
         if (item == null ||
             character == null ||
-            !character.CanOperateWith(
+            !character.GripProfile.CanOperateWith(
                 gripType))
         {
             return false;
@@ -509,14 +509,14 @@ public static class ItemHandlingResolver
             Mathf.Clamp(
                 availableHands,
                 0,
-                character.HandGripCount
+                character.GripProfile.HandGripCount
             );
 
         availableMouth =
             Mathf.Clamp(
                 availableMouth,
                 0,
-                character.MouthGripCount
+                character.GripProfile.MouthGripCount
             );
 
         if (TryResolveAvailableGrip(
