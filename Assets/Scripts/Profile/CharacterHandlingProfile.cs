@@ -38,7 +38,7 @@ public sealed class CharacterHandlingProfile
         GripProfile.HandCarryMoveMultiplier;
 
     public ConventionalWeaponMode WeaponMode =>
-        GripProfile.weaponMode;
+        GripProfile.WeaponMode;
 
     public bool HasMouthGrips =>
         MouthGripCount > 0;

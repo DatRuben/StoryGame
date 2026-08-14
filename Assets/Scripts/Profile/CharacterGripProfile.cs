@@ -17,32 +17,43 @@ public enum ConventionalWeaponMode
 [Serializable]
 public class CharacterGripProfile
 {
+    [SerializeField]
     [Range(1, 2)]
-    public int handGripCount = 2;
+    private int handGripCount = 2;
 
+    [SerializeField]
     [Range(0, 1)]
-    public int mouthGripCount;
+    private int mouthGripCount;
 
     [Header("Hand-Carry Locomotion")]
+    [SerializeField]
     [Range(0, 2)]
-    public int maxHandGripsWhileMoving = 2;
+    private int maxHandGripsWhileMoving = 2;
 
+    [SerializeField]
     [Range(0, 2)]
-    public int maxHandGripsWhileSprinting = 2;
+    private int maxHandGripsWhileSprinting = 2;
 
+    [SerializeField]
     [Range(0f, 1f)]
-    public float handCarryMoveMultiplier = 1f;
+    private float handCarryMoveMultiplier = 1f;
 
     [Header("Operating Capability")]
-    public bool canOperateWithHands = true;
+    [SerializeField]
+    private bool canOperateWithHands = true;
 
-    public bool canOperateWithMouth;
+    [SerializeField]
+    private bool canOperateWithMouth;
 
     public bool HasMouthGrips =>
         MouthGripCount > 0;
 
-    public ConventionalWeaponMode weaponMode =
+    [SerializeField]
+    private ConventionalWeaponMode weaponMode =
         ConventionalWeaponMode.Humanoid;
+
+    public ConventionalWeaponMode WeaponMode =>
+        weaponMode;
 
     public int HandGripCount =>
         Mathf.Clamp(
