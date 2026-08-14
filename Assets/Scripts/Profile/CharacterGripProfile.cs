@@ -36,21 +36,54 @@ public class CharacterGripProfile
     [Header("Operating Capability")]
     public bool canOperateWithHands = true;
 
-    public bool canOperateWithMouth;    
+    public bool canOperateWithMouth;
 
     public bool HasMouthGrips =>
-        mouthGripCount > 0;
+        MouthGripCount > 0;
 
     public ConventionalWeaponMode weaponMode =
         ConventionalWeaponMode.Humanoid;
+
+    public int HandGripCount =>
+        Mathf.Clamp(
+            handGripCount,
+            1,
+            2
+        );
+
+    public int MouthGripCount =>
+        Mathf.Clamp(
+            mouthGripCount,
+            0,
+            1
+        );
+
+    public int MaxHandGripsWhileMoving =>
+        Mathf.Clamp(
+            maxHandGripsWhileMoving,
+            0,
+            HandGripCount
+        );
+
+    public int MaxHandGripsWhileSprinting =>
+        Mathf.Clamp(
+            maxHandGripsWhileSprinting,
+            0,
+            HandGripCount
+        );
+
+    public float HandCarryMoveMultiplier =>
+        Mathf.Clamp01(
+            handCarryMoveMultiplier
+        );
 
     public int GetGripCount(
         GripType gripType)
     {
         return gripType ==
                GripType.Mouth
-            ? mouthGripCount
-            : handGripCount;
+            ? MouthGripCount
+            : HandGripCount;
     }
 
     public bool CanOperateWith(
@@ -59,7 +92,7 @@ public class CharacterGripProfile
         if (gripType ==
             GripType.Mouth)
         {
-            return mouthGripCount > 0 &&
+            return MouthGripCount > 0 &&
                    canOperateWithMouth;
         }
 
@@ -69,37 +102,19 @@ public class CharacterGripProfile
     public void Clamp()
     {
         handGripCount =
-            Mathf.Clamp(
-                handGripCount,
-                1,
-                2
-            );
-
-        maxHandGripsWhileMoving =
-            Mathf.Clamp(
-                maxHandGripsWhileMoving,
-                0,
-                handGripCount
-            );
-
-        maxHandGripsWhileSprinting =
-            Mathf.Clamp(
-                maxHandGripsWhileSprinting,
-                0,
-                handGripCount
-            );
-
-        handCarryMoveMultiplier =
-            Mathf.Clamp01(
-                handCarryMoveMultiplier
-            );
+            HandGripCount;
 
         mouthGripCount =
-            Mathf.Clamp(
-                mouthGripCount,
-                0,
-                1
-            );
+            MouthGripCount;
+
+        maxHandGripsWhileMoving =
+            MaxHandGripsWhileMoving;
+
+        maxHandGripsWhileSprinting =
+            MaxHandGripsWhileSprinting;
+
+        handCarryMoveMultiplier =
+            HandCarryMoveMultiplier;
 
         if (mouthGripCount == 0)
             canOperateWithMouth = false;

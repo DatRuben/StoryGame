@@ -23,37 +23,19 @@ public sealed class CharacterHandlingProfile
             : RaceSize.Size2;
 
     public int HandGripCount =>
-        Mathf.Clamp(
-            GripProfile.handGripCount,
-            1,
-            2
-        );
+        GripProfile.HandGripCount;
 
     public int MouthGripCount =>
-        Mathf.Clamp(
-            GripProfile.mouthGripCount,
-            0,
-            1
-        );
+        GripProfile.MouthGripCount;
 
     public int MaxHandGripsWhileMoving =>
-        Mathf.Clamp(
-            GripProfile.maxHandGripsWhileMoving,
-            0,
-            HandGripCount
-        );
+        GripProfile.MaxHandGripsWhileMoving;
 
     public int MaxHandGripsWhileSprinting =>
-        Mathf.Clamp(
-            GripProfile.maxHandGripsWhileSprinting,
-            0,
-            HandGripCount
-        );
+        GripProfile.MaxHandGripsWhileSprinting;
 
     public float HandCarryMoveMultiplier =>
-        Mathf.Clamp01(
-            GripProfile.handCarryMoveMultiplier
-        );
+        GripProfile.HandCarryMoveMultiplier;
 
     public ConventionalWeaponMode WeaponMode =>
         GripProfile.weaponMode;

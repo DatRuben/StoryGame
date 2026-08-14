@@ -32,18 +32,10 @@ public sealed class PlayerGripState :
     private InventoryItemInstance mouthItem;
 
     public int HandGripCount =>
-        Mathf.Clamp(
-            gripProfile.handGripCount,
-            1,
-            2
-        );
+        gripProfile.HandGripCount;
 
     public int MouthGripCount =>
-        Mathf.Clamp(
-            gripProfile.mouthGripCount,
-            0,
-            1
-        );
+        gripProfile.MouthGripCount;
 
     public bool HasAnyHeldItem =>
         handItems[0] != null ||
@@ -63,18 +55,10 @@ public sealed class PlayerGripState :
         }
 
         int newHandGripCount =
-            Mathf.Clamp(
-                profile.handGripCount,
-                1,
-                2
-            );
+            profile.HandGripCount;
 
         int newMouthGripCount =
-            Mathf.Clamp(
-                profile.mouthGripCount,
-                0,
-                1
-            );
+            profile.MouthGripCount;
 
         if (newHandGripCount < 2 &&
             handItems[1] != null)
