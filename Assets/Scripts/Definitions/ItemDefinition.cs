@@ -70,10 +70,7 @@ public class ItemDefinition : ScriptableObject
             );
     }
 
-    [Header("Allowed Holding Grips")]
-    public bool canHoldWithHands = true;
-
-    [Header("Allowed Operating Grips")]
+    [Header("Operating Grips")]
     public bool canUseWithHands = true;
     public bool canUseWithMouth;
 
@@ -147,9 +144,6 @@ public class ItemDefinition : ScriptableObject
                 1,
                 minimumHandUseGripCount
             );
-
-        if (!canHoldWithHands)
-            canUseWithHands = false;
     }
 
     private void OnValidate()
@@ -488,32 +482,15 @@ public class ItemDefinitionEditor : Editor
         EditorGUILayout.Space(4f);
 
         EditorGUILayout.LabelField(
-            "Allowed Holding Grips",
-            EditorStyles.boldLabel
-        );
-
-        item.canHoldWithHands =
-            EditorGUILayout.Toggle(
-                "Can Hold With Hands",
-                item.canHoldWithHands
-            );
-
-        EditorGUILayout.Space(4f);
-
-        EditorGUILayout.LabelField(
             "Allowed Operating Grips",
             EditorStyles.boldLabel
         );
 
-        using (new EditorGUI.DisabledScope(
-            !item.canHoldWithHands))
-        {
-            item.canUseWithHands =
-                EditorGUILayout.Toggle(
-                    "Can Use With Hands",
-                    item.canUseWithHands
-                );
-        }
+        item.canUseWithHands =
+            EditorGUILayout.Toggle(
+                "Can Use With Hands",
+                item.canUseWithHands
+            );
 
         if (item.canUseWithHands)
         {
@@ -532,9 +509,6 @@ public class ItemDefinitionEditor : Editor
                 "Can Use With Mouth",
                 item.canUseWithMouth
             );
-
-        if (!item.canHoldWithHands)
-            item.canUseWithHands = false;
 
         EditorGUILayout.Space();
     }

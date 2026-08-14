@@ -460,13 +460,15 @@ public static class ItemHandlingResolver
             return false;
         }
 
-        if (gripType ==
-            GripType.Mouth)
+        switch (gripType)
         {
-            return character.mouthGripCount > 0;
-        }
+            case GripType.Mouth:
+                return character.mouthGripCount > 0;
 
-        return item.canHoldWithHands;
+            case GripType.Hand:
+            default:
+                return character.handGripCount > 0;
+        }
     }
 
     private static bool CanUseWith(
