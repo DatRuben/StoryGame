@@ -56,12 +56,18 @@ MonoBehaviour:
   standingGripProfile:
     handGripCount: 2
     mouthGripCount: 0
+    maxHandGripsWhileMoving: 2
+    maxHandGripsWhileSprinting: 2
+    handCarryMoveMultiplier: 1
     canOperateWithHands: 1
     canOperateWithMouth: 0
     weaponMode: 0
   feralGripProfile:
     handGripCount: 2
     mouthGripCount: 0
+    maxHandGripsWhileMoving: 2
+    maxHandGripsWhileSprinting: 2
+    handCarryMoveMultiplier: 1
     canOperateWithHands: 1
     canOperateWithMouth: 0
     weaponMode: 0
