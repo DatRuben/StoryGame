@@ -7,11 +7,17 @@ public class CharacterHandlingProfile
     public RaceSize raceSize =
         RaceSize.Size2;
 
-    [Min(0)]
+    [Min(1)]
     public int handGripCount = 2;
 
     [Min(0)]
     public int mouthGripCount;
+
+    [Range(0, 2)]
+    public int maxHandGripsWhileMoving = 2;
+
+    [Range(0f, 1f)]
+    public float handCarryMoveMultiplier = 1f;
 
     public bool canOperateWithHands = true;
 
@@ -30,8 +36,7 @@ public class CharacterHandlingProfile
                    canOperateWithMouth;
         }
 
-        return handGripCount > 0 &&
-               canOperateWithHands;
+        return canOperateWithHands;
     }
 
     [Min(0f)]
@@ -42,9 +47,6 @@ public class CharacterHandlingProfile
 
     [Min(0f)]
     public float physicalStrength = 10f;
-
-    public bool HasHandGrips =>
-        handGripCount > 0;
 
     public bool HasMouthGrips =>
         mouthGripCount > 0;
@@ -89,9 +91,21 @@ public static class CharacterHandlingResolver
 
             handGripCount =
                 Mathf.Max(
+                    1,
+                    gripProfile.handGripCount
+                ),
+
+            maxHandGripsWhileMoving =
+                Mathf.Clamp(
+                    gripProfile.maxHandGripsWhileMoving,
                     0,
                     gripProfile.handGripCount
                 ),
+
+            handCarryMoveMultiplier =
+                Mathf.Clamp01(
+                    gripProfile.handCarryMoveMultiplier
+                    ),
 
             mouthGripCount =
                 Mathf.Max(

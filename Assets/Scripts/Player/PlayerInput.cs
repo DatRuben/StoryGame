@@ -12,7 +12,6 @@ public class PlayerInput : MonoBehaviour
 
     private InputAction move;
 
-    // Movement fields
     private Rigidbody rb;
 
     [Header("Movement")]
@@ -113,6 +112,9 @@ public class PlayerInput : MonoBehaviour
     private bool isSprinting = false;
     private bool isJumpHeld = false;
 
+    private PlayerGripState gripState;
+    private PlayerCharacterProfile characterProfile;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -151,6 +153,12 @@ public class PlayerInput : MonoBehaviour
         }
         if (playerResources == null)
             playerResources = GetComponent<PlayerResources>();
+
+        gripState =
+            GetComponent<PlayerGripState>();
+
+        characterProfile =
+            GetComponent<PlayerCharacterProfile>();
     }
 
     private void OnEnable()
@@ -350,9 +358,13 @@ public class PlayerInput : MonoBehaviour
         bool hasMovementDirection =
             movement.sqrMagnitude > 0.01f;
 
+        float handCarryMoveMultiplier =
+            GetHandCarryMoveMultiplier();
+
         bool canSprint =
             isSprinting &&
             hasMovementDirection &&
+            handCarryMoveMultiplier > 0f &&
             playerResources != null &&
             playerResources.SpendStamina(
                 sprintStaminaCostPerSecond *
@@ -366,7 +378,10 @@ public class PlayerInput : MonoBehaviour
         }
 
         float currentSpeed =
-            canSprint ? sprintSpeed : walkSpeed;
+            (canSprint
+                ? sprintSpeed
+                : walkSpeed) *
+            handCarryMoveMultiplier;
 
         Vector3 targetVelocity =
             movement * currentSpeed;
@@ -925,6 +940,37 @@ public class PlayerInput : MonoBehaviour
         Gizmos.DrawWireSphere(
             groundCheck.position,
             groundCheckRadius
+        );
+    }
+
+    private float GetHandCarryMoveMultiplier()
+    {
+        if (gripState == null ||
+            characterProfile == null)
+        {
+            return 1f;
+        }
+
+        CharacterHandlingProfile handling =
+            characterProfile.EffectiveHandlingProfile;
+
+        if (handling == null)
+            return 1f;
+
+        int occupiedHands =
+            gripState.OccupiedHandGripCount;
+
+        if (occupiedHands <= 0)
+            return 1f;
+
+        if (occupiedHands >
+            handling.maxHandGripsWhileMoving)
+        {
+            return 0f;
+        }
+
+        return Mathf.Clamp01(
+            handling.handCarryMoveMultiplier
         );
     }
 }

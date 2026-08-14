@@ -17,19 +17,23 @@ public enum ConventionalWeaponMode
 [Serializable]
 public class CharacterGripProfile
 {
-    [Range(0, 2)]
+    [Range(1, 2)]
     public int handGripCount = 2;
 
     [Range(0, 1)]
     public int mouthGripCount;
 
+    [Header("Hand-Carry Locomotion")]
+    [Range(0, 2)]
+    public int maxHandGripsWhileMoving = 2;
+
+    [Range(0f, 1f)]
+    public float handCarryMoveMultiplier = 1f;
+
     [Header("Operating Capability")]
     public bool canOperateWithHands = true;
 
-    public bool canOperateWithMouth;
-
-    public bool HasHandGrips =>
-        handGripCount > 0;
+    public bool canOperateWithMouth;    
 
     public bool HasMouthGrips =>
         mouthGripCount > 0;
@@ -56,8 +60,7 @@ public class CharacterGripProfile
                    canOperateWithMouth;
         }
 
-        return handGripCount > 0 &&
-               canOperateWithHands;
+        return canOperateWithHands;
     }
 
     public void Clamp()
@@ -65,8 +68,20 @@ public class CharacterGripProfile
         handGripCount =
             Mathf.Clamp(
                 handGripCount,
-                0,
+                1,
                 2
+            );
+
+        maxHandGripsWhileMoving =
+            Mathf.Clamp(
+                maxHandGripsWhileMoving,
+                0,
+                handGripCount
+            );
+
+        handCarryMoveMultiplier =
+            Mathf.Clamp01(
+                handCarryMoveMultiplier
             );
 
         mouthGripCount =
@@ -75,9 +90,6 @@ public class CharacterGripProfile
                 0,
                 1
             );
-
-        if (handGripCount == 0)
-            canOperateWithHands = false;
 
         if (mouthGripCount == 0)
             canOperateWithMouth = false;
@@ -90,6 +102,9 @@ public class CharacterGripProfile
         {
             handGripCount = 2,
             mouthGripCount = 0,
+
+            maxHandGripsWhileMoving = 2,
+            handCarryMoveMultiplier = 1f,
 
             canOperateWithHands = true,
             canOperateWithMouth = false,

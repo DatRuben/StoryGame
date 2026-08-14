@@ -7,12 +7,30 @@ public sealed class PlayerGripState :
 {
     [Header("Available Grips")]
     [SerializeField]
-    [Range(0, 2)]
+    [Range(1, 2)]
     private int handGripCount = 2;
 
     [SerializeField]
     [Range(0, 1)]
     private int mouthGripCount = 0;
+
+    public int OccupiedHandGripCount
+    {
+        get
+        {
+            int count = 0;
+
+            for (int i = 0;
+                 i < handGripCount;
+                 i++)
+            {
+                if (handItems[i] != null)
+                    count++;
+            }
+
+            return count;
+        }
+    }
 
     private readonly InventoryItemInstance[] handItems =
         new InventoryItemInstance[2];
@@ -45,7 +63,7 @@ public sealed class PlayerGripState :
         int newHandGripCount =
             Mathf.Clamp(
                 profile.handGripCount,
-                0,
+                1,
                 2
             );
 
@@ -58,12 +76,6 @@ public sealed class PlayerGripState :
 
         if (newHandGripCount < 2 &&
             handItems[1] != null)
-        {
-            return false;
-        }
-
-        if (newHandGripCount < 1 &&
-            handItems[0] != null)
         {
             return false;
         }
