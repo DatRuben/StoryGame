@@ -15,7 +15,6 @@ public enum ItemHandlingFailureReason
     None,
     MissingItem,
     MissingCharacterHandling,
-    GripCannotHoldItem,
     GripCannotUseItem,
     NoAvailableGrip,
     NotEnoughAssignedGrips,
@@ -129,21 +128,6 @@ public static class ItemHandlingResolver
             result.useFailureReason =
                 ItemHandlingFailureReason
                     .MissingCharacterHandling;
-
-            return result;
-        }
-
-        if (!CanHoldWith(
-            character,
-            gripType))
-        {
-            result.holdFailureReason =
-                ItemHandlingFailureReason
-                    .GripCannotHoldItem;
-
-            result.useFailureReason =
-                ItemHandlingFailureReason
-                    .GripCannotHoldItem;
 
             return result;
         }
@@ -428,42 +412,16 @@ public static class ItemHandlingResolver
         CharacterHandlingProfile character,
         GripType gripType)
     {
-        if (character == null)
+        if (character == null ||
+            character.GripProfile == null)
+        {
             return 0;
-
-        switch (gripType)
-        {
-            case GripType.Mouth:
-                return Mathf.Max(
-                    0,
-                    character.GripProfile.MouthGripCount
-                );
-
-            case GripType.Hand:
-            default:
-                return Mathf.Max(
-                    0,
-                    character.GripProfile.HandGripCount
-                );
         }
-    }
 
-    private static bool CanHoldWith(
-        CharacterHandlingProfile character,
-        GripType gripType)
-    {
-        if (character == null)
-            return false;
-
-        switch (gripType)
-        {
-            case GripType.Mouth:
-                return character.GripProfile.MouthGripCount > 0;
-
-            case GripType.Hand:
-            default:
-                return character.GripProfile.HandGripCount > 0;
-        }
+        return character.GripProfile
+            .GetGripCount(
+                gripType
+            );
     }
 
     private static bool CanUseWith(
