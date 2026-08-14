@@ -27,6 +27,12 @@ public class CharacterGripProfile
     [Range(0, 2)]
     public int maxHandGripsWhileMoving = 2;
 
+    [Range(0, 2)]
+    public int maxHandGripsWhileSprinting = 2;
+
+    [Range(0, 2)]
+    public int maxHandGripsWhileSprinting = 2;
+
     [Range(0f, 1f)]
     public float handCarryMoveMultiplier = 1f;
 
@@ -79,6 +85,13 @@ public class CharacterGripProfile
                 handGripCount
             );
 
+        maxHandGripsWhileSprinting =
+            Mathf.Clamp(
+                maxHandGripsWhileSprinting,
+                0,
+                handGripCount
+            );
+
         handCarryMoveMultiplier =
             Mathf.Clamp01(
                 handCarryMoveMultiplier
@@ -104,6 +117,7 @@ public class CharacterGripProfile
             mouthGripCount = 0,
 
             maxHandGripsWhileMoving = 2,
+            maxHandGripsWhileSprinting = 2,
             handCarryMoveMultiplier = 1f,
 
             canOperateWithHands = true,

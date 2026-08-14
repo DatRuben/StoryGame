@@ -134,8 +134,8 @@ public static class ItemHandlingResolver
         }
 
         if (!CanHoldWith(
-                character,
-                gripType))
+            character,
+            gripType))
         {
             result.holdFailureReason =
                 ItemHandlingFailureReason
@@ -449,15 +449,11 @@ public static class ItemHandlingResolver
     }
 
     private static bool CanHoldWith(
-        ItemDefinition item,
         CharacterHandlingProfile character,
         GripType gripType)
     {
-        if (item == null ||
-            character == null)
-        {
+        if (character == null)
             return false;
-        }
 
         switch (gripType)
         {

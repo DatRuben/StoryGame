@@ -102,6 +102,13 @@ public static class CharacterHandlingResolver
                     gripProfile.handGripCount
                 ),
 
+            maxHandGripsWhileSprinting =
+                Mathf.Clamp(
+                    gripProfile.maxHandGripsWhileSprinting,
+                    0,
+                    gripProfile.handGripCount
+                ),
+
             handCarryMoveMultiplier =
                 Mathf.Clamp01(
                     gripProfile.handCarryMoveMultiplier
