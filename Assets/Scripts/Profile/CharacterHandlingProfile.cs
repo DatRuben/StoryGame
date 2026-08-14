@@ -16,6 +16,9 @@ public class CharacterHandlingProfile
     [Range(0, 2)]
     public int maxHandGripsWhileMoving = 2;
 
+    [Range(0, 2)]
+    public int maxHandGripsWhileSprinting = 2;
+
     [Range(0f, 1f)]
     public float handCarryMoveMultiplier = 1f;
 
