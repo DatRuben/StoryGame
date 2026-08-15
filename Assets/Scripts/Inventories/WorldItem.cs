@@ -30,6 +30,26 @@ public sealed class WorldItem :
         return BuildVisual();
     }
 
+    internal bool ReleaseItem(
+        InventoryItemInstance itemInstance)
+    {
+        if (itemInstance == null ||
+            !ReferenceEquals(
+                item,
+                itemInstance))
+        {
+            return false;
+        }
+
+        item = null;
+
+        Destroy(
+            gameObject
+        );
+
+        return true;
+    }
+
     private bool BuildVisual()
     {
         ClearVisual();

@@ -300,6 +300,58 @@ public sealed class InventoryInteractionController :
         return true;
     }
 
+    internal bool TryTakeWorldItem(
+        WorldItem worldItem)
+    {
+        if (worldItem == null ||
+            playerInventory == null)
+        {
+            return false;
+        }
+
+        InventoryItemInstance item =
+            worldItem.Item;
+
+        if (item == null ||
+            item.IsEmpty ||
+            item.Definition == null)
+        {
+            return false;
+        }
+
+        int quantityBefore =
+            item.Quantity;
+
+        playerInventory.TryTransferIn(
+            item,
+            0,
+            out int remainingQuantity
+        );
+
+        int quantityAfter =
+            item.IsEmpty
+                ? 0
+                : item.Quantity;
+
+        bool movedAnything =
+            quantityAfter <
+                quantityBefore ||
+            remainingQuantity <= 0;
+
+        if (!movedAnything)
+            return false;
+
+        if (remainingQuantity > 0 &&
+            !item.IsEmpty)
+        {
+            return true;
+        }
+
+        return worldItem.ReleaseItem(
+            item
+        );
+    }
+
     private void Awake()
     {
         inputRouter =
