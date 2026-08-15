@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 376e908953958f448b9282fdc762a931, type: 3}
-  m_Name: Drakken S2 Subrace
+  m_Name: Elf Subrace
   m_EditorClassIdentifier: Assembly-CSharp::SubraceDefinition
-  subraceId: drakken_s2
-  displayName: Drakken S2
-  race: {fileID: 11400000, guid: 4163000ff3c63644db2f76c943545857, type: 2}
+  subraceId: elf
+  displayName: Elf
+  race: {fileID: 11400000, guid: 04996e97c0750844d95f7836e2af77e0, type: 2}
   description: 
   baseSubrace: {fileID: 0}
   baseStatModifiers:
@@ -40,19 +40,19 @@ MonoBehaviour:
     staggerResist: 50
     carryWeight: 50
   finalAttributesPreview:
-    strength: 12
+    strength: 10
     dexterity: 10
-    agility: 12
+    agility: 10
     vitality: 10
-    endurance: 8
-    intelligence: 8
-    willpower: 8
-    spirit: 12
+    endurance: 10
+    intelligence: 10
+    willpower: 10
+    spirit: 10
     perception: 10
   totalAttributePointsPreview: 90
-  size: 1
+  size: 2
   bodyType: 0
-  previewPrefab: {fileID: 1234193564985916695, guid: dfc7984f3f4abf24186d446a238bbc11, type: 3}
+  previewPrefab: {fileID: 4785745852243953366, guid: 3a5f6095d44f52346bd639f77094b792, type: 3}
   canHoldItemInMouth: 0
   canUseMouthWeapons: 0
   canEquipSaddles: 0
