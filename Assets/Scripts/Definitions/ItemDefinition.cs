@@ -44,6 +44,9 @@ public class ItemDefinition : ScriptableObject
     [Header("Item Type")]
     public ItemCategory itemCategory = ItemCategory.Misc;
 
+    [Header("World Model")]
+    public GameObject worldPrefab;
+
     [Header("Held UI")]
     public Sprite itemIcon;
 
@@ -383,6 +386,7 @@ public class ItemDefinitionEditor : Editor
 
         DrawIdentitySection(item);
         DrawItemTypeSection(item);
+        DrawWorldSection(item);
         DrawHeldSection(item);
         DrawHandlingSection(item);
         DrawStackingSection(item);
@@ -424,6 +428,33 @@ public class ItemDefinitionEditor : Editor
                 "Item Category",
                 item.itemCategory
             );
+
+        EditorGUILayout.Space();
+    }
+
+    private void DrawWorldSection(
+        ItemDefinition item)
+    {
+        EditorGUILayout.LabelField(
+            "World Model",
+            EditorStyles.boldLabel
+        );
+
+        item.worldPrefab =
+            (GameObject)EditorGUILayout.ObjectField(
+                "World Prefab",
+                item.worldPrefab,
+                typeof(GameObject),
+                false
+            );
+
+        if (item.worldPrefab == null)
+        {
+            EditorGUILayout.HelpBox(
+                "Every item definition requires a world prefab.",
+                MessageType.Error
+            );
+        }
 
         EditorGUILayout.Space();
     }
