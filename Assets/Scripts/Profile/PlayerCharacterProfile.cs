@@ -127,15 +127,30 @@ public class PlayerCharacterProfile : MonoBehaviour
 
         statusEffects.EffectsChanged +=
             HandleStatusEffectsChanged;
+
+        if (formState != null)
+        {
+            formState.Changed -=
+                HandleFormChanged;
+
+            formState.Changed +=
+                HandleFormChanged;
+        }
     }
 
     private void OnDisable()
     {
-        if (statusEffects == null)
-            return;
+        if (statusEffects != null)
+        {
+            statusEffects.EffectsChanged -=
+                HandleStatusEffectsChanged;
+        }
 
-        statusEffects.EffectsChanged -=
-            HandleStatusEffectsChanged;
+        if (formState != null)
+        {
+            formState.Changed -=
+                HandleFormChanged;
+        }
     }
 
     private void ResolveStatusEffects()
@@ -193,6 +208,12 @@ public class PlayerCharacterProfile : MonoBehaviour
                 ? SubraceDefinition.bodyType
                 : BodyType.Humanoid
         );
+
+        formState.Changed -=
+            HandleFormChanged;
+
+        formState.Changed +=
+            HandleFormChanged;
 
         LineageSelections =
             lineageSelections ??
@@ -261,6 +282,37 @@ public class PlayerCharacterProfile : MonoBehaviour
         AttributesChanged?.Invoke();
 
         LogResolvedCharacter();
+    }
+
+    private void HandleFormChanged()
+    {
+        if (ProfileData == null ||
+            PermanentAttributeOutput == null ||
+            EffectiveAttributeOutput == null)
+        {
+            return;
+        }
+
+        CharacterGripProfile gripProfile =
+            GetCurrentGripProfile();
+
+        PermanentHandlingProfile =
+            CharacterHandlingResolver.Resolve(
+                SubraceDefinition,
+                gripProfile,
+                PermanentAttributeOutput
+            );
+
+        EffectiveHandlingProfile =
+            CharacterHandlingResolver.Resolve(
+                SubraceDefinition,
+                gripProfile,
+                EffectiveAttributeOutput
+            );
+
+        ApplyEquipmentRules();
+
+        AttributesChanged?.Invoke();
     }
 
     private CharacterGripProfile
