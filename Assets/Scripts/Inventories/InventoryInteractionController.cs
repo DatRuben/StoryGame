@@ -30,8 +30,11 @@ public sealed class InventoryInteractionController :
     private PlayerWeaponLoadout weaponLoadout;
     private PlayerEquipment equipment;
     private PlayerCharacterProfile characterProfile;
+    private InventoryContainer playerInventory;
+    private WorldItemSpawner worldItemSpawner;
+
     private InventoryItemInstance
-    loadoutAssignmentItem;
+        loadoutAssignmentItem;
 
     public bool HasSelection =>
         cursor.HasSelection;
@@ -173,6 +176,95 @@ public sealed class InventoryInteractionController :
         return true;
     }
 
+    public void BindWorldItemSpawner(
+        WorldItemSpawner spawner)
+    {
+        worldItemSpawner =
+            spawner;
+    }
+
+    internal bool TryStoreOrDropHeldItem(
+    InventoryItemInstance item)
+    {
+        if (item == null ||
+            item.IsEmpty ||
+            gripState == null ||
+            !gripState.IsHolding(item))
+        {
+            return false;
+        }
+
+        if (playerInventory != null)
+        {
+            playerInventory.TryTransferIn(
+                item,
+                0,
+                out int remainingQuantity
+            );
+
+            if (remainingQuantity <= 0 ||
+                item.IsEmpty)
+            {
+                if (gripState.IsHolding(item))
+                {
+                    gripState.Release(
+                        item
+                    );
+                }
+
+                if (ReferenceEquals(
+                    cursor.SelectedItem,
+                    item))
+                {
+                    cursor.ClearSelection();
+                }
+
+                return true;
+            }
+        }
+
+        if (worldItemSpawner == null)
+            return false;
+
+        Vector3 dropPosition =
+            transform.position +
+            transform.forward * 1.25f;
+
+        Quaternion dropRotation =
+            Quaternion.Euler(
+                0f,
+                transform.eulerAngles.y,
+                0f
+            );
+
+        if (!worldItemSpawner.TrySpawn(
+                item,
+                dropPosition,
+                dropRotation,
+                out WorldItem worldItem))
+        {
+            return false;
+        }
+
+        if (!gripState.Release(item))
+        {
+            Destroy(
+                worldItem.gameObject
+            );
+
+            return false;
+        }
+
+        if (ReferenceEquals(
+            cursor.SelectedItem,
+            item))
+        {
+            cursor.ClearSelection();
+        }
+
+        return true;
+    }
+
     private void Awake()
     {
         inputRouter =
@@ -189,6 +281,9 @@ public sealed class InventoryInteractionController :
 
         characterProfile =
             GetComponent<PlayerCharacterProfile>();
+
+        playerInventory =
+            GetComponent<InventoryContainer>();
 
         cursor.Changed +=
             OnStateChanged;

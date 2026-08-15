@@ -21083,6 +21083,7 @@ MonoBehaviour:
   inventoryFollow: {fileID: 1711152533}
   heldItemUI: {fileID: 400143311}
   storageContainerPanel: {fileID: 173529711}
+  worldItemSpawner: {fileID: 1677855018}
   inventorySlotUIRoot: {fileID: 579740481}
   closedPreviewUIs:
   - {fileID: 1350866576}

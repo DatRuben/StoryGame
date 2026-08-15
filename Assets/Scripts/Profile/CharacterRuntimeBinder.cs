@@ -29,6 +29,10 @@ public sealed class CharacterRuntimeBinder :
     [SerializeField]
     private GameObject storageContainerPanel;
 
+    [Header("Runtime World")]
+    [SerializeField]
+    private WorldItemSpawner worldItemSpawner;
+
     [Header("Runtime Equipment UI")]
     [SerializeField]
     private Transform inventorySlotUIRoot;
@@ -95,6 +99,14 @@ public sealed class CharacterRuntimeBinder :
             interactionController =
                 player.GetComponent<
                     InventoryInteractionController>();
+
+        if (interactionController != null)
+        {
+            interactionController
+                .BindWorldItemSpawner(
+                    worldItemSpawner
+                );
+        }
 
         PlayerGripState gripState =
             player.GetComponent<
