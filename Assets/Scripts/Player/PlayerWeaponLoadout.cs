@@ -8,6 +8,12 @@ public sealed class WeaponSet
     private readonly InventoryItemInstance[] weapons =
         new InventoryItemInstance[SlotCount];
 
+    private CharacterForm requiredForm =
+        CharacterForm.Standing;
+
+    public CharacterForm RequiredForm =>
+        requiredForm;
+
     public bool HasAnyWeapon =>
         weapons[0] != null ||
         weapons[1] != null;
@@ -37,6 +43,12 @@ public sealed class WeaponSet
             return null;
 
         return weapons[slotIndex];
+    }
+
+    internal void SetRequiredForm(
+        CharacterForm form)
+    {
+        requiredForm = form;
     }
 
     internal bool SetWeapon(
@@ -100,6 +112,9 @@ public sealed class PlayerWeaponLoadout :
     public WeaponSet ActiveWeaponSet =>
         weaponSets[activeWeaponSetIndex];
 
+    public CharacterForm ActiveRequiredForm =>
+        ActiveWeaponSet.RequiredForm;
+
     public event Action Changed;
 
     private void OnValidate()
@@ -112,6 +127,100 @@ public sealed class PlayerWeaponLoadout :
             );
     }
 
+    internal void ConfigureForms(
+        BodyType bodyType)
+    {
+        switch (bodyType)
+        {
+            case BodyType.Quadruped:
+                for (int i = 0;
+                     i < WeaponSetCount;
+                     i++)
+                {
+                    weaponSets[i]
+                        .SetRequiredForm(
+                            CharacterForm.Feral
+                        );
+                }
+                break;
+
+            case BodyType.StanceSwitching:
+                weaponSets[0]
+                    .SetRequiredForm(
+                        CharacterForm.Standing
+                    );
+
+                weaponSets[1]
+                    .SetRequiredForm(
+                        CharacterForm.Feral
+                    );
+                break;
+
+            case BodyType.Humanoid:
+            default:
+                for (int i = 0;
+                     i < WeaponSetCount;
+                     i++)
+                {
+                    weaponSets[i]
+                        .SetRequiredForm(
+                            CharacterForm.Standing
+                        );
+                }
+                break;
+        }
+
+        Changed?.Invoke();
+    }
+
+    internal bool SetRequiredForm(
+        int setIndex,
+        CharacterForm form,
+        BodyType bodyType)
+    {
+        if (!IsValidSet(setIndex))
+            return false;
+
+        switch (bodyType)
+        {
+            case BodyType.Humanoid:
+                if (form !=
+                    CharacterForm.Standing)
+                {
+                    return false;
+                }
+                break;
+
+            case BodyType.Quadruped:
+                if (form !=
+                    CharacterForm.Feral)
+                {
+                    return false;
+                }
+                break;
+
+            case BodyType.StanceSwitching:
+                break;
+
+            default:
+                return false;
+        }
+
+        WeaponSet set =
+            weaponSets[setIndex];
+
+        if (set.RequiredForm == form)
+            return true;
+
+        set.SetRequiredForm(
+            form
+        );
+
+        Changed?.Invoke();
+
+        return true;
+    }
+
     public WeaponSet GetWeaponSet(
         int setIndex)
     {
@@ -119,6 +228,17 @@ public sealed class PlayerWeaponLoadout :
             return null;
 
         return weaponSets[setIndex];
+    }
+
+    public CharacterForm GetRequiredForm(
+        int setIndex)
+    {
+        WeaponSet set =
+            GetWeaponSet(setIndex);
+
+        return set != null
+            ? set.RequiredForm
+            : CharacterForm.Standing;
     }
 
     public InventoryItemInstance GetWeapon(

@@ -209,6 +209,18 @@ public class PlayerCharacterProfile : MonoBehaviour
                 : BodyType.Humanoid
         );
 
+        PlayerWeaponLoadout weaponLoadout =
+            GetComponent<PlayerWeaponLoadout>();
+
+        if (weaponLoadout != null)
+        {
+            weaponLoadout.ConfigureForms(
+                SubraceDefinition != null
+                    ? SubraceDefinition.bodyType
+                    : BodyType.Humanoid
+            );
+        }
+
         formState.Changed -=
             HandleFormChanged;
 
