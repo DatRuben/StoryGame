@@ -25,6 +25,10 @@ public sealed class InventoryInteractionController :
         heldItems =
             new List<InventoryItemInstance>();
 
+    private readonly List<InventoryItemInstance>
+        blockingItems =
+            new List<InventoryItemInstance>();
+
     private PlayerInputRouter inputRouter;
     private PlayerGripState gripState;
     private PlayerWeaponLoadout weaponLoadout;
@@ -184,7 +188,7 @@ public sealed class InventoryInteractionController :
     }
 
     internal bool TryStoreOrDropHeldItem(
-    InventoryItemInstance item)
+        InventoryItemInstance item)
     {
         if (item == null ||
             item.IsEmpty ||
@@ -260,6 +264,37 @@ public sealed class InventoryInteractionController :
             item))
         {
             cursor.ClearSelection();
+        }
+
+        return true;
+    }
+
+    internal bool TryClearBlockingItems(
+        CharacterGripProfile targetProfile)
+    {
+        if (gripState == null)
+            return false;
+
+        gripState.GetBlockingItems(
+            targetProfile,
+            blockingItems
+        );
+
+        for (int i = 0;
+             i < blockingItems.Count;
+             i++)
+        {
+            InventoryItemInstance item =
+                blockingItems[i];
+
+            if (item == null)
+                continue;
+
+            if (!TryStoreOrDropHeldItem(
+                    item))
+            {
+                return false;
+            }
         }
 
         return true;

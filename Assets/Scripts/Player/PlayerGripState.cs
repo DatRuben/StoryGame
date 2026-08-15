@@ -44,6 +44,53 @@ public sealed class PlayerGripState :
 
     public event Action Changed;
 
+    internal void GetBlockingItems(
+        CharacterGripProfile profile,
+        List<InventoryItemInstance> results)
+    {
+        if (results == null)
+            return;
+
+        results.Clear();
+
+        if (profile == null)
+        {
+            profile =
+                CharacterGripProfile
+                    .CreateHumanoidDefault();
+        }
+
+        int newHandGripCount =
+            profile.HandGripCount;
+
+        int newMouthGripCount =
+            profile.MouthGripCount;
+
+        if (newHandGripCount < 1)
+        {
+            AddUnique(
+                results,
+                handItems[0]
+            );
+        }
+
+        if (newHandGripCount < 2)
+        {
+            AddUnique(
+                results,
+                handItems[1]
+            );
+        }
+
+        if (newMouthGripCount < 1)
+        {
+            AddUnique(
+                results,
+                mouthItem
+            );
+        }
+    }
+
     internal bool CanConfigure(
         CharacterGripProfile profile)
     {
