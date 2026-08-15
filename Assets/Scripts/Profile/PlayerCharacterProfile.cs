@@ -327,6 +327,59 @@ public class PlayerCharacterProfile : MonoBehaviour
         AttributesChanged?.Invoke();
     }
 
+    internal bool CanUseForm(
+        CharacterForm form)
+    {
+        if (formState == null)
+            return false;
+
+        if (form !=
+                formState.CurrentForm &&
+            !formState.CanSwitchForm)
+        {
+            return false;
+        }
+
+        CharacterGripProfile gripProfile =
+            SubraceDefinition != null
+                ? SubraceDefinition
+                    .GetGripProfile(form)
+                : CharacterGripProfile
+                    .CreateHumanoidDefault();
+
+        if (gripProfile == null)
+        {
+            gripProfile =
+                CharacterGripProfile
+                    .CreateHumanoidDefault();
+        }
+
+        PlayerGripState gripState =
+            GetComponent<PlayerGripState>();
+
+        return gripState == null ||
+               gripState.CanConfigure(
+                   gripProfile
+               );
+    }
+
+    internal bool TrySetForm(
+        CharacterForm form)
+    {
+        if (formState == null)
+            return false;
+
+        if (formState.CurrentForm == form)
+            return true;
+
+        if (!CanUseForm(form))
+            return false;
+
+        return formState.SetForm(
+            form
+        );
+    }
+
     private CharacterGripProfile
         GetCurrentGripProfile()
     {

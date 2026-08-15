@@ -44,7 +44,7 @@ public sealed class PlayerGripState :
 
     public event Action Changed;
 
-    internal bool Configure(
+    internal bool CanConfigure(
         CharacterGripProfile profile)
     {
         if (profile == null)
@@ -60,6 +60,12 @@ public sealed class PlayerGripState :
         int newMouthGripCount =
             profile.MouthGripCount;
 
+        if (newHandGripCount < 1 &&
+            handItems[0] != null)
+        {
+            return false;
+        }
+
         if (newHandGripCount < 2 &&
             handItems[1] != null)
         {
@@ -71,6 +77,22 @@ public sealed class PlayerGripState :
         {
             return false;
         }
+
+        return true;
+    }
+
+    internal bool Configure(
+        CharacterGripProfile profile)
+    {
+        if (profile == null)
+        {
+            profile =
+                CharacterGripProfile
+                    .CreateHumanoidDefault();
+        }
+
+        if (!CanConfigure(profile))
+            return false;
 
         bool changed =
             !ReferenceEquals(
