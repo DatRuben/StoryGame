@@ -31,6 +31,9 @@ public sealed class PlayerWeaponDeployment :
     private PlayerCharacterProfile characterProfile;
     private PlayerEquipment playerEquipment;
 
+    private InventoryInteractionController
+        interactionController;
+
     private bool loadoutDeployed;
 
     public bool WeaponsDrawn =>
@@ -193,6 +196,7 @@ public sealed class PlayerWeaponDeployment :
         ResolveReferences();
 
         if (weaponLoadout == null ||
+            characterProfile == null ||
             weaponLoadout.GetWeaponSet(
                 setIndex) == null)
         {
@@ -210,6 +214,33 @@ public sealed class PlayerWeaponDeployment :
             weaponLoadout
                 .ActiveWeaponSetIndex;
 
+        CharacterForm previousForm =
+            weaponLoadout.GetRequiredForm(
+                previousSetIndex
+            );
+
+        CharacterForm targetForm =
+            weaponLoadout.GetRequiredForm(
+                setIndex
+            );
+
+        CharacterGripProfile targetGripProfile =
+            characterProfile.SubraceDefinition != null
+                ? characterProfile
+                    .SubraceDefinition
+                    .GetGripProfile(
+                        targetForm
+                    )
+                : CharacterGripProfile
+                    .CreateHumanoidDefault();
+
+        if (targetGripProfile == null)
+        {
+            targetGripProfile =
+                CharacterGripProfile
+                    .CreateHumanoidDefault();
+        }
+
         bool wasDeployed =
             loadoutDeployed;
 
@@ -217,21 +248,49 @@ public sealed class PlayerWeaponDeployment :
 
         loadoutDeployed = false;
 
-        if (!weaponLoadout
-            .SetActiveWeaponSet(
-                setIndex))
+        if (interactionController != null &&
+            !interactionController
+                .TryClearBlockingItems(
+                    targetGripProfile
+                ))
         {
             if (wasDeployed)
                 DrawWeapons();
 
             return false;
         }
-    
+
+        if (!characterProfile.TrySetForm(
+                targetForm))
+        {
+            if (wasDeployed)
+                DrawWeapons();
+
+            return false;
+        }
+
+        if (!weaponLoadout.SetActiveWeaponSet(
+                setIndex))
+        {
+            characterProfile.TrySetForm(
+                previousForm
+            );
+
+            if (wasDeployed)
+                DrawWeapons();
+
+            return false;
+        }
+
         if (DrawWeapons())
             return true;
 
         weaponLoadout.SetActiveWeaponSet(
             previousSetIndex
+        );
+
+        characterProfile.TrySetForm(
+            previousForm
         );
 
         if (wasDeployed)
@@ -435,6 +494,13 @@ public sealed class PlayerWeaponDeployment :
         {
             playerEquipment =
                 GetComponent<PlayerEquipment>();
+        }
+
+        if (interactionController == null)
+        {
+            interactionController =
+                GetComponent<
+                    InventoryInteractionController>();
         }
     }
 }
