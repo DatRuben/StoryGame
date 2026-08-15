@@ -34679,7 +34679,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b95c9217419f1d744ad0adc90953331a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WorldItemSpawner
-  worldItemPrefab: {fileID: 0}
+  worldItemPrefab: {fileID: -2073826482975956469, guid: 1633b5a922d404e499ca04bcc7a17e66, type: 3}
 --- !u!1 &1678946509
 GameObject:
   m_ObjectHideFlags: 0
