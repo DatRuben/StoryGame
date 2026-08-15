@@ -14,8 +14,12 @@ public sealed class PlayerWeaponDeployment :
         activeWeapons =
             new List<InventoryItemInstance>();
 
+    private readonly List<InventoryItemInstance>
+        conventionalWeapons =
+            new List<InventoryItemInstance>();
+
     private readonly List<ItemDefinition>
-        activeDefinitions =
+        conventionalDefinitions =
             new List<ItemDefinition>();
 
     private readonly List<ResolvedItemHandling>
@@ -25,34 +29,12 @@ public sealed class PlayerWeaponDeployment :
     private PlayerWeaponLoadout weaponLoadout;
     private PlayerGripState gripState;
     private PlayerCharacterProfile characterProfile;
+    private PlayerEquipment playerEquipment;
 
-    public bool WeaponsDrawn
-    {
-        get
-        {
-            ResolveReferences();
-            CollectActiveWeapons();
+    private bool loadoutDeployed;
 
-            if (activeWeapons.Count == 0 ||
-                gripState == null)
-            {
-                return false;
-            }
-
-            for (int i = 0;
-                 i < activeWeapons.Count;
-                 i++)
-            {
-                if (!gripState.IsHolding(
-                    activeWeapons[i]))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-    }
+    public bool WeaponsDrawn =>
+        loadoutDeployed;
 
     public event Action Changed;
 
@@ -66,12 +48,31 @@ public sealed class PlayerWeaponDeployment :
     {
         ResolveReferences();
 
-        return IsActiveWeapon(
-                   weapon) &&
-               gripState != null &&
-               gripState.IsHolding(
-                   weapon
-               );
+        if (!loadoutDeployed ||
+            !IsActiveWeapon(weapon) ||
+            weapon == null ||
+            weapon.Definition == null)
+        {
+            return false;
+        }
+
+        if (weapon.Definition.IsConventionalWeapon)
+        {
+            return gripState != null &&
+                   gripState.IsHolding(
+                       weapon
+                   );
+        }
+
+        if (weapon.Definition.IsAttachedWeapon)
+        {
+            return playerEquipment != null &&
+                   playerEquipment.IsEquipped(
+                       weapon
+                   );
+        }
+
+        return false;
     }
 
     public bool DrawWeapons()
@@ -79,11 +80,7 @@ public sealed class PlayerWeaponDeployment :
         ResolveReferences();
 
         if (weaponLoadout == null ||
-            gripState == null ||
-            characterProfile == null ||
-            characterProfile
-                .EffectiveHandlingProfile ==
-                null)
+            gripState == null)
         {
             return false;
         }
@@ -96,53 +93,67 @@ public sealed class PlayerWeaponDeployment :
         if (WeaponsDrawn)
             return true;
 
-        // Clear any partial deployment before planning
-        // the complete set again.
-        ReleaseActiveWeapons();
+        ReleaseActiveConventionalWeapons();
 
-        CharacterHandlingProfile handling =
-            characterProfile
-                .EffectiveHandlingProfile;
-
-        if (!WeaponUsePlanResolver
-            .TryResolve(
-                activeDefinitions,
-                handling,
-                gripState.GetFreeGripCount(
-                    GripType.Hand
-                ),
-                gripState.GetFreeGripCount(
-                    GripType.Mouth
-                ),
-                usePlan))
-        {
+        if (!ValidateActiveAttachments())
             return false;
-        }
 
-        int deployedCount = 0;
-
-        for (int i = 0;
-             i < activeWeapons.Count;
-             i++)
+        if (conventionalWeapons.Count > 0)
         {
-            ResolvedItemHandling resolved =
-                usePlan[i];
-
-            if (resolved == null ||
-                !gripState.TryHold(
-                    activeWeapons[i],
-                    resolved.gripType,
-                    resolved.assignedGripCount))
+            if (characterProfile == null ||
+                characterProfile
+                    .EffectiveHandlingProfile ==
+                    null)
             {
-                RollbackDeployment(
-                    deployedCount
-                );
-
                 return false;
             }
 
-            deployedCount++;
+            CharacterHandlingProfile handling =
+                characterProfile
+                    .EffectiveHandlingProfile;
+
+            if (!WeaponUsePlanResolver
+                .TryResolve(
+                    conventionalDefinitions,
+                    handling,
+                    gripState.GetFreeGripCount(
+                        GripType.Hand
+                    ),
+                    gripState.GetFreeGripCount(
+                        GripType.Mouth
+                    ),
+                    usePlan))
+            {
+                return false;
+            }
+
+            int deployedCount = 0;
+
+            for (int i = 0;
+                 i < conventionalWeapons.Count;
+                 i++)
+            {
+                ResolvedItemHandling resolved =
+                    usePlan[i];
+
+                if (resolved == null ||
+                    !gripState.TryHold(
+                        conventionalWeapons[i],
+                        resolved.gripType,
+                        resolved.assignedGripCount))
+                {
+                    RollbackDeployment(
+                        deployedCount
+                    );
+
+                    return false;
+                }
+
+                deployedCount++;
+            }
         }
+
+        loadoutDeployed = true;
 
         Changed?.Invoke();
 
@@ -153,8 +164,17 @@ public sealed class PlayerWeaponDeployment :
     {
         ResolveReferences();
 
+        bool wasDeployed =
+            loadoutDeployed;
+
+        bool releasedWeapons =
+            ReleaseActiveConventionalWeapons();
+
+        loadoutDeployed = false;
+
         bool changed =
-            ReleaseActiveWeapons();
+            wasDeployed ||
+            releasedWeapons;
 
         if (changed)
             Changed?.Invoke();
@@ -218,24 +238,23 @@ public sealed class PlayerWeaponDeployment :
             weaponLoadout
                 .ActiveWeaponSetIndex;
 
-        bool redraw =
-            WeaponsDrawn;
+        bool wasDeployed =
+            loadoutDeployed;
 
-        ReleaseActiveWeapons();
+        ReleaseActiveConventionalWeapons();
+
+        loadoutDeployed = false;
 
         if (!weaponLoadout
             .SetActiveWeaponSet(
                 setIndex))
         {
+            if (wasDeployed)
+                DrawWeapons();
+
             return false;
         }
-
-        if (!redraw)
-        {
-            Changed?.Invoke();
-            return true;
-        }
-
+    
         if (DrawWeapons())
             return true;
 
@@ -243,12 +262,20 @@ public sealed class PlayerWeaponDeployment :
             previousSetIndex
         );
 
-        DrawWeapons();
+        if (wasDeployed)
+        {
+            DrawWeapons();
+        }
+        else
+        {
+            loadoutDeployed = false;
+            Changed?.Invoke();
+        }
 
         return false;
     }
 
-    private bool ReleaseActiveWeapons()
+    private bool ReleaseActiveConventionalWeapons()
     {
         if (gripState == null)
             return false;
@@ -258,14 +285,14 @@ public sealed class PlayerWeaponDeployment :
         bool changed = false;
 
         for (int i = 0;
-             i < activeWeapons.Count;
+             i < conventionalWeapons.Count;
              i++)
         {
             InventoryItemInstance weapon =
-                activeWeapons[i];
+                conventionalWeapons[i];
 
             if (!gripState.IsHolding(
-                weapon))
+                    weapon))
             {
                 continue;
             }
@@ -285,11 +312,11 @@ public sealed class PlayerWeaponDeployment :
     {
         for (int i = 0;
              i < deployedCount &&
-             i < activeWeapons.Count;
+             i < conventionalWeapons.Count;
              i++)
         {
             InventoryItemInstance weapon =
-                activeWeapons[i];
+                conventionalWeapons[i];
 
             if (gripState.IsHolding(
                 weapon))
@@ -299,12 +326,15 @@ public sealed class PlayerWeaponDeployment :
                 );
             }
         }
+
+        loadoutDeployed = false;
     }
 
     private void CollectActiveWeapons()
     {
         activeWeapons.Clear();
-        activeDefinitions.Clear();
+        conventionalWeapons.Clear();
+        conventionalDefinitions.Clear();
 
         if (weaponLoadout == null)
             return;
@@ -331,10 +361,51 @@ public sealed class PlayerWeaponDeployment :
                 weapon
             );
 
-            activeDefinitions.Add(
-                weapon.Definition
-            );
+            if (weapon.Definition
+                .IsConventionalWeapon)
+            {
+                conventionalWeapons.Add(
+                    weapon
+                );
+
+                conventionalDefinitions.Add(
+                    weapon.Definition
+                );
+            }
         }
+    }
+
+    private bool ValidateActiveAttachments()
+    {
+        for (int i = 0;
+             i < activeWeapons.Count;
+             i++)
+        {
+            InventoryItemInstance weapon =
+                activeWeapons[i];
+
+            if (weapon == null ||
+                weapon.Definition == null)
+            {
+                return false;
+            }
+
+            if (!weapon.Definition
+                .IsAttachedWeapon)
+            {
+                continue;
+            }
+
+            if (playerEquipment == null ||
+                !playerEquipment.IsEquipped(
+                    weapon
+                ))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private bool IsActiveWeapon(
@@ -386,6 +457,12 @@ public sealed class PlayerWeaponDeployment :
             characterProfile =
                 GetComponent<
                     PlayerCharacterProfile>();
+        }
+
+        if (playerEquipment == null)
+        {
+            playerEquipment =
+                GetComponent<PlayerEquipment>();
         }
     }
 }
