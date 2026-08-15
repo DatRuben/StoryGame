@@ -202,6 +202,20 @@ public static class ItemHandlingResolver
             return result;
         }
 
+        if (!CanHoldAtStrain(
+            result))
+        {
+            result.holdFailureReason =
+                ItemHandlingFailureReason
+                    .NotEnoughAssignedGrips;
+
+            result.useFailureReason =
+                ItemHandlingFailureReason
+                    .NotEnoughAssignedGrips;
+
+            return result;
+        }
+
         result.canHold = true;
 
         result.holdFailureReason =
@@ -235,6 +249,27 @@ public static class ItemHandlingResolver
             ItemHandlingFailureReason.None;
 
         return result;
+    }
+
+    private static bool CanHoldAtStrain(
+        ResolvedItemHandling result)
+    {
+        if (result == null)
+            return false;
+
+        if (result.gripType !=
+            GripType.Hand)
+        {
+            return true;
+        }
+
+        if (result.tier !=
+            ItemHandlingTier.SeverelyStrained)
+        {
+            return true;
+        }
+
+        return result.assignedGripCount >= 2;
     }
 
     private static ResolvedItemHandling ResolveBest(
