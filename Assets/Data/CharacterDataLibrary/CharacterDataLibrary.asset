@@ -20,6 +20,7 @@ MonoBehaviour:
   subraceDefinitions:
   - {fileID: 11400000, guid: ea62e3cf94c7de245b36d84fc8aea762, type: 2}
   - {fileID: 11400000, guid: 10ccb86a2d0cb24429be39083f24cf0e, type: 2}
+  - {fileID: 11400000, guid: f1d8bcc0adb9ab743a4a044ed963edec, type: 2}
   - {fileID: 11400000, guid: 5fdc2e4338fbbaf4f9ffeb47e349c79c, type: 2}
   - {fileID: 11400000, guid: 479ce3a3f5eba2a429ca98e97b02a597, type: 2}
   - {fileID: 11400000, guid: e5a75990c0f7ed14691ff7adba7a5edc, type: 2}
