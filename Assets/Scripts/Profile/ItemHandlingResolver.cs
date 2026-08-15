@@ -77,6 +77,10 @@ public static class ItemHandlingResolver
             item,
             character,
             gripType,
+            GetAvailableGripCount(
+                character,
+                gripType
+            ),
             false
         );
     }
@@ -90,6 +94,10 @@ public static class ItemHandlingResolver
             item,
             character,
             gripType,
+            GetAvailableGripCount(
+                character,
+                gripType
+            ),
             true
         );
     }
@@ -276,6 +284,7 @@ public static class ItemHandlingResolver
         ItemDefinition item,
         CharacterHandlingProfile character,
         GripType gripType,
+        int availableGripCount,
         bool resolvingUse)
     {
         if (item == null ||
@@ -289,10 +298,14 @@ public static class ItemHandlingResolver
             );
         }
 
-        int availableGripCount =
-            GetAvailableGripCount(
-                character,
-                gripType
+        availableGripCount =
+            Mathf.Clamp(
+                availableGripCount,
+                0,
+                GetAvailableGripCount(
+                    character,
+                    gripType
+                )
             );
 
         int minimumGripCount =
@@ -498,94 +511,39 @@ public static class ItemHandlingResolver
             return false;
         }
 
-        availableHands =
-            Mathf.Clamp(
+        ResolvedItemHandling handResult =
+            ResolveBest(
+                item,
+                character,
+                GripType.Hand,
                 availableHands,
-                0,
-                character.GripProfile.HandGripCount
+                false
             );
 
-        availableMouth =
-            Mathf.Clamp(
-                availableMouth,
-                0,
-                character.GripProfile.MouthGripCount
-            );
-
-        if (TryResolveAvailableHold(
-            item,
-            character,
-            GripType.Hand,
-            availableHands,
-            out result))
+        if (handResult != null &&
+            handResult.canHold)
         {
+            result = handResult;
             return true;
         }
 
-        return TryResolveAvailableHold(
-            item,
-            character,
-            GripType.Mouth,
-            availableMouth,
-            out result
-        );
-    }
+        ResolvedItemHandling mouthResult =
+            ResolveBest(
+                item,
+                character,
+                GripType.Mouth,
+                availableMouth,
+                false
+            );
 
-    private static bool TryResolveAvailableHold(
-        ItemDefinition item,
-        CharacterHandlingProfile character,
-        GripType gripType,
-        int availableGripCount,
-        out ResolvedItemHandling result)
-    {
-        result = null;
-
-        const int minimumGripCount = 1;
-
-        if (availableGripCount <
-            minimumGripCount)
+        if (mouthResult != null &&
+            mouthResult.canHold)
         {
-            return false;
+            result = mouthResult;
+            return true;
         }
 
-        ResolvedItemHandling severeResult =
-            null;
-
-        for (int gripCount =
-                 minimumGripCount;
-             gripCount <=
-                 availableGripCount;
-             gripCount++)
-        {
-            ResolvedItemHandling current =
-                Resolve(
-                    item,
-                    character,
-                    gripType,
-                    gripCount
-                );
-
-            if (!current.canHold)
-                continue;
-
-            if (current.tier <=
-                ItemHandlingTier.Strained)
-            {
-                result = current;
-                return true;
-            }
-
-            if (severeResult == null)
-            {
-                severeResult =
-                    current;
-            }
-        }
-
-        result =
-            severeResult;
-
-        return result != null;
+        return false;
     }
 
     private static float CalculateLoadRatio(
