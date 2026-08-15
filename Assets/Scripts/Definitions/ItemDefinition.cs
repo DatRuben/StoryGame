@@ -153,6 +153,16 @@ public class ItemDefinition : ScriptableObject
     {
         RefreshHandling();
 
+#if UNITY_EDITOR
+        if (worldPrefab == null)
+        {
+            worldPrefab =
+                AssetDatabase.LoadAssetAtPath<GameObject>(
+                    "Assets/Prefabs/Items/Bag.prefab"
+                );
+        }
+#endif
+
         int requiredSize =
             Mathf.Max(
                 1,
