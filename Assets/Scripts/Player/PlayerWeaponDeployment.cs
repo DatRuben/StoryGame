@@ -87,9 +87,6 @@ public sealed class PlayerWeaponDeployment :
 
         CollectActiveWeapons();
 
-        if (activeWeapons.Count == 0)
-            return false;
-
         if (WeaponsDrawn)
             return true;
 
@@ -180,31 +177,6 @@ public sealed class PlayerWeaponDeployment :
             Changed?.Invoke();
 
         return changed;
-    }
-
-    internal bool SheatheWeapon(
-        InventoryItemInstance weapon)
-    {
-        ResolveReferences();
-
-        if (!IsActiveWeapon(
-                weapon) ||
-            gripState == null ||
-            !gripState.IsHolding(
-                weapon))
-        {
-            return false;
-        }
-
-        if (!gripState.Release(
-            weapon))
-        {
-            return false;
-        }
-
-        Changed?.Invoke();
-
-        return true;
     }
 
     public bool ToggleWeaponsDrawn()
