@@ -367,7 +367,8 @@ public class SubraceDefinitionEditor : Editor
     private SerializedProperty size;
     private SerializedProperty bodyType;
     private SerializedProperty previewPrefab;
-    private SerializedProperty gripProfile;
+    private SerializedProperty standingGripProfile;
+    private SerializedProperty feralGripProfile;
     private SerializedProperty canEquipSaddles;
 
     private void OnEnable()
@@ -432,9 +433,14 @@ public class SubraceDefinitionEditor : Editor
                 "previewPrefab"
             );
 
-        gripProfile =
+        standingGripProfile =
             serializedObject.FindProperty(
-                "gripProfile"
+                "standingGripProfile"
+            );
+
+        feralGripProfile =
+            serializedObject.FindProperty(
+                "feralGripProfile"
             );
 
         canEquipSaddles =
@@ -455,6 +461,7 @@ public class SubraceDefinitionEditor : Editor
         DrawCombatStats();
         DrawAttributeInheritance();
         DrawBody();
+        DrawFormHandling();
         DrawEquipmentRules();
 
         bool changed =
@@ -476,6 +483,61 @@ public class SubraceDefinitionEditor : Editor
         }
     }
 
+    private void DrawFormHandling()
+    {
+        EditorGUILayout.LabelField(
+            "Form Handling",
+            EditorStyles.boldLabel
+        );
+
+        BodyType selectedBodyType =
+            (BodyType)bodyType.enumValueIndex;
+
+        switch (selectedBodyType)
+        {
+            case BodyType.Humanoid:
+                EditorGUILayout.PropertyField(
+                    standingGripProfile,
+                    new GUIContent(
+                        "Standing Grip Profile"
+                    ),
+                    true
+                );
+                break;
+
+            case BodyType.Quadruped:
+                EditorGUILayout.PropertyField(
+                    feralGripProfile,
+                    new GUIContent(
+                        "Feral Grip Profile"
+                    ),
+                    true
+                );
+                break;
+
+            case BodyType.StanceSwitching:
+                EditorGUILayout.PropertyField(
+                    standingGripProfile,
+                    new GUIContent(
+                        "Standing Grip Profile"
+                    ),
+                    true
+                );
+
+                EditorGUILayout.Space(4f);
+
+                EditorGUILayout.PropertyField(
+                    feralGripProfile,
+                    new GUIContent(
+                        "Feral Grip Profile"
+                    ),
+                    true
+                );
+                break;
+        }
+
+        EditorGUILayout.Space();
+    }
     private void DrawRace()
     {
         EditorGUILayout.LabelField(
@@ -841,18 +903,6 @@ public class SubraceDefinitionEditor : Editor
 
     private void DrawEquipmentRules()
     {
-        EditorGUILayout.LabelField(
-            "Grip Profile",
-            EditorStyles.boldLabel
-        );
-
-        EditorGUILayout.PropertyField(
-            gripProfile,
-            true
-        );
-
-        EditorGUILayout.Space();
-
         EditorGUILayout.LabelField(
             "Equipment Rules",
             EditorStyles.boldLabel
