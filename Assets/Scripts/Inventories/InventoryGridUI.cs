@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 public sealed class InventoryGridUI :
     MonoBehaviour
@@ -184,10 +185,37 @@ public sealed class InventoryGridUI :
     private void Update()
     {
         HandleDragDetection();
+        HandleOutsideSelectionDrop();
         HandleDragRelease();
         UpdateHoveredCoordinateFromMouse();
         UpdateHeldPreviewVisibility();
         UpdateHeldPreviewPosition();
+    }
+
+    private void HandleOutsideSelectionDrop()
+    {
+        if (!heldPreviewEnabled ||
+            !InventoryMenuController
+                .IsInventoryOpen ||
+            interactionController == null ||
+            !interactionController.HasSelection ||
+            isDraggingItem ||
+            Mouse.current == null ||
+            !Mouse.current.leftButton
+                .wasReleasedThisFrame)
+        {
+            return;
+        }
+
+        if (EventSystem.current != null &&
+            EventSystem.current
+                .IsPointerOverGameObject())
+        {
+            return;
+        }
+
+        interactionController
+            .TryDropSelection();
     }
 
     public void BindPlayer(

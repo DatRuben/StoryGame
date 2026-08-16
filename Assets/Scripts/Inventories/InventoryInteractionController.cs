@@ -283,6 +283,22 @@ public sealed class InventoryInteractionController :
         return true;
     }
 
+    internal bool TryDropSelection()
+    {
+        InventoryItemInstance item =
+            cursor.SelectedItem;
+
+        if (!IsPlacementCandidate(
+                item))
+        {
+            return false;
+        }
+
+        return TryDropHeldItem(
+            item
+        );
+    }
+
     internal bool TryStoreOrDropLooseHeldItems()
     {
         if (gripState == null)
@@ -457,6 +473,12 @@ public sealed class InventoryInteractionController :
 
         inputRouter.RotateItemAction.started +=
             OnRotateItem;
+
+        inputRouter.DropAction.started -=
+            OnDropItem;
+
+        inputRouter.DropAction.started +=
+            OnDropItem;
     }
 
     private void OnDisable()
@@ -466,6 +488,9 @@ public sealed class InventoryInteractionController :
 
         inputRouter.RotateItemAction.started -=
             OnRotateItem;
+
+        inputRouter.DropAction.started -=
+            OnDropItem;
     }
 
     private void OnRotateItem(
@@ -479,6 +504,12 @@ public sealed class InventoryInteractionController :
         }
 
         cursor.RotateCounterClockwise();
+    }
+
+    private void OnDropItem(
+        InputAction.CallbackContext context)
+    {
+        TryDropSelection();
     }
 
     public bool SelectHeldItem(
