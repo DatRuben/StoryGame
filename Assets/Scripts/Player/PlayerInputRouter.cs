@@ -36,6 +36,9 @@ public class PlayerInputRouter : MonoBehaviour
     public InputAction InventoryAction =>
         GetActions().Player.Inventory;
 
+    public InputAction RotateItemAction =>
+        GetActions().Player.ReloadRotateItem;
+
     public InputAction DropAction =>
         GetActions().Player.Drop;
 
