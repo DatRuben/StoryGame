@@ -2,8 +2,10 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(
-    typeof(PlayerInputRouter)
+    typeof(PlayerInputRouter),
+    typeof(InventoryInteractionController)
 )]
+
 public sealed class PlayerStorageContainerInteract :
     MonoBehaviour
 {
@@ -48,6 +50,9 @@ public sealed class PlayerStorageContainerInteract :
     [SerializeField]
     private PlayerInputRouter inputRouter;
 
+    private InventoryInteractionController
+        interactionController;
+
     private InventoryContainer currentOpenContainer;
 
     public bool HasOpenContainer =>
@@ -83,6 +88,13 @@ public sealed class PlayerStorageContainerInteract :
         {
             inputRouter =
                 GetComponent<PlayerInputRouter>();
+        }
+
+        if (interactionController == null)
+        {
+            interactionController =
+                GetComponent<
+                    InventoryInteractionController>();
         }
 
         if (cameraTransform == null &&
@@ -148,16 +160,56 @@ public sealed class PlayerStorageContainerInteract :
             return;
         }
 
+        WorldItem worldItem =
+            useLookTargeting
+                ? FindLookedAtWorldItem()
+                : null;
+
+        if (worldItem != null)
+        {
+            if (interactionController != null)
+            {
+                interactionController
+                    .TryTakeWorldItem(
+                        worldItem
+                    );
+            }
+
+            return;
+        }
+
         InventoryContainer target =
             useLookTargeting
                 ? FindLookedAtContainer()
                 : null;
 
-        if (target == null)
+        if (target != null)
         {
-            target =
-                FindNearestContainer();
+            OpenContainer(
+                target
+            );
+
+            return;
         }
+
+        worldItem =
+            FindNearestWorldItem();
+
+        if (worldItem != null)
+        {
+            if (interactionController != null)
+            {
+                interactionController
+                    .TryTakeWorldItem(
+                        worldItem
+                    );
+            }
+
+            return;
+        }
+
+        target =
+            FindNearestContainer();
 
         if (target != null)
         {
@@ -165,6 +217,87 @@ public sealed class PlayerStorageContainerInteract :
                 target
             );
         }
+    }
+
+    private WorldItem
+        FindLookedAtWorldItem()
+    {
+        if (cameraTransform == null)
+            return null;
+
+        Ray ray =
+            new Ray(
+                cameraTransform.position,
+                cameraTransform.forward
+            );
+
+        if (!Physics.Raycast(
+            ray,
+            out RaycastHit hit,
+            lookInteractRange,
+            containerLayerMask,
+            QueryTriggerInteraction.Collide))
+        {
+            return null;
+        }
+
+        return hit.collider
+            .GetComponentInParent<
+                WorldItem>();
+    }
+
+    private WorldItem
+        FindNearestWorldItem()
+    {
+        Collider[] hits =
+            Physics.OverlapSphere(
+                transform.position,
+                interactRange,
+                containerLayerMask,
+                QueryTriggerInteraction.Collide
+            );
+
+        WorldItem nearest =
+            null;
+
+        float nearestDistance =
+            float.MaxValue;
+
+        for (int i = 0;
+             i < hits.Length;
+             i++)
+        {
+            WorldItem worldItem =
+                hits[i].GetComponentInParent<
+                    WorldItem>();
+
+            if (worldItem == null ||
+                worldItem.Item == null ||
+                worldItem.Item.IsEmpty)
+            {
+                continue;
+            }
+
+            float distance =
+                Vector3.Distance(
+                    transform.position,
+                    worldItem.transform.position
+                );
+
+            if (distance >=
+                nearestDistance)
+            {
+                continue;
+            }
+
+            nearestDistance =
+                distance;
+
+            nearest =
+                worldItem;
+        }
+
+        return nearest;
     }
 
     private InventoryContainer
