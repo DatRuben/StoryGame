@@ -227,8 +227,22 @@ public sealed class InventoryInteractionController :
             }
         }
 
-        if (worldItemSpawner == null)
+        return TryDropHeldItem(
+            item
+        );
+    }
+
+    internal bool TryDropHeldItem(
+        InventoryItemInstance item)
+    {
+        if (item == null ||
+            item.IsEmpty ||
+            gripState == null ||
+            !gripState.IsHolding(item) ||
+            worldItemSpawner == null)
+        {
             return false;
+        }
 
         Vector3 dropPosition =
             transform.position +
@@ -264,6 +278,45 @@ public sealed class InventoryInteractionController :
             item))
         {
             cursor.ClearSelection();
+        }
+
+        return true;
+    }
+
+    internal bool TryStoreOrDropLooseHeldItems()
+    {
+        if (gripState == null)
+            return false;
+
+        gripState.GetHeldItemsInCycleOrder(
+            heldItems
+        );
+
+        for (int i = 0;
+             i < heldItems.Count;
+             i++)
+        {
+            InventoryItemInstance item =
+                heldItems[i];
+
+            if (item == null ||
+                item.IsEmpty)
+            {
+                continue;
+            }
+
+            if (weaponLoadout != null &&
+                weaponLoadout.IsWeaponAssigned(
+                    item))
+            {
+                continue;
+            }
+
+            if (!TryStoreOrDropHeldItem(
+                    item))
+            {
+                return false;
+            }
         }
 
         return true;

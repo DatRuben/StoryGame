@@ -91,6 +91,8 @@ public sealed class InventoryGridUI :
     private GridLayoutGroup heldPreviewLayoutGroup;
     private CanvasGroup heldPreviewCanvasGroup;
 
+    private bool heldPreviewEnabled = true;
+
     private readonly List<InventoryCellUI> cells =
         new List<InventoryCellUI>();
 
@@ -191,7 +193,8 @@ public sealed class InventoryGridUI :
     public void BindPlayer(
         InventoryContainer newContainer,
         InventoryInteractionController
-            newInteractionController)
+            newInteractionController,
+        bool enableHeldPreview = true)
     {
         UnsubscribeState();
 
@@ -200,6 +203,9 @@ public sealed class InventoryGridUI :
 
         interactionController =
             newInteractionController;
+
+        heldPreviewEnabled =
+            enableHeldPreview;
 
         if (isActiveAndEnabled)
             SubscribeState();
@@ -705,20 +711,29 @@ public sealed class InventoryGridUI :
                 interactionController.SelectedItem,
                 draggedItem))
         {
-            bool returned =
+            bool dropped =
                 interactionController
-                    .TryReturnSelectionToContainer(
-                        dragSourceContainer,
-                        dragOriginalPosition,
-                        dragOriginalRotationSteps
+                    .TryDropHeldItem(
+                        draggedItem
                     );
 
-            if (!returned)
+            if (!dropped)
             {
-                Debug.LogWarning(
-                    "Dragged item could not be returned to its original inventory position.",
-                    this
-                );
+                bool returned =
+                    interactionController
+                        .TryReturnSelectionToContainer(
+                            dragSourceContainer,
+                            dragOriginalPosition,
+                            dragOriginalRotationSteps
+                        );
+
+                if (!returned)
+                {
+                    Debug.LogWarning(
+                        "Dragged item could not be dropped or returned to its original inventory position.",
+                        this
+                    );
+                }
             }
         }
 
@@ -1314,7 +1329,8 @@ public sealed class InventoryGridUI :
             heldPreviewRoot
         );
 
-        if (interactionController == null ||
+        if (!heldPreviewEnabled ||
+            interactionController == null ||
             !interactionController.HasSelection ||
             interactionController
                 .SelectedDefinition == null)
@@ -1450,6 +1466,7 @@ public sealed class InventoryGridUI :
             return;
 
         bool shouldShow =
+            heldPreviewEnabled &&
             interactionController != null &&
             interactionController.HasSelection &&
             InventoryMenuController

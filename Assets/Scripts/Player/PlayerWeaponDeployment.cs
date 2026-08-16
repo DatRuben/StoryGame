@@ -95,6 +95,14 @@ public sealed class PlayerWeaponDeployment :
 
         ReleaseActiveConventionalWeapons();
 
+        if (conventionalWeapons.Count > 0 &&
+            interactionController != null &&
+            !interactionController
+                .TryStoreOrDropLooseHeldItems())
+        {
+            return false;
+        }
+
         if (!ValidateActiveAttachments())
             return false;
 

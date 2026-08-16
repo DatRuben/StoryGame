@@ -195,7 +195,8 @@ public sealed class CharacterRuntimeBinder :
         {
             inventoryGridUI.BindPlayer(
                 playerInventory,
-                interactionController
+                interactionController,
+                true
             );
         }
 
@@ -203,7 +204,8 @@ public sealed class CharacterRuntimeBinder :
         {
             storageInventoryGridUI.BindPlayer(
                 null,
-                interactionController
+                interactionController,
+                false
             );
         }
 
