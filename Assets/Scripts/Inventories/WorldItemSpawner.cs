@@ -34,7 +34,13 @@ public sealed class WorldItemSpawner :
             return false;
 
         if (worldItem.Initialize(item))
+        {
+            worldItem.LiftAboveSurface(
+                position.y
+            );
+
             return true;
+        }
 
         Destroy(worldItem.gameObject);
         worldItem = null;
