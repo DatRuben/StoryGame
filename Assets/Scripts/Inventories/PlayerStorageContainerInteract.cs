@@ -1,6 +1,14 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+public enum PlayerInteractionType
+{
+    None,
+    PickUpItem,
+    OpenContainer,
+    CloseContainer
+}
+
 [RequireComponent(
     typeof(PlayerInputRouter),
     typeof(InventoryInteractionController)
@@ -60,6 +68,36 @@ public sealed class PlayerStorageContainerInteract :
 
     public InventoryContainer CurrentOpenContainer =>
         currentOpenContainer;
+
+    public PlayerInteractionType
+    CurrentInteractionType
+    {
+        get;
+        private set;
+    }
+
+    public string CurrentInteractionText
+    {
+        get;
+        private set;
+    } = "";
+
+    public WorldItem CurrentWorldItem
+    {
+        get;
+        private set;
+    }
+
+    public InventoryContainer
+        CurrentTargetContainer
+    {
+        get;
+        private set;
+    }
+
+    public bool HasInteraction =>
+        CurrentInteractionType !=
+            PlayerInteractionType.None;
 
     private void OnValidate()
     {
@@ -134,62 +172,123 @@ public sealed class PlayerStorageContainerInteract :
 
     private void Update()
     {
-        if (currentOpenContainer == null)
-            return;
-
-        float distance =
-            Vector3.Distance(
-                transform.position,
-                currentOpenContainer
-                    .transform.position
-            );
-
-        if (distance >
-            autoCloseRange)
+        if (currentOpenContainer != null)
         {
-            CloseContainer();
+            float distance =
+                Vector3.Distance(
+                    transform.position,
+                    currentOpenContainer
+                        .transform.position
+                );
+
+            if (distance >
+                autoCloseRange)
+            {
+                CloseContainer();
+            }
         }
+
+        RefreshCurrentInteraction();
     }
 
     private void OnInteractPerformed(
         InputAction.CallbackContext context)
     {
+        if (!TryResolveInteraction(
+                out PlayerInteractionType
+                    interactionType,
+                out WorldItem worldItem,
+                out InventoryContainer container))
+        {
+            return;
+        }
+
+        switch (interactionType)
+        {
+            case PlayerInteractionType
+                .CloseContainer:
+
+                CloseContainer();
+                break;
+
+            case PlayerInteractionType
+                .PickUpItem:
+
+                if (interactionController != null &&
+                    worldItem != null)
+                {
+                    interactionController
+                        .TryTakeWorldItem(
+                            worldItem
+                        );
+                }
+
+                break;
+
+            case PlayerInteractionType
+                .OpenContainer:
+
+                if (container != null)
+                {
+                    OpenContainer(
+                        container
+                    );
+                }
+
+                break;
+        }
+
+        RefreshCurrentInteraction();
+    }
+
+    private bool TryResolveInteraction(
+        out PlayerInteractionType interactionType,
+        out WorldItem worldItem,
+        out InventoryContainer container)
+    {
+        interactionType =
+            PlayerInteractionType.None;
+
+        worldItem = null;
+        container = null;
+
         if (currentOpenContainer != null)
         {
-            CloseContainer();
-            return;
+            interactionType =
+                PlayerInteractionType
+                    .CloseContainer;
+
+            container =
+                currentOpenContainer;
+
+            return true;
         }
 
-        WorldItem worldItem =
-            useLookTargeting
-                ? FindLookedAtWorldItem()
-                : null;
-
-        if (worldItem != null)
+        if (useLookTargeting)
         {
-            if (interactionController != null)
+            worldItem =
+                FindLookedAtWorldItem();
+
+            if (worldItem != null)
             {
-                interactionController
-                    .TryTakeWorldItem(
-                        worldItem
-                    );
+                interactionType =
+                    PlayerInteractionType
+                        .PickUpItem;
+
+                return true;
             }
 
-            return;
-        }
+            container =
+                FindLookedAtContainer();
 
-        InventoryContainer target =
-            useLookTargeting
-                ? FindLookedAtContainer()
-                : null;
+            if (container != null)
+            {
+                interactionType =
+                    PlayerInteractionType
+                        .OpenContainer;
 
-        if (target != null)
-        {
-            OpenContainer(
-                target
-            );
-
-            return;
+                return true;
+            }
         }
 
         worldItem =
@@ -197,26 +296,125 @@ public sealed class PlayerStorageContainerInteract :
 
         if (worldItem != null)
         {
-            if (interactionController != null)
-            {
-                interactionController
-                    .TryTakeWorldItem(
-                        worldItem
-                    );
-            }
+            interactionType =
+                PlayerInteractionType
+                    .PickUpItem;
+
+            return true;
+        }
+
+        container =
+            FindNearestContainer();
+
+        if (container != null)
+        {
+            interactionType =
+                PlayerInteractionType
+                    .OpenContainer;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private void RefreshCurrentInteraction()
+    {
+        if (!TryResolveInteraction(
+                out PlayerInteractionType
+                    interactionType,
+                out WorldItem worldItem,
+                out InventoryContainer container))
+        {
+            CurrentInteractionType =
+                PlayerInteractionType.None;
+
+            CurrentWorldItem = null;
+            CurrentTargetContainer = null;
+            CurrentInteractionText = "";
 
             return;
         }
 
-        target =
-            FindNearestContainer();
+        CurrentInteractionType =
+            interactionType;
 
-        if (target != null)
-        {
-            OpenContainer(
-                target
+        CurrentWorldItem =
+            worldItem;
+
+        CurrentTargetContainer =
+            container;
+
+        CurrentInteractionText =
+            BuildInteractionText(
+                interactionType,
+                worldItem,
+                container
             );
+    }
+
+    private string BuildInteractionText(
+        PlayerInteractionType interactionType,
+        WorldItem worldItem,
+        InventoryContainer container)
+    {
+        switch (interactionType)
+        {
+            case PlayerInteractionType
+                .PickUpItem:
+
+                if (worldItem != null &&
+                    worldItem.Item != null &&
+                    worldItem.Item.Definition != null &&
+                    !string.IsNullOrWhiteSpace(
+                        worldItem.Item.Definition
+                            .itemName))
+                {
+                    return
+                        "Pick Up " +
+                        worldItem.Item.Definition
+                            .itemName;
+                }
+
+                return "Pick Up Item";
+
+            case PlayerInteractionType
+                .OpenContainer:
+
+                return
+                    "Open " +
+                    GetContainerDisplayName(
+                        container
+                    );
+
+            case PlayerInteractionType
+                .CloseContainer:
+
+                return
+                    "Close " +
+                    GetContainerDisplayName(
+                        container
+                    );
+
+            default:
+                return "";
         }
+    }
+
+    private string GetContainerDisplayName(
+        InventoryContainer container)
+    {
+        if (container == null)
+            return "Storage";
+
+        StorageContainerInteract interact =
+            container.GetComponent<
+                StorageContainerInteract>();
+
+        if (interact != null)
+            return interact.DisplayName;
+
+        return container.gameObject.name;
     }
 
     private WorldItem
