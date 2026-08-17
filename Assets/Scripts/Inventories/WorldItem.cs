@@ -1,21 +1,14 @@
 using UnityEngine;
 
+[RequireComponent(
+    typeof(Rigidbody)
+)]
 public sealed class WorldItem :
     MonoBehaviour
 {
     [Header("Visual")]
     [SerializeField]
     private Transform visualRoot;
-
-    [SerializeField]
-    private BoxCollider physicalCollider;
-
-    [SerializeField]
-    private Rigidbody rigidbodyComponent;
-
-    [SerializeField]
-    [Min(0.01f)]
-    private float minimumColliderSize = 0.1f;
 
     [SerializeField]
     [Min(0f)]
@@ -44,7 +37,7 @@ public sealed class WorldItem :
         if (!BuildVisual())
             return false;
 
-        return FitColliderToVisual();
+        return BuildAutomaticColliders();
     }
 
     internal bool ReleaseItem(
@@ -93,150 +86,70 @@ public sealed class WorldItem :
         return visualInstance != null;
     }
 
-    private bool FitColliderToVisual()
+    private bool BuildAutomaticColliders()
     {
         if (visualInstance == null)
             return false;
 
-        if (physicalCollider == null)
-        {
-            physicalCollider =
-                GetComponent<BoxCollider>();
-        }
-
-        if (rigidbodyComponent == null)
-        {
-            rigidbodyComponent =
-                GetComponent<Rigidbody>();
-        }
-
-        if (physicalCollider == null ||
-            rigidbodyComponent == null)
-        {
-            return false;
-        }
-
-        Renderer[] renderers =
+        MeshFilter[] meshFilters =
             visualInstance.GetComponentsInChildren<
-                Renderer>(true);
+                MeshFilter>(true);
 
-        if (renderers.Length == 0)
-            return false;
-
-        bool hasBounds = false;
-        Bounds localBounds =
-            new Bounds();
+        bool foundMesh = false;
 
         for (int i = 0;
-             i < renderers.Length;
+             i < meshFilters.Length;
              i++)
         {
-            Renderer renderer =
-                renderers[i];
+            MeshFilter meshFilter =
+                meshFilters[i];
 
-            if (renderer == null)
-                continue;
-
-            Bounds worldBounds =
-                renderer.bounds;
-
-            Vector3 min =
-                worldBounds.min;
-
-            Vector3 max =
-                worldBounds.max;
-
-            for (int x = 0; x < 2; x++)
+            if (meshFilter == null ||
+                meshFilter.sharedMesh == null)
             {
-                for (int y = 0; y < 2; y++)
-                {
-                    for (int z = 0; z < 2; z++)
-                    {
-                        Vector3 worldCorner =
-                            new Vector3(
-                                x == 0 ? min.x : max.x,
-                                y == 0 ? min.y : max.y,
-                                z == 0 ? min.z : max.z
-                            );
-
-                        Vector3 localCorner =
-                            transform.InverseTransformPoint(
-                                worldCorner
-                            );
-
-                        if (!hasBounds)
-                        {
-                            localBounds =
-                                new Bounds(
-                                    localCorner,
-                                    Vector3.zero
-                                );
-
-                            hasBounds = true;
-                        }
-                        else
-                        {
-                            localBounds.Encapsulate(
-                                localCorner
-                            );
-                        }
-                    }
-                }
+                continue;
             }
+
+            MeshCollider meshCollider =
+                meshFilter.GetComponent<
+                    MeshCollider>();
+
+            if (meshCollider == null)
+            {
+                meshCollider =
+                    meshFilter.gameObject
+                        .AddComponent<
+                            MeshCollider>();
+            }
+
+            meshCollider.sharedMesh =
+                meshFilter.sharedMesh;
+
+            meshCollider.convex = true;
+            meshCollider.isTrigger = false;
+
+            foundMesh = true;
         }
 
-        if (!hasBounds)
-            return false;
-
-        Vector3 size =
-            localBounds.size;
-
-        size.x =
-            Mathf.Max(
-                minimumColliderSize,
-                size.x
-            );
-
-        size.y =
-            Mathf.Max(
-                minimumColliderSize,
-                size.y
-            );
-
-        size.z =
-            Mathf.Max(
-                minimumColliderSize,
-                size.z
-            );
-
-        physicalCollider.center =
-            localBounds.center;
-
-        physicalCollider.size =
-            size;
-
-        physicalCollider.isTrigger =
-            false;
-
-        return true;
+        return foundMesh;
     }
 
     internal void LiftAboveSurface(
         float surfaceHeight)
     {
-        if (physicalCollider == null)
+        if (!TryGetPhysicalBounds(
+                out Bounds bounds))
+        {
             return;
+        }
 
-        float targetBottom =
+        float requiredBottom =
             surfaceHeight +
             spawnClearance;
 
-        float currentBottom =
-            physicalCollider.bounds.min.y;
-
         float lift =
-            targetBottom -
-            currentBottom;
+            requiredBottom -
+            bounds.min.y;
 
         if (lift <= 0f)
             return;
@@ -245,18 +158,24 @@ public sealed class WorldItem :
             Vector3.up * lift;
     }
 
-    public Bounds GetPhysicalBounds()
+    private bool TryGetPhysicalBounds(
+        out Bounds bounds)
     {
-        Collider[] colliders =
-            GetComponentsInChildren<
-                Collider>();
-
-        bool found = false;
-        Bounds bounds =
+        bounds =
             new Bounds(
                 transform.position,
                 Vector3.zero
             );
+
+        if (visualInstance == null)
+            return false;
+
+        Collider[] colliders =
+            visualInstance
+                .GetComponentsInChildren<
+                    Collider>(true);
+
+        bool found = false;
 
         for (int i = 0;
              i < colliders.Length;
@@ -286,29 +205,7 @@ public sealed class WorldItem :
             }
         }
 
-        return bounds;
-    }
-
-    internal void LiftAboveSurface(
-        float surfaceHeight,
-        float clearance = 0.05f)
-    {
-        Bounds bounds =
-            GetPhysicalBounds();
-
-        float requiredBottom =
-            surfaceHeight +
-            clearance;
-
-        float lift =
-            requiredBottom -
-            bounds.min.y;
-
-        if (lift > 0f)
-        {
-            transform.position +=
-                Vector3.up * lift;
-        }
+        return found;
     }
 
     private void ClearVisual()
@@ -316,7 +213,9 @@ public sealed class WorldItem :
         if (visualInstance == null)
             return;
 
-        Destroy(visualInstance);
+        Destroy(
+            visualInstance
+        );
 
         visualInstance = null;
     }
