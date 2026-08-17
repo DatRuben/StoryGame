@@ -170,6 +170,69 @@ public class InventoryContainer : MonoBehaviour
         return item;
     }
 
+    public bool CanTransferIn(
+        InventoryItemInstance itemInstance,
+        int startingRotationSteps = 0)
+    {
+        if (grid == null ||
+            itemInstance == null ||
+            itemInstance.Definition == null ||
+            itemInstance.IsEmpty)
+        {
+            return false;
+        }
+
+        if (itemInstance.IsStackable)
+        {
+            HashSet<PlacedInventoryItem> checkedItems =
+                new HashSet<PlacedInventoryItem>();
+
+            for (int y = Height - 1;
+                 y >= 0;
+                 y--)
+            {
+                for (int x = 0;
+                     x < Width;
+                     x++)
+                {
+                    PlacedInventoryItem placed =
+                        grid.GetPlacedItem(
+                            x,
+                            y
+                        );
+
+                    if (placed == null ||
+                        placed.ItemInstance == null ||
+                        checkedItems.Contains(
+                            placed))
+                    {
+                        continue;
+                    }
+
+                    checkedItems.Add(
+                        placed
+                    );
+
+                    if (itemInstance.CanStackWith(
+                            placed.ItemInstance) &&
+                        placed.ItemInstance
+                            .HasRoomInStack)
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return grid
+            .TryFindFirstAvailableSpaceTopLeft(
+                itemInstance.Definition,
+                startingRotationSteps,
+                out _,
+                out _
+            );
+    }
+
     public bool TryTransferIn(
         InventoryItemInstance itemInstance,
         int startingRotationSteps,

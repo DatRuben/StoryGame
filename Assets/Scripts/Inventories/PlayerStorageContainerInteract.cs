@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections.Generic;
 
 public enum PlayerInteractionType
 {
@@ -68,6 +69,22 @@ public sealed class PlayerStorageContainerInteract :
 
     public InventoryContainer CurrentOpenContainer =>
         currentOpenContainer;
+
+    private readonly List<WorldItemInteractionOption>
+    worldItemOptions =
+        new List<WorldItemInteractionOption>();
+
+    private WorldItem worldItemOptionTarget;
+
+    public IReadOnlyList<WorldItemInteractionOption>
+        WorldItemOptions =>
+            worldItemOptions;
+
+    public int SelectedWorldItemOptionIndex
+    {
+        get;
+        private set;
+    } = -1;
 
     public PlayerInteractionType
     CurrentInteractionType
@@ -189,6 +206,109 @@ public sealed class PlayerStorageContainerInteract :
         }
 
         RefreshCurrentInteraction();
+    }
+
+    private void RefreshWorldItemOptions(
+        WorldItem worldItem)
+    {
+        bool sameTarget =
+            ReferenceEquals(
+                worldItemOptionTarget,
+                worldItem
+            );
+
+        bool hadSelection =
+            sameTarget &&
+            SelectedWorldItemOptionIndex >= 0 &&
+            SelectedWorldItemOptionIndex <
+                worldItemOptions.Count;
+
+        WorldItemInteractionAction
+            previousAction =
+                hadSelection
+                    ? worldItemOptions[
+                        SelectedWorldItemOptionIndex]
+                        .Action
+                    : default;
+
+        worldItemOptionTarget =
+            worldItem;
+
+        worldItemOptions.Clear();
+        SelectedWorldItemOptionIndex = -1;
+
+        if (worldItem == null ||
+            interactionController == null)
+        {
+            return;
+        }
+
+        bool canStore =
+            interactionController
+                .CanStoreWorldItem(
+                    worldItem,
+                    out string storeReason
+                );
+
+        bool canHold =
+            interactionController
+                .CanHoldWorldItem(
+                    worldItem,
+                    out string holdReason
+                );
+
+        worldItemOptions.Add(
+            new WorldItemInteractionOption(
+                WorldItemInteractionAction.Store,
+                "Store",
+                canStore,
+                storeReason
+            )
+        );
+
+        worldItemOptions.Add(
+            new WorldItemInteractionOption(
+                WorldItemInteractionAction.Hold,
+                "Hold",
+                canHold,
+                holdReason
+            )
+        );
+
+        worldItemOptions.Add(
+            new WorldItemInteractionOption(
+                WorldItemInteractionAction.Backpack,
+                "Backpack",
+                true
+            )
+        );
+
+        if (hadSelection)
+        {
+            for (int i = 0;
+                 i < worldItemOptions.Count;
+                 i++)
+            {
+                if (worldItemOptions[i].Action ==
+                        previousAction &&
+                    worldItemOptions[i].IsAvailable)
+                {
+                    SelectedWorldItemOptionIndex = i;
+                    return;
+                }
+            }
+        }
+
+        for (int i = 0;
+             i < worldItemOptions.Count;
+             i++)
+        {
+            if (!worldItemOptions[i].IsAvailable)
+                continue;
+
+            SelectedWorldItemOptionIndex = i;
+            return;
+        }
     }
 
     private void OnInteractPerformed(
@@ -333,6 +453,10 @@ public sealed class PlayerStorageContainerInteract :
             CurrentTargetContainer = null;
             CurrentInteractionText = "";
 
+            RefreshWorldItemOptions(
+                null
+            );
+
             return;
         }
 
@@ -341,6 +465,10 @@ public sealed class PlayerStorageContainerInteract :
 
         CurrentWorldItem =
             worldItem;
+
+        RefreshWorldItemOptions(
+            worldItem
+        );
 
         CurrentTargetContainer =
             container;

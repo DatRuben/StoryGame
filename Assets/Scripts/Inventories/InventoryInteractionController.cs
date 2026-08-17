@@ -369,6 +369,57 @@ public sealed class InventoryInteractionController :
         return true;
     }
 
+    internal bool CanStoreWorldItem(
+        WorldItem worldItem,
+        out string disabledReason)
+    {
+        disabledReason = "";
+
+        if (worldItem == null ||
+            worldItem.Item == null ||
+            worldItem.Item.IsEmpty ||
+            playerInventory == null)
+        {
+            disabledReason = "Unavailable";
+            return false;
+        }
+
+        if (!playerInventory.CanTransferIn(
+                worldItem.Item))
+        {
+            disabledReason = "No space";
+            return false;
+        }
+
+        return true;
+    }
+
+    internal bool CanHoldWorldItem(
+        WorldItem worldItem,
+        out string disabledReason)
+    {
+        disabledReason = "";
+
+        if (worldItem == null ||
+            worldItem.Item == null ||
+            worldItem.Item.IsEmpty)
+        {
+            disabledReason = "Unavailable";
+            return false;
+        }
+
+        if (!TryFindHoldPlan(
+                worldItem.Item,
+                out _,
+                out _))
+        {
+            disabledReason = "Can't hold";
+            return false;
+        }
+
+        return true;
+    }
+
     internal bool TryTakeWorldItem(
         WorldItem worldItem)
     {
