@@ -110,6 +110,13 @@ public sealed class WorldItem :
                 continue;
             }
 
+            if (IsDuplicateColliderSource(
+                    meshFilters,
+                    i))
+            {
+                continue;
+            }
+
             MeshCollider meshCollider =
                 meshFilter.GetComponent<
                     MeshCollider>();
@@ -132,6 +139,70 @@ public sealed class WorldItem :
         }
 
         return foundMesh;
+    }
+
+    private bool IsDuplicateColliderSource(
+        MeshFilter[] meshFilters,
+        int currentIndex)
+    {
+        MeshFilter current =
+            meshFilters[currentIndex];
+
+        if (current == null ||
+            current.sharedMesh == null)
+        {
+            return false;
+        }
+
+        Transform currentTransform =
+            current.transform;
+
+        for (int i = 0;
+             i < currentIndex;
+             i++)
+        {
+            MeshFilter previous =
+                meshFilters[i];
+
+            if (previous == null ||
+                previous.sharedMesh == null ||
+                previous.sharedMesh !=
+                    current.sharedMesh)
+            {
+                continue;
+            }
+
+            Transform previousTransform =
+                previous.transform;
+
+            bool samePosition =
+                (previousTransform.position -
+                 currentTransform.position)
+                    .sqrMagnitude <
+                0.000001f;
+
+            bool sameRotation =
+                Quaternion.Angle(
+                    previousTransform.rotation,
+                    currentTransform.rotation
+                ) <
+                0.01f;
+
+            bool sameScale =
+                (previousTransform.lossyScale -
+                 currentTransform.lossyScale)
+                    .sqrMagnitude <
+                0.000001f;
+
+            if (samePosition &&
+                sameRotation &&
+                sameScale)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     internal void LiftAboveSurface(
