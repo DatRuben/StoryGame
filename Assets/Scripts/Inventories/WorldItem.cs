@@ -117,6 +117,9 @@ public sealed class WorldItem :
                 continue;
             }
 
+            meshFilter.gameObject.layer =
+                gameObject.layer;
+
             MeshCollider meshCollider =
                 meshFilter.GetComponent<
                     MeshCollider>();

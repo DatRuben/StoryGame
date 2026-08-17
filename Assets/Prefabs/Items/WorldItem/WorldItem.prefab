@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7068585122647160670}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: VisualRoot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -42,7 +42,7 @@ GameObject:
   - component: {fileID: 4059011527585571966}
   - component: {fileID: -2073826482975956469}
   - component: {fileID: 8498827199401545970}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: WorldItem
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -78,9 +78,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WorldItem
   visualRoot: {fileID: 7068585122647160670}
-  physicalCollider: {fileID: 0}
-  rigidbodyComponent: {fileID: 0}
-  minimumColliderSize: 0.1
   spawnClearance: 0.05
 --- !u!54 &8498827199401545970
 Rigidbody:
@@ -108,4 +105,4 @@ Rigidbody:
   m_IsKinematic: 0
   m_Interpolate: 1
   m_Constraints: 0
-  m_CollisionDetection: 3
+  m_CollisionDetection: 2
