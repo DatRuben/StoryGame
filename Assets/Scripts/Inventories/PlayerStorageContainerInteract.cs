@@ -176,6 +176,12 @@ public sealed class PlayerStorageContainerInteract :
 
         inputRouter.InteractAction.performed +=
             OnInteractPerformed;
+
+        inputRouter.InteractionCycleAction.performed -=
+            OnScroll;
+
+        inputRouter.InteractionCycleAction.performed +=
+            OnScroll;
     }
 
     private void OnDisable()
@@ -185,6 +191,9 @@ public sealed class PlayerStorageContainerInteract :
             inputRouter.InteractAction.performed -=
                 OnInteractPerformed;
         }
+
+        inputRouter.InteractionCycleAction.performed -=
+            OnScroll;
     }
 
     private void Update()
@@ -206,6 +215,77 @@ public sealed class PlayerStorageContainerInteract :
         }
 
         RefreshCurrentInteraction();
+    }
+
+    private void OnScroll(
+        InputAction.CallbackContext context)
+    {
+        if (CurrentWorldItem == null ||
+            worldItemOptions.Count == 0)
+        {
+            return;
+        }
+
+        float scroll =
+            context.ReadValue<float>();
+
+        if (Mathf.Approximately(
+                scroll,
+                0f))
+        {
+            return;
+        }
+
+        CycleWorldItemOption(
+            scroll > 0f
+                ? -1
+                : 1
+        );
+    }
+
+    private void CycleWorldItemOption(
+        int direction)
+    {
+        if (worldItemOptions.Count == 0)
+            return;
+
+        int startIndex =
+            SelectedWorldItemOptionIndex;
+
+        if (startIndex < 0)
+            startIndex = 0;
+
+        int index =
+            startIndex;
+
+        for (int i = 0;
+             i < worldItemOptions.Count;
+             i++)
+        {
+            index += direction;
+
+            if (index < 0)
+            {
+                index =
+                    worldItemOptions.Count - 1;
+            }
+            else if (index >=
+                     worldItemOptions.Count)
+            {
+                index = 0;
+            }
+
+            if (!worldItemOptions[index]
+                .IsAvailable)
+            {
+                continue;
+            }
+
+            SelectedWorldItemOptionIndex =
+                index;
+
+            return;
+        }
     }
 
     private void RefreshWorldItemOptions(

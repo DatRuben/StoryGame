@@ -33,6 +33,9 @@ public class PlayerInputRouter : MonoBehaviour
     public InputAction InteractAction =>
         GetActions().Player.Interact;
 
+    public InputAction InteractionCycleAction =>
+        GetActions().Player.Scroll;
+
     public InputAction InventoryAction =>
         GetActions().Player.Inventory;
 
