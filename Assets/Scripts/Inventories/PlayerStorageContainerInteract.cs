@@ -186,11 +186,11 @@ public sealed class PlayerStorageContainerInteract :
 
     private void OnDisable()
     {
-        if (inputRouter != null)
-        {
-            inputRouter.InteractAction.performed -=
-                OnInteractPerformed;
-        }
+        if (inputRouter == null)
+            return;
+
+        inputRouter.InteractAction.performed -=
+            OnInteractPerformed;
 
         inputRouter.InteractionCycleAction.performed -=
             OnScroll;
@@ -414,14 +414,9 @@ public sealed class PlayerStorageContainerInteract :
             case PlayerInteractionType
                 .PickUpItem:
 
-                if (interactionController != null &&
-                    worldItem != null)
-                {
-                    interactionController
-                        .TryTakeWorldItem(
-                            worldItem
-                        );
-                }
+                ExecuteSelectedWorldItemOption(
+                    worldItem
+                );
 
                 break;
 
@@ -439,6 +434,65 @@ public sealed class PlayerStorageContainerInteract :
         }
 
         RefreshCurrentInteraction();
+    }
+
+    private void ExecuteSelectedWorldItemOption(
+        WorldItem worldItem)
+    {
+        if (worldItem == null ||
+            interactionController == null)
+        {
+            return;
+        }
+
+        RefreshWorldItemOptions(
+            worldItem
+        );
+
+        if (SelectedWorldItemOptionIndex < 0 ||
+            SelectedWorldItemOptionIndex >=
+                worldItemOptions.Count)
+        {
+            return;
+        }
+
+        WorldItemInteractionOption option =
+            worldItemOptions[
+                SelectedWorldItemOptionIndex];
+
+        if (!option.IsAvailable)
+            return;
+
+        switch (option.Action)
+        {
+            case WorldItemInteractionAction.Store:
+
+                interactionController
+                    .TryStoreWorldItem(
+                        worldItem
+                    );
+
+                break;
+
+            case WorldItemInteractionAction.Hold:
+
+                interactionController
+                    .TryHoldWorldItem(
+                        worldItem
+                    );
+
+                break;
+
+            case WorldItemInteractionAction.Backpack:
+
+                if (inventoryMenuController != null)
+                {
+                    inventoryMenuController
+                        .SetInventoryOpen(true);
+                }
+
+                break;
+        }
     }
 
     private bool TryResolveInteraction(

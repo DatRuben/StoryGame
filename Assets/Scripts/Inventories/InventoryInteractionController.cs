@@ -420,7 +420,7 @@ public sealed class InventoryInteractionController :
         return true;
     }
 
-    internal bool TryTakeWorldItem(
+    internal bool TryStoreWorldItem(
         WorldItem worldItem)
     {
         if (worldItem == null ||
@@ -470,6 +470,54 @@ public sealed class InventoryInteractionController :
         return worldItem.ReleaseItem(
             item
         );
+    }
+
+    internal bool TryHoldWorldItem(
+        WorldItem worldItem)
+    {
+        if (worldItem == null ||
+            gripState == null)
+        {
+            return false;
+        }
+
+        InventoryItemInstance item =
+            worldItem.Item;
+
+        if (item == null ||
+            item.IsEmpty ||
+            item.Definition == null)
+        {
+            return false;
+        }
+
+        if (!TryFindHoldPlan(
+                item,
+                out GripType gripType,
+                out int gripCount))
+        {
+            return false;
+        }
+
+        if (!gripState.TryHold(
+                item,
+                gripType,
+                gripCount))
+        {
+            return false;
+        }
+
+        if (!worldItem.ReleaseItem(
+                item))
+        {
+            gripState.Release(
+                item
+            );
+
+            return false;
+        }
+
+        return true;
     }
 
     private void Awake()
