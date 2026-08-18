@@ -507,9 +507,28 @@ public sealed class InventoryInteractionController :
             return false;
         }
 
+        if (!cursor.Select(
+                item,
+                0,
+                Vector2Int.zero))
+        {
+            gripState.Release(
+                item
+            );
+
+            return false;
+        }
+
         if (!worldItem.ReleaseItem(
                 item))
         {
+            if (ReferenceEquals(
+                    cursor.SelectedItem,
+                    item))
+            {
+                cursor.ClearSelection();
+            }
+
             gripState.Release(
                 item
             );

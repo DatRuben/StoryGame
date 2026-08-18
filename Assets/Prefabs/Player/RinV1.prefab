@@ -894,6 +894,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 18fd2733a27218247b91177d977e4dc7, type: 3}
       insertIndex: -1
       addedObject: {fileID: 918306312227772372}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 18fd2733a27218247b91177d977e4dc7, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3552277740623673383}
   m_SourcePrefab: {fileID: 100100000, guid: 18fd2733a27218247b91177d977e4dc7, type: 3}
 --- !u!4 &14935452377490614 stripped
 Transform:
@@ -3728,6 +3731,13 @@ MonoBehaviour:
   moveForward: 0
   moveRoot: {fileID: 0}
   moveSpeed: 0
+  movementBody: {fileID: 0}
+  normalMovementSpeed: 8
+  minimumCycleSpeed: 0.65
+  maximumCycleSpeed: 1.6
+  previewWalking: 0
+  minimumMovementSpeed: 0.1
+  movementBlendSpeed: 8
   visualRoot: {fileID: 7550512018756060624}
   bobHeight: 0.03
   leftUpperArm: {fileID: 1743816328434791168}
@@ -3756,6 +3766,21 @@ MonoBehaviour:
   elbowBendAngle: 30
   leftElbowAxis: {x: 1, y: 1, z: 0}
   rightElbowAxis: {x: 1, y: 1, z: 0}
+--- !u!114 &3552277740623673383
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7170608024115322730}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68452c892304a9d41a6d8ac5da263278, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HeldItemAnchors
+  leftHand: {fileID: 5963698633300994172}
+  rightHand: {fileID: 3863910693320994097}
+  mouth: {fileID: 0}
 --- !u!4 &7171081400882030021 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8302742867755710466, guid: 18fd2733a27218247b91177d977e4dc7, type: 3}
