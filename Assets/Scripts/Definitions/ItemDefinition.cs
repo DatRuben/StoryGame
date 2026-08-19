@@ -116,6 +116,17 @@ public class ItemDefinition : ScriptableObject
         IsConventionalWeapon ||
         IsAttachedWeapon;
 
+    [Header("Weapon Combat")]
+
+    [Min(0f)]
+    public float baseDamage = 10f;
+
+    public DamageType damageType =
+        DamageType.Physical;
+
+    [Min(0.1f)]
+    public float attackReach = 2f;
+
     [Header("Saddle Equipment")]
     public bool hasManualSaddleTurret;
 
