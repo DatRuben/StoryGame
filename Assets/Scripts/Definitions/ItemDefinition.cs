@@ -145,6 +145,31 @@ public class ItemDefinition : ScriptableObject
 
     public bool[] occupiedCells = new bool[1] { true };
 
+    private void OnEnable()
+    {
+#if UNITY_EDITOR
+        EnsureDefaultWorldPrefab();
+#endif
+    }
+
+#if UNITY_EDITOR
+    private void EnsureDefaultWorldPrefab()
+    {
+        if (worldPrefab != null)
+            return;
+
+        worldPrefab =
+            AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Assets/Prefabs/Items/Bag.prefab"
+            );
+
+        if (worldPrefab != null)
+        {
+            EditorUtility.SetDirty(this);
+        }
+    }
+#endif
+
     public void RefreshHandling()
     {
         weight =
@@ -165,13 +190,7 @@ public class ItemDefinition : ScriptableObject
         RefreshHandling();
 
 #if UNITY_EDITOR
-        if (worldPrefab == null)
-        {
-            worldPrefab =
-                AssetDatabase.LoadAssetAtPath<GameObject>(
-                    "Assets/Prefabs/Items/Bag.prefab"
-                );
-        }
+        EnsureDefaultWorldPrefab();
 #endif
 
         int requiredSize =
@@ -412,6 +431,7 @@ public class ItemDefinitionEditor : Editor
         DrawHandlingSection(item);
         DrawStackingSection(item);
         DrawEquipmentSection(item);
+        DrawWeaponCombatSection(item);
         DrawInventoryShapeSection(item);
 
         if (EditorGUI.EndChangeCheck())
@@ -419,6 +439,50 @@ public class ItemDefinitionEditor : Editor
             item.RefreshHandling();
             EditorUtility.SetDirty(item);
         }
+    }
+
+    private void DrawWeaponCombatSection(
+        ItemDefinition item)
+    {
+        bool isWeapon =
+            item.IsConventionalWeapon ||
+            item.HasEquipmentCombatRole(
+                EquipmentCombatRole.Weapon
+            );
+
+        if (!isWeapon)
+            return;
+
+        EditorGUILayout.LabelField(
+            "Weapon Combat",
+            EditorStyles.boldLabel
+        );
+
+        item.baseDamage =
+            Mathf.Max(
+                0f,
+                EditorGUILayout.FloatField(
+                    "Base Damage",
+                    item.baseDamage
+                )
+            );
+
+        item.damageType =
+            (DamageType)EditorGUILayout.EnumPopup(
+                "Damage Type",
+                item.damageType
+            );
+
+        item.attackReach =
+            Mathf.Max(
+                0.1f,
+                EditorGUILayout.FloatField(
+                    "Attack Reach",
+                    item.attackReach
+                )
+            );
+
+        EditorGUILayout.Space();
     }
 
     private void DrawIdentitySection(ItemDefinition item)
