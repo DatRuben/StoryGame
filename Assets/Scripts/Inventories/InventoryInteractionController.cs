@@ -244,21 +244,8 @@ public sealed class InventoryInteractionController :
             return false;
         }
 
-        Vector3 dropPosition =
-            transform.position +
-            transform.forward * 1.25f;
-
-        Quaternion dropRotation =
-            Quaternion.Euler(
-                0f,
-                transform.eulerAngles.y,
-                0f
-            );
-
-        if (!worldItemSpawner.TrySpawn(
+        if (!TrySpawnDroppedWorldItem(
                 item,
-                dropPosition,
-                dropRotation,
                 out WorldItem worldItem))
         {
             return false;
@@ -281,6 +268,75 @@ public sealed class InventoryInteractionController :
         }
 
         return true;
+    }
+
+    internal bool TryDropItemFromContainer(
+        InventoryContainer source,
+        Vector2Int coordinate)
+    {
+        if (source == null)
+            return false;
+
+        PlacedInventoryItem placedItem =
+            source.GetItemAt(
+                coordinate.x,
+                coordinate.y
+            );
+
+        if (placedItem == null ||
+            placedItem.ItemInstance == null ||
+            placedItem.ItemInstance.IsEmpty)
+        {
+            return false;
+        }
+
+        InventoryItemInstance item =
+            placedItem.ItemInstance;
+
+        Vector2Int originalPosition =
+            placedItem.Position;
+
+        int originalRotation =
+            placedItem.RotationSteps;
+
+        PlacedInventoryItem removedItem =
+            source.TakeItemAt(
+                coordinate.x,
+                coordinate.y
+            );
+
+        if (removedItem == null ||
+            !ReferenceEquals(
+                removedItem.ItemInstance,
+                item))
+        {
+            return false;
+        }
+
+        if (TrySpawnDroppedWorldItem(
+                item,
+                out _))
+        {
+            return true;
+        }
+
+        bool restored =
+            source.PlaceInstance(
+                item,
+                originalPosition.x,
+                originalPosition.y,
+                originalRotation
+            );
+
+        if (!restored)
+        {
+            Debug.LogError(
+                "Dropped inventory item could not be spawned or restored.",
+                this
+            );
+        }
+
+        return false;
     }
 
     internal bool TryDropSelection()
@@ -627,7 +683,33 @@ public sealed class InventoryInteractionController :
     private void OnDropItem(
         InputAction.CallbackContext context)
     {
-        TryDropSelection();
+        if (TryDropSelection())
+            return;
+
+        if (gripState != null &&
+            gripState.HasAnyHeldItem)
+        {
+            return;
+        }
+
+        if (!InventoryMenuController
+            .IsInventoryOpen)
+        {
+            return;
+        }
+
+        if (!InventoryGridUI
+            .TryGetHoveredItem(
+                out InventoryContainer source,
+                out Vector2Int coordinate))
+        {
+            return;
+        }
+
+        TryDropItemFromContainer(
+            source,
+            coordinate
+        );
     }
 
     public bool SelectHeldItem(
@@ -696,6 +778,38 @@ public sealed class InventoryInteractionController :
             nextItem,
             0,
             Vector2Int.zero
+        );
+    }
+
+    private bool TrySpawnDroppedWorldItem(
+        InventoryItemInstance item,
+        out WorldItem worldItem)
+    {
+        worldItem = null;
+
+        if (item == null ||
+            item.IsEmpty ||
+            worldItemSpawner == null)
+        {
+            return false;
+        }
+
+        Vector3 dropPosition =
+            transform.position +
+            transform.forward * 1.25f;
+
+        Quaternion dropRotation =
+            Quaternion.Euler(
+                0f,
+                transform.eulerAngles.y,
+                0f
+            );
+
+        return worldItemSpawner.TrySpawn(
+            item,
+            dropPosition,
+            dropRotation,
+            out worldItem
         );
     }
 
