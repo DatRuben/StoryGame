@@ -39,6 +39,43 @@ public sealed class PlayerWeaponDeployment :
     public bool WeaponsDrawn =>
         loadoutDeployed;
 
+    public bool TryGetPrimaryDeployedWeapon(
+        out InventoryItemInstance weapon)
+    {
+        ResolveReferences();
+
+        weapon = null;
+
+        if (!loadoutDeployed ||
+            weaponLoadout == null)
+        {
+            return false;
+        }
+
+        for (int slotIndex = 0;
+             slotIndex < WeaponSet.SlotCount;
+             slotIndex++)
+        {
+            InventoryItemInstance candidate =
+                weaponLoadout.GetActiveWeapon(
+                    slotIndex
+                );
+
+            if (candidate == null ||
+                candidate.IsEmpty ||
+                candidate.Definition == null ||
+                !IsDeployed(candidate))
+            {
+                continue;
+            }
+
+            weapon = candidate;
+            return true;
+        }
+
+        return false;
+    }
+
     public event Action Changed;
 
     private void Awake()

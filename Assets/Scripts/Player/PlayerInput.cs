@@ -114,6 +114,7 @@ public class PlayerInput : MonoBehaviour
 
     private PlayerGripState gripState;
     private PlayerCharacterProfile characterProfile;
+    private PlayerCombatController combatController;
 
     private void Awake()
     {
@@ -156,6 +157,9 @@ public class PlayerInput : MonoBehaviour
 
         gripState =
             GetComponent<PlayerGripState>();
+
+        combatController =
+            GetComponent<PlayerCombatController>();
 
         characterProfile =
             GetComponent<PlayerCharacterProfile>();
@@ -835,10 +839,21 @@ public class PlayerInput : MonoBehaviour
         return false;
     }
 
-    private void DoAttack(InputAction.CallbackContext obj)
+    private void DoAttack(
+        InputAction.CallbackContext obj)
     {
         if (animator != null)
-            animator.SetTrigger("attack");
+        {
+            animator.SetTrigger(
+                "attack"
+            );
+        }
+
+        if (combatController != null)
+        {
+            combatController
+                .TryPrimaryAttack();
+        }
     }
 
     private void ToggleCameraLock(InputAction.CallbackContext obj)
