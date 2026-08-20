@@ -9,6 +9,22 @@ public sealed class PlayerCombatController :
     [Min(0.01f)]
     private float hitRadius = 0.35f;
 
+    [Header("Debug")]
+    [SerializeField]
+    private bool showDebugCast = true;
+
+    [SerializeField]
+    [Min(0.1f)]
+    private float debugCastDuration = 1f;
+
+    private Vector3 lastCastOrigin;
+    private Vector3 lastCastEnd;
+
+    private float lastCastRadius;
+    private float debugCastVisibleUntil;
+
+    private bool lastCastHit;
+
     private readonly RaycastHit[] hitBuffer =
         new RaycastHit[16];
 
@@ -50,6 +66,13 @@ public sealed class PlayerCombatController :
         Vector3 direction =
             transform.forward;
 
+        RecordDebugCast(
+            origin,
+            direction,
+            definition.attackReach,
+            false
+        );
+
         int hitCount =
             Physics.SphereCastNonAlloc(
                 origin,
@@ -60,6 +83,16 @@ public sealed class PlayerCombatController :
                 ~0,
                 QueryTriggerInteraction.Ignore
             );
+
+        if (hitCount > 0)
+        {
+            RecordDebugCast(
+                origin,
+                direction,
+                definition.attackReach,
+                true
+            );
+        }
 
         if (hitCount <= 0)
             return false;
@@ -149,5 +182,72 @@ public sealed class PlayerCombatController :
         }
 
         return null;
+    }
+
+    private void RecordDebugCast(
+        Vector3 origin,
+        Vector3 direction,
+        float reach,
+        bool hit)
+    {
+        if (!showDebugCast)
+            return;
+
+        lastCastOrigin =
+            origin;
+
+        lastCastEnd =
+            origin +
+            direction.normalized * reach;
+
+        lastCastRadius =
+            hitRadius;
+
+        lastCastHit =
+            hit;
+
+        debugCastVisibleUntil =
+            Time.time +
+            debugCastDuration;
+
+        Debug.DrawLine(
+            lastCastOrigin,
+            lastCastEnd,
+            hit
+                ? Color.green
+                : Color.red,
+            debugCastDuration
+        );
+    }
+
+    private void OnDrawGizmos()
+    {
+        if (!showDebugCast ||
+            !Application.isPlaying ||
+            Time.time >
+                debugCastVisibleUntil)
+        {
+            return;
+        }
+
+        Gizmos.color =
+            lastCastHit
+                ? Color.green
+                : Color.red;
+
+        Gizmos.DrawLine(
+            lastCastOrigin,
+            lastCastEnd
+        );
+
+        Gizmos.DrawWireSphere(
+            lastCastOrigin,
+            lastCastRadius
+        );
+
+        Gizmos.DrawWireSphere(
+            lastCastEnd,
+            lastCastRadius
+        );
     }
 }
