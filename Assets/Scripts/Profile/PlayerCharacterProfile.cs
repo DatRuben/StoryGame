@@ -91,7 +91,7 @@ public class PlayerCharacterProfile : MonoBehaviour
         private set;
     }
 
-    public PlayerStatusEffects StatusEffects =>
+    public StatusEffects StatusEffects =>
         statusEffects;
 
     private readonly List<TraitDefinition>
@@ -107,7 +107,7 @@ public class PlayerCharacterProfile : MonoBehaviour
 
     public event Action AttributesChanged;
 
-    private PlayerStatusEffects statusEffects;
+    private StatusEffects statusEffects;
     private PlayerFormState formState;
 
     private void Awake()
@@ -159,13 +159,13 @@ public class PlayerCharacterProfile : MonoBehaviour
             return;
 
         statusEffects =
-            GetComponent<PlayerStatusEffects>();
+            GetComponent<StatusEffects>();
 
         if (statusEffects == null)
         {
             statusEffects =
                 gameObject.AddComponent<
-                    PlayerStatusEffects>();
+                    StatusEffects>();
         }
     }
 
