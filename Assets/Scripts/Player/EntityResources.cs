@@ -1,7 +1,9 @@
 using System;
 using UnityEngine;
 
-public class PlayerResources : MonoBehaviour, DamageReceiver
+public class EntityResources :
+    MonoBehaviour,
+    DamageReceiver
 {
     [Header("Health")]
     private float maxHealth;

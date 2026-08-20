@@ -579,8 +579,8 @@ public class PlayerCharacterProfile : MonoBehaviour
     private void ApplyResources(
         bool refillResources)
     {
-        PlayerResources playerResources =
-            GetComponent<PlayerResources>();
+        EntityResources playerResources =
+            GetComponent<EntityResources>();
 
         if (playerResources == null)
         {

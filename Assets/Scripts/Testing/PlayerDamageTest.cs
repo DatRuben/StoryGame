@@ -3,7 +3,8 @@ using UnityEngine.InputSystem;
 
 public class PlayerDamageTest : MonoBehaviour
 {
-    [SerializeField] private PlayerResources resources;
+    [SerializeField]
+    private EntityResources resources;
 
     [Header("Test Damage")]
     [SerializeField] private float physicalDamage = 25f;
@@ -14,7 +15,7 @@ public class PlayerDamageTest : MonoBehaviour
     private void Awake()
     {
         if (resources == null)
-            resources = GetComponent<PlayerResources>();
+            resources = GetComponent<EntityResources>();
     }
 
     private void Update()

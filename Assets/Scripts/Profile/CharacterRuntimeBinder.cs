@@ -130,9 +130,8 @@ public sealed class CharacterRuntimeBinder :
                 player.GetComponent<
                     PlayerStorageContainerInteract>();
 
-        PlayerResources playerResources =
-            player.GetComponent<
-                PlayerResources>();
+        EntityResources playerResources =
+            player.GetComponent<EntityResources>();
 
         Camera mainCamera =
             Camera.main;

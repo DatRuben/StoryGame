@@ -90,7 +90,8 @@ public class PlayerInput : MonoBehaviour
     [SerializeField]
     private PlayerStorageContainerInteract storageInteract;
 
-    [SerializeField] private PlayerResources playerResources;
+    [SerializeField]
+    private EntityResources playerResources;
 
     private Animator animator;
 
@@ -153,7 +154,7 @@ public class PlayerInput : MonoBehaviour
                 GetComponent<PlayerStorageContainerInteract>();
         }
         if (playerResources == null)
-            playerResources = GetComponent<PlayerResources>();
+            playerResources = GetComponent<EntityResources>();
 
         gripState =
             GetComponent<PlayerGripState>();
