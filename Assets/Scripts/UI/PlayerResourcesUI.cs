@@ -4,7 +4,7 @@ using UnityEngine.UI;
 public class PlayerResourcesUI : MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] private PlayerResources playerResources;
+    [SerializeField] private EntityResources playerResources;
 
     [Header("Layout")]
     [SerializeField] private Vector2 topLeftOffset = new Vector2(40f, -40f);
@@ -220,7 +220,7 @@ public class PlayerResourcesUI : MonoBehaviour
         );
     }
 
-    public void BindPlayer(PlayerResources newPlayerResources)
+    public void BindPlayer(EntityResources newPlayerResources)
     {
         if (playerResources != null)
             playerResources.OnResourcesChanged -= Refresh;

@@ -161,10 +161,28 @@ public sealed class PlayerHeldItemPresenter :
 
         visual =
             Instantiate(
-                item.Definition.worldPrefab,
-                anchor,
-                false
+                item.Definition.worldPrefab
             );
+
+        Transform visualTransform =
+            visual.transform;
+
+        Vector3 authoredLocalPosition =
+            visualTransform.localPosition;
+
+        Quaternion authoredLocalRotation =
+            visualTransform.localRotation;
+
+        visualTransform.SetParent(
+            anchor,
+            true
+        );
+
+        visualTransform.localPosition =
+            authoredLocalPosition;
+
+        visualTransform.localRotation =
+            authoredLocalRotation;
 
         shownItem = item;
 
