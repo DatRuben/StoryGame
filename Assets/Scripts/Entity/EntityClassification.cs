@@ -8,8 +8,7 @@ public enum EntityTrait
 
     Organic = 1 << 0,
     Mechanical = 1 << 1,
-    Construct = 1 << 2,
-    Aetheric = 1 << 3
+    Aetheric = 1 << 2
 }
 
 public sealed class EntityClassification :
