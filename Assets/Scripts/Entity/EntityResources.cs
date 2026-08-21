@@ -68,9 +68,6 @@ public class EntityResources :
             finalStats.maxAether,
             refillResources
         );
-
-        IsInitialized = true;
-        OnResourcesChanged?.Invoke();
     }
 
     public void SetHealth(float value)
