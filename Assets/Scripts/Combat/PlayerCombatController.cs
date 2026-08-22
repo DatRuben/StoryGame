@@ -81,23 +81,13 @@ public sealed class PlayerCombatController :
                 hitBuffer,
                 definition.attackReach,
                 ~0,
-                QueryTriggerInteraction.Ignore
+                QueryTriggerInteraction.Collide
             );
-
-        if (hitCount > 0)
-        {
-            RecordDebugCast(
-                origin,
-                direction,
-                definition.attackReach,
-                true
-            );
-        }
 
         if (hitCount <= 0)
             return false;
 
-        Collider nearestCollider = null;
+        CombatHurtbox nearestHurtbox = null;
 
         float nearestDistance =
             float.PositiveInfinity;
@@ -128,60 +118,36 @@ public sealed class PlayerCombatController :
                 continue;
             }
 
+            CombatHurtbox hurtbox =
+                candidate.GetComponent<
+                    CombatHurtbox>();
+
+            if (hurtbox == null)
+                continue;
+
             nearestDistance =
                 hitBuffer[i].distance;
 
-            nearestCollider =
-                candidate;
+            nearestHurtbox =
+                hurtbox;
         }
 
-        if (nearestCollider == null)
+        if (nearestHurtbox == null)
             return false;
 
-        DamageReceiver receiver =
-            FindDamageReceiver(
-                nearestCollider.transform
-            );
+        RecordDebugCast(
+            origin,
+            direction,
+            definition.attackReach,
+            true
+        );
 
-        if (receiver == null)
-            return false;
-
-        receiver.TakeDamage(
+        nearestHurtbox.TakeDamage(
             definition.baseDamage,
             definition.damageType
         );
 
         return true;
-    }
-
-    private DamageReceiver FindDamageReceiver(
-        Transform target)
-    {
-        Transform current =
-            target;
-
-        while (current != null)
-        {
-            MonoBehaviour[] behaviours =
-                current.GetComponents<
-                    MonoBehaviour>();
-
-            for (int i = 0;
-                 i < behaviours.Length;
-                 i++)
-            {
-                if (behaviours[i] is
-                    DamageReceiver receiver)
-                {
-                    return receiver;
-                }
-            }
-
-            current =
-                current.parent;
-        }
-
-        return null;
     }
 
     private void RecordDebugCast(
