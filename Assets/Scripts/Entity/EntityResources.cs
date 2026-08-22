@@ -114,11 +114,17 @@ public class EntityResources :
         OnResourcesChanged?.Invoke();
     }
 
-    public void TakeDamage(
+    public DamageResult TakeDamage(
         DamageContext damage)
     {
         bool wasHealthDepleted =
             IsHealthDepleted;
+
+        float healthBefore =
+            currentHealth;
+
+        float soulBarrierBefore =
+            currentSoulBarrier;
 
         float amount =
             Mathf.Max(
@@ -137,15 +143,43 @@ public class EntityResources :
                 break;
         }
 
+        float healthDamage =
+            Mathf.Max(
+                0f,
+                healthBefore -
+                currentHealth
+            );
+
+        float soulBarrierDamage =
+            Mathf.Max(
+                0f,
+                soulBarrierBefore -
+                currentSoulBarrier
+            );
+
+        bool healthDepleted =
+            !wasHealthDepleted &&
+            IsHealthDepleted;
+
+        DamageResult result =
+            new DamageResult(
+                damage,
+                gameObject,
+                healthDamage,
+                soulBarrierDamage,
+                healthDepleted
+            );
+
         OnResourcesChanged?.Invoke();
 
-        if (!wasHealthDepleted &&
-            IsHealthDepleted)
+        if (healthDepleted)
         {
             OnHealthDepleted?.Invoke(
                 damage
             );
         }
+
+        return result;
     }
 
     public void HealHealth(float amount)

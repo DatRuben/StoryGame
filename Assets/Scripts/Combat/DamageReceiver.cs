@@ -1,6 +1,6 @@
 public interface DamageReceiver
 {
-    void TakeDamage(
+    DamageResult TakeDamage(
         DamageContext damage
     );
 }

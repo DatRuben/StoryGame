@@ -12,7 +12,7 @@ public sealed class CombatHurtbox :
         ResolveDamageReceiver();
     }
 
-    public void TakeDamage(
+    public DamageResult TakeDamage(
         DamageContext damage)
     {
         if (damageReceiver == null)
@@ -20,7 +20,18 @@ public sealed class CombatHurtbox :
             ResolveDamageReceiver();
         }
 
-        damageReceiver?.TakeDamage(
+        if (damageReceiver == null)
+        {
+            return new DamageResult(
+                damage,
+                null,
+                0f,
+                0f,
+                false
+            );
+        }
+
+        return damageReceiver.TakeDamage(
             damage
         );
     }

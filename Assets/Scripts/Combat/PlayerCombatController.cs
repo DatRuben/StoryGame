@@ -157,11 +157,12 @@ public sealed class PlayerCombatController :
                 direction
             );
 
-        nearestHurtbox.TakeDamage(
-            damage
-        );
+        DamageResult result =
+            nearestHurtbox.TakeDamage(
+                damage
+            );
 
-        return true;
+        return result.DidDamage;
     }
 
     private void RecordDebugCast(
