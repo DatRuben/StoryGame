@@ -102,6 +102,15 @@ public class StatusEffects : MonoBehaviour
             return false;
         }
 
+        EntityClassification classification =
+            GetComponent<EntityClassification>();
+
+        if (!definition.CanApplyTo(
+                classification))
+        {
+            return false;
+        }
+
         int existingIndex =
             FindEffectIndex(
                 definition.effectId

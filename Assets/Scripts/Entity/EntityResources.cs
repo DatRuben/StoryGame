@@ -48,41 +48,26 @@ public class EntityResources :
     public event Action OnResourcesChanged;
 
     public void ApplyFinalStats(
-    FinalCharacterStats finalStats,
-    bool refillResources = true)
+        FinalCharacterStats finalStats,
+        bool refillResources = true)
     {
         if (finalStats == null)
         {
             Debug.LogWarning(
-                "PlayerResources could not apply final stats because FinalCharacterStats is missing.",
+                "EntityResources could not apply final stats because FinalCharacterStats is missing.",
                 this
             );
 
             return;
         }
 
-        maxHealth = Mathf.Max(1f, finalStats.maxHealth);
-        maxSoulBarrier = Mathf.Max(1f, finalStats.maxSoulBarrier);
-        maxStamina = Mathf.Max(1f, finalStats.maxStamina);
-        maxAether = Mathf.Max(1f, finalStats.maxAether);
-
-        if (refillResources)
-        {
-            currentHealth = maxHealth;
-            currentSoulBarrier = maxSoulBarrier;
-            currentStamina = maxStamina;
-            currentAether = maxAether;
-        }
-        else
-        {
-            currentHealth = Mathf.Clamp(currentHealth, 0f, maxHealth);
-            currentSoulBarrier = Mathf.Clamp(currentSoulBarrier, 0f, maxSoulBarrier);
-            currentStamina = Mathf.Clamp(currentStamina, 0f, maxStamina);
-            currentAether = Mathf.Clamp(currentAether, 0f, maxAether);
-        }
-
-        IsInitialized = true;
-        OnResourcesChanged?.Invoke();
+        ApplyResourceMaximums(
+            finalStats.maxHealth,
+            finalStats.maxSoulBarrier,
+            finalStats.maxStamina,
+            finalStats.maxAether,
+            refillResources
+        );
     }
 
     public void SetHealth(float value)
@@ -238,5 +223,86 @@ public class EntityResources :
                 0f,
                 maxHealth
             );
+    }
+
+    public void ApplyResourceMaximums(
+        float health,
+        float soulBarrier,
+        float stamina,
+        float aether,
+        bool refillResources = true)
+    {
+        maxHealth =
+            Mathf.Max(
+                0f,
+                health
+            );
+
+        maxSoulBarrier =
+            Mathf.Max(
+                0f,
+                soulBarrier
+            );
+
+        maxStamina =
+            Mathf.Max(
+                0f,
+                stamina
+            );
+
+        maxAether =
+            Mathf.Max(
+                0f,
+                aether
+            );
+
+        if (refillResources)
+        {
+            currentHealth =
+                maxHealth;
+
+            currentSoulBarrier =
+                maxSoulBarrier;
+
+            currentStamina =
+                maxStamina;
+
+            currentAether =
+                maxAether;
+        }
+        else
+        {
+            currentHealth =
+                Mathf.Clamp(
+                    currentHealth,
+                    0f,
+                    maxHealth
+                );
+
+            currentSoulBarrier =
+                Mathf.Clamp(
+                    currentSoulBarrier,
+                    0f,
+                    maxSoulBarrier
+                );
+
+            currentStamina =
+                Mathf.Clamp(
+                    currentStamina,
+                    0f,
+                    maxStamina
+                );
+
+            currentAether =
+                Mathf.Clamp(
+                    currentAether,
+                    0f,
+                    maxAether
+                );
+        }
+
+        IsInitialized = true;
+
+        OnResourcesChanged?.Invoke();
     }
 }
