@@ -45,7 +45,15 @@ public class EntityResources :
 
     public bool IsInitialized { get; private set; }
 
+    public bool IsHealthDepleted =>
+        IsInitialized &&
+        maxHealth > 0f &&
+        currentHealth <= 0f;
+
     public event Action OnResourcesChanged;
+
+    public event Action<DamageContext?>
+        OnHealthDepleted;
 
     public void ApplyFinalStats(
         FinalCharacterStats finalStats,
@@ -70,10 +78,28 @@ public class EntityResources :
         );
     }
 
-    public void SetHealth(float value)
+    public void SetHealth(
+        float value)
     {
-        currentHealth = Mathf.Clamp(value, 0f, maxHealth);
+        bool wasHealthDepleted =
+            IsHealthDepleted;
+
+        currentHealth =
+            Mathf.Clamp(
+                value,
+                0f,
+                maxHealth
+            );
+
         OnResourcesChanged?.Invoke();
+
+        if (!wasHealthDepleted &&
+            IsHealthDepleted)
+        {
+            OnHealthDepleted?.Invoke(
+                null
+            );
+        }
     }
 
     public void SetSoulBarrier(float value)
@@ -91,6 +117,9 @@ public class EntityResources :
     public void TakeDamage(
         DamageContext damage)
     {
+        bool wasHealthDepleted =
+            IsHealthDepleted;
+
         float amount =
             Mathf.Max(
                 0f,
@@ -109,6 +138,14 @@ public class EntityResources :
         }
 
         OnResourcesChanged?.Invoke();
+
+        if (!wasHealthDepleted &&
+            IsHealthDepleted)
+        {
+            OnHealthDepleted?.Invoke(
+                damage
+            );
+        }
     }
 
     public void HealHealth(float amount)
