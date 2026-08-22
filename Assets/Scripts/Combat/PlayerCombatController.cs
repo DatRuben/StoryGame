@@ -89,6 +89,9 @@ public sealed class PlayerCombatController :
 
         CombatHurtbox nearestHurtbox = null;
 
+        Vector3 nearestHitPoint =
+            Vector3.zero;
+
         float nearestDistance =
             float.PositiveInfinity;
 
@@ -130,6 +133,9 @@ public sealed class PlayerCombatController :
 
             nearestHurtbox =
                 hurtbox;
+
+            nearestHitPoint =
+                hitBuffer[i].point;
         }
 
         if (nearestHurtbox == null)
@@ -142,12 +148,21 @@ public sealed class PlayerCombatController :
             true
         );
 
-        nearestHurtbox.TakeDamage(
-            definition.baseDamage,
-            definition.damageType
-        );
+        DamageContext damage =
+            new DamageContext(
+                definition.baseDamage,
+                definition.damageType,
+                gameObject,
+                nearestHitPoint,
+                direction
+            );
 
-        return true;
+        DamageResult result =
+            nearestHurtbox.TakeDamage(
+                damage
+            );
+
+        return result.DidDamage;
     }
 
     private void RecordDebugCast(

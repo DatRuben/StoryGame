@@ -45,7 +45,15 @@ public class EntityResources :
 
     public bool IsInitialized { get; private set; }
 
+    public bool IsHealthDepleted =>
+        IsInitialized &&
+        maxHealth > 0f &&
+        currentHealth <= 0f;
+
     public event Action OnResourcesChanged;
+
+    public event Action<DamageContext?>
+        OnHealthDepleted;
 
     public void ApplyFinalStats(
         FinalCharacterStats finalStats,
@@ -70,10 +78,28 @@ public class EntityResources :
         );
     }
 
-    public void SetHealth(float value)
+    public void SetHealth(
+        float value)
     {
-        currentHealth = Mathf.Clamp(value, 0f, maxHealth);
+        bool wasHealthDepleted =
+            IsHealthDepleted;
+
+        currentHealth =
+            Mathf.Clamp(
+                value,
+                0f,
+                maxHealth
+            );
+
         OnResourcesChanged?.Invoke();
+
+        if (!wasHealthDepleted &&
+            IsHealthDepleted)
+        {
+            OnHealthDepleted?.Invoke(
+                null
+            );
+        }
     }
 
     public void SetSoulBarrier(float value)
@@ -88,11 +114,25 @@ public class EntityResources :
         OnResourcesChanged?.Invoke();
     }
 
-    public void TakeDamage(float amount, DamageType damageType)
+    public DamageResult TakeDamage(
+        DamageContext damage)
     {
-        amount = Mathf.Max(0f, amount);
+        bool wasHealthDepleted =
+            IsHealthDepleted;
 
-        switch (damageType)
+        float healthBefore =
+            currentHealth;
+
+        float soulBarrierBefore =
+            currentSoulBarrier;
+
+        float amount =
+            Mathf.Max(
+                0f,
+                damage.Amount
+            );
+
+        switch (damage.DamageType)
         {
             case DamageType.Physical:
                 DamageHealth(amount);
@@ -103,7 +143,43 @@ public class EntityResources :
                 break;
         }
 
+        float healthDamage =
+            Mathf.Max(
+                0f,
+                healthBefore -
+                currentHealth
+            );
+
+        float soulBarrierDamage =
+            Mathf.Max(
+                0f,
+                soulBarrierBefore -
+                currentSoulBarrier
+            );
+
+        bool healthDepleted =
+            !wasHealthDepleted &&
+            IsHealthDepleted;
+
+        DamageResult result =
+            new DamageResult(
+                damage,
+                gameObject,
+                healthDamage,
+                soulBarrierDamage,
+                healthDepleted
+            );
+
         OnResourcesChanged?.Invoke();
+
+        if (healthDepleted)
+        {
+            OnHealthDepleted?.Invoke(
+                damage
+            );
+        }
+
+        return result;
     }
 
     public void HealHealth(float amount)

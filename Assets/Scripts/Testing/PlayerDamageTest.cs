@@ -25,13 +25,29 @@ public class PlayerDamageTest : MonoBehaviour
 
         if (Keyboard.current.digit1Key.wasPressedThisFrame)
         {
-            resources.TakeDamage(physicalDamage, DamageType.Physical);
+            resources.TakeDamage(
+                new DamageContext(
+                    physicalDamage,
+                    DamageType.Physical,
+                    gameObject,
+                    transform.position,
+                    Vector3.zero
+                )
+            );
             PrintResources("Physical damage");
         }
 
         if (Keyboard.current.digit2Key.wasPressedThisFrame)
         {
-            resources.TakeDamage(aetherDamage, DamageType.Aether);
+            resources.TakeDamage(
+                new DamageContext(
+                    aetherDamage,
+                    DamageType.Aether,
+                    gameObject,
+                    transform.position,
+                    Vector3.zero
+                )
+            );
             PrintResources("Aether damage");
         }
 
