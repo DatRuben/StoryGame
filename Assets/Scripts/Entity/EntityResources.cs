@@ -88,11 +88,16 @@ public class EntityResources :
         OnResourcesChanged?.Invoke();
     }
 
-    public void TakeDamage(float amount, DamageType damageType)
+    public void TakeDamage(
+        DamageContext damage)
     {
-        amount = Mathf.Max(0f, amount);
+        float amount =
+            Mathf.Max(
+                0f,
+                damage.Amount
+            );
 
-        switch (damageType)
+        switch (damage.DamageType)
         {
             case DamageType.Physical:
                 DamageHealth(amount);

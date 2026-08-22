@@ -13,8 +13,7 @@ public sealed class CombatHurtbox :
     }
 
     public void TakeDamage(
-        float amount,
-        DamageType damageType)
+        DamageContext damage)
     {
         if (damageReceiver == null)
         {
@@ -22,8 +21,7 @@ public sealed class CombatHurtbox :
         }
 
         damageReceiver?.TakeDamage(
-            amount,
-            damageType
+            damage
         );
     }
 
