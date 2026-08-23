@@ -133,6 +133,10 @@ public sealed class CharacterRuntimeBinder :
         EntityResources playerResources =
             player.GetComponent<EntityResources>();
 
+        PlayerCombatController combatController =
+            player.GetComponent<
+                PlayerCombatController>();
+
         Camera mainCamera =
             Camera.main;
 
@@ -309,6 +313,7 @@ public sealed class CharacterRuntimeBinder :
         {
             playerCrosshair.BindPlayer(
                 playerInput,
+                combatController,
                 player.transform,
                 mainCamera,
                 aimTarget
