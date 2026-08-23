@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 [RequireComponent(
@@ -5,6 +6,9 @@ using UnityEngine;
 public sealed class PlayerCombatController :
     MonoBehaviour
 {
+    public event Action<DamageResult>
+    OnDamageResolved;
+
     [SerializeField]
     [Min(0.01f)]
     private float hitRadius = 0.35f;
@@ -161,6 +165,13 @@ public sealed class PlayerCombatController :
             nearestHurtbox.TakeDamage(
                 damage
             );
+
+        if (result.Target != null)
+        {
+            OnDamageResolved?.Invoke(
+                result
+            );
+        }
 
         return result.DidDamage;
     }
