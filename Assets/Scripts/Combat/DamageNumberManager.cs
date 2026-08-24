@@ -24,17 +24,36 @@ public sealed class DamageNumberManager :
 
     private Camera viewingCamera;
 
+    private PlayerCombatController combatController;
+
     private float nextCleanupTime;
 
     private readonly List<ActiveDamageStack>
         activeStacks =
             new List<ActiveDamageStack>();
 
-    public void BindViewer(
+    public void BindPlayer(
+        PlayerCombatController
+            newCombatController,
         Camera camera)
     {
+        if (combatController != null)
+        {
+            combatController.OnDamageResolved -=
+                HandleDamageResolved;
+        }
+
+        combatController =
+            newCombatController;
+
         viewingCamera =
             camera;
+
+        if (combatController != null)
+        {
+            combatController.OnDamageResolved +=
+                HandleDamageResolved;
+        }
     }
 
     public void ShowDamage(
@@ -114,6 +133,14 @@ public sealed class DamageNumberManager :
         );
     }
 
+    private void HandleDamageResolved(
+        DamageResult result)
+    {
+        ShowDamage(
+            result
+        );
+    }
+
     private void Update()
     {
         if (Time.time <
@@ -141,6 +168,15 @@ public sealed class DamageNumberManager :
             {
                 activeStacks.RemoveAt(i);
             }
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (combatController != null)
+        {
+            combatController.OnDamageResolved -=
+                HandleDamageResolved;
         }
     }
 
