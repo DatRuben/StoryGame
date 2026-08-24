@@ -54,20 +54,6 @@ public sealed class DamageNumberManager :
         GameObject target =
             result.Target;
 
-        amount =
-            Mathf.Max(
-                0f,
-                amount
-            );
-
-        if (amount <= 0f ||
-            target == null ||
-            damageNumberPrefab == null ||
-            viewingCamera == null)
-        {
-            return;
-        }
-
         for (int i =
                  activeStacks.Count - 1;
              i >= 0;
