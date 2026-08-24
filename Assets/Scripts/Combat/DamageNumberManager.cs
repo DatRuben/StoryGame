@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -27,19 +26,9 @@ public sealed class DamageNumberManager :
 
     private float nextCleanupTime;
 
-    private readonly Dictionary<
-        DamageStackKey,
-        ActiveDamageStack>
+    private readonly List<ActiveDamageStack>
         activeStacks =
-            new Dictionary<
-                DamageStackKey,
-                ActiveDamageStack>();
-
-    private readonly List<
-        DamageStackKey>
-        cleanupBuffer =
-            new List<
-                DamageStackKey>();
+            new List<ActiveDamageStack>();
 
     public void BindViewer(
         Camera camera)
@@ -52,7 +41,6 @@ public sealed class DamageNumberManager :
         float amount,
         GameObject source,
         GameObject target,
-        DamageType damageType,
         Vector3 hitPoint)
     {
         amount =
@@ -69,23 +57,33 @@ public sealed class DamageNumberManager :
             return;
         }
 
-        DamageStackKey key =
-            new DamageStackKey(
-                source != null
-                    ? source.GetInstanceID()
-                    : 0,
-                target.GetInstanceID(),
-                damageType
-            );
-
-        if (activeStacks.TryGetValue(
-                key,
-                out ActiveDamageStack stack) &&
-            stack.Number != null &&
-            Time.time -
-                stack.LastDamageTime <=
-                stackWindow)
+        for (int i =
+                 activeStacks.Count - 1;
+             i >= 0;
+             i--)
         {
+            ActiveDamageStack stack =
+                activeStacks[i];
+
+            if (stack.Number == null)
+            {
+                activeStacks.RemoveAt(i);
+                continue;
+            }
+
+            if (stack.Source != source ||
+                stack.Target != target)
+            {
+                continue;
+            }
+
+            if (Time.time -
+                    stack.LastDamageTime >
+                stackWindow)
+            {
+                continue;
+            }
+
             stack.Number.AddDamage(
                 amount
             );
@@ -107,11 +105,14 @@ public sealed class DamageNumberManager :
             viewingCamera
         );
 
-        activeStacks[key] =
+        activeStacks.Add(
             new ActiveDamageStack(
+                source,
+                target,
                 number,
                 Time.time
-            );
+            )
+        );
     }
 
     private void Update()
@@ -131,114 +132,45 @@ public sealed class DamageNumberManager :
 
     private void CleanupDestroyedStacks()
     {
-        cleanupBuffer.Clear();
-
-        foreach (
-            KeyValuePair<
-                DamageStackKey,
-                ActiveDamageStack>
-                pair in activeStacks)
+        for (int i =
+                 activeStacks.Count - 1;
+             i >= 0;
+             i--)
         {
-            if (pair.Value.Number == null)
+            if (activeStacks[i].Number ==
+                null)
             {
-                cleanupBuffer.Add(
-                    pair.Key
-                );
+                activeStacks.RemoveAt(i);
             }
-        }
-
-        for (int i = 0;
-             i < cleanupBuffer.Count;
-             i++)
-        {
-            activeStacks.Remove(
-                cleanupBuffer[i]
-            );
         }
     }
 
     private sealed class ActiveDamageStack
     {
+        public GameObject Source;
+        public GameObject Target;
+
         public WorldDamageNumber Number;
+
         public float LastDamageTime;
 
         public ActiveDamageStack(
+            GameObject source,
+            GameObject target,
             WorldDamageNumber number,
             float lastDamageTime)
         {
+            Source =
+                source;
+
+            Target =
+                target;
+
             Number =
                 number;
 
             LastDamageTime =
                 lastDamageTime;
-        }
-    }
-
-    private readonly struct DamageStackKey :
-        IEquatable<DamageStackKey>
-    {
-        private readonly int sourceId;
-        private readonly int targetId;
-
-        private readonly DamageType
-            damageType;
-
-        public DamageStackKey(
-            int sourceId,
-            int targetId,
-            DamageType damageType)
-        {
-            this.sourceId =
-                sourceId;
-
-            this.targetId =
-                targetId;
-
-            this.damageType =
-                damageType;
-        }
-
-        public bool Equals(
-            DamageStackKey other)
-        {
-            return
-                sourceId ==
-                    other.sourceId &&
-                targetId ==
-                    other.targetId &&
-                damageType ==
-                    other.damageType;
-        }
-
-        public override bool Equals(
-            object obj)
-        {
-            return
-                obj is DamageStackKey
-                    other &&
-                Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                int hash = 17;
-
-                hash =
-                    hash * 31 +
-                    sourceId;
-
-                hash =
-                    hash * 31 +
-                    targetId;
-
-                hash =
-                    hash * 31 +
-                    (int)damageType;
-
-                return hash;
-            }
         }
     }
 }
