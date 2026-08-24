@@ -15,9 +15,6 @@ public class PlayerCrosshair : MonoBehaviour
     [SerializeField] private float aimDistance = 50f;
     [SerializeField] private LayerMask aimLayers;
 
-    [Header("Unlocked Mode")]
-    [SerializeField] private bool useCameraPitchWhenUnlocked = true;
-
     [SerializeField]
     private PlayerCombatController combatController;
 
@@ -38,6 +35,9 @@ public class PlayerCrosshair : MonoBehaviour
     [SerializeField]
     private Color depletionFeedbackColor =
         Color.yellow;
+
+    [Header("Unlocked Mode")]
+    [SerializeField] private bool useCameraPitchWhenUnlocked = true;
 
     private Color normalCrosshairColor;
 
