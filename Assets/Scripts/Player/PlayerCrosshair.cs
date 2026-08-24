@@ -36,6 +36,11 @@ public class PlayerCrosshair : MonoBehaviour
     private Color depletionFeedbackColor =
         Color.yellow;
 
+    [SerializeField]
+    private GameObject hitMarker;
+
+    private float hitMarkerVisibleUntil;
+
     [Header("Unlocked Mode")]
     [SerializeField] private bool useCameraPitchWhenUnlocked = true;
 
@@ -53,6 +58,11 @@ public class PlayerCrosshair : MonoBehaviour
     {
         if (crosshair == null)
             return;
+
+        if (hitMarker != null)
+        {
+            hitMarker.SetActive(false);
+        }
 
         canvas = crosshair.GetComponentInParent<Canvas>();
 
@@ -104,12 +114,21 @@ public class PlayerCrosshair : MonoBehaviour
         if (!result.DidDamage)
             return;
 
+        if (hitMarker != null)
+        {
+            hitMarker.SetActive(true);
+        }
+
         if (result.HealthDepleted)
         {
             activeFeedbackColor =
                 depletionFeedbackColor;
 
             hitFeedbackUntil =
+                Time.time +
+                depletionFeedbackDuration;
+
+            hitMarkerVisibleUntil =
                 Time.time +
                 depletionFeedbackDuration;
 
@@ -120,6 +139,10 @@ public class PlayerCrosshair : MonoBehaviour
             hitFeedbackColor;
 
         hitFeedbackUntil =
+            Time.time +
+            hitFeedbackDuration;
+
+        hitMarkerVisibleUntil =
             Time.time +
             hitFeedbackDuration;
     }
@@ -152,10 +175,28 @@ public class PlayerCrosshair : MonoBehaviour
         }
     }
 
+    private void UpdateHitMarker()
+    {
+        if (hitMarker == null ||
+            !hitMarker.activeSelf)
+        {
+            return;
+        }
+
+        if (Time.time >=
+            hitMarkerVisibleUntil)
+        {
+            hitMarker.SetActive(false);
+        }
+    }
+
     private void HideCrosshair()
     {
         if (crosshairGraphic != null)
             crosshairGraphic.enabled = false;
+
+        if (hitMarker != null)
+            hitMarker.SetActive(false);
     }
 
     private void UpdateLockedAim()
