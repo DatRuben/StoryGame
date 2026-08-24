@@ -38,11 +38,22 @@ public sealed class DamageNumberManager :
     }
 
     public void ShowDamage(
-        float amount,
-        GameObject source,
-        GameObject target,
-        Vector3 hitPoint)
+        DamageResult result)
     {
+        if (!result.DidDamage ||
+            result.Target == null ||
+            damageNumberPrefab == null ||
+            viewingCamera == null)
+        {
+            return;
+        }
+
+        GameObject source =
+            result.Context.Source;
+
+        GameObject target =
+            result.Target;
+
         amount =
             Mathf.Max(
                 0f,
@@ -85,7 +96,8 @@ public sealed class DamageNumberManager :
             }
 
             stack.Number.AddDamage(
-                amount
+                result.HealthDamage,
+                result.SoulBarrierDamage
             );
 
             stack.LastDamageTime =
@@ -100,8 +112,9 @@ public sealed class DamageNumberManager :
             );
 
         number.Initialize(
-            amount,
-            hitPoint,
+            result.HealthDamage,
+            result.SoulBarrierDamage,
+            result.Context.HitPoint,
             viewingCamera
         );
 

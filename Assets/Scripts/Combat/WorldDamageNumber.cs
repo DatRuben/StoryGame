@@ -34,7 +34,8 @@ public sealed class WorldDamageNumber :
 
     private Vector3 startingPosition;
 
-    private float totalDamage;
+    private float totalHealthDamage;
+    private float totalSoulBarrierDamage;
 
     private float spawnTime;
     private float lastDamageTime;
@@ -56,7 +57,8 @@ public sealed class WorldDamageNumber :
     }
 
     public void Initialize(
-        float amount,
+        float healthDamage,
+        float soulBarrierDamage,
         Vector3 hitPoint,
         Camera camera)
     {
@@ -71,10 +73,16 @@ public sealed class WorldDamageNumber :
         transform.position =
             startingPosition;
 
-        totalDamage =
+        totalHealthDamage =
             Mathf.Max(
                 0f,
-                amount
+                healthDamage
+            );
+
+        totalSoulBarrierDamage =
+            Mathf.Max(
+                0f,
+                soulBarrierDamage
             );
 
         spawnTime =
@@ -83,16 +91,7 @@ public sealed class WorldDamageNumber :
         lastDamageTime =
             Time.time;
 
-        if (text != null)
-        {
-            text.text =
-                FormatAmount(
-                    totalDamage
-                );
-
-            text.color =
-                startingColor;
-        }
+        RefreshText();
 
         isInitialized = true;
 
@@ -100,33 +99,28 @@ public sealed class WorldDamageNumber :
     }
 
     public void AddDamage(
-        float amount)
+        float healthDamage,
+        float soulBarrierDamage)
     {
         if (!isInitialized)
             return;
 
-        amount =
+        totalHealthDamage +=
             Mathf.Max(
                 0f,
-                amount
+                healthDamage
             );
 
-        totalDamage +=
-            amount;
+        totalSoulBarrierDamage +=
+            Mathf.Max(
+                0f,
+                soulBarrierDamage
+            );
 
         lastDamageTime =
             Time.time;
 
-        if (text != null)
-        {
-            text.text =
-                FormatAmount(
-                    totalDamage
-                );
-
-            text.color =
-                startingColor;
-        }
+        RefreshText();
     }
 
     private void LateUpdate()
@@ -226,6 +220,48 @@ public sealed class WorldDamageNumber :
 
         text.color =
             color;
+    }
+
+    private void RefreshText()
+    {
+        if (text == null)
+            return;
+
+        bool hasHealthDamage =
+            totalHealthDamage > 0f;
+
+        bool hasSoulBarrierDamage =
+            totalSoulBarrierDamage > 0f;
+
+        if (hasHealthDamage &&
+            hasSoulBarrierDamage)
+        {
+            text.text =
+                FormatAmount(
+                    totalHealthDamage
+                ) +
+                "   " +
+                FormatAmount(
+                    totalSoulBarrierDamage
+                );
+        }
+        else if (hasHealthDamage)
+        {
+            text.text =
+                FormatAmount(
+                    totalHealthDamage
+                );
+        }
+        else
+        {
+            text.text =
+                FormatAmount(
+                    totalSoulBarrierDamage
+                );
+        }
+
+        text.color =
+            startingColor;
     }
 
     private string FormatAmount(
