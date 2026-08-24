@@ -9,14 +9,12 @@ public class PlayerCrosshair : MonoBehaviour
     [SerializeField] private Camera playerCamera;
     [SerializeField] private RectTransform crosshair;
     [SerializeField] private Transform aimTarget;
+    [SerializeField] private PlayerCombatController combatController;
 
     [Header("Aim")]
     [SerializeField] private float aimHeight = 1.2f;
     [SerializeField] private float aimDistance = 50f;
     [SerializeField] private LayerMask aimLayers;
-
-    [SerializeField]
-    private PlayerCombatController combatController;
 
     [Header("Hit Feedback")]
 
@@ -149,6 +147,8 @@ public class PlayerCrosshair : MonoBehaviour
 
     private void LateUpdate()
     {
+        UpdateHitMarker();
+
         if (playerInput == null ||
             character == null ||
             playerCamera == null ||

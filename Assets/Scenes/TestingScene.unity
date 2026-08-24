@@ -28774,16 +28774,17 @@ MonoBehaviour:
   playerCamera: {fileID: 330585545}
   crosshair: {fileID: 946322017}
   aimTarget: {fileID: 0}
+  combatController: {fileID: 0}
   aimHeight: 1.2
   aimDistance: 50
   aimLayers:
     serializedVersion: 2
     m_Bits: 128
-  combatController: {fileID: 0}
   hitFeedbackDuration: 0.12
   depletionFeedbackDuration: 0.2
   hitFeedbackColor: {r: 1, g: 0, b: 0, a: 1}
   depletionFeedbackColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  hitMarker: {fileID: 1319459889}
   useCameraPitchWhenUnlocked: 1
 --- !u!114 &1350866576
 MonoBehaviour:
