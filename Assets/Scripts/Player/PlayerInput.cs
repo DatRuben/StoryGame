@@ -90,7 +90,8 @@ public class PlayerInput : MonoBehaviour
     [SerializeField]
     private PlayerStorageContainerInteract storageInteract;
 
-    [SerializeField] private PlayerResources playerResources;
+    [SerializeField]
+    private EntityResources playerResources;
 
     private Animator animator;
 
@@ -114,6 +115,7 @@ public class PlayerInput : MonoBehaviour
 
     private PlayerGripState gripState;
     private PlayerCharacterProfile characterProfile;
+    private PlayerCombatController combatController;
 
     private void Awake()
     {
@@ -152,10 +154,13 @@ public class PlayerInput : MonoBehaviour
                 GetComponent<PlayerStorageContainerInteract>();
         }
         if (playerResources == null)
-            playerResources = GetComponent<PlayerResources>();
+            playerResources = GetComponent<EntityResources>();
 
         gripState =
             GetComponent<PlayerGripState>();
+
+        combatController =
+            GetComponent<PlayerCombatController>();
 
         characterProfile =
             GetComponent<PlayerCharacterProfile>();
@@ -835,10 +840,21 @@ public class PlayerInput : MonoBehaviour
         return false;
     }
 
-    private void DoAttack(InputAction.CallbackContext obj)
+    private void DoAttack(
+        InputAction.CallbackContext obj)
     {
         if (animator != null)
-            animator.SetTrigger("attack");
+        {
+            animator.SetTrigger(
+                "attack"
+            );
+        }
+
+        if (combatController != null)
+        {
+            combatController
+                .TryPrimaryAttack();
+        }
     }
 
     private void ToggleCameraLock(InputAction.CallbackContext obj)

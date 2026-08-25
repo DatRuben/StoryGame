@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerStatusEffects : MonoBehaviour
+public class StatusEffects : MonoBehaviour
 {
     [Header("Initial Effects")]
     [Tooltip(
@@ -95,10 +95,19 @@ public class PlayerStatusEffects : MonoBehaviour
                 definition.effectId))
         {
             Debug.LogWarning(
-                "PlayerStatusEffects cannot apply an invalid status-effect definition.",
+                "StatusEffects cannot apply an invalid status-effect definition.",
                 this
             );
 
+            return false;
+        }
+
+        EntityClassification classification =
+            GetComponent<EntityClassification>();
+
+        if (!definition.CanApplyTo(
+                classification))
+        {
             return false;
         }
 

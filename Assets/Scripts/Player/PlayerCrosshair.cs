@@ -9,14 +9,44 @@ public class PlayerCrosshair : MonoBehaviour
     [SerializeField] private Camera playerCamera;
     [SerializeField] private RectTransform crosshair;
     [SerializeField] private Transform aimTarget;
+    [SerializeField] private PlayerCombatController combatController;
 
     [Header("Aim")]
     [SerializeField] private float aimHeight = 1.2f;
     [SerializeField] private float aimDistance = 50f;
     [SerializeField] private LayerMask aimLayers;
 
+    [Header("Hit Feedback")]
+
+    [SerializeField]
+    [Min(0.01f)]
+    private float hitFeedbackDuration = 0.12f;
+
+    [SerializeField]
+    [Min(0.01f)]
+    private float depletionFeedbackDuration = 0.2f;
+
+    [SerializeField]
+    private Color hitFeedbackColor =
+        Color.red;
+
+    [SerializeField]
+    private Color depletionFeedbackColor =
+        Color.yellow;
+
+    [SerializeField]
+    private GameObject hitMarker;
+
+    private float hitMarkerVisibleUntil;
+
     [Header("Unlocked Mode")]
     [SerializeField] private bool useCameraPitchWhenUnlocked = true;
+
+    private Color normalCrosshairColor;
+
+    private float hitFeedbackUntil;
+
+    private Color activeFeedbackColor;
 
     private Canvas canvas;
     private RectTransform canvasRect;
@@ -27,6 +57,11 @@ public class PlayerCrosshair : MonoBehaviour
         if (crosshair == null)
             return;
 
+        if (hitMarker != null)
+        {
+            hitMarker.SetActive(false);
+        }
+
         canvas = crosshair.GetComponentInParent<Canvas>();
 
         if (canvas != null)
@@ -34,25 +69,86 @@ public class PlayerCrosshair : MonoBehaviour
 
         crosshairGraphic = crosshair.GetComponent<Graphic>();
 
+        if (crosshairGraphic != null)
+        {
+            normalCrosshairColor =
+                crosshairGraphic.color;
+        }
+
         HideCrosshair();
     }
 
     public void BindPlayer(
         PlayerInput newPlayerInput,
+        PlayerCombatController newCombatController,
         Transform newCharacter,
         Camera newPlayerCamera,
         Transform newAimTarget)
     {
+        if (combatController != null)
+        {
+            combatController.OnDamageResolved -=
+                HandleDamageResolved;
+        }
+
         playerInput = newPlayerInput;
         character = newCharacter;
         playerCamera = newPlayerCamera;
         aimTarget = newAimTarget;
+        combatController = newCombatController;
+
+        if (combatController != null)
+        {
+            combatController.OnDamageResolved +=
+                HandleDamageResolved;
+        }
 
         HideCrosshair();
     }
 
+    private void HandleDamageResolved(
+        DamageResult result)
+    {
+        if (!result.DidDamage)
+            return;
+
+        if (hitMarker != null)
+        {
+            hitMarker.SetActive(true);
+        }
+
+        if (result.HealthDepleted)
+        {
+            activeFeedbackColor =
+                depletionFeedbackColor;
+
+            hitFeedbackUntil =
+                Time.time +
+                depletionFeedbackDuration;
+
+            hitMarkerVisibleUntil =
+                Time.time +
+                depletionFeedbackDuration;
+
+            return;
+        }
+
+        activeFeedbackColor =
+            hitFeedbackColor;
+
+        hitFeedbackUntil =
+            Time.time +
+            hitFeedbackDuration;
+
+        hitMarkerVisibleUntil =
+            Time.time +
+            hitFeedbackDuration;
+    }
+
     private void LateUpdate()
     {
+        UpdateHitMarker();
+
         if (playerInput == null ||
             character == null ||
             playerCamera == null ||
@@ -79,16 +175,42 @@ public class PlayerCrosshair : MonoBehaviour
         }
     }
 
+    private void UpdateHitMarker()
+    {
+        if (hitMarker == null ||
+            !hitMarker.activeSelf)
+        {
+            return;
+        }
+
+        if (Time.time >=
+            hitMarkerVisibleUntil)
+        {
+            hitMarker.SetActive(false);
+        }
+    }
+
     private void HideCrosshair()
     {
         if (crosshairGraphic != null)
             crosshairGraphic.enabled = false;
+
+        if (hitMarker != null)
+            hitMarker.SetActive(false);
     }
 
     private void UpdateLockedAim()
     {
         if (crosshairGraphic != null)
+        {
             crosshairGraphic.enabled = true;
+
+            crosshairGraphic.color =
+                Time.time <
+                    hitFeedbackUntil
+                    ? activeFeedbackColor
+                    : normalCrosshairColor;
+        }
 
         Vector2 screenPoint =
             new Vector2(
@@ -119,6 +241,15 @@ public class PlayerCrosshair : MonoBehaviour
         aimTarget.position = targetPoint;
 
         SetCrosshairScreenPosition(screenPoint);
+    }
+
+    private void OnDestroy()
+    {
+        if (combatController != null)
+        {
+            combatController.OnDamageResolved -=
+                HandleDamageResolved;
+        }
     }
 
     private void UpdateUnlockedHiddenAim()

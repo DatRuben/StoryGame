@@ -1,7 +1,9 @@
 using System;
 using UnityEngine;
 
-public class PlayerResources : MonoBehaviour, DamageReceiver
+public class EntityResources :
+    MonoBehaviour,
+    DamageReceiver
 {
     [Header("Health")]
     private float maxHealth;
@@ -43,50 +45,61 @@ public class PlayerResources : MonoBehaviour, DamageReceiver
 
     public bool IsInitialized { get; private set; }
 
+    public bool IsHealthDepleted =>
+        IsInitialized &&
+        maxHealth > 0f &&
+        currentHealth <= 0f;
+
     public event Action OnResourcesChanged;
 
+    public event Action<DamageContext?>
+        OnHealthDepleted;
+
     public void ApplyFinalStats(
-    FinalCharacterStats finalStats,
-    bool refillResources = true)
+        FinalCharacterStats finalStats,
+        bool refillResources = true)
     {
         if (finalStats == null)
         {
             Debug.LogWarning(
-                "PlayerResources could not apply final stats because FinalCharacterStats is missing.",
+                "EntityResources could not apply final stats because FinalCharacterStats is missing.",
                 this
             );
 
             return;
         }
 
-        maxHealth = Mathf.Max(1f, finalStats.maxHealth);
-        maxSoulBarrier = Mathf.Max(1f, finalStats.maxSoulBarrier);
-        maxStamina = Mathf.Max(1f, finalStats.maxStamina);
-        maxAether = Mathf.Max(1f, finalStats.maxAether);
-
-        if (refillResources)
-        {
-            currentHealth = maxHealth;
-            currentSoulBarrier = maxSoulBarrier;
-            currentStamina = maxStamina;
-            currentAether = maxAether;
-        }
-        else
-        {
-            currentHealth = Mathf.Clamp(currentHealth, 0f, maxHealth);
-            currentSoulBarrier = Mathf.Clamp(currentSoulBarrier, 0f, maxSoulBarrier);
-            currentStamina = Mathf.Clamp(currentStamina, 0f, maxStamina);
-            currentAether = Mathf.Clamp(currentAether, 0f, maxAether);
-        }
-
-        IsInitialized = true;
-        OnResourcesChanged?.Invoke();
+        ApplyResourceMaximums(
+            finalStats.maxHealth,
+            finalStats.maxSoulBarrier,
+            finalStats.maxStamina,
+            finalStats.maxAether,
+            refillResources
+        );
     }
 
-    public void SetHealth(float value)
+    public void SetHealth(
+        float value)
     {
-        currentHealth = Mathf.Clamp(value, 0f, maxHealth);
+        bool wasHealthDepleted =
+            IsHealthDepleted;
+
+        currentHealth =
+            Mathf.Clamp(
+                value,
+                0f,
+                maxHealth
+            );
+
         OnResourcesChanged?.Invoke();
+
+        if (!wasHealthDepleted &&
+            IsHealthDepleted)
+        {
+            OnHealthDepleted?.Invoke(
+                null
+            );
+        }
     }
 
     public void SetSoulBarrier(float value)
@@ -101,11 +114,25 @@ public class PlayerResources : MonoBehaviour, DamageReceiver
         OnResourcesChanged?.Invoke();
     }
 
-    public void TakeDamage(float amount, DamageType damageType)
+    public DamageResult TakeDamage(
+        DamageContext damage)
     {
-        amount = Mathf.Max(0f, amount);
+        bool wasHealthDepleted =
+            IsHealthDepleted;
 
-        switch (damageType)
+        float healthBefore =
+            currentHealth;
+
+        float soulBarrierBefore =
+            currentSoulBarrier;
+
+        float amount =
+            Mathf.Max(
+                0f,
+                damage.Amount
+            );
+
+        switch (damage.DamageType)
         {
             case DamageType.Physical:
                 DamageHealth(amount);
@@ -116,7 +143,43 @@ public class PlayerResources : MonoBehaviour, DamageReceiver
                 break;
         }
 
+        float healthDamage =
+            Mathf.Max(
+                0f,
+                healthBefore -
+                currentHealth
+            );
+
+        float soulBarrierDamage =
+            Mathf.Max(
+                0f,
+                soulBarrierBefore -
+                currentSoulBarrier
+            );
+
+        bool healthDepleted =
+            !wasHealthDepleted &&
+            IsHealthDepleted;
+
+        DamageResult result =
+            new DamageResult(
+                damage,
+                gameObject,
+                healthDamage,
+                soulBarrierDamage,
+                healthDepleted
+            );
+
         OnResourcesChanged?.Invoke();
+
+        if (healthDepleted)
+        {
+            OnHealthDepleted?.Invoke(
+                damage
+            );
+        }
+
+        return result;
     }
 
     public void HealHealth(float amount)
@@ -236,5 +299,86 @@ public class PlayerResources : MonoBehaviour, DamageReceiver
                 0f,
                 maxHealth
             );
+    }
+
+    public void ApplyResourceMaximums(
+        float health,
+        float soulBarrier,
+        float stamina,
+        float aether,
+        bool refillResources = true)
+    {
+        maxHealth =
+            Mathf.Max(
+                0f,
+                health
+            );
+
+        maxSoulBarrier =
+            Mathf.Max(
+                0f,
+                soulBarrier
+            );
+
+        maxStamina =
+            Mathf.Max(
+                0f,
+                stamina
+            );
+
+        maxAether =
+            Mathf.Max(
+                0f,
+                aether
+            );
+
+        if (refillResources)
+        {
+            currentHealth =
+                maxHealth;
+
+            currentSoulBarrier =
+                maxSoulBarrier;
+
+            currentStamina =
+                maxStamina;
+
+            currentAether =
+                maxAether;
+        }
+        else
+        {
+            currentHealth =
+                Mathf.Clamp(
+                    currentHealth,
+                    0f,
+                    maxHealth
+                );
+
+            currentSoulBarrier =
+                Mathf.Clamp(
+                    currentSoulBarrier,
+                    0f,
+                    maxSoulBarrier
+                );
+
+            currentStamina =
+                Mathf.Clamp(
+                    currentStamina,
+                    0f,
+                    maxStamina
+                );
+
+            currentAether =
+                Mathf.Clamp(
+                    currentAether,
+                    0f,
+                    maxAether
+                );
+        }
+
+        IsInitialized = true;
+
+        OnResourcesChanged?.Invoke();
     }
 }

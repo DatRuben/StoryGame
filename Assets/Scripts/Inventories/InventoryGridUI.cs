@@ -1226,9 +1226,7 @@ public sealed class InventoryGridUI :
 
     private void UpdateHoveredCoordinateFromMouse()
     {
-        if (interactionController == null ||
-            !interactionController.HasSelection ||
-            Mouse.current == null ||
+        if (Mouse.current == null ||
             !InventoryMenuController
                 .IsInventoryOpen)
         {
@@ -1269,6 +1267,61 @@ public sealed class InventoryGridUI :
             newCoordinate;
 
         Refresh();
+    }
+
+    public static bool TryGetHoveredItem(
+        out InventoryContainer container,
+        out Vector2Int coordinate)
+    {
+        container = null;
+        coordinate =
+            new Vector2Int(-1, -1);
+
+        if (!InventoryMenuController
+            .IsInventoryOpen)
+        {
+            return false;
+        }
+
+        for (int i = activeGrids.Count - 1;
+             i >= 0;
+             i--)
+        {
+            InventoryGridUI grid =
+                activeGrids[i];
+
+            if (grid == null ||
+                !grid.isActiveAndEnabled ||
+                grid.inventoryContainer == null ||
+                !grid.IsValidGridCoordinate(
+                    grid.hoveredCoordinate))
+            {
+                continue;
+            }
+
+            PlacedInventoryItem item =
+                grid.inventoryContainer.GetItemAt(
+                    grid.hoveredCoordinate.x,
+                    grid.hoveredCoordinate.y
+                );
+
+            if (item == null ||
+                item.ItemInstance == null ||
+                item.ItemInstance.IsEmpty)
+            {
+                continue;
+            }
+
+            container =
+                grid.inventoryContainer;
+
+            coordinate =
+                grid.hoveredCoordinate;
+
+            return true;
+        }
+
+        return false;
     }
 
     private void CreateHeldPreviewRoot()

@@ -40,6 +40,14 @@ public class StatusEffectDefinition : ScriptableObject
     public StatusEffectDisposition disposition =
         StatusEffectDisposition.Neutral;
 
+    [Header("Target Eligibility")]
+    [Tooltip(
+        "None means this effect can affect any entity. " +
+        "Otherwise the target must have at least one matching entity trait."
+    )]
+    public EntityTrait allowedEntityTraits =
+        EntityTrait.None;
+
     [Header("Duration")]
     [Tooltip(
         "A duration of 0 means the effect lasts until removed."
@@ -200,5 +208,20 @@ public class StatusEffectDefinition : ScriptableObject
         return builder
             .ToString()
             .Trim('_');
+    }
+
+    public bool CanApplyTo(
+        EntityClassification target)
+    {
+        if (allowedEntityTraits ==
+            EntityTrait.None)
+        {
+            return true;
+        }
+
+        return target != null &&
+               target.HasAny(
+                   allowedEntityTraits
+               );
     }
 }
