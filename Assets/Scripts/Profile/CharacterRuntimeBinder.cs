@@ -50,6 +50,10 @@ public sealed class CharacterRuntimeBinder :
     private PlayerCrosshair playerCrosshair;
 
     [SerializeField]
+    private DamageNumberManager
+        damageNumberManager;
+
+    [SerializeField]
     private TextMeshProUGUI speedText;
 
     [Header("Runtime Camera")]
@@ -132,6 +136,10 @@ public sealed class CharacterRuntimeBinder :
 
         EntityResources playerResources =
             player.GetComponent<EntityResources>();
+
+        PlayerCombatController combatController =
+            player.GetComponent<
+                PlayerCombatController>();
 
         Camera mainCamera =
             Camera.main;
@@ -309,9 +317,18 @@ public sealed class CharacterRuntimeBinder :
         {
             playerCrosshair.BindPlayer(
                 playerInput,
+                combatController,
                 player.transform,
                 mainCamera,
                 aimTarget
+            );
+        }
+
+        if (damageNumberManager != null)
+        {
+            damageNumberManager.BindPlayer(
+                combatController,
+                mainCamera
             );
         }
 
