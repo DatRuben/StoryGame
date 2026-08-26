@@ -5,13 +5,44 @@ using UnityEngine;
 public sealed class EntityDamageLog :
     MonoBehaviour
 {
+    public readonly struct Entry
+    {
+        public GameObject Source { get; }
+
+        public DamageType DamageType { get; }
+
+        public float HealthDamage { get; }
+        public float SoulBarrierDamage { get; }
+
+        public bool WasFinalBlow { get; }
+
+        public Entry(
+            DamageResult result)
+        {
+            Source =
+                result.Context.Source;
+
+            DamageType =
+                result.Context.DamageType;
+
+            HealthDamage =
+                result.HealthDamage;
+
+            SoulBarrierDamage =
+                result.SoulBarrierDamage;
+
+            WasFinalBlow =
+                result.HealthDepleted;
+        }
+    }
+
     private EntityResources resources;
 
-    private readonly List<DamageResult>
+    private readonly List<Entry>
         entries =
-            new List<DamageResult>();
+            new List<Entry>();
 
-    public IReadOnlyList<DamageResult>
+    public IReadOnlyList<Entry>
         Entries =>
             entries;
 
@@ -31,7 +62,9 @@ public sealed class EntityDamageLog :
         DamageResult result)
     {
         entries.Add(
-            result
+            new Entry(
+                result
+            )
         );
     }
 
