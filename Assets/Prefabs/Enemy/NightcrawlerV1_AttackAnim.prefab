@@ -115,6 +115,37 @@ SkinnedMeshRenderer:
     m_Center: {x: 0.07924658, y: 0.44906163, z: 1.3175204}
     m_Extent: {x: 1.6371317, y: 6.7029037, z: 2.9987466}
   m_DirtyAABB: 0
+--- !u!1 &8950231426966628337
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6713933516862342820}
+  m_Layer: 0
+  m_Name: BodyHurtbox
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6713933516862342820
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8950231426966628337}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2507215300961610520}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &2684658253706611955
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -193,7 +224,19 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: a19c1e8a97a86594390d9e68fc2cdd51, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3933692882124602022}
-    m_AddedComponents: []
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: a19c1e8a97a86594390d9e68fc2cdd51, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6713933516862342820}
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: a19c1e8a97a86594390d9e68fc2cdd51, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7399495330060228584}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: a19c1e8a97a86594390d9e68fc2cdd51, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4246456408248034152}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: a19c1e8a97a86594390d9e68fc2cdd51, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3277523805643596677}
   m_SourcePrefab: {fileID: 100100000, guid: a19c1e8a97a86594390d9e68fc2cdd51, type: 3}
 --- !u!4 &547121257092876965 stripped
 Transform:
@@ -245,6 +288,52 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -9000043091057238158, guid: a19c1e8a97a86594390d9e68fc2cdd51, type: 3}
   m_PrefabInstance: {fileID: 2684658253706611955}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &2990596469239443874 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: a19c1e8a97a86594390d9e68fc2cdd51, type: 3}
+  m_PrefabInstance: {fileID: 2684658253706611955}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &7399495330060228584
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2990596469239443874}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d365944a07b11364291657856e54f39a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EntityResources
+  maxAetherBodyDamageReduction: 0.5
+--- !u!114 &4246456408248034152
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2990596469239443874}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d331cfcee27297a42831005d99c52873, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EntityResourceSetup
+  health: 100
+  soulBarrier: 0
+  stamina: 0
+  aether: 0
+--- !u!114 &3277523805643596677
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2990596469239443874}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17c42e4708374fe4584bd9876d295d70, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EntityDamageLog
 --- !u!4 &3053456685557678502 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8132976630638981803, guid: a19c1e8a97a86594390d9e68fc2cdd51, type: 3}
