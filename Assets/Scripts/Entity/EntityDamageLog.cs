@@ -10,7 +10,7 @@ public sealed class EntityDamageLog :
         public GameObject Source { get; }
 
         public DamageType DamageType { get; }
-
+        public DamageOutcome Outcome { get; }
         public float HealthDamage { get; }
         public float SoulBarrierDamage { get; }
 
@@ -24,6 +24,9 @@ public sealed class EntityDamageLog :
 
             DamageType =
                 result.Context.DamageType;
+
+            Outcome =
+                result.Outcome;
 
             HealthDamage =
                 result.HealthDamage;
