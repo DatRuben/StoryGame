@@ -52,6 +52,9 @@ public class EntityResources :
 
     public event Action OnResourcesChanged;
 
+    public event Action<DamageResult>
+        OnDamageResolved;
+
     public event Action<DamageContext?>
         OnHealthDepleted;
 
@@ -171,6 +174,10 @@ public class EntityResources :
             );
 
         OnResourcesChanged?.Invoke();
+
+        OnDamageResolved?.Invoke(
+            result
+        );
 
         if (healthDepleted)
         {
