@@ -168,6 +168,7 @@ public class EntityResources :
             new DamageResult(
                 damage,
                 gameObject,
+                DamageOutcome.Applied,
                 healthDamage,
                 soulBarrierDamage,
                 healthDepleted

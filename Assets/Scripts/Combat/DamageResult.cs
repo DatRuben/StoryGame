@@ -1,10 +1,19 @@
 using UnityEngine;
 
+public enum DamageOutcome
+{
+    Unresolved,
+    Applied,
+    Blocked,
+    Immune
+}
+
 public readonly struct DamageResult
 {
     public DamageContext Context { get; }
 
     public GameObject Target { get; }
+    public DamageOutcome Outcome { get; }
 
     public float HealthDamage { get; }
     public float SoulBarrierDamage { get; }
@@ -18,6 +27,7 @@ public readonly struct DamageResult
     public DamageResult(
         DamageContext context,
         GameObject target,
+        DamageOutcome outcome,
         float healthDamage,
         float soulBarrierDamage,
         bool healthDepleted)
@@ -25,6 +35,9 @@ public readonly struct DamageResult
         Context = context;
 
         Target = target;
+
+        Outcome =
+            outcome;
 
         HealthDamage =
             Mathf.Max(

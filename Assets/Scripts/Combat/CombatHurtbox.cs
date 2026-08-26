@@ -25,6 +25,7 @@ public sealed class CombatHurtbox :
             return new DamageResult(
                 damage,
                 null,
+                DamageOutcome.Unresolved,
                 0f,
                 0f,
                 false
