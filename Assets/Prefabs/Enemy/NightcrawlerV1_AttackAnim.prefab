@@ -332,6 +332,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: a19c1e8a97a86594390d9e68fc2cdd51, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3277523805643596677}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: a19c1e8a97a86594390d9e68fc2cdd51, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2648280739292642205}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: a19c1e8a97a86594390d9e68fc2cdd51, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8199511408225536399}
   m_SourcePrefab: {fileID: 100100000, guid: a19c1e8a97a86594390d9e68fc2cdd51, type: 3}
 --- !u!4 &547121257092876965 stripped
 Transform:
@@ -429,6 +435,42 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17c42e4708374fe4584bd9876d295d70, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EntityDamageLog
+--- !u!135 &2648280739292642205
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2990596469239443874}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 1.5
+  m_Center: {x: 0, y: 2, z: 4}
+--- !u!114 &8199511408225536399
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2990596469239443874}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d8dfe6e7f7804a4e8191bfc7152d29c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CombatHitbox
+  damageAmount: 10
+  damageType: 0
+  source: {fileID: 0}
 --- !u!4 &3053456685557678502 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8132976630638981803, guid: a19c1e8a97a86594390d9e68fc2cdd51, type: 3}
