@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public sealed class CombatHitboxStateCleanup :
+public sealed class CombatHitboxState:
     StateMachineBehaviour
 {
     public override void OnStateEnter(
