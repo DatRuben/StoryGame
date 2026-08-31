@@ -15,6 +15,8 @@ public class InventoryMenuController : MonoBehaviour
 
     private PlayerStorageContainerInteract storageInteract;
 
+    private PlayerDownedState downedState;
+
     private InventoryInteractionController
     interactionController;
 
@@ -98,15 +100,15 @@ public class InventoryMenuController : MonoBehaviour
 
     public void SetInventoryOpen(bool open)
     {
-        isOpen = open;
-        IsInventoryOpen = open;
-
         if (open &&
             downedState != null &&
             downedState.IsDowned)
         {
             open = false;
         }
+
+        isOpen = open;
+        IsInventoryOpen = open;
 
         if (!open)
         {
