@@ -12,7 +12,8 @@ public enum PlayerInteractionType
 
 [RequireComponent(
     typeof(PlayerInputRouter),
-    typeof(InventoryInteractionController)
+    typeof(InventoryInteractionController),
+    typeof(PlayerDownedState)
 )]
 
 public sealed class PlayerStorageContainerInteract :
@@ -58,6 +59,8 @@ public sealed class PlayerStorageContainerInteract :
 
     [SerializeField]
     private PlayerInputRouter inputRouter;
+
+    private PlayerDownedState downedState;
 
     private InventoryInteractionController
         interactionController;
@@ -158,6 +161,12 @@ public sealed class PlayerStorageContainerInteract :
             cameraTransform =
                 Camera.main.transform;
         }
+
+        if (downedState == null)
+        {
+            downedState =
+                GetComponent<PlayerDownedState>();
+        }
     }
 
     private void OnEnable()
@@ -198,6 +207,18 @@ public sealed class PlayerStorageContainerInteract :
 
     private void Update()
     {
+        if (downedState != null &&
+            downedState.IsDowned)
+        {
+            if (currentOpenContainer != null)
+            {
+                CloseContainer();
+            }
+
+            RefreshCurrentInteraction();
+            return;
+        }
+
         if (currentOpenContainer != null)
         {
             float distance =
@@ -505,6 +526,12 @@ public sealed class PlayerStorageContainerInteract :
 
         worldItem = null;
         container = null;
+
+        if (downedState != null &&
+            downedState.IsDowned)
+        {
+            return false;
+        }
 
         if (currentOpenContainer != null)
         {
