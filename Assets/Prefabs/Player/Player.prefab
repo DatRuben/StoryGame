@@ -450,6 +450,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerDownedState
   playerInput: {fileID: 0}
   playerBody: {fileID: 0}
+  recoveryDelay: 10
+  recoveryHealthPercent: 1
 --- !u!1 &4361632423051394989
 GameObject:
   m_ObjectHideFlags: 0
