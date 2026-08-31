@@ -10,9 +10,6 @@ public sealed class PlayerDownedState :
     [Header("References")]
 
     [SerializeField]
-    private PlayerInput playerInput;
-
-    [SerializeField]
     private Rigidbody playerBody;
 
     [Header("Automatic Recovery")]
@@ -49,12 +46,6 @@ public sealed class PlayerDownedState :
 
         gameplayState =
             GetComponent<PlayerGameplayState>();
-
-        if (playerInput == null)
-        {
-            playerInput =
-                GetComponent<PlayerInput>();
-        }
 
         if (playerBody == null)
         {
@@ -106,11 +97,6 @@ public sealed class PlayerDownedState :
             this,
             DownedRestrictions
         );
-
-        if (playerInput != null)
-        {
-            playerInput.enabled = false;
-        }
 
         if (playerBody != null)
         {
@@ -172,11 +158,6 @@ public sealed class PlayerDownedState :
         gameplayState.ClearRestriction(
             this
         );
-
-        if (playerInput != null)
-        {
-            playerInput.enabled = true;
-        }
 
         OnDownedChanged?.Invoke(false);
 

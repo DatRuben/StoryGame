@@ -4,6 +4,7 @@ using TMPro;
 using Unity.Cinemachine;
 
 [RequireComponent(typeof(PlayerInputRouter))]
+[RequireComponent(typeof(PlayerGameplayState))]
 
 public class PlayerInput : MonoBehaviour
 {
@@ -116,6 +117,7 @@ public class PlayerInput : MonoBehaviour
     private PlayerGripState gripState;
     private PlayerCharacterProfile characterProfile;
     private PlayerCombatController combatController;
+    private PlayerGameplayState gameplayState;
 
     private void Awake()
     {
@@ -164,10 +166,28 @@ public class PlayerInput : MonoBehaviour
 
         characterProfile =
             GetComponent<PlayerCharacterProfile>();
+
+        gameplayState =
+            GetComponent<PlayerGameplayState>();
     }
 
     private void OnEnable()
     {
+        if (gameplayState == null)
+        {
+            gameplayState =
+                GetComponent<PlayerGameplayState>();
+        }
+
+        if (gameplayState != null)
+        {
+            gameplayState.OnCapabilitiesInterrupted -=
+                HandleCapabilitiesInterrupted;
+
+            gameplayState.OnCapabilitiesInterrupted +=
+                HandleCapabilitiesInterrupted;
+        }
+
         if (inputRouter == null)
             inputRouter = GetComponent<PlayerInputRouter>();
 
@@ -204,6 +224,12 @@ public class PlayerInput : MonoBehaviour
 
     private void OnDisable()
     {
+        if (gameplayState != null)
+        {
+            gameplayState.OnCapabilitiesInterrupted -=
+                HandleCapabilitiesInterrupted;
+        }
+
         if (inputRouter == null)
             return;
 
@@ -226,6 +252,20 @@ public class PlayerInput : MonoBehaviour
             SwitchWeaponSet;
 
         move = null;
+    }
+
+    private void HandleCapabilitiesInterrupted(
+        PlayerGameplayCapability interruptedCapabilities)
+    {
+        if ((interruptedCapabilities &
+             PlayerGameplayCapability.Movement) == 0)
+        {
+            return;
+        }
+
+        isDodging = false;
+        isSprinting = false;
+        isJumpHeld = false;
     }
 
     public void ApplyMovementStats(FinalMovementStats movementStats)
@@ -318,6 +358,16 @@ public class PlayerInput : MonoBehaviour
         if (grounded)
         {
             lastGroundedTime = Time.time;
+        }
+
+        if (gameplayState != null &&
+            !gameplayState.Allows(
+                PlayerGameplayCapability.Movement))
+        {
+            ApplyExtraGravity(grounded);
+            RegenerateStamina(false);
+            UpdateSpeedText(grounded);
+            return;
         }
 
         if (storageInteract != null &&
@@ -724,6 +774,13 @@ public class PlayerInput : MonoBehaviour
 
     private void DoDodge(InputAction.CallbackContext obj)
     {
+        if (gameplayState != null &&
+            !gameplayState.Allows(
+                PlayerGameplayCapability.Movement))
+        {
+            return;
+        }
+
         if (InventoryMenuController.IsInventoryOpen)
             return;
         if (Time.time - lastDodgeTime < dodgeCooldown)
@@ -761,6 +818,13 @@ public class PlayerInput : MonoBehaviour
     private void DoJump(
         InputAction.CallbackContext obj)
     {
+        if (gameplayState != null &&
+            !gameplayState.Allows(
+                PlayerGameplayCapability.Movement))
+        {
+            return;
+        }
+
         if (storageInteract != null &&
             storageInteract.HasOpenContainer)
         {
@@ -843,6 +907,13 @@ public class PlayerInput : MonoBehaviour
     private void DoAttack(
         InputAction.CallbackContext obj)
     {
+        if (gameplayState != null &&
+            !gameplayState.Allows(
+                PlayerGameplayCapability.Combat))
+        {
+            return;
+        }
+
         if (animator != null)
         {
             animator.SetTrigger(
@@ -868,6 +939,13 @@ public class PlayerInput : MonoBehaviour
 
     private void StartSprint(InputAction.CallbackContext obj)
     {
+        if (gameplayState != null &&
+            !gameplayState.Allows(
+                PlayerGameplayCapability.Movement))
+        {
+            return;
+        }
+
         isSprinting = true;
     }
 
@@ -878,6 +956,13 @@ public class PlayerInput : MonoBehaviour
 
     private void StartJumpHold(InputAction.CallbackContext obj)
     {
+        if (gameplayState != null &&
+            !gameplayState.Allows(
+                PlayerGameplayCapability.Movement))
+        {
+            return;
+        }
+
         isJumpHeld = true;
     }
 
@@ -921,6 +1006,13 @@ public class PlayerInput : MonoBehaviour
     private void ToggleWeaponSheathe(
         InputAction.CallbackContext context)
     {
+        if (gameplayState != null &&
+            !gameplayState.Allows(
+                PlayerGameplayCapability.ItemHandling))
+        {
+            return;
+        }
+
         if (weaponDeployment == null)
             return;
 
