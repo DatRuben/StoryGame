@@ -1,17 +1,31 @@
 using System;
+using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(EntityResources))]
 public sealed class PlayerDownedState :
     MonoBehaviour
 {
+    [Header("References")]
+
     [SerializeField]
     private PlayerInput playerInput;
 
     [SerializeField]
     private Rigidbody playerBody;
 
+    [Header("Automatic Recovery")]
+
+    [SerializeField]
+    [Min(0f)]
+    private float recoveryDelay = 10f;
+
+    [SerializeField]
+    [Range(0.01f, 1f)]
+    private float recoveryHealthPercent = 1f;
+
     private EntityResources resources;
+    private Coroutine recoveryRoutine;
 
     public bool IsDowned { get; private set; }
 
@@ -37,12 +51,6 @@ public sealed class PlayerDownedState :
 
     private void OnEnable()
     {
-        if (resources == null)
-        {
-            resources =
-                GetComponent<EntityResources>();
-        }
-
         resources.OnHealthDepleted +=
             HandleHealthDepleted;
 
@@ -58,6 +66,12 @@ public sealed class PlayerDownedState :
         {
             resources.OnHealthDepleted -=
                 HandleHealthDepleted;
+        }
+
+        if (recoveryRoutine != null)
+        {
+            StopCoroutine(recoveryRoutine);
+            recoveryRoutine = null;
         }
     }
 
@@ -93,6 +107,25 @@ public sealed class PlayerDownedState :
         }
 
         OnDownedChanged?.Invoke(true);
+
+        recoveryRoutine =
+            StartCoroutine(
+                RecoverAfterDelay()
+            );
+    }
+
+    private IEnumerator RecoverAfterDelay()
+    {
+        yield return new WaitForSeconds(
+            recoveryDelay
+        );
+
+        recoveryRoutine = null;
+
+        TryRecover(
+            resources.MaxHealth *
+            recoveryHealthPercent
+        );
     }
 
     public bool TryRecover(
@@ -108,6 +141,12 @@ public sealed class PlayerDownedState :
 
         if (resources.IsHealthDepleted)
             return false;
+
+        if (recoveryRoutine != null)
+        {
+            StopCoroutine(recoveryRoutine);
+            recoveryRoutine = null;
+        }
 
         IsDowned = false;
 
