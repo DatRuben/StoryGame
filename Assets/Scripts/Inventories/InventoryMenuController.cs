@@ -15,7 +15,7 @@ public class InventoryMenuController : MonoBehaviour
 
     private PlayerStorageContainerInteract storageInteract;
 
-    private PlayerDownedState downedState;
+    private PlayerGameplayState gameplayState;
 
     private InventoryInteractionController
     interactionController;
@@ -31,13 +31,13 @@ public class InventoryMenuController : MonoBehaviour
     private void OnEnable()
     {
         SubscribeInput();
-        SubscribeDownedState();
+        SubscribeGameplayState();
     }
 
     private void OnDisable()
     {
         UnsubscribeInput();
-        UnsubscribeDownedState();
+        UnsubscribeGameplayState();
     }
 
     private void Start()
@@ -101,8 +101,9 @@ public class InventoryMenuController : MonoBehaviour
     public void SetInventoryOpen(bool open)
     {
         if (open &&
-            downedState != null &&
-            downedState.IsDowned)
+            gameplayState != null &&
+            !gameplayState.Allows(
+                PlayerGameplayCapability.Inventory))
         {
             open = false;
         }
@@ -152,53 +153,58 @@ public class InventoryMenuController : MonoBehaviour
         }
     }
 
-    public void BindPlayerDownedState(
-        PlayerDownedState newDownedState)
+    public void BindPlayerGameplayState(
+        PlayerGameplayState newGameplayState)
     {
-        UnsubscribeDownedState();
+        UnsubscribeGameplayState();
 
-        downedState = newDownedState;
+        gameplayState =
+            newGameplayState;
 
         if (isActiveAndEnabled)
         {
-            SubscribeDownedState();
+            SubscribeGameplayState();
         }
 
-        if (downedState != null &&
-            downedState.IsDowned)
+        if (gameplayState != null &&
+            !gameplayState.Allows(
+                PlayerGameplayCapability.Inventory))
         {
             SetInventoryOpen(false);
         }
     }
 
-    private void SubscribeDownedState()
+    private void SubscribeGameplayState()
     {
-        if (downedState == null)
+        if (gameplayState == null)
             return;
 
-        downedState.OnDownedChanged -=
-            HandleDownedChanged;
+        gameplayState.OnCapabilitiesInterrupted -=
+            HandleCapabilitiesInterrupted;
 
-        downedState.OnDownedChanged +=
-            HandleDownedChanged;
+        gameplayState.OnCapabilitiesInterrupted +=
+            HandleCapabilitiesInterrupted;
     }
 
-    private void UnsubscribeDownedState()
+    private void UnsubscribeGameplayState()
     {
-        if (downedState == null)
+        if (gameplayState == null)
             return;
 
-        downedState.OnDownedChanged -=
-            HandleDownedChanged;
+        gameplayState.OnCapabilitiesInterrupted -=
+            HandleCapabilitiesInterrupted;
     }
 
-    private void HandleDownedChanged(
-        bool isDowned)
+    private void HandleCapabilitiesInterrupted(
+        PlayerGameplayCapability interruptedCapabilities)
     {
-        if (isDowned)
+        if ((interruptedCapabilities &
+             PlayerGameplayCapability.Inventory) == 0)
         {
-            SetInventoryOpen(false);
+            return;
         }
+
+        SetInventoryOpen(false);
     }
 
     public void BindInteractionController(

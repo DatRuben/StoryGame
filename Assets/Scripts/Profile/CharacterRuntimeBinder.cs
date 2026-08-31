@@ -141,9 +141,9 @@ public sealed class CharacterRuntimeBinder :
             player.GetComponent<
                 PlayerCombatController>();
 
-        PlayerDownedState downedState =
+        PlayerGameplayState gameplayState =
             player.GetComponent<
-                PlayerDownedState>();
+                PlayerGameplayState>();
 
         Camera mainCamera =
             Camera.main;
@@ -260,8 +260,8 @@ public sealed class CharacterRuntimeBinder :
                 );
 
             inventoryMenuController
-                .BindPlayerDownedState(
-                    downedState
+                .BindPlayerGameplayState(
+                    gameplayState
                 );
         }
 
