@@ -124,6 +124,7 @@ GameObject:
   - component: {fileID: 5991753881997761642}
   - component: {fileID: 2919513976682819244}
   - component: {fileID: 2987058604458461187}
+  - component: {fileID: -1204065519728589899}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -435,6 +436,20 @@ MonoBehaviour:
   hitRadius: 0.35
   showDebugCast: 1
   debugCastDuration: 1
+--- !u!114 &-1204065519728589899
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3981885625536899075}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 583e5d392e384ad42846458169e57688, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerDownedState
+  playerInput: {fileID: 0}
+  playerBody: {fileID: 0}
 --- !u!1 &4361632423051394989
 GameObject:
   m_ObjectHideFlags: 0
