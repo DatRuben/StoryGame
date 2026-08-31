@@ -13,7 +13,7 @@ public enum PlayerInteractionType
 [RequireComponent(
     typeof(PlayerInputRouter),
     typeof(InventoryInteractionController),
-    typeof(PlayerDownedState)
+    typeof(PlayerGameplayState)
 )]
 
 public sealed class PlayerStorageContainerInteract :
@@ -60,7 +60,7 @@ public sealed class PlayerStorageContainerInteract :
     [SerializeField]
     private PlayerInputRouter inputRouter;
 
-    private PlayerDownedState downedState;
+    private PlayerGameplayState gameplayState;
 
     private InventoryInteractionController
         interactionController;
@@ -162,11 +162,8 @@ public sealed class PlayerStorageContainerInteract :
                 Camera.main.transform;
         }
 
-        if (downedState == null)
-        {
-            downedState =
-                GetComponent<PlayerDownedState>();
-        }
+        gameplayState =
+            GetComponent<PlayerGameplayState>();
     }
 
     private void OnEnable()
@@ -176,6 +173,12 @@ public sealed class PlayerStorageContainerInteract :
             inputRouter =
                 GetComponent<PlayerInputRouter>();
         }
+
+        gameplayState.OnCapabilitiesInterrupted -=
+            HandleCapabilitiesInterrupted;
+
+        gameplayState.OnCapabilitiesInterrupted +=
+            HandleCapabilitiesInterrupted;
 
         if (inputRouter == null)
             return;
@@ -195,6 +198,12 @@ public sealed class PlayerStorageContainerInteract :
 
     private void OnDisable()
     {
+        if (gameplayState != null)
+        {
+            gameplayState.OnCapabilitiesInterrupted -=
+                HandleCapabilitiesInterrupted;
+        }
+
         if (inputRouter == null)
             return;
 
@@ -207,18 +216,6 @@ public sealed class PlayerStorageContainerInteract :
 
     private void Update()
     {
-        if (downedState != null &&
-            downedState.IsDowned)
-        {
-            if (currentOpenContainer != null)
-            {
-                CloseContainer();
-            }
-
-            RefreshCurrentInteraction();
-            return;
-        }
-
         if (currentOpenContainer != null)
         {
             float distance =
@@ -307,6 +304,23 @@ public sealed class PlayerStorageContainerInteract :
 
             return;
         }
+    }
+
+    private void HandleCapabilitiesInterrupted(
+        PlayerGameplayCapability interruptedCapabilities)
+    {
+        if ((interruptedCapabilities &
+             PlayerGameplayCapability.WorldInteraction) == 0)
+        {
+            return;
+        }
+
+        if (currentOpenContainer != null)
+        {
+            CloseContainer();
+        }
+
+        RefreshCurrentInteraction();
     }
 
     private void RefreshWorldItemOptions(
@@ -527,8 +541,9 @@ public sealed class PlayerStorageContainerInteract :
         worldItem = null;
         container = null;
 
-        if (downedState != null &&
-            downedState.IsDowned)
+        if (gameplayState != null &&
+            !gameplayState.Allows(
+                PlayerGameplayCapability.WorldInteraction))
         {
             return false;
         }
