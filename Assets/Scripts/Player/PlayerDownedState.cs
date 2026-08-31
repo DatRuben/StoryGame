@@ -3,6 +3,7 @@ using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(EntityResources))]
+[RequireComponent(typeof(PlayerGameplayState))]
 public sealed class PlayerDownedState :
     MonoBehaviour
 {
@@ -27,6 +28,16 @@ public sealed class PlayerDownedState :
     private EntityResources resources;
     private Coroutine recoveryRoutine;
 
+    private PlayerGameplayState gameplayState;
+
+    private const PlayerGameplayCapability
+        DownedRestrictions =
+            PlayerGameplayCapability.Movement |
+            PlayerGameplayCapability.Combat |
+            PlayerGameplayCapability.Inventory |
+            PlayerGameplayCapability.WorldInteraction |
+            PlayerGameplayCapability.ItemHandling;
+
     public bool IsDowned { get; private set; }
 
     public event Action<bool> OnDownedChanged;
@@ -35,6 +46,9 @@ public sealed class PlayerDownedState :
     {
         resources =
             GetComponent<EntityResources>();
+
+        gameplayState =
+            GetComponent<PlayerGameplayState>();
 
         if (playerInput == null)
         {
@@ -87,6 +101,11 @@ public sealed class PlayerDownedState :
             return;
 
         IsDowned = true;
+
+        gameplayState.SetRestriction(
+            this,
+            DownedRestrictions
+        );
 
         if (playerInput != null)
         {
@@ -149,6 +168,10 @@ public sealed class PlayerDownedState :
         }
 
         IsDowned = false;
+
+        gameplayState.ClearRestriction(
+            this
+        );
 
         if (playerInput != null)
         {
