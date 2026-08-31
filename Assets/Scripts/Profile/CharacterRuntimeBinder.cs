@@ -141,6 +141,10 @@ public sealed class CharacterRuntimeBinder :
             player.GetComponent<
                 PlayerCombatController>();
 
+        PlayerDownedState downedState =
+            player.GetComponent<
+                PlayerDownedState>();
+
         Camera mainCamera =
             Camera.main;
 
@@ -253,6 +257,11 @@ public sealed class CharacterRuntimeBinder :
             inventoryMenuController
                 .BindInteractionController(
                     interactionController
+                );
+
+            inventoryMenuController
+                .BindPlayerDownedState(
+                    downedState
                 );
         }
 

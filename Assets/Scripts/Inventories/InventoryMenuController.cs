@@ -29,11 +29,13 @@ public class InventoryMenuController : MonoBehaviour
     private void OnEnable()
     {
         SubscribeInput();
+        SubscribeDownedState();
     }
 
     private void OnDisable()
     {
         UnsubscribeInput();
+        UnsubscribeDownedState();
     }
 
     private void Start()
@@ -99,6 +101,13 @@ public class InventoryMenuController : MonoBehaviour
         isOpen = open;
         IsInventoryOpen = open;
 
+        if (open &&
+            downedState != null &&
+            downedState.IsDowned)
+        {
+            open = false;
+        }
+
         if (!open)
         {
             if (storageInteract != null)
@@ -138,6 +147,55 @@ public class InventoryMenuController : MonoBehaviour
         {
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
+        }
+    }
+
+    public void BindPlayerDownedState(
+        PlayerDownedState newDownedState)
+    {
+        UnsubscribeDownedState();
+
+        downedState = newDownedState;
+
+        if (isActiveAndEnabled)
+        {
+            SubscribeDownedState();
+        }
+
+        if (downedState != null &&
+            downedState.IsDowned)
+        {
+            SetInventoryOpen(false);
+        }
+    }
+
+    private void SubscribeDownedState()
+    {
+        if (downedState == null)
+            return;
+
+        downedState.OnDownedChanged -=
+            HandleDownedChanged;
+
+        downedState.OnDownedChanged +=
+            HandleDownedChanged;
+    }
+
+    private void UnsubscribeDownedState()
+    {
+        if (downedState == null)
+            return;
+
+        downedState.OnDownedChanged -=
+            HandleDownedChanged;
+    }
+
+    private void HandleDownedChanged(
+        bool isDowned)
+    {
+        if (isDowned)
+        {
+            SetInventoryOpen(false);
         }
     }
 
