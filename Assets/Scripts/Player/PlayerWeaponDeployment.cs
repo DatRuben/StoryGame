@@ -7,6 +7,8 @@ using UnityEngine;
     typeof(PlayerGripState),
     typeof(PlayerCharacterProfile)
 )]
+[RequireComponent(typeof(PlayerGameplayState))]
+
 public sealed class PlayerWeaponDeployment :
     MonoBehaviour
 {
@@ -30,6 +32,8 @@ public sealed class PlayerWeaponDeployment :
     private PlayerGripState gripState;
     private PlayerCharacterProfile characterProfile;
     private PlayerEquipment playerEquipment;
+
+    private PlayerGameplayState gameplayState;
 
     private InventoryInteractionController
         interactionController;
@@ -83,6 +87,29 @@ public sealed class PlayerWeaponDeployment :
         ResolveReferences();
     }
 
+    private void OnEnable()
+    {
+        ResolveReferences();
+
+        if (gameplayState == null)
+            return;
+
+        gameplayState.OnCapabilitiesInterrupted -=
+            HandleCapabilitiesInterrupted;
+
+        gameplayState.OnCapabilitiesInterrupted +=
+            HandleCapabilitiesInterrupted;
+    }
+
+    private void OnDisable()
+    {
+        if (gameplayState == null)
+            return;
+
+        gameplayState.OnCapabilitiesInterrupted -=
+            HandleCapabilitiesInterrupted;
+    }
+
     public bool IsDeployed(
         InventoryItemInstance weapon)
     {
@@ -118,6 +145,13 @@ public sealed class PlayerWeaponDeployment :
     public bool DrawWeapons()
     {
         ResolveReferences();
+
+        if (gameplayState != null &&
+            !gameplayState.Allows(
+                PlayerGameplayCapability.ItemHandling))
+        {
+            return false;
+        }
 
         if (weaponLoadout == null ||
             gripState == null)
@@ -512,6 +546,18 @@ public sealed class PlayerWeaponDeployment :
         return false;
     }
 
+    private void HandleCapabilitiesInterrupted(
+        PlayerGameplayCapability interruptedCapabilities)
+    {
+        if ((interruptedCapabilities &
+             PlayerGameplayCapability.ItemHandling) == 0)
+        {
+            return;
+        }
+
+        SheatheWeapons();
+    }
+
     private void ResolveReferences()
     {
         if (weaponLoadout == null)
@@ -546,6 +592,12 @@ public sealed class PlayerWeaponDeployment :
             interactionController =
                 GetComponent<
                     InventoryInteractionController>();
+        }
+
+        if (gameplayState == null)
+        {
+            gameplayState =
+                GetComponent<PlayerGameplayState>();
         }
     }
 }
