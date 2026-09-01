@@ -361,6 +361,13 @@ public sealed class PlayerWeaponDeployment :
             return false;
         }
 
+        if (!wasDeployed)
+        {
+            loadoutDeployed = false;
+            Changed?.Invoke();
+            return true;
+        }
+
         if (DrawWeapons())
             return true;
 
@@ -372,15 +379,7 @@ public sealed class PlayerWeaponDeployment :
             previousForm
         );
 
-        if (wasDeployed)
-        {
-            DrawWeapons();
-        }
-        else
-        {
-            loadoutDeployed = false;
-            Changed?.Invoke();
-        }
+        DrawWeapons();
 
         return false;
     }
