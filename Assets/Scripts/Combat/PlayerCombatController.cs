@@ -3,6 +3,10 @@ using UnityEngine;
 
 [RequireComponent(
     typeof(PlayerWeaponDeployment))]
+[RequireComponent(
+    typeof(PlayerWeaponDeployment))]
+[RequireComponent(typeof(PlayerGameplayState))]
+
 public sealed class PlayerCombatController :
     MonoBehaviour
 {
@@ -37,6 +41,8 @@ public sealed class PlayerCombatController :
 
     private Collider bodyCollider;
 
+    private PlayerGameplayState gameplayState;
+
     private void Awake()
     {
         weaponDeployment =
@@ -44,10 +50,20 @@ public sealed class PlayerCombatController :
 
         bodyCollider =
             GetComponent<Collider>();
+
+        gameplayState =
+            GetComponent<PlayerGameplayState>();
     }
 
     public bool TryPrimaryAttack()
     {
+        if (gameplayState != null &&
+            !gameplayState.Allows(
+            PlayerGameplayCapability.Combat))
+        {
+            return false;
+        }
+
         if (weaponDeployment == null ||
             !weaponDeployment
                 .TryGetPrimaryDeployedWeapon(
