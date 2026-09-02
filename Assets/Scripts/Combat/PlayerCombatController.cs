@@ -3,8 +3,6 @@ using UnityEngine;
 
 [RequireComponent(
     typeof(PlayerWeaponDeployment))]
-[RequireComponent(
-    typeof(PlayerWeaponDeployment))]
 [RequireComponent(typeof(PlayerGameplayState))]
 
 public sealed class PlayerCombatController :
