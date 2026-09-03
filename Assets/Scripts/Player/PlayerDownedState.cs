@@ -78,6 +78,18 @@ public sealed class PlayerDownedState :
             StopCoroutine(recoveryRoutine);
             recoveryRoutine = null;
         }
+
+        if (IsDowned)
+        {
+            IsDowned = false;
+
+            if (gameplayState != null)
+            {
+                gameplayState.ClearRestriction(
+                    this
+                );
+            }
+        }
     }
 
     private void HandleHealthDepleted(
