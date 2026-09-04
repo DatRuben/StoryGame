@@ -99,6 +99,12 @@ public sealed class PlayerWeaponDeployment :
 
         gameplayState.OnCapabilitiesInterrupted +=
             HandleCapabilitiesInterrupted;
+
+        if (!gameplayState.Allows(
+            PlayerGameplayCapability.ItemHandling))
+        {
+            SheatheWeapons();
+        }
     }
 
     private void OnDisable()
