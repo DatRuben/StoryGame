@@ -587,6 +587,13 @@ public sealed class InventoryInteractionController :
     internal bool TryHoldWorldItem(
         WorldItem worldItem)
     {
+        if (gameplayState != null &&
+            !gameplayState.Allows(
+            PlayerGameplayCapability.ItemHandling))
+        {
+            return false;
+        }
+
         if (worldItem == null ||
             gripState == null)
         {
