@@ -33,6 +33,20 @@ public sealed class PlayerCharacterDetailsUI :
         Refresh();
     }
 
+    private void OnEnable()
+    {
+        if (characterProfile == null)
+            return;
+
+        characterProfile.AttributesChanged -=
+            Refresh;
+
+        characterProfile.AttributesChanged +=
+            Refresh;
+
+        Refresh();
+    }
+
     private void OnDisable()
     {
         if (characterProfile != null)
