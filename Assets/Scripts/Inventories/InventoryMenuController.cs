@@ -165,13 +165,6 @@ public class InventoryMenuController : MonoBehaviour
         {
             SubscribeGameplayState();
         }
-
-        if (gameplayState != null &&
-            !gameplayState.Allows(
-                PlayerGameplayCapability.Inventory))
-        {
-            SetInventoryOpen(false);
-        }
     }
 
     private void SubscribeGameplayState()
@@ -184,6 +177,12 @@ public class InventoryMenuController : MonoBehaviour
 
         gameplayState.OnCapabilitiesInterrupted +=
             HandleCapabilitiesInterrupted;
+
+        if (!gameplayState.Allows(
+                PlayerGameplayCapability.Inventory))
+        {
+            SetInventoryOpen(false);
+        }
     }
 
     private void UnsubscribeGameplayState()
