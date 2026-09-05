@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using System.Collections.Generic;
 
 public sealed class PlayerCharacterInfoUI :
     MonoBehaviour
