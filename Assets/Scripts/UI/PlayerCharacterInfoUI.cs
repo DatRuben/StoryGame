@@ -102,12 +102,51 @@ public sealed class PlayerCharacterInfoUI :
                     ? characterProfile.BackgroundDefinition.displayName
                     : profile.backgroundId;
 
+            string lineageText = "None";
+
+            LineageSelection[] lineages =
+                characterProfile.LineageSelections;
+
+            if (lineages != null &&
+                lineages.Length > 0)
+            {
+                lineageText = "";
+
+                for (int i = 0;
+                     i < lineages.Length;
+                     i++)
+                {
+                    LineageSelection lineage =
+                        lineages[i];
+
+                    if (lineage == null ||
+                        string.IsNullOrWhiteSpace(
+                            lineage.DisplayName))
+                    {
+                        continue;
+                    }
+
+                    if (lineageText.Length > 0)
+                    {
+                        lineageText += ", ";
+                    }
+
+                    lineageText += lineage.DisplayName;
+                }
+
+                if (lineageText.Length == 0)
+                {
+                    lineageText = "None";
+                }
+            }
+
             characterDetailsText.text =
                 $"Details\n" +
                 $"Level: {profile.level}\n" +
                 $"Gender: {profile.gender}\n" +
                 $"Race: {raceName}\n" +
                 $"Subrace: {subraceName}\n" +
+                $"Lineage: {lineageText}\n" +
                 $"Background: {backgroundName}";
         }
 
