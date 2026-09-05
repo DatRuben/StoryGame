@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using System.Collections.Generic;
 
 public sealed class PlayerCharacterInfoUI :
     MonoBehaviour
@@ -140,6 +142,44 @@ public sealed class PlayerCharacterInfoUI :
                 }
             }
 
+            string traitsText = "None";
+
+            IReadOnlyList<TraitDefinition> traits =
+                characterProfile.TraitDefinitions;
+
+            if (traits != null &&
+                traits.Count > 0)
+            {
+                traitsText = "";
+
+                for (int i = 0;
+                     i < traits.Count;
+                     i++)
+                {
+                    TraitDefinition trait =
+                        traits[i];
+
+                    if (trait == null ||
+                        string.IsNullOrWhiteSpace(
+                            trait.displayName))
+                    {
+                        continue;
+                    }
+
+                    if (traitsText.Length > 0)
+                    {
+                        traitsText += ", ";
+                    }
+
+                    traitsText += trait.displayName;
+                }
+
+                if (traitsText.Length == 0)
+                {
+                    traitsText = "None";
+                }
+            }
+
             characterDetailsText.text =
                 $"Details\n" +
                 $"Level: {profile.level}\n" +
@@ -147,7 +187,8 @@ public sealed class PlayerCharacterInfoUI :
                 $"Race: {raceName}\n" +
                 $"Subrace: {subraceName}\n" +
                 $"Lineage: {lineageText}\n" +
-                $"Background: {backgroundName}";
+                $"Background: {backgroundName}\n" +
+                $"Traits: {traitsText}";
         }
 
         CharacterAttributes permanent =
