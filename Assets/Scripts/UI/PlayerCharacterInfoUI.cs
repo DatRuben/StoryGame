@@ -14,6 +14,12 @@ public sealed class PlayerCharacterInfoUI :
     [SerializeField]
     private TextMeshProUGUI characterDetailsText;
 
+    [SerializeField]
+    private TextMeshProUGUI statsText;
+
+    [SerializeField]
+    private TextMeshProUGUI movementText;
+
     private PlayerCharacterProfile characterProfile;
 
     public void BindPlayer(
@@ -73,6 +79,12 @@ public sealed class PlayerCharacterInfoUI :
 
             if (characterDetailsText != null)
                 characterDetailsText.text = "";
+
+            if (statsText != null)
+                statsText.text = "";
+
+            if (movementText != null)
+                movementText.text = "";
 
             return;
         }
@@ -190,6 +202,9 @@ public sealed class PlayerCharacterInfoUI :
                 $"Traits: {traitsText}";
         }
 
+        RefreshStats();
+        RefreshMovement();
+
         CharacterAttributes permanent =
             characterProfile.PermanentAttributes;
 
@@ -250,6 +265,73 @@ public sealed class PlayerCharacterInfoUI :
                 permanent.perception,
                 effective.perception
             );
+    }
+
+    private void RefreshStats()
+    {
+        if (statsText == null)
+            return;
+
+        FinalCharacterStats stats =
+            characterProfile.FinalStats;
+
+        CharacterBaseStats baseStats =
+            characterProfile.EffectiveBaseStats;
+
+        if (stats == null ||
+            baseStats == null)
+        {
+            statsText.text =
+                "Stats\nUnavailable";
+
+            return;
+        }
+
+        statsText.text =
+            "Stats\n" +
+            $"Max Health: {stats.maxHealth:0.##}\n" +
+            $"Soul Barrier: {stats.maxSoulBarrier:0.##}\n" +
+            $"Max Stamina: {stats.maxStamina:0.##}\n" +
+            $"Max Aether: {stats.maxAether:0.##}\n" +
+            $"Mass: {stats.mass:0.##}\n" +
+            $"Poise: {stats.poise:0.##}\n" +
+            $"Stagger Resist: {baseStats.staggerResist}\n" +
+            $"Carry Weight: {baseStats.carryWeight}\n" +
+            $"Movement Cost: x{stats.movementCostMultiplier:0.##}\n" +
+            $"Dodge Cost: x{stats.dodgeCostMultiplier:0.##}\n" +
+            $"Equipment Weight: x{stats.equipmentWeightMultiplier:0.##}";
+    }
+
+    private void RefreshMovement()
+    {
+        if (movementText == null)
+            return;
+
+        FinalMovementStats movement =
+            characterProfile.FinalMovementStats;
+
+        if (movement == null)
+        {
+            movementText.text =
+                "Movement\nUnavailable";
+
+            return;
+        }
+
+        movementText.text =
+            "Movement\n" +
+            $"Walk Speed: {movement.walkSpeed:0.##}\n" +
+            $"Sprint Speed: {movement.sprintSpeed:0.##}\n" +
+            $"Ground Acceleration: {movement.groundAcceleration:0.##}\n" +
+            $"Air Acceleration: {movement.airAcceleration:0.##}\n" +
+            $"Deceleration: {movement.deceleration:0.##}\n" +
+            $"Jump Force: {movement.jumpForce:0.##}\n" +
+            $"Dodge Type: {movement.dodgeType}\n" +
+            $"Dodge Distance: {movement.dodgeDistance:0.##}\n" +
+            $"Dodge Duration: {movement.dodgeDuration:0.##}\n" +
+            $"Dodge Cooldown: {movement.dodgeCooldown:0.##}\n" +
+            $"Dodge Stamina Cost: {movement.dodgeStaminaCost:0.##}\n" +
+            $"Dodge Control: {movement.dodgeControl:0.##}";
     }
 
     private static string FormatAttribute(

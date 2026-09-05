@@ -85,6 +85,12 @@ public class PlayerCharacterProfile : MonoBehaviour
         private set;
     }
 
+    public CharacterBaseStats EffectiveBaseStats
+    {
+        get;
+        private set;
+    }
+
     public FinalMovementStats FinalMovementStats
     {
         get;
@@ -489,12 +495,12 @@ public class PlayerCharacterProfile : MonoBehaviour
                 EffectiveAttributeOutput
             );
 
-        CharacterBaseStats effectiveBaseStats =
+        EffectiveBaseStats =
             ResolveEffectiveBaseStats();
 
         FinalStats =
             CharacterStatsResolver.ResolveFinalStats(
-                effectiveBaseStats,
+                EffectiveBaseStats,
                 EffectiveAttributes
             );
 
