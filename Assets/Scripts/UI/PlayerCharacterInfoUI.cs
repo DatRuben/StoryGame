@@ -10,6 +10,9 @@ public sealed class PlayerCharacterInfoUI :
     [SerializeField]
     private TextMeshProUGUI attributesText;
 
+    [SerializeField]
+    private TextMeshProUGUI characterDetailsText;
+
     private PlayerCharacterProfile characterProfile;
 
     public void BindPlayer(
@@ -67,6 +70,9 @@ public sealed class PlayerCharacterInfoUI :
             if (attributesText != null)
                 attributesText.text = "";
 
+            if (characterDetailsText != null)
+                characterDetailsText.text = "";
+
             return;
         }
 
@@ -74,6 +80,35 @@ public sealed class PlayerCharacterInfoUI :
         {
             characterNameText.text =
                 characterProfile.ProfileData.characterName;
+        }
+
+        if (characterDetailsText != null)
+        {
+            CharacterProfileData profile =
+                characterProfile.ProfileData;
+
+            string raceName =
+                characterProfile.RaceDefinition != null
+                    ? characterProfile.RaceDefinition.displayName
+                    : profile.raceId;
+
+            string subraceName =
+                characterProfile.SubraceDefinition != null
+                    ? characterProfile.SubraceDefinition.displayName
+                    : profile.subraceId;
+
+            string backgroundName =
+                characterProfile.BackgroundDefinition != null
+                    ? characterProfile.BackgroundDefinition.displayName
+                    : profile.backgroundId;
+
+            characterDetailsText.text =
+                $"Details\n" +
+                $"Level: {profile.level}\n" +
+                $"Gender: {profile.gender}\n" +
+                $"Race: {raceName}\n" +
+                $"Subrace: {subraceName}\n" +
+                $"Background: {backgroundName}";
         }
 
         CharacterAttributes permanent =
@@ -90,6 +125,7 @@ public sealed class PlayerCharacterInfoUI :
         }
 
         attributesText.text =
+            "Attributes\n" +
             FormatAttribute(
                 "Strength",
                 permanent.strength,
