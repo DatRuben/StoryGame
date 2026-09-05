@@ -910,6 +910,13 @@ public sealed class InventoryInteractionController :
         InventoryContainer source,
         Vector2Int coordinate)
     {
+        if (gameplayState != null &&
+            !gameplayState.Allows(
+            PlayerGameplayCapability.ItemHandling))
+        {
+            return false;
+        }
+
         if (loadoutAssignmentItem != null ||
             source == null ||
             cursor.HasSelection)
