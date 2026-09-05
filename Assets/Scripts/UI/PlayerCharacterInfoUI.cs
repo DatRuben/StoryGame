@@ -1,7 +1,7 @@
 using TMPro;
 using UnityEngine;
 
-public sealed class PlayerCharacterDetailsUI :
+public sealed class PlayerCharacterInfoUI :
     MonoBehaviour
 {
     [SerializeField]

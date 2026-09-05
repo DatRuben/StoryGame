@@ -47,7 +47,7 @@ public sealed class CharacterRuntimeBinder :
     private PlayerResourcesUI playerResourcesUI;
 
     [SerializeField]
-    private PlayerCharacterDetailsUI playerCharacterDetailsUI;
+    private PlayerCharacterInfoUI playerCharacterInfoUI;
 
     [SerializeField]
     private PlayerCrosshair playerCrosshair;
@@ -325,9 +325,9 @@ public sealed class CharacterRuntimeBinder :
             );
         }
 
-        if (playerCharacterDetailsUI != null)
+        if (playerCharacterInfoUI != null)
         {
-            playerCharacterDetailsUI.BindPlayer(
+            playerCharacterInfoUI.BindPlayer(
                 characterProfile
             );
         }
