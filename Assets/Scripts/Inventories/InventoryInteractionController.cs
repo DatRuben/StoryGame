@@ -705,6 +705,12 @@ public sealed class InventoryInteractionController :
 
             gameplayState.OnCapabilitiesInterrupted +=
                 HandleCapabilitiesInterrupted;
+
+            if (!gameplayState.Allows(
+                    PlayerGameplayCapability.ItemHandling))
+            {
+                TryDropLooseHeldItems();
+            }
         }
 
         if (inputRouter == null)
