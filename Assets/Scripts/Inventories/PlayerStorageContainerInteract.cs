@@ -180,6 +180,17 @@ public sealed class PlayerStorageContainerInteract :
         gameplayState.OnCapabilitiesInterrupted +=
             HandleCapabilitiesInterrupted;
 
+        if (!gameplayState.Allows(
+            PlayerGameplayCapability.WorldInteraction))
+        {
+            if (currentOpenContainer != null)
+            {
+                CloseContainer();
+            }
+
+            RefreshCurrentInteraction();
+        }
+
         if (inputRouter == null)
             return;
 
