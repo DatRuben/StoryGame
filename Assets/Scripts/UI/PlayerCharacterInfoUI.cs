@@ -76,24 +76,79 @@ public sealed class PlayerCharacterInfoUI :
                 characterProfile.ProfileData.characterName;
         }
 
-        CharacterAttributes attributes =
+        CharacterAttributes permanent =
+            characterProfile.PermanentAttributes;
+
+        CharacterAttributes effective =
             characterProfile.EffectiveAttributes;
 
         if (attributesText == null ||
-            attributes == null)
+            permanent == null ||
+            effective == null)
         {
             return;
         }
 
         attributesText.text =
-            $"Strength: {attributes.strength}\n" +
-            $"Dexterity: {attributes.dexterity}\n" +
-            $"Agility: {attributes.agility}\n" +
-            $"Vitality: {attributes.vitality}\n" +
-            $"Endurance: {attributes.endurance}\n" +
-            $"Intelligence: {attributes.intelligence}\n" +
-            $"Willpower: {attributes.willpower}\n" +
-            $"Spirit: {attributes.spirit}\n" +
-            $"Perception: {attributes.perception}";
+            FormatAttribute(
+                "Strength",
+                permanent.strength,
+                effective.strength
+            ) + "\n" +
+            FormatAttribute(
+                "Dexterity",
+                permanent.dexterity,
+                effective.dexterity
+            ) + "\n" +
+            FormatAttribute(
+                "Agility",
+                permanent.agility,
+                effective.agility
+            ) + "\n" +
+            FormatAttribute(
+                "Vitality",
+                permanent.vitality,
+                effective.vitality
+            ) + "\n" +
+            FormatAttribute(
+                "Endurance",
+                permanent.endurance,
+                effective.endurance
+            ) + "\n" +
+            FormatAttribute(
+                "Intelligence",
+                permanent.intelligence,
+                effective.intelligence
+            ) + "\n" +
+            FormatAttribute(
+                "Willpower",
+                permanent.willpower,
+                effective.willpower
+            ) + "\n" +
+            FormatAttribute(
+                "Spirit",
+                permanent.spirit,
+                effective.spirit
+            ) + "\n" +
+            FormatAttribute(
+                "Perception",
+                permanent.perception,
+                effective.perception
+            );
+    }
+
+    private static string FormatAttribute(
+        string label,
+        int permanentValue,
+        int effectiveValue)
+    {
+        if (permanentValue == effectiveValue)
+        {
+            return
+                $"{label}: {permanentValue}";
+        }
+
+        return
+            $"{label}: {permanentValue} ({effectiveValue})";
     }
 }
