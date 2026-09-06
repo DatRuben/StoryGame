@@ -101,9 +101,9 @@ public class PlayerCharacterProfile : MonoBehaviour
         statusEffects;
 
     public CharacterForm CurrentForm =>
-    formState != null
-        ? formState.CurrentForm
-        : CharacterForm.Standing;
+        formState != null
+            ? formState.CurrentForm
+            : CharacterForm.Standing;
 
     private readonly List<TraitDefinition>
         traitDefinitions =
