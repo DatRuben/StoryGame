@@ -95,115 +95,137 @@ public sealed class PlayerCharacterInfoUI :
                 characterProfile.ProfileData.characterName;
         }
 
-        if (characterDetailsText != null)
-        {
-            CharacterProfileData profile =
-                characterProfile.ProfileData;
-
-            string raceName =
-                characterProfile.RaceDefinition != null
-                    ? characterProfile.RaceDefinition.displayName
-                    : profile.raceId;
-
-            string subraceName =
-                characterProfile.SubraceDefinition != null
-                    ? characterProfile.SubraceDefinition.displayName
-                    : profile.subraceId;
-
-            string backgroundName =
-                characterProfile.BackgroundDefinition != null
-                    ? characterProfile.BackgroundDefinition.displayName
-                    : profile.backgroundId;
-
-            string lineageText = "None";
-
-            LineageSelection[] lineages =
-                characterProfile.LineageSelections;
-
-            if (lineages != null &&
-                lineages.Length > 0)
-            {
-                lineageText = "";
-
-                for (int i = 0;
-                     i < lineages.Length;
-                     i++)
-                {
-                    LineageSelection lineage =
-                        lineages[i];
-
-                    if (lineage == null ||
-                        string.IsNullOrWhiteSpace(
-                            lineage.DisplayName))
-                    {
-                        continue;
-                    }
-
-                    if (lineageText.Length > 0)
-                    {
-                        lineageText += ", ";
-                    }
-
-                    lineageText += lineage.DisplayName;
-                }
-
-                if (lineageText.Length == 0)
-                {
-                    lineageText = "None";
-                }
-            }
-
-            string traitsText = "None";
-
-            IReadOnlyList<TraitDefinition> traits =
-                characterProfile.TraitDefinitions;
-
-            if (traits != null &&
-                traits.Count > 0)
-            {
-                traitsText = "";
-
-                for (int i = 0;
-                     i < traits.Count;
-                     i++)
-                {
-                    TraitDefinition trait =
-                        traits[i];
-
-                    if (trait == null ||
-                        string.IsNullOrWhiteSpace(
-                            trait.displayName))
-                    {
-                        continue;
-                    }
-
-                    if (traitsText.Length > 0)
-                    {
-                        traitsText += ", ";
-                    }
-
-                    traitsText += trait.displayName;
-                }
-
-                if (traitsText.Length == 0)
-                {
-                    traitsText = "None";
-                }
-            }
-
-            characterDetailsText.text =
-                $"Details\n" +
-                $"Level: {profile.level}\n" +
-                $"Gender: {profile.gender}\n" +
-                $"Race: {raceName}\n" +
-                $"Subrace: {subraceName}\n" +
-                $"Lineage: {lineageText}\n" +
-                $"Background: {backgroundName}\n" +
-                $"Traits: {traitsText}";
-        }
-
+        RefreshDetails();
+        RefreshAttributes();
         RefreshStats();
         RefreshMovement();
+    }
+
+    private void RefreshDetails()
+    {
+        if (characterDetailsText == null)
+            return;
+
+        CharacterProfileData profile =
+            characterProfile.ProfileData;
+
+        string raceName =
+            characterProfile.RaceDefinition != null
+                ? characterProfile.RaceDefinition.displayName
+                : profile.raceId;
+
+        string subraceName =
+            characterProfile.SubraceDefinition != null
+                ? characterProfile.SubraceDefinition.displayName
+                : profile.subraceId;
+
+        string backgroundName =
+            characterProfile.BackgroundDefinition != null
+                ? characterProfile.BackgroundDefinition.displayName
+                : profile.backgroundId;
+
+        string lineageText = "None";
+
+        LineageSelection[] lineages =
+            characterProfile.LineageSelections;
+
+        if (lineages != null &&
+            lineages.Length > 0)
+        {
+            lineageText = "";
+
+            for (int i = 0;
+                 i < lineages.Length;
+                 i++)
+            {
+                LineageSelection lineage =
+                    lineages[i];
+
+                if (lineage == null ||
+                    string.IsNullOrWhiteSpace(
+                        lineage.DisplayName))
+                {
+                    continue;
+                }
+
+                if (lineageText.Length > 0)
+                {
+                    lineageText += ", ";
+                }
+
+                lineageText += lineage.DisplayName;
+            }
+
+            if (lineageText.Length == 0)
+            {
+                lineageText = "None";
+            }
+        }
+
+        string traitsText = "None";
+
+        IReadOnlyList<TraitDefinition> traits =
+            characterProfile.TraitDefinitions;
+
+        if (traits != null &&
+            traits.Count > 0)
+        {
+            traitsText = "";
+
+            for (int i = 0;
+                 i < traits.Count;
+                 i++)
+            {
+                TraitDefinition trait =
+                    traits[i];
+
+                if (trait == null ||
+                    string.IsNullOrWhiteSpace(
+                        trait.displayName))
+                {
+                    continue;
+                }
+
+                if (traitsText.Length > 0)
+                {
+                    traitsText += ", ";
+                }
+
+                traitsText += trait.displayName;
+            }
+
+            if (traitsText.Length == 0)
+            {
+                traitsText = "None";
+            }
+        }
+
+        string formLine = "";
+
+        if (characterProfile.SubraceDefinition != null &&
+            characterProfile.SubraceDefinition.bodyType !=
+                BodyType.Humanoid)
+        {
+            formLine =
+                $"Form: {characterProfile.CurrentForm}\n";
+        }
+
+        characterDetailsText.text =
+            "Details\n" +
+            $"Level: {profile.level}\n" +
+            $"Gender: {profile.gender}\n" +
+            $"Race: {raceName}\n" +
+            $"Subrace: {subraceName}\n" +
+            formLine +
+            $"Lineage: {lineageText}\n" +
+            $"Background: {backgroundName}\n" +
+            $"Traits: {traitsText}";
+    }
+
+    private void RefreshAttributes()
+    {
+        if (attributesText == null)
+            return;
 
         CharacterAttributes permanent =
             characterProfile.PermanentAttributes;
@@ -211,10 +233,12 @@ public sealed class PlayerCharacterInfoUI :
         CharacterAttributes effective =
             characterProfile.EffectiveAttributes;
 
-        if (attributesText == null ||
-            permanent == null ||
+        if (permanent == null ||
             effective == null)
         {
+            attributesText.text =
+                "Attributes\nUnavailable";
+
             return;
         }
 

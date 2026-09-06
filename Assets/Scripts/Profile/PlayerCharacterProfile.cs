@@ -100,6 +100,11 @@ public class PlayerCharacterProfile : MonoBehaviour
     public StatusEffects StatusEffects =>
         statusEffects;
 
+    public CharacterForm CurrentForm =>
+    formState != null
+        ? formState.CurrentForm
+        : CharacterForm.Standing;
+
     private readonly List<TraitDefinition>
         traitDefinitions =
             new List<TraitDefinition>();
