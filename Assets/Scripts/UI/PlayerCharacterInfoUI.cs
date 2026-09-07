@@ -22,48 +22,65 @@ public sealed class PlayerCharacterInfoUI :
 
     private PlayerCharacterProfile characterProfile;
 
+    private EntityResources playerResources;
+
     public void BindPlayer(
-        PlayerCharacterProfile newCharacterProfile)
+        PlayerCharacterProfile newCharacterProfile,
+        EntityResources newPlayerResources)
     {
-        if (characterProfile != null)
-        {
-            characterProfile.AttributesChanged -=
-                Refresh;
-        }
+        Unsubscribe();
 
         characterProfile =
             newCharacterProfile;
 
+        playerResources =
+            newPlayerResources;
+
+        Subscribe();
+
+        Refresh();
+    }
+
+    private void Subscribe()
+    {
         if (characterProfile != null)
         {
             characterProfile.AttributesChanged +=
                 Refresh;
         }
 
-        Refresh();
+        if (playerResources != null)
+        {
+            playerResources.OnResourcesChanged +=
+                RefreshStats;
+        }
     }
 
-    private void OnEnable()
-    {
-        if (characterProfile == null)
-            return;
-
-        characterProfile.AttributesChanged -=
-            Refresh;
-
-        characterProfile.AttributesChanged +=
-            Refresh;
-
-        Refresh();
-    }
-
-    private void OnDisable()
+    private void Unsubscribe()
     {
         if (characterProfile != null)
         {
             characterProfile.AttributesChanged -=
                 Refresh;
         }
+
+        if (playerResources != null)
+        {
+            playerResources.OnResourcesChanged -=
+                RefreshStats;
+        }
+    }
+
+    private void OnEnable()
+    {
+        Unsubscribe();
+        Subscribe();
+        Refresh();
+    }
+
+    private void OnDisable()
+    {
+        Unsubscribe();
     }
 
     private void Refresh()
@@ -311,12 +328,52 @@ public sealed class PlayerCharacterInfoUI :
             return;
         }
 
+        string resourceText;
+
+        if (playerResources != null &&
+            playerResources.IsInitialized)
+        {
+            resourceText =
+                $"Health: " +
+                $"{playerResources.CurrentHealth:0.##} / " +
+                $"{playerResources.MaxHealth:0.##}\n" +
+
+                $"Soul Barrier: " +
+                $"{playerResources.CurrentSoulBarrier:0.##} / " +
+                $"{playerResources.MaxSoulBarrier:0.##}\n" +
+
+                $"Stamina: " +
+                $"{playerResources.CurrentStamina:0.##} / " +
+                $"{playerResources.MaxStamina:0.##}\n" +
+
+                $"Aether: " +
+                $"{playerResources.CurrentAether:0.##} / " +
+                $"{playerResources.MaxAether:0.##}\n" +
+
+                $"Aether Healing Tolerance: " +
+                $"{playerResources.AetherHealingTolerance:0.##}\n" +
+
+                $"Aether Healing Burn: " +
+                $"{playerResources.CurrentAetherHealingBurn:0.##} / " +
+                $"{playerResources.AetherHealingTolerance:0.##}\n" +
+
+                $"Aether Healing Efficiency: " +
+                $"{playerResources.AetherHealingEfficiency:P0}\n";
+        }
+        else
+        {
+            resourceText =
+                $"Max Health: {stats.maxHealth:0.##}\n" +
+                $"Soul Barrier: {stats.maxSoulBarrier:0.##}\n" +
+                $"Max Stamina: {stats.maxStamina:0.##}\n" +
+                $"Max Aether: {stats.maxAether:0.##}\n" +
+                $"Aether Healing Tolerance: " +
+                $"{stats.aetherHealingTolerance:0.##}\n";
+        }
+
         statsText.text =
             "Stats\n" +
-            $"Max Health: {stats.maxHealth:0.##}\n" +
-            $"Soul Barrier: {stats.maxSoulBarrier:0.##}\n" +
-            $"Max Stamina: {stats.maxStamina:0.##}\n" +
-            $"Max Aether: {stats.maxAether:0.##}\n" +
+            resourceText +
             $"Mass: {stats.mass:0.##}\n" +
             $"Poise: {stats.poise:0.##}\n" +
             $"Stagger Resist: {baseStats.staggerResist}\n" +

@@ -328,7 +328,8 @@ public sealed class CharacterRuntimeBinder :
         if (playerCharacterInfoUI != null)
         {
             playerCharacterInfoUI.BindPlayer(
-                characterProfile
+                characterProfile,
+                playerResources
             );
         }
 
