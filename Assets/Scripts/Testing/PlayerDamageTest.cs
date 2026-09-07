@@ -11,6 +11,11 @@ public class PlayerDamageTest : MonoBehaviour
     [SerializeField] private float aetherDamage = 25f;
     [SerializeField] private float healAmount = 25f;
     [SerializeField] private float barrierRestoreAmount = 25f;
+    [SerializeField]
+    private float aetherHealAmount = 25f;
+
+    [SerializeField]
+    private float burnRecoveryAmount = 25f;
 
     private void Awake()
     {
@@ -62,6 +67,35 @@ public class PlayerDamageTest : MonoBehaviour
             resources.AddSoulBarrier(barrierRestoreAmount);
             PrintResources("Restore Soul Barrier");
         }
+
+        if (Keyboard.current.digit5Key.wasPressedThisFrame)
+        {
+            float healed =
+                resources.HealHealthWithAether(
+                    aetherHealAmount
+                );
+
+            Debug.Log(
+                $"Aether healing restored " +
+                $"{healed:0.##} health.",
+                this
+            );
+
+            PrintResources(
+                "Aether heal"
+            );
+        }
+
+        if (Keyboard.current.digit6Key.wasPressedThisFrame)
+        {
+            resources.RestoreAetherHealingBurn(
+                burnRecoveryAmount
+            );
+
+            PrintResources(
+                "Restore Aether Healing Burn"
+            );
+        }
     }
 
     private void PrintResources(string label)
@@ -69,7 +103,12 @@ public class PlayerDamageTest : MonoBehaviour
         Debug.Log(
             $"{label}: " +
             $"HP {Mathf.CeilToInt(resources.CurrentHealth)}/{Mathf.CeilToInt(resources.MaxHealth)}, " +
-            $"Soul Barrier {Mathf.CeilToInt(resources.CurrentSoulBarrier)}/{Mathf.CeilToInt(resources.MaxSoulBarrier)}",
+            $"Soul Barrier {Mathf.CeilToInt(resources.CurrentSoulBarrier)}/{Mathf.CeilToInt(resources.MaxSoulBarrier)}" +
+            $"Aether Healing Burn " +
+            $"{resources.CurrentAetherHealingBurn:0.##}/" +
+            $"{resources.AetherHealingTolerance:0.##}, " +
+            $"Healing Efficiency " +
+            $"{resources.AetherHealingEfficiency:P0}",
             this
         );
     }
