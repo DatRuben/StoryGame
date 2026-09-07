@@ -170,10 +170,6 @@ public class EntityResources :
             maxHealth -
             currentHealth;
 
-        float missingHealth =
-            maxHealth -
-            currentHealth;
-
         float efficiency =
             AetherHealingEfficiency;
 
