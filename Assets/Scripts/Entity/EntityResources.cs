@@ -170,18 +170,22 @@ public class EntityResources :
             maxHealth -
             currentHealth;
 
-        float rawHealing =
-            Mathf.Min(
-                amount,
-                missingHealth
-            );
+        float missingHealth =
+            maxHealth -
+            currentHealth;
 
         float efficiency =
             AetherHealingEfficiency;
 
-        float actualHealing =
-            rawHealing *
+        float effectiveHealing =
+            amount *
             efficiency;
+
+        float actualHealing =
+            Mathf.Min(
+                effectiveHealing,
+                missingHealth
+            );
 
         currentHealth =
             Mathf.Clamp(
@@ -192,7 +196,7 @@ public class EntityResources :
             );
 
         currentAetherHealingBurn +=
-            rawHealing;
+            amount;
 
         OnResourcesChanged?.Invoke();
 
