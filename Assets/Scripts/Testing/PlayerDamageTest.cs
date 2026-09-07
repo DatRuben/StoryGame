@@ -103,7 +103,7 @@ public class PlayerDamageTest : MonoBehaviour
         Debug.Log(
             $"{label}: " +
             $"HP {Mathf.CeilToInt(resources.CurrentHealth)}/{Mathf.CeilToInt(resources.MaxHealth)}, " +
-            $"Soul Barrier {Mathf.CeilToInt(resources.CurrentSoulBarrier)}/{Mathf.CeilToInt(resources.MaxSoulBarrier)}" +
+            $"Soul Barrier {Mathf.CeilToInt(resources.CurrentSoulBarrier)}/{Mathf.CeilToInt(resources.MaxSoulBarrier)}, " +
             $"Aether Healing Burn " +
             $"{resources.CurrentAetherHealingBurn:0.##}/" +
             $"{resources.AetherHealingTolerance:0.##}, " +

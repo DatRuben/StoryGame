@@ -57,7 +57,7 @@ public class EntityResources :
             : 0f;
 
     public float AetherHealingTolerance =>
-    aetherHealingTolerance;
+        aetherHealingTolerance;
 
     public float CurrentAetherHealingBurn =>
         currentAetherHealingBurn;
@@ -90,6 +90,16 @@ public class EntityResources :
         FinalCharacterStats finalStats,
         bool refillResources = true)
     {
+        if (finalStats == null)
+        {
+            Debug.LogWarning(
+                "EntityResources could not apply final stats because FinalCharacterStats is missing.",
+                this
+            );
+
+            return;
+        }
+
         aetherHealingTolerance =
             Mathf.Max(
                 1f,
@@ -99,16 +109,6 @@ public class EntityResources :
         if (refillResources)
         {
             currentAetherHealingBurn = 0f;
-        }
-
-        if (finalStats == null)
-        {
-            Debug.LogWarning(
-                "EntityResources could not apply final stats because FinalCharacterStats is missing.",
-                this
-            );
-
-            return;
         }
 
         ApplyResourceMaximums(
