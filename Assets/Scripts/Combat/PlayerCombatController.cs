@@ -40,6 +40,7 @@ public sealed class PlayerCombatController :
     private Collider bodyCollider;
 
     private PlayerGameplayState gameplayState;
+    private EntityCombatState combatState;
 
     private void Awake()
     {
@@ -51,6 +52,9 @@ public sealed class PlayerCombatController :
 
         gameplayState =
             GetComponent<PlayerGameplayState>();
+
+        combatState =
+            GetComponent<EntityCombatState>();
     }
 
     public bool TryPrimaryAttack()
@@ -185,6 +189,12 @@ public sealed class PlayerCombatController :
             OnDamageResolved?.Invoke(
                 result
             );
+        }
+
+        if (result.DidDamage &&
+            combatState != null)
+        {
+            combatState.MarkCombatActivity();
         }
 
         return result.DidDamage;
