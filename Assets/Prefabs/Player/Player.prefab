@@ -127,6 +127,8 @@ GameObject:
   - component: {fileID: -1204065519728589899}
   - component: {fileID: 1397154678807963875}
   - component: {fileID: 8558950210056195693}
+  - component: {fileID: -2935073332112228037}
+  - component: {fileID: -5287534700248064661}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -486,6 +488,32 @@ MonoBehaviour:
   barrierRestoreAmount: 25
   aetherHealAmount: 25
   burnRecoveryAmount: 25
+--- !u!114 &-2935073332112228037
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3981885625536899075}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c6a1e1627106b44382940943bfecda6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EntityCombatState
+  combatExitDelay: 5
+--- !u!114 &-5287534700248064661
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3981885625536899075}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38271948be846d44bb30d33b72f91865, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AetherHealingBurnRecovery
+  outOfCombatRecoveryPerSecond: 0.05
 --- !u!1 &4361632423051394989
 GameObject:
   m_ObjectHideFlags: 0

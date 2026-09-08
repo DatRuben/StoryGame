@@ -313,6 +313,12 @@ public sealed class PlayerCharacterInfoUI :
         if (statsText == null)
             return;
 
+        if (characterProfile == null)
+        {
+            statsText.text = "";
+            return;
+        }
+
         FinalCharacterStats stats =
             characterProfile.FinalStats;
 
