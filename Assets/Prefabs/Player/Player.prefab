@@ -31,6 +31,74 @@ Transform:
   m_Children: []
   m_Father: {fileID: 3644507542924445183}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2333387318658055081
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3530478597788613996}
+  - component: {fileID: 4416145094395225275}
+  - component: {fileID: 3664606553762317513}
+  m_Layer: 0
+  m_Name: BodyHurtbox
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3530478597788613996
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2333387318658055081}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1948218584183092293}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!136 &4416145094395225275
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2333387318658055081}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Height: 2
+  m_Direction: 1
+  m_Center: {x: 0, y: 2, z: 0}
+--- !u!114 &3664606553762317513
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2333387318658055081}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a200d09220de954282caaec8fe58ad9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CombatHurtbox
 --- !u!1 &3981885625536899075
 GameObject:
   m_ObjectHideFlags: 0
@@ -56,6 +124,11 @@ GameObject:
   - component: {fileID: 5991753881997761642}
   - component: {fileID: 2919513976682819244}
   - component: {fileID: 2987058604458461187}
+  - component: {fileID: -1204065519728589899}
+  - component: {fileID: 1397154678807963875}
+  - component: {fileID: 8558950210056195693}
+  - component: {fileID: -2935073332112228037}
+  - component: {fileID: -5287534700248064661}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -78,6 +151,7 @@ Transform:
   m_Children:
   - {fileID: 4952084029276672922}
   - {fileID: 3644507542924445183}
+  - {fileID: 3530478597788613996}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!136 &3813683606675395284
@@ -339,6 +413,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerResources
   maxAetherBodyDamageReduction: 0.5
+  aetherHealingBurnThreshold: 0.6
+  inefficientAetherHealingMultiplier: 0.2
 --- !u!114 &2919513976682819244
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -364,6 +440,80 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerCombatController
   hitRadius: 0.35
+  showDebugCast: 1
+  debugCastDuration: 1
+--- !u!114 &-1204065519728589899
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3981885625536899075}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 583e5d392e384ad42846458169e57688, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerDownedState
+  playerBody: {fileID: 0}
+  recoveryDelay: 10
+  recoveryHealthPercent: 1
+--- !u!114 &1397154678807963875
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3981885625536899075}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 39a25c03d0d5e514a9ff25027ba38297, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerGameplayState
+--- !u!114 &8558950210056195693
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3981885625536899075}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9fae8dc59ec60774098fabe0be129371, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerDamageTest
+  resources: {fileID: 0}
+  physicalDamage: 25
+  aetherDamage: 25
+  healAmount: 25
+  barrierRestoreAmount: 25
+  aetherHealAmount: 25
+  burnRecoveryAmount: 25
+--- !u!114 &-2935073332112228037
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3981885625536899075}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c6a1e1627106b44382940943bfecda6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EntityCombatState
+  combatExitDelay: 5
+--- !u!114 &-5287534700248064661
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3981885625536899075}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38271948be846d44bb30d33b72f91865, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AetherHealingBurnRecovery
+  outOfCombatRecoveryPerSecond: 0.05
 --- !u!1 &4361632423051394989
 GameObject:
   m_ObjectHideFlags: 0

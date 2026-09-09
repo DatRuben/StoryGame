@@ -85,6 +85,12 @@ public class PlayerCharacterProfile : MonoBehaviour
         private set;
     }
 
+    public CharacterBaseStats EffectiveBaseStats
+    {
+        get;
+        private set;
+    }
+
     public FinalMovementStats FinalMovementStats
     {
         get;
@@ -93,6 +99,11 @@ public class PlayerCharacterProfile : MonoBehaviour
 
     public StatusEffects StatusEffects =>
         statusEffects;
+
+    public CharacterForm CurrentForm =>
+        formState != null
+            ? formState.CurrentForm
+            : CharacterForm.Standing;
 
     private readonly List<TraitDefinition>
         traitDefinitions =
@@ -489,12 +500,12 @@ public class PlayerCharacterProfile : MonoBehaviour
                 EffectiveAttributeOutput
             );
 
-        CharacterBaseStats effectiveBaseStats =
+        EffectiveBaseStats =
             ResolveEffectiveBaseStats();
 
         FinalStats =
             CharacterStatsResolver.ResolveFinalStats(
-                effectiveBaseStats,
+                EffectiveBaseStats,
                 EffectiveAttributes
             );
 

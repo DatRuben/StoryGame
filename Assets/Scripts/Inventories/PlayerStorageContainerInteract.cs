@@ -12,7 +12,8 @@ public enum PlayerInteractionType
 
 [RequireComponent(
     typeof(PlayerInputRouter),
-    typeof(InventoryInteractionController)
+    typeof(InventoryInteractionController),
+    typeof(PlayerGameplayState)
 )]
 
 public sealed class PlayerStorageContainerInteract :
@@ -58,6 +59,8 @@ public sealed class PlayerStorageContainerInteract :
 
     [SerializeField]
     private PlayerInputRouter inputRouter;
+
+    private PlayerGameplayState gameplayState;
 
     private InventoryInteractionController
         interactionController;
@@ -158,6 +161,9 @@ public sealed class PlayerStorageContainerInteract :
             cameraTransform =
                 Camera.main.transform;
         }
+
+        gameplayState =
+            GetComponent<PlayerGameplayState>();
     }
 
     private void OnEnable()
@@ -166,6 +172,23 @@ public sealed class PlayerStorageContainerInteract :
         {
             inputRouter =
                 GetComponent<PlayerInputRouter>();
+        }
+
+        gameplayState.OnCapabilitiesInterrupted -=
+            HandleCapabilitiesInterrupted;
+
+        gameplayState.OnCapabilitiesInterrupted +=
+            HandleCapabilitiesInterrupted;
+
+        if (!gameplayState.Allows(
+            PlayerGameplayCapability.WorldInteraction))
+        {
+            if (currentOpenContainer != null)
+            {
+                CloseContainer();
+            }
+
+            RefreshCurrentInteraction();
         }
 
         if (inputRouter == null)
@@ -186,6 +209,12 @@ public sealed class PlayerStorageContainerInteract :
 
     private void OnDisable()
     {
+        if (gameplayState != null)
+        {
+            gameplayState.OnCapabilitiesInterrupted -=
+                HandleCapabilitiesInterrupted;
+        }
+
         if (inputRouter == null)
             return;
 
@@ -286,6 +315,23 @@ public sealed class PlayerStorageContainerInteract :
 
             return;
         }
+    }
+
+    private void HandleCapabilitiesInterrupted(
+        PlayerGameplayCapability interruptedCapabilities)
+    {
+        if ((interruptedCapabilities &
+             PlayerGameplayCapability.WorldInteraction) == 0)
+        {
+            return;
+        }
+
+        if (currentOpenContainer != null)
+        {
+            CloseContainer();
+        }
+
+        RefreshCurrentInteraction();
     }
 
     private void RefreshWorldItemOptions(
@@ -505,6 +551,13 @@ public sealed class PlayerStorageContainerInteract :
 
         worldItem = null;
         container = null;
+
+        if (gameplayState != null &&
+            !gameplayState.Allows(
+                PlayerGameplayCapability.WorldInteraction))
+        {
+            return false;
+        }
 
         if (currentOpenContainer != null)
         {

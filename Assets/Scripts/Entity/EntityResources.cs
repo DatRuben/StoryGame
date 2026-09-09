@@ -24,6 +24,19 @@ public class EntityResources :
     private float maxAether;
     private float currentAether;
 
+    [Header("Aether Healing")]
+
+    [SerializeField]
+    [Range(0f, 1f)]
+    private float aetherHealingBurnThreshold = 0.6f;
+
+    [SerializeField]
+    [Range(0f, 1f)]
+    private float inefficientAetherHealingMultiplier = 0.2f;
+
+    private float aetherHealingTolerance = 100f;
+    private float currentAetherHealingBurn;
+
     public float MaxHealth => maxHealth;
     public float CurrentHealth => currentHealth;
     public float HealthPercent => GetPercent(currentHealth, maxHealth);
@@ -43,6 +56,30 @@ public class EntityResources :
             ? currentSoulBarrier / maxSoulBarrier
             : 0f;
 
+    public float AetherHealingTolerance =>
+        aetherHealingTolerance;
+
+    public float CurrentAetherHealingBurn =>
+        currentAetherHealingBurn;
+
+    public float AetherHealingBurnRatio =>
+        aetherHealingTolerance > 0f
+            ? currentAetherHealingBurn /
+                aetherHealingTolerance
+            : 1f;
+
+    public float AetherHealingEfficiency =>
+        GetAetherHealingEfficiency();
+
+    public float AetherHealingBurnThresholdRatio =>
+        Mathf.Clamp01(
+            aetherHealingBurnThreshold
+    );
+
+    public float AetherHealingBurnThresholdAmount =>
+        aetherHealingTolerance *
+        AetherHealingBurnThresholdRatio;
+
     public bool IsInitialized { get; private set; }
 
     public bool IsHealthDepleted =>
@@ -51,6 +88,9 @@ public class EntityResources :
         currentHealth <= 0f;
 
     public event Action OnResourcesChanged;
+
+    public event Action<DamageResult>
+        OnDamageResolved;
 
     public event Action<DamageContext?>
         OnHealthDepleted;
@@ -69,6 +109,17 @@ public class EntityResources :
             return;
         }
 
+        aetherHealingTolerance =
+            Mathf.Max(
+                1f,
+                finalStats.aetherHealingTolerance
+            );
+
+        if (refillResources)
+        {
+            currentAetherHealingBurn = 0f;
+        }
+
         ApplyResourceMaximums(
             finalStats.maxHealth,
             finalStats.maxSoulBarrier,
@@ -76,6 +127,85 @@ public class EntityResources :
             finalStats.maxAether,
             refillResources
         );
+    }
+
+    public void RestoreAetherHealingBurn(
+        float amount)
+    {
+        amount =
+            Mathf.Max(
+                0f,
+                amount
+            );
+
+        if (amount <= 0f)
+            return;
+
+        float previousBurn =
+            currentAetherHealingBurn;
+
+        currentAetherHealingBurn =
+            Mathf.Max(
+                0f,
+                currentAetherHealingBurn -
+                amount
+            );
+
+        if (currentAetherHealingBurn ==
+            previousBurn)
+        {
+            return;
+        }
+
+        OnResourcesChanged?.Invoke();
+    }
+
+    public float HealHealthWithAether(
+        float amount)
+    {
+        amount =
+            Mathf.Max(
+                0f,
+                amount
+            );
+
+        if (amount <= 0f ||
+            currentHealth >= maxHealth)
+        {
+            return 0f;
+        }
+
+        float missingHealth =
+            maxHealth -
+            currentHealth;
+
+        float efficiency =
+            AetherHealingEfficiency;
+
+        float effectiveHealing =
+            amount *
+            efficiency;
+
+        float actualHealing =
+            Mathf.Min(
+                effectiveHealing,
+                missingHealth
+            );
+
+        currentHealth =
+            Mathf.Clamp(
+                currentHealth +
+                actualHealing,
+                0f,
+                maxHealth
+            );
+
+        currentAetherHealingBurn +=
+            amount;
+
+        OnResourcesChanged?.Invoke();
+
+        return actualHealing;
     }
 
     public void SetHealth(
@@ -112,6 +242,24 @@ public class EntityResources :
             );
 
         OnResourcesChanged?.Invoke();
+    }
+
+    private float GetAetherHealingEfficiency()
+    {
+        float threshold =
+            Mathf.Clamp01(
+                aetherHealingBurnThreshold
+            );
+
+        if (AetherHealingBurnRatio <
+            threshold)
+        {
+            return 1f;
+        }
+
+        return Mathf.Clamp01(
+            inefficientAetherHealingMultiplier
+        );
     }
 
     public DamageResult TakeDamage(
@@ -165,12 +313,17 @@ public class EntityResources :
             new DamageResult(
                 damage,
                 gameObject,
+                DamageOutcome.Applied,
                 healthDamage,
                 soulBarrierDamage,
                 healthDepleted
             );
 
         OnResourcesChanged?.Invoke();
+
+        OnDamageResolved?.Invoke(
+            result
+        );
 
         if (healthDepleted)
         {

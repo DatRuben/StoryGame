@@ -47,6 +47,9 @@ public sealed class CharacterRuntimeBinder :
     private PlayerResourcesUI playerResourcesUI;
 
     [SerializeField]
+    private PlayerCharacterInfoUI playerCharacterInfoUI;
+
+    [SerializeField]
     private PlayerCrosshair playerCrosshair;
 
     [SerializeField]
@@ -140,6 +143,10 @@ public sealed class CharacterRuntimeBinder :
         PlayerCombatController combatController =
             player.GetComponent<
                 PlayerCombatController>();
+
+        PlayerGameplayState gameplayState =
+            player.GetComponent<
+                PlayerGameplayState>();
 
         Camera mainCamera =
             Camera.main;
@@ -254,6 +261,11 @@ public sealed class CharacterRuntimeBinder :
                 .BindInteractionController(
                     interactionController
                 );
+
+            inventoryMenuController
+                .BindPlayerGameplayState(
+                    gameplayState
+                );
         }
 
         if (inventoryFollow != null)
@@ -309,6 +321,14 @@ public sealed class CharacterRuntimeBinder :
         if (playerResourcesUI != null)
         {
             playerResourcesUI.BindPlayer(
+                playerResources
+            );
+        }
+
+        if (playerCharacterInfoUI != null)
+        {
+            playerCharacterInfoUI.BindPlayer(
+                characterProfile,
                 playerResources
             );
         }

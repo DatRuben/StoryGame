@@ -8,6 +8,8 @@ public class FinalCharacterStats
     public float maxStamina;
     public float maxAether;
 
+    public float aetherHealingTolerance;
+
     public float mass;
     public float poise;
 

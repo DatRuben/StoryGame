@@ -3,6 +3,8 @@ using UnityEngine;
 
 [RequireComponent(
     typeof(PlayerWeaponDeployment))]
+[RequireComponent(typeof(PlayerGameplayState))]
+
 public sealed class PlayerCombatController :
     MonoBehaviour
 {
@@ -37,6 +39,9 @@ public sealed class PlayerCombatController :
 
     private Collider bodyCollider;
 
+    private PlayerGameplayState gameplayState;
+    private EntityCombatState combatState;
+
     private void Awake()
     {
         weaponDeployment =
@@ -44,10 +49,23 @@ public sealed class PlayerCombatController :
 
         bodyCollider =
             GetComponent<Collider>();
+
+        gameplayState =
+            GetComponent<PlayerGameplayState>();
+
+        combatState =
+            GetComponent<EntityCombatState>();
     }
 
     public bool TryPrimaryAttack()
     {
+        if (gameplayState != null &&
+            !gameplayState.Allows(
+            PlayerGameplayCapability.Combat))
+        {
+            return false;
+        }
+
         if (weaponDeployment == null ||
             !weaponDeployment
                 .TryGetPrimaryDeployedWeapon(
@@ -171,6 +189,12 @@ public sealed class PlayerCombatController :
             OnDamageResolved?.Invoke(
                 result
             );
+        }
+
+        if (result.DidDamage &&
+            combatState != null)
+        {
+            combatState.MarkCombatActivity();
         }
 
         return result.DidDamage;

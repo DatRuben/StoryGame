@@ -6,7 +6,7 @@ public class PlayerBodySetup : MonoBehaviour
     [SerializeField] private CapsuleCollider capsuleCollider;
     [SerializeField] private Transform groundCheck;
     [SerializeField] private Transform cameraPivot;
-
+    [SerializeField] private CapsuleCollider hurtboxCollider;
     private void Awake()
     {
         ResolveReferences();
@@ -18,6 +18,22 @@ public class PlayerBodySetup : MonoBehaviour
         {
             capsuleCollider =
                 GetComponent<CapsuleCollider>();
+        }
+
+        if (hurtboxCollider == null)
+        {
+            Transform hurtboxTransform =
+                FindChildRecursive(
+                    transform,
+                    "BodyHurtbox"
+                );
+
+            if (hurtboxTransform != null)
+            {
+                hurtboxCollider =
+                    hurtboxTransform.GetComponent<
+                        CapsuleCollider>();
+            }
         }
 
         if (groundCheck == null)
@@ -106,6 +122,21 @@ public class PlayerBodySetup : MonoBehaviour
                 capsuleCollider.height * 0.5f,
                 0f
             );
+
+        if (hurtboxCollider != null)
+        {
+            hurtboxCollider.direction =
+                capsuleCollider.direction;
+
+            hurtboxCollider.radius =
+                capsuleCollider.radius;
+
+            hurtboxCollider.height =
+                capsuleCollider.height;
+
+            hurtboxCollider.center =
+                capsuleCollider.center;
+        }
     }
 
     private float GetCapsuleRadius(

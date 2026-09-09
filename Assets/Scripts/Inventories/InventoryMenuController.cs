@@ -15,6 +15,8 @@ public class InventoryMenuController : MonoBehaviour
 
     private PlayerStorageContainerInteract storageInteract;
 
+    private PlayerGameplayState gameplayState;
+
     private InventoryInteractionController
     interactionController;
 
@@ -29,11 +31,13 @@ public class InventoryMenuController : MonoBehaviour
     private void OnEnable()
     {
         SubscribeInput();
+        SubscribeGameplayState();
     }
 
     private void OnDisable()
     {
         UnsubscribeInput();
+        UnsubscribeGameplayState();
     }
 
     private void Start()
@@ -96,6 +100,14 @@ public class InventoryMenuController : MonoBehaviour
 
     public void SetInventoryOpen(bool open)
     {
+        if (open &&
+            gameplayState != null &&
+            !gameplayState.Allows(
+                PlayerGameplayCapability.Inventory))
+        {
+            open = false;
+        }
+
         isOpen = open;
         IsInventoryOpen = open;
 
@@ -139,6 +151,59 @@ public class InventoryMenuController : MonoBehaviour
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
+    }
+
+    public void BindPlayerGameplayState(
+        PlayerGameplayState newGameplayState)
+    {
+        UnsubscribeGameplayState();
+
+        gameplayState =
+            newGameplayState;
+
+        if (isActiveAndEnabled)
+        {
+            SubscribeGameplayState();
+        }
+    }
+
+    private void SubscribeGameplayState()
+    {
+        if (gameplayState == null)
+            return;
+
+        gameplayState.OnCapabilitiesInterrupted -=
+            HandleCapabilitiesInterrupted;
+
+        gameplayState.OnCapabilitiesInterrupted +=
+            HandleCapabilitiesInterrupted;
+
+        if (!gameplayState.Allows(
+                PlayerGameplayCapability.Inventory))
+        {
+            SetInventoryOpen(false);
+        }
+    }
+
+    private void UnsubscribeGameplayState()
+    {
+        if (gameplayState == null)
+            return;
+
+        gameplayState.OnCapabilitiesInterrupted -=
+            HandleCapabilitiesInterrupted;
+    }
+
+    private void HandleCapabilitiesInterrupted(
+        PlayerGameplayCapability interruptedCapabilities)
+    {
+        if ((interruptedCapabilities &
+             PlayerGameplayCapability.Inventory) == 0)
+        {
+            return;
+        }
+
+        SetInventoryOpen(false);
     }
 
     public void BindInteractionController(

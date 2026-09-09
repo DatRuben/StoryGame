@@ -10,6 +10,18 @@ public static class CharacterStatsResolver
     private const float AgilityDodgeDistancePerPoint = 0.0075f;
     private const float AgilityDodgeCooldownPerPoint = 0.005f;
 
+    private const int
+        AetherHealingToleranceAttributeBaseline = 10;
+
+    private const float
+        BaseAetherHealingTolerance = 100f;
+
+    private const float
+        AetherHealingTolerancePerVitality = 8f;
+
+    private const float
+        AetherHealingTolerancePerWillpower = 4f;
+
     public static FinalCharacterStats ResolveFinalStats(
         CharacterBaseStats totalBaseStats,
         CharacterAttributes attributes)
@@ -63,6 +75,11 @@ public static class CharacterStatsResolver
                     totalBaseStats.mana
                 ),
 
+            aetherHealingTolerance =
+                ResolveAetherHealingTolerance(
+                    attributes
+                ),
+
             mass =
                 Mathf.Max(
                     1f,
@@ -95,6 +112,33 @@ public static class CharacterStatsResolver
                     1f - attributes.strength * 0.005f
                 )
         };
+    }
+
+    private static float ResolveAetherHealingTolerance(
+        CharacterAttributes attributes)
+    {
+        if (attributes == null)
+        {
+            attributes =
+                CharacterAttributes.CreateDefault(10);
+        }
+
+        float vitalityDifference =
+            attributes.vitality -
+            AetherHealingToleranceAttributeBaseline;
+
+        float willpowerDifference =
+            attributes.willpower -
+            AetherHealingToleranceAttributeBaseline;
+
+        return Mathf.Max(
+            1f,
+            BaseAetherHealingTolerance +
+            vitalityDifference *
+                AetherHealingTolerancePerVitality +
+            willpowerDifference *
+                AetherHealingTolerancePerWillpower
+        );
     }
 
     public static FinalMovementStats ResolveMovementStats(

@@ -14,6 +14,7 @@ using UnityEngine.InputSystem;
 [RequireComponent(
     typeof(PlayerCharacterProfile)
 )]
+[RequireComponent(typeof(PlayerGameplayState))]
 
 public sealed class InventoryInteractionController :
     MonoBehaviour
@@ -36,6 +37,8 @@ public sealed class InventoryInteractionController :
     private PlayerCharacterProfile characterProfile;
     private InventoryContainer playerInventory;
     private WorldItemSpawner worldItemSpawner;
+
+    private PlayerGameplayState gameplayState;
 
     private InventoryItemInstance
         loadoutAssignmentItem;
@@ -394,6 +397,59 @@ public sealed class InventoryInteractionController :
         return true;
     }
 
+    internal bool TryDropLooseHeldItems()
+    {
+        if (gripState == null)
+            return false;
+
+        gripState.GetHeldItemsInCycleOrder(
+            heldItems
+        );
+
+        bool droppedEverything = true;
+
+        for (int i = 0;
+             i < heldItems.Count;
+             i++)
+        {
+            InventoryItemInstance item =
+                heldItems[i];
+
+            if (item == null ||
+                item.IsEmpty)
+            {
+                continue;
+            }
+
+            if (weaponLoadout != null &&
+                weaponLoadout.IsWeaponAssigned(
+                    item))
+            {
+                continue;
+            }
+
+            if (!TryDropHeldItem(
+                    item))
+            {
+                droppedEverything = false;
+            }
+        }
+
+        return droppedEverything;
+    }
+
+    private void HandleCapabilitiesInterrupted(
+        PlayerGameplayCapability interruptedCapabilities)
+    {
+        if ((interruptedCapabilities &
+             PlayerGameplayCapability.ItemHandling) == 0)
+        {
+            return;
+        }
+
+        TryDropLooseHeldItems();
+    }
+
     internal bool TryClearBlockingItems(
         CharacterGripProfile targetProfile)
     {
@@ -531,6 +587,13 @@ public sealed class InventoryInteractionController :
     internal bool TryHoldWorldItem(
         WorldItem worldItem)
     {
+        if (gameplayState != null &&
+            !gameplayState.Allows(
+            PlayerGameplayCapability.ItemHandling))
+        {
+            return false;
+        }
+
         if (worldItem == null ||
             gripState == null)
         {
@@ -629,10 +692,34 @@ public sealed class InventoryInteractionController :
 
         characterProfile.AttributesChanged +=
             OnStateChanged;
+
+        gameplayState =
+            GetComponent<PlayerGameplayState>();
     }
 
     private void OnEnable()
     {
+        if (gameplayState == null)
+        {
+            gameplayState =
+                GetComponent<PlayerGameplayState>();
+        }
+
+        if (gameplayState != null)
+        {
+            gameplayState.OnCapabilitiesInterrupted -=
+                HandleCapabilitiesInterrupted;
+
+            gameplayState.OnCapabilitiesInterrupted +=
+                HandleCapabilitiesInterrupted;
+
+            if (!gameplayState.Allows(
+                    PlayerGameplayCapability.ItemHandling))
+            {
+                TryDropLooseHeldItems();
+            }
+        }
+
         if (inputRouter == null)
         {
             inputRouter =
@@ -657,6 +744,12 @@ public sealed class InventoryInteractionController :
 
     private void OnDisable()
     {
+        if (gameplayState != null)
+        {
+            gameplayState.OnCapabilitiesInterrupted -=
+                HandleCapabilitiesInterrupted;
+        }
+
         if (inputRouter == null)
             return;
 
@@ -817,6 +910,13 @@ public sealed class InventoryInteractionController :
         InventoryContainer source,
         Vector2Int coordinate)
     {
+        if (gameplayState != null &&
+            !gameplayState.Allows(
+            PlayerGameplayCapability.ItemHandling))
+        {
+            return false;
+        }
+
         if (loadoutAssignmentItem != null ||
             source == null ||
             cursor.HasSelection)
@@ -1127,6 +1227,13 @@ public sealed class InventoryInteractionController :
         InventoryContainer source,
         Vector2Int coordinate)
     {
+        if (gameplayState != null &&
+            !gameplayState.Allows(
+            PlayerGameplayCapability.ItemHandling))
+        {
+            return false;
+        }
+
         if (loadoutAssignmentItem != null ||
             source == null ||
             cursor.HasSelection)
