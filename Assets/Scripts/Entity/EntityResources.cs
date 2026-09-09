@@ -71,6 +71,15 @@ public class EntityResources :
     public float AetherHealingEfficiency =>
         GetAetherHealingEfficiency();
 
+    public float AetherHealingBurnThresholdRatio =>
+        Mathf.Clamp01(
+            aetherHealingBurnThreshold
+    );
+
+    public float AetherHealingBurnThresholdAmount =>
+        aetherHealingTolerance *
+        AetherHealingBurnThresholdRatio;
+
     public bool IsInitialized { get; private set; }
 
     public bool IsHealthDepleted =>

@@ -359,6 +359,9 @@ public sealed class PlayerCharacterInfoUI :
                 $"Aether Healing Tolerance: " +
                 $"{playerResources.AetherHealingTolerance:0.##}\n" +
 
+                $"Aether Healing Threshold: " +
+                $"{playerResources.AetherHealingBurnThresholdAmount:0.##}\n" +
+
                 $"Aether Healing Burn: " +
                 $"{playerResources.CurrentAetherHealingBurn:0.##} / " +
                 $"{playerResources.AetherHealingTolerance:0.##}\n" +

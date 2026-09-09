@@ -18,6 +18,7 @@ public class PlayerResourcesUI : MonoBehaviour
     [SerializeField] private Color aetherColor = Color.cyan;
     [SerializeField] private Color barBackgroundColor = new Color(0f, 0f, 0f, 0.55f);
     [SerializeField] private Color borderColor = Color.black;
+    [SerializeField] private Color aetherHealingBurnColor = Color.magenta;
 
     [Header("Border")]
     [SerializeField] private float borderThickness = 4f;
@@ -28,6 +29,7 @@ public class PlayerResourcesUI : MonoBehaviour
     private RectTransform soulBarrierFill;
     private RectTransform staminaFill;
     private RectTransform aetherFill;
+    private RectTransform aetherHealingBurnFill;
 
     private void Awake()
     {
@@ -48,14 +50,13 @@ public class PlayerResourcesUI : MonoBehaviour
     {
         if (playerResources != null)
         {
-            playerResources.OnResourcesChanged += Refresh;
+            playerResources.OnResourcesChanged -=
+                Refresh;
+
+            playerResources.OnResourcesChanged +=
+                Refresh;
         }
 
-        Refresh();
-    }
-
-    private void Update()
-    {
         Refresh();
     }
 
@@ -84,6 +85,10 @@ public class PlayerResourcesUI : MonoBehaviour
         y -= barSize.y + barSpacing;
 
         aetherFill = CreateBar("AetherBar", y, aetherColor);
+
+        y -= barSize.y + barSpacing;
+
+        aetherHealingBurnFill = CreateBar("AetherHealingBurnBar", y, aetherHealingBurnColor);
     }
 
     private RectTransform CreateBar(
@@ -152,6 +157,7 @@ public class PlayerResourcesUI : MonoBehaviour
             SetFillPercent(soulBarrierFill, 1f);
             SetFillPercent(staminaFill, 1f);
             SetFillPercent(aetherFill, 1f);
+            SetFillPercent(aetherHealingBurnFill, 0f);
             return;
         }
 
@@ -159,6 +165,7 @@ public class PlayerResourcesUI : MonoBehaviour
         SetFillPercent(soulBarrierFill, playerResources.SoulBarrierPercent);
         SetFillPercent(staminaFill, playerResources.StaminaPercent);
         SetFillPercent(aetherFill, playerResources.AetherPercent);
+        SetFillPercent(aetherHealingBurnFill, playerResources.AetherHealingBurnRatio);
     }
 
     private void SetFillPercent(
