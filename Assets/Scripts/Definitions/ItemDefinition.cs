@@ -90,6 +90,17 @@ public class ItemDefinition : ScriptableObject
     public EquipmentCombatRole equipmentCombatRole =
         EquipmentCombatRole.None;
 
+    [Header("Item Use")]
+
+    public List<ItemUseEffect> useEffects =
+    new List<ItemUseEffect>();
+
+    public bool IsUsable =>
+        itemCategory ==
+            ItemCategory.Consumable &&
+        useEffects != null &&
+        useEffects.Count > 0;
+
     public bool HasEquipmentCombatRole(
         EquipmentCombatRole role)
     {

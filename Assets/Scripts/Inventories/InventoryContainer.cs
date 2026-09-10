@@ -478,4 +478,64 @@ public class InventoryContainer : MonoBehaviour
         if (placedAny)
             Changed?.Invoke();
     }
+
+    public bool TryConsumeAt(
+    int x,
+    int y,
+    int amount = 1)
+    {
+        if (amount <= 0)
+            return false;
+
+        PlacedInventoryItem placedItem =
+            GetItemAt(
+                x,
+                y
+            );
+
+        if (placedItem == null ||
+            placedItem.ItemInstance == null ||
+            placedItem.ItemInstance.IsEmpty)
+        {
+            return false;
+        }
+
+        InventoryItemInstance item =
+            placedItem.ItemInstance;
+
+        int amountToConsume =
+            Mathf.Min(
+                amount,
+                item.Quantity
+            );
+
+        if (amountToConsume <= 0)
+            return false;
+
+        if (amountToConsume >=
+            item.Quantity)
+        {
+            PlacedInventoryItem removed =
+                TakeItemAt(
+                    x,
+                    y
+                );
+
+            if (removed == null)
+                return false;
+
+            removed.ItemInstance
+                .RemoveQuantity(
+                    amountToConsume
+                );
+
+            return true;
+        }
+
+        item.RemoveQuantity(
+            amountToConsume
+        );
+
+        return true;
+    }
 }

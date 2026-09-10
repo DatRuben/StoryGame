@@ -2523,4 +2523,74 @@ public sealed class InventoryInteractionController :
 
         return true;
     }
+
+    internal bool TryUseItemFromContainer(
+    InventoryContainer source,
+    Vector2Int coordinate)
+    {
+        if (gameplayState != null &&
+            (!gameplayState.Allows(
+                PlayerGameplayCapability.Inventory) ||
+             !gameplayState.Allows(
+                PlayerGameplayCapability.ItemHandling)))
+        {
+            return false;
+        }
+
+        if (source == null)
+            return false;
+
+        PlacedInventoryItem placed =
+            source.GetItemAt(
+                coordinate.x,
+                coordinate.y
+            );
+
+        if (placed == null ||
+            placed.ItemInstance == null ||
+            placed.ItemInstance.IsEmpty)
+        {
+            return false;
+        }
+
+        InventoryItemInstance item =
+            placed.ItemInstance;
+
+        ItemDefinition definition =
+            item.Definition;
+
+        if (definition == null ||
+            !definition.IsUsable)
+        {
+            return false;
+        }
+
+        bool appliedAnyEffect = false;
+
+        for (int i = 0;
+             i < definition.useEffects.Count;
+             i++)
+        {
+            ItemUseEffect effect =
+                definition.useEffects[i];
+
+            if (effect == null)
+                continue;
+
+            if (effect.TryApply(
+                    gameObject))
+            {
+                appliedAnyEffect = true;
+            }
+        }
+
+        if (!appliedAnyEffect)
+            return false;
+
+        return source.TryConsumeAt(
+            coordinate.x,
+            coordinate.y,
+            1
+        );
+    }
 }
