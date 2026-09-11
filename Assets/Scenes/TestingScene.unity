@@ -21625,6 +21625,11 @@ MonoBehaviour:
     x: 6
     y: 0
     rotationSteps: 0
+  - item: {fileID: 11400000, guid: 50900cc1aaf48da4bb251a40a434b4b4, type: 2}
+    quantity: 0
+    x: 7
+    y: 7
+    rotationSteps: 0
 --- !u!1 &958245277
 GameObject:
   m_ObjectHideFlags: 0
@@ -24096,6 +24101,7 @@ MonoBehaviour:
   aetherColor: {r: 0, g: 1, b: 1, a: 1}
   barBackgroundColor: {r: 0, g: 0, b: 0, a: 0.55}
   borderColor: {r: 0, g: 0, b: 0, a: 1}
+  aetherHealingBurnColor: {r: 1, g: 0, b: 1, a: 1}
   borderThickness: 4
 --- !u!114 &1093962944
 MonoBehaviour:
