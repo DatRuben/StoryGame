@@ -119,6 +119,8 @@ public class PlayerInput : MonoBehaviour
     private PlayerCombatController combatController;
     private PlayerGameplayState gameplayState;
 
+    private InventoryInteractionController inventoryInteractionController;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -169,6 +171,10 @@ public class PlayerInput : MonoBehaviour
 
         gameplayState =
             GetComponent<PlayerGameplayState>();
+
+        inventoryInteractionController =
+            GetComponent<
+                InventoryInteractionController>();
     }
 
     private void OnEnable()
@@ -907,6 +913,23 @@ public class PlayerInput : MonoBehaviour
     private void DoAttack(
         InputAction.CallbackContext obj)
     {
+        if (InventoryMenuController
+            .IsInventoryOpen)
+        {
+            return;
+        }
+
+        if (inventoryInteractionController !=
+                null &&
+            inventoryInteractionController
+                .HasUsableSelectedHeldItem)
+        {
+            inventoryInteractionController
+                .TryUseSelectedHeldItem();
+
+            return;
+        }
+
         if (gameplayState != null &&
             !gameplayState.Allows(
                 PlayerGameplayCapability.Combat))

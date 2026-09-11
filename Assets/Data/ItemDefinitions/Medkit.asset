@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d8e8438f34b389044baee99c41231754, type: 3}
+  m_Name: Medkit
+  m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
+  itemName: Medkit
+  itemCategory: 2
+  worldPrefab: {fileID: 6086656152923968378, guid: 3a36b50f717e0044b8f539c5f24503b8, type: 3}
+  itemIcon: {fileID: 0}
+  weight: 1
+  minimumHandUseGripCount: 1
+  canUseWithHands: 1
+  canUseWithMouth: 0
+  heldControlsText: Left Click to Use
+  weaponControlsText: 
+  equipmentSlotType: 2
+  equipmentCombatRole: 0
+  useEffects:
+  - {fileID: 0}
+  baseDamage: 10
+  damageType: 0
+  attackReach: 2
+  hasManualSaddleTurret: 0
+  manualSaddleTurretControlsText: 
+  isStackable: 0
+  maxStackSize: 1
+  shapeWidth: 2
+  shapeHeight: 2
+  occupiedCells: 01010101

@@ -437,6 +437,7 @@ public class ItemDefinitionEditor : Editor
 
         DrawIdentitySection(item);
         DrawItemTypeSection(item);
+        DrawItemUseSection(item);
         DrawWorldSection(item);
         DrawHeldSection(item);
         DrawHandlingSection(item);
@@ -450,6 +451,61 @@ public class ItemDefinitionEditor : Editor
             item.RefreshHandling();
             EditorUtility.SetDirty(item);
         }
+    }
+
+    private void DrawItemUseSection(
+        ItemDefinition item)
+    {
+        if (item.itemCategory !=
+            ItemCategory.Consumable)
+        {
+            return;
+        }
+
+        EditorGUILayout.LabelField(
+            "Item Use",
+            EditorStyles.boldLabel
+        );
+
+        if (item.useEffects == null)
+        {
+            item.useEffects =
+                new List<ItemUseEffect>();
+        }
+
+        for (int i = 0;
+             i < item.useEffects.Count;
+             i++)
+        {
+            EditorGUILayout.BeginHorizontal();
+
+            item.useEffects[i] =
+                (ItemUseEffect)
+                EditorGUILayout.ObjectField(
+                    $"Effect {i + 1}",
+                    item.useEffects[i],
+                    typeof(ItemUseEffect),
+                    false
+                );
+
+            if (GUILayout.Button(
+                    "Remove",
+                    GUILayout.Width(65f)))
+            {
+                item.useEffects.RemoveAt(i);
+                i--;
+            }
+
+            EditorGUILayout.EndHorizontal();
+        }
+
+        if (GUILayout.Button(
+                "Add Effect"))
+        {
+            item.useEffects.Add(null);
+        }
+
+        EditorGUILayout.Space();
     }
 
     private void DrawWeaponCombatSection(
