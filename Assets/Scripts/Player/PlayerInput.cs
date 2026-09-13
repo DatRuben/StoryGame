@@ -94,8 +94,6 @@ public class PlayerInput : MonoBehaviour
     [SerializeField]
     private EntityResources playerResources;
 
-    private Animator animator;
-
     private Vector3 groundNormal = Vector3.up;
     private Vector3 wallNormal = Vector3.zero;
 
@@ -116,10 +114,9 @@ public class PlayerInput : MonoBehaviour
 
     private PlayerGripState gripState;
     private PlayerCharacterProfile characterProfile;
-    private PlayerCombatController combatController;
     private PlayerGameplayState gameplayState;
 
-    private InventoryInteractionController inventoryInteractionController;
+    private PlayerPrimaryActionController primaryActionController;
 
     private void Awake()
     {
@@ -136,8 +133,6 @@ public class PlayerInput : MonoBehaviour
                 0.01f,
                 groundCheckDistance
             );
-
-        animator = GetComponent<Animator>();
 
         if (inputRouter == null)
             inputRouter = GetComponent<PlayerInputRouter>();
@@ -163,18 +158,15 @@ public class PlayerInput : MonoBehaviour
         gripState =
             GetComponent<PlayerGripState>();
 
-        combatController =
-            GetComponent<PlayerCombatController>();
-
         characterProfile =
             GetComponent<PlayerCharacterProfile>();
 
         gameplayState =
             GetComponent<PlayerGameplayState>();
 
-        inventoryInteractionController =
+        primaryActionController =
             GetComponent<
-                InventoryInteractionController>();
+                PlayerPrimaryActionController>();
     }
 
     private void OnEnable()
@@ -913,42 +905,11 @@ public class PlayerInput : MonoBehaviour
     private void DoAttack(
         InputAction.CallbackContext obj)
     {
-        if (InventoryMenuController
-            .IsInventoryOpen)
-        {
+        if (primaryActionController == null)
             return;
-        }
 
-        if (inventoryInteractionController !=
-                null &&
-            inventoryInteractionController
-                .HasUsableSelectedHeldItem)
-        {
-            inventoryInteractionController
-                .TryUseSelectedHeldItem();
-
-            return;
-        }
-
-        if (gameplayState != null &&
-            !gameplayState.Allows(
-                PlayerGameplayCapability.Combat))
-        {
-            return;
-        }
-
-        if (animator != null)
-        {
-            animator.SetTrigger(
-                "attack"
-            );
-        }
-
-        if (combatController != null)
-        {
-            combatController
-                .TryPrimaryAttack();
-        }
+        primaryActionController
+            .HandlePrimaryAction();
     }
 
     private void ToggleCameraLock(InputAction.CallbackContext obj)
