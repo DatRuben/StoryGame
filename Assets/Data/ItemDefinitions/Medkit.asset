@@ -24,8 +24,10 @@ MonoBehaviour:
   weaponControlsText: 
   equipmentSlotType: 2
   equipmentCombatRole: 0
-  useEffects:
-  - {fileID: 11400000, guid: 1660df3d8e8261e4e922ae5000a393c9, type: 2}
+  consumableEffects:
+  - type: 0
+    amount: 25
+    statusEffect: {fileID: 0}
   baseDamage: 10
   damageType: 0
   attackReach: 2

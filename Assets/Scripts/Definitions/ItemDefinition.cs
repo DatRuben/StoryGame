@@ -90,16 +90,40 @@ public class ItemDefinition : ScriptableObject
     public EquipmentCombatRole equipmentCombatRole =
         EquipmentCombatRole.None;
 
-    [Header("Item Use")]
+    [Header("Consumable Effects")]
 
-    public List<ItemUseEffect> useEffects =
-    new List<ItemUseEffect>();
+    public List<ConsumableEffect>
+        consumableEffects =
+            new List<ConsumableEffect>();
 
-    public bool IsUsable =>
-        itemCategory ==
-            ItemCategory.Consumable &&
-        useEffects != null &&
-        useEffects.Count > 0;
+    public bool IsUsable
+    {
+        get
+        {
+            if (itemCategory !=
+                    ItemCategory.Consumable ||
+                consumableEffects == null)
+            {
+                return false;
+            }
+
+            for (int i = 0;
+                 i < consumableEffects.Count;
+                 i++)
+            {
+                ConsumableEffect effect =
+                    consumableEffects[i];
+
+                if (effect != null &&
+                    effect.IsConfigured)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
 
     public bool HasEquipmentCombatRole(
         EquipmentCombatRole role)
@@ -437,7 +461,7 @@ public class ItemDefinitionEditor : Editor
 
         DrawIdentitySection(item);
         DrawItemTypeSection(item);
-        DrawItemUseSection(item);
+        DrawConsumableEffectsSection(item);
         DrawWorldSection(item);
         DrawHeldSection(item);
         DrawHandlingSection(item);
@@ -453,7 +477,7 @@ public class ItemDefinitionEditor : Editor
         }
     }
 
-    private void DrawItemUseSection(
+    private void DrawConsumableEffectsSection(
         ItemDefinition item)
     {
         if (item.itemCategory !=
@@ -463,46 +487,88 @@ public class ItemDefinitionEditor : Editor
         }
 
         EditorGUILayout.LabelField(
-            "Item Use",
+            "Consumable Effects",
             EditorStyles.boldLabel
         );
 
-        if (item.useEffects == null)
+        if (item.consumableEffects == null)
         {
-            item.useEffects =
-                new List<ItemUseEffect>();
+            item.consumableEffects =
+                new List<ConsumableEffect>();
         }
 
         for (int i = 0;
-             i < item.useEffects.Count;
+             i < item.consumableEffects.Count;
              i++)
         {
-            EditorGUILayout.BeginHorizontal();
+            ConsumableEffect effect =
+                item.consumableEffects[i];
 
-            item.useEffects[i] =
-                (ItemUseEffect)
-                EditorGUILayout.ObjectField(
-                    $"Effect {i + 1}",
-                    item.useEffects[i],
-                    typeof(ItemUseEffect),
-                    false
+            if (effect == null)
+            {
+                effect =
+                    new ConsumableEffect();
+
+                item.consumableEffects[i] =
+                    effect;
+            }
+
+            EditorGUILayout.BeginVertical(
+                "box"
+            );
+
+            effect.type =
+                (ConsumableEffectType)
+                EditorGUILayout.EnumPopup(
+                    "Type",
+                    effect.type
                 );
 
-            if (GUILayout.Button(
-                    "Remove",
-                    GUILayout.Width(65f)))
+            switch (effect.type)
             {
-                item.useEffects.RemoveAt(i);
+                case ConsumableEffectType.RestoreHealth:
+                    effect.amount =
+                        Mathf.Max(
+                            0f,
+                            EditorGUILayout.FloatField(
+                                "Amount",
+                                effect.amount
+                            )
+                        );
+                    break;
+
+                case ConsumableEffectType.ApplyStatusEffect:
+                    effect.statusEffect =
+                        (StatusEffectDefinition)
+                        EditorGUILayout.ObjectField(
+                            "Status Effect",
+                            effect.statusEffect,
+                            typeof(
+                                StatusEffectDefinition
+                            ),
+                            false
+                        );
+                    break;
+            }
+
+            if (GUILayout.Button(
+                    "Remove Effect"))
+            {
+                item.consumableEffects
+                    .RemoveAt(i);
+
                 i--;
             }
 
-            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndVertical();
         }
 
         if (GUILayout.Button(
-                "Add Effect"))
+                "Add Consumable Effect"))
         {
-            item.useEffects.Add(null);
+            item.consumableEffects.Add(
+                new ConsumableEffect()
+            );
         }
 
         EditorGUILayout.Space();
