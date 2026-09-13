@@ -5,6 +5,7 @@ using Unity.Cinemachine;
 
 [RequireComponent(typeof(PlayerInputRouter))]
 [RequireComponent(typeof(PlayerGameplayState))]
+[RequireComponent(typeof(PlayerPrimaryActionController))]
 
 public class PlayerInput : MonoBehaviour
 {
