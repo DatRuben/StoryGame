@@ -17,7 +17,7 @@ MonoBehaviour:
   description: 
   icon: {fileID: 0}
   disposition: 1
-  allowedEntityTraits: 1
+  allowedEntityTraits: 0
   duration: 30
   stacking: 0
   maxStacks: 1

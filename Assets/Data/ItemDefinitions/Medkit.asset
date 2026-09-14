@@ -30,7 +30,7 @@ MonoBehaviour:
     statusEffect: {fileID: 0}
   - type: 1
     amount: 0
-    statusEffect: {fileID: 0}
+    statusEffect: {fileID: 11400000, guid: 836d41f71e5e32a4796b76c3ab65ca01, type: 2}
   baseDamage: 10
   damageType: 0
   attackReach: 2
