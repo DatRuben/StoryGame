@@ -53,8 +53,10 @@ public sealed class CharacterRuntimeBinder :
     private PlayerCrosshair playerCrosshair;
 
     [SerializeField]
-    private DamageNumberManager
-        damageNumberManager;
+    private DamageNumberManager damageNumberManager;
+
+    [SerializeField]
+    private PlayerStatusEffectsUI playerStatusEffectsUI;
 
     [SerializeField]
     private TextMeshProUGUI speedText;
@@ -131,6 +133,11 @@ public sealed class CharacterRuntimeBinder :
             characterProfile =
                 player.GetComponent<
                     PlayerCharacterProfile>();
+
+        StatusEffects playerStatusEffects =
+            characterProfile != null
+                ? characterProfile.StatusEffects
+                : player.GetComponent<StatusEffects>();
 
         PlayerStorageContainerInteract
             storageInteract =
@@ -322,6 +329,13 @@ public sealed class CharacterRuntimeBinder :
         {
             playerResourcesUI.BindPlayer(
                 playerResources
+            );
+        }
+
+        if (playerStatusEffectsUI != null)
+        {
+            playerStatusEffectsUI.BindPlayer(
+                playerStatusEffects
             );
         }
 
