@@ -30,14 +30,32 @@ public sealed class WorldItemSpawner :
                 rotation
             );
 
+        Rigidbody body =
+            worldItem.GetComponent<Rigidbody>();
+
+        if (body != null)
+        {
+            body.isKinematic = true;
+        }
+
         if (worldItem == null)
             return false;
 
         if (worldItem.Initialize(item))
         {
-            worldItem.LiftAboveSurface(
-                position.y
-            );
+            Vector3 rayStart =
+                position + Vector3.up * 2f;
+
+            if (Physics.Raycast(
+                    rayStart,
+                    Vector3.down,
+                    out RaycastHit hit,
+                    5f))
+            {
+                worldItem.LiftAboveSurface(
+                    hit.point.y
+                );
+            }
 
             return true;
         }
