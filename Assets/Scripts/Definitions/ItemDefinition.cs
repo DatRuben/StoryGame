@@ -90,6 +90,41 @@ public class ItemDefinition : ScriptableObject
     public EquipmentCombatRole equipmentCombatRole =
         EquipmentCombatRole.None;
 
+    [Header("Consumable Effects")]
+
+    public List<ConsumableEffect>
+        consumableEffects =
+            new List<ConsumableEffect>();
+
+    public bool IsUsable
+    {
+        get
+        {
+            if (itemCategory !=
+                    ItemCategory.Consumable ||
+                consumableEffects == null)
+            {
+                return false;
+            }
+
+            for (int i = 0;
+                 i < consumableEffects.Count;
+                 i++)
+            {
+                ConsumableEffect effect =
+                    consumableEffects[i];
+
+                if (effect != null &&
+                    effect.IsConfigured)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
     public bool HasEquipmentCombatRole(
         EquipmentCombatRole role)
     {
@@ -426,6 +461,7 @@ public class ItemDefinitionEditor : Editor
 
         DrawIdentitySection(item);
         DrawItemTypeSection(item);
+        DrawConsumableEffectsSection(item);
         DrawWorldSection(item);
         DrawHeldSection(item);
         DrawHandlingSection(item);
@@ -439,6 +475,103 @@ public class ItemDefinitionEditor : Editor
             item.RefreshHandling();
             EditorUtility.SetDirty(item);
         }
+    }
+
+    private void DrawConsumableEffectsSection(
+        ItemDefinition item)
+    {
+        if (item.itemCategory !=
+            ItemCategory.Consumable)
+        {
+            return;
+        }
+
+        EditorGUILayout.LabelField(
+            "Consumable Effects",
+            EditorStyles.boldLabel
+        );
+
+        if (item.consumableEffects == null)
+        {
+            item.consumableEffects =
+                new List<ConsumableEffect>();
+        }
+
+        for (int i = 0;
+             i < item.consumableEffects.Count;
+             i++)
+        {
+            ConsumableEffect effect =
+                item.consumableEffects[i];
+
+            if (effect == null)
+            {
+                effect =
+                    new ConsumableEffect();
+
+                item.consumableEffects[i] =
+                    effect;
+            }
+
+            EditorGUILayout.BeginVertical(
+                "box"
+            );
+
+            effect.type =
+                (ConsumableEffectType)
+                EditorGUILayout.EnumPopup(
+                    "Type",
+                    effect.type
+                );
+
+            switch (effect.type)
+            {
+                case ConsumableEffectType.RestoreHealth:
+                    effect.amount =
+                        Mathf.Max(
+                            0f,
+                            EditorGUILayout.FloatField(
+                                "Amount",
+                                effect.amount
+                            )
+                        );
+                    break;
+
+                case ConsumableEffectType.ApplyStatusEffect:
+                    effect.statusEffect =
+                        (StatusEffectDefinition)
+                        EditorGUILayout.ObjectField(
+                            "Status Effect",
+                            effect.statusEffect,
+                            typeof(
+                                StatusEffectDefinition
+                            ),
+                            false
+                        );
+                    break;
+            }
+
+            if (GUILayout.Button(
+                    "Remove Effect"))
+            {
+                item.consumableEffects
+                    .RemoveAt(i);
+
+                i--;
+            }
+
+            EditorGUILayout.EndVertical();
+        }
+
+        if (GUILayout.Button(
+                "Add Consumable Effect"))
+        {
+            item.consumableEffects.Add(
+                new ConsumableEffect()
+            );
+        }
+
+        EditorGUILayout.Space();
     }
 
     private void DrawWeaponCombatSection(

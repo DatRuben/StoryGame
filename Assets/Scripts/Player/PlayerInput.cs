@@ -5,6 +5,7 @@ using Unity.Cinemachine;
 
 [RequireComponent(typeof(PlayerInputRouter))]
 [RequireComponent(typeof(PlayerGameplayState))]
+[RequireComponent(typeof(PlayerPrimaryActionController))]
 
 public class PlayerInput : MonoBehaviour
 {
@@ -94,8 +95,6 @@ public class PlayerInput : MonoBehaviour
     [SerializeField]
     private EntityResources playerResources;
 
-    private Animator animator;
-
     private Vector3 groundNormal = Vector3.up;
     private Vector3 wallNormal = Vector3.zero;
 
@@ -116,8 +115,9 @@ public class PlayerInput : MonoBehaviour
 
     private PlayerGripState gripState;
     private PlayerCharacterProfile characterProfile;
-    private PlayerCombatController combatController;
     private PlayerGameplayState gameplayState;
+
+    private PlayerPrimaryActionController primaryActionController;
 
     private void Awake()
     {
@@ -134,8 +134,6 @@ public class PlayerInput : MonoBehaviour
                 0.01f,
                 groundCheckDistance
             );
-
-        animator = GetComponent<Animator>();
 
         if (inputRouter == null)
             inputRouter = GetComponent<PlayerInputRouter>();
@@ -161,14 +159,15 @@ public class PlayerInput : MonoBehaviour
         gripState =
             GetComponent<PlayerGripState>();
 
-        combatController =
-            GetComponent<PlayerCombatController>();
-
         characterProfile =
             GetComponent<PlayerCharacterProfile>();
 
         gameplayState =
             GetComponent<PlayerGameplayState>();
+
+        primaryActionController =
+            GetComponent<
+                PlayerPrimaryActionController>();
     }
 
     private void OnEnable()
@@ -907,25 +906,11 @@ public class PlayerInput : MonoBehaviour
     private void DoAttack(
         InputAction.CallbackContext obj)
     {
-        if (gameplayState != null &&
-            !gameplayState.Allows(
-                PlayerGameplayCapability.Combat))
-        {
+        if (primaryActionController == null)
             return;
-        }
 
-        if (animator != null)
-        {
-            animator.SetTrigger(
-                "attack"
-            );
-        }
-
-        if (combatController != null)
-        {
-            combatController
-                .TryPrimaryAttack();
-        }
+        primaryActionController
+            .HandlePrimaryAction();
     }
 
     private void ToggleCameraLock(InputAction.CallbackContext obj)

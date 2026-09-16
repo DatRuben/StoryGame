@@ -2523,4 +2523,67 @@ public sealed class InventoryInteractionController :
 
         return true;
     }
+
+    public bool HasUsableSelectedHeldItem
+    {
+        get
+        {
+            InventoryItemInstance item =
+                cursor.SelectedItem;
+
+            return
+                item != null &&
+                !item.IsEmpty &&
+                gripState != null &&
+                gripState.IsHolding(item) &&
+                item.Definition != null &&
+                item.Definition.IsUsable;
+        }
+    }
+
+    public bool TryUseSelectedHeldItem()
+    {
+        if (gameplayState != null &&
+            !gameplayState.Allows(
+                PlayerGameplayCapability.ItemHandling))
+        {
+            return false;
+        }
+
+        if (!HasUsableSelectedHeldItem)
+            return false;
+
+        InventoryItemInstance item =
+            cursor.SelectedItem;
+
+        ItemDefinition definition =
+            item.Definition;
+
+        bool appliedAnyEffect = false;
+
+        for (int i = 0;
+             i < definition
+                 .consumableEffects.Count;
+             i++)
+        {
+            ConsumableEffect effect =
+                definition
+                    .consumableEffects[i];
+
+            if (ConsumableEffectResolver
+                .TryApply(
+                    effect,
+                    gameObject))
+            {
+                appliedAnyEffect = true;
+            }
+        }
+
+        if (!appliedAnyEffect)
+            return false;
+
+        item.RemoveQuantity(1);
+
+        return true;
+    }
 }

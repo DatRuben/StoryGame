@@ -133,8 +133,8 @@ public class InventoryItemInstance
         return added;
     }
 
-    private int RemoveQuantity(
-            int amount)
+    internal int RemoveQuantity(
+        int amount)
     {
         if (amount <= 0)
             return 0;
