@@ -2349,7 +2349,7 @@ AudioListener:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 834046199}
-  m_Enabled: 1
+  m_Enabled: 0
 --- !u!20 &834046202
 Camera:
   m_ObjectHideFlags: 0
@@ -4492,6 +4492,33 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7142693988067075597, guid: 18fd2733a27218247b91177d977e4dc7, type: 3}
   m_PrefabInstance: {fileID: 1207500437}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1215193901 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8275497055224690379, guid: 964714dbdaf2a394bb98776a88d13581, type: 3}
+  m_PrefabInstance: {fileID: 1890337472}
+  m_PrefabAsset: {fileID: 0}
+--- !u!95 &1215193903
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1215193901}
+  m_Enabled: 1
+  m_Avatar: {fileID: 9000000, guid: f0800540170d58c48b81e8108bf13fd7, type: 3}
+  m_Controller: {fileID: 9100000, guid: 9dcef6f1373cb88439677c818dd94f24, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!4 &1220201664 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1565544935457050374, guid: 18fd2733a27218247b91177d977e4dc7, type: 3}
@@ -5579,7 +5606,7 @@ AudioListener:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1464174450}
-  m_Enabled: 1
+  m_Enabled: 0
 --- !u!20 &1464174453
 Camera:
   m_ObjectHideFlags: 0
@@ -7120,7 +7147,10 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3934505573824520026, guid: 964714dbdaf2a394bb98776a88d13581, type: 3}
       insertIndex: -1
       addedObject: {fileID: 468377491}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8275497055224690379, guid: 964714dbdaf2a394bb98776a88d13581, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1215193903}
   m_SourcePrefab: {fileID: 100100000, guid: 964714dbdaf2a394bb98776a88d13581, type: 3}
 --- !u!4 &1890337473 stripped
 Transform:
