@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
   itemName: BigSword
   itemCategory: 0
+  worldPrefab: {fileID: 1463992047867020604, guid: 671443c6aff1e4a41b39cd71e85c7da6, type: 3}
   itemIcon: {fileID: 0}
   weight: 1
   minimumHandUseGripCount: 1
-  canHoldWithHands: 1
   canUseWithHands: 1
   canUseWithMouth: 0
   heldControlsText: 'LMB: Attack
@@ -28,6 +28,10 @@ MonoBehaviour:
     RMB: Block'
   equipmentSlotType: 2
   equipmentCombatRole: 0
+  consumableEffects: []
+  baseDamage: 10
+  damageType: 0
+  attackReach: 2
   hasManualSaddleTurret: 0
   manualSaddleTurretControlsText: 
   isStackable: 0
