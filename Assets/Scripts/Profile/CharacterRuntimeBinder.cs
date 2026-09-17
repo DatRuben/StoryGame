@@ -109,6 +109,11 @@ public sealed class CharacterRuntimeBinder :
                 player.GetComponent<
                     InventoryInteractionController>();
 
+        PlayerItemHandlingController
+            itemHandlingController =
+                player.GetComponent<
+                    PlayerItemHandlingController>();
+
         if (interactionController != null)
         {
             interactionController

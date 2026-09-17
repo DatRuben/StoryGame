@@ -15,6 +15,9 @@ using UnityEngine.InputSystem;
     typeof(PlayerCharacterProfile)
 )]
 [RequireComponent(typeof(PlayerGameplayState))]
+[RequireComponent(
+    typeof(PlayerItemHandlingController)
+)]
 
 public sealed class InventoryInteractionController :
     MonoBehaviour
@@ -40,8 +43,9 @@ public sealed class InventoryInteractionController :
 
     private PlayerGameplayState gameplayState;
 
-    private InventoryItemInstance
-        loadoutAssignmentItem;
+    private PlayerItemHandlingController itemHandlingController;
+
+    private InventoryItemInstance loadoutAssignmentItem;
 
     public bool HasSelection =>
         cursor.HasSelection;
@@ -238,34 +242,19 @@ public sealed class InventoryInteractionController :
     internal bool TryDropHeldItem(
         InventoryItemInstance item)
     {
-        if (item == null ||
-            item.IsEmpty ||
-            gripState == null ||
-            !gripState.IsHolding(item) ||
-            worldItemSpawner == null)
-        {
+        if (itemHandlingController == null)
             return false;
-        }
 
-        if (!TrySpawnDroppedWorldItem(
+        if (!itemHandlingController.TryDropHeldItem(
                 item,
-                out WorldItem worldItem))
+                out _))
         {
-            return false;
-        }
-
-        if (!gripState.Release(item))
-        {
-            Destroy(
-                worldItem.gameObject
-            );
-
             return false;
         }
 
         if (ReferenceEquals(
-            cursor.SelectedItem,
-            item))
+                cursor.SelectedItem,
+                item))
         {
             cursor.ClearSelection();
         }
@@ -677,6 +666,9 @@ public sealed class InventoryInteractionController :
 
         playerInventory =
             GetComponent<InventoryContainer>();
+
+        itemHandlingController =
+            GetComponent<PlayerItemHandlingController>();
 
         cursor.Changed +=
             OnStateChanged;
