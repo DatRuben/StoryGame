@@ -251,4 +251,55 @@ public sealed class PlayerHeldItemPresenter :
             ref mouthVisual
         );
     }
+
+    public bool TryGetHeldItemPose(
+        InventoryItemInstance item,
+        out Pose pose)
+    {
+        pose = default;
+
+        if (item == null)
+            return false;
+
+        if (ReferenceEquals(
+                item,
+                leftVisualItem) &&
+            leftVisual != null)
+        {
+            pose = new Pose(
+                leftVisual.transform.position,
+                leftVisual.transform.rotation
+            );
+
+            return true;
+        }
+
+        if (ReferenceEquals(
+                item,
+                rightVisualItem) &&
+            rightVisual != null)
+        {
+            pose = new Pose(
+                rightVisual.transform.position,
+                rightVisual.transform.rotation
+            );
+
+            return true;
+        }
+
+        if (ReferenceEquals(
+                item,
+                mouthVisualItem) &&
+            mouthVisual != null)
+        {
+            pose = new Pose(
+                mouthVisual.transform.position,
+                mouthVisual.transform.rotation
+            );
+
+            return true;
+        }
+
+        return false;
+    }
 }
