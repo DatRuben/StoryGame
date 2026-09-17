@@ -68,16 +68,36 @@ public sealed class PlayerItemHandlingController :
         ActiveItem = item;
 
         bool spawned =
-            worldItemSpawner.TrySpawn(
-                item,
-                heldPose.position,
-                heldPose.rotation,
-                out worldItem
-            );
+            worldItemSpawner
+                .TrySpawnForRelease(
+                    item,
+                    heldPose,
+                    out worldItem
+                );
 
         if (!spawned)
         {
             ClearOperation();
+            return false;
+        }
+
+        WorldItemReleaseGuard
+            releaseGuard =
+                worldItem.gameObject
+                    .AddComponent<
+                        WorldItemReleaseGuard>();
+
+        if (!releaseGuard.Begin(
+                transform))
+        {
+            Destroy(
+                worldItem.gameObject
+            );
+
+            worldItem = null;
+
+            ClearOperation();
+
             return false;
         }
 

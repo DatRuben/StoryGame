@@ -266,9 +266,15 @@ public sealed class PlayerHeldItemPresenter :
                 leftVisualItem) &&
             leftVisual != null)
         {
+            Transform releaseFrame =
+                leftVisual.transform.parent;
+
+            if (releaseFrame == null)
+                return false;
+
             pose = new Pose(
-                leftVisual.transform.position,
-                leftVisual.transform.rotation
+                releaseFrame.position,
+                releaseFrame.rotation
             );
 
             return true;
@@ -279,9 +285,15 @@ public sealed class PlayerHeldItemPresenter :
                 rightVisualItem) &&
             rightVisual != null)
         {
+            Transform releaseFrame =
+                rightVisual.transform.parent;
+
+            if (releaseFrame == null)
+                return false;
+
             pose = new Pose(
-                rightVisual.transform.position,
-                rightVisual.transform.rotation
+                releaseFrame.position,
+                releaseFrame.rotation
             );
 
             return true;
@@ -292,9 +304,15 @@ public sealed class PlayerHeldItemPresenter :
                 mouthVisualItem) &&
             mouthVisual != null)
         {
+            Transform releaseFrame =
+                mouthVisual.transform.parent;
+
+            if (releaseFrame == null)
+                return false;
+
             pose = new Pose(
-                mouthVisual.transform.position,
-                mouthVisual.transform.rotation
+                releaseFrame.position,
+                releaseFrame.rotation
             );
 
             return true;
