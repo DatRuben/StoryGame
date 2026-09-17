@@ -33,44 +33,11 @@ public sealed class WorldItemSpawner :
         if (worldItem == null)
             return false;
 
-        Rigidbody body =
-            worldItem.GetComponent<Rigidbody>();
-
-        if (body != null)
-        {
-            body.isKinematic = true;
-        }
-
-        Vector3 rayStart =
-            position + Vector3.up * 2f;
-
-        bool foundSurface =
-            Physics.Raycast(
-                rayStart,
-                Vector3.down,
-                out RaycastHit hit,
-                5f
-            );
-
         if (worldItem.Initialize(item))
         {
-            if (foundSurface)
-            {
-                worldItem.LiftAboveSurface(
-                    hit.point.y
-                );
-            }
-
-            if (body != null)
-            {
-                body.linearVelocity =
-                    Vector3.zero;
-
-                body.angularVelocity =
-                    Vector3.zero;
-
-                body.isKinematic = false;
-            }
+            worldItem.LiftAboveSurface(
+                position.y
+            );
 
             return true;
         }
