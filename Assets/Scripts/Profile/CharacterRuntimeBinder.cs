@@ -122,6 +122,14 @@ public sealed class CharacterRuntimeBinder :
                 );
         }
 
+        if (itemHandlingController != null)
+        {
+            itemHandlingController
+                .BindWorldItemSpawner(
+                    worldItemSpawner
+                );
+        }
+
         PlayerGripState gripState =
             player.GetComponent<
                 PlayerGripState>();
