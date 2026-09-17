@@ -18,6 +18,9 @@ using UnityEngine.InputSystem;
 [RequireComponent(
     typeof(PlayerItemHandlingController)
 )]
+[RequireComponent(
+    typeof(PlayerItemAudioFeedback)
+)]
 
 public sealed class InventoryInteractionController :
     MonoBehaviour
@@ -47,6 +50,7 @@ public sealed class InventoryInteractionController :
 
     private InventoryItemInstance loadoutAssignmentItem;
 
+    private PlayerItemAudioFeedback itemAudioFeedback;
     public bool HasSelection =>
         cursor.HasSelection;
 
@@ -644,6 +648,12 @@ public sealed class InventoryInteractionController :
             return false;
         }
 
+        if (itemAudioFeedback != null)
+        {
+            itemAudioFeedback
+                .PlayLooseItemPickup();
+        }
+
         return true;
     }
 
@@ -687,6 +697,9 @@ public sealed class InventoryInteractionController :
 
         gameplayState =
             GetComponent<PlayerGameplayState>();
+
+        itemAudioFeedback =
+            GetComponent<PlayerItemAudioFeedback>();
     }
 
     private void OnEnable()
