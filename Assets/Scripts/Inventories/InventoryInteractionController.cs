@@ -569,12 +569,28 @@ public sealed class InventoryInteractionController :
         if (remainingQuantity > 0 &&
             !item.IsEmpty)
         {
+            if (itemAudioFeedback != null)
+            {
+                itemAudioFeedback
+                    .PlayLooseItemPickup();
+            }
+
             return true;
         }
 
-        return worldItem.ReleaseItem(
-            item
-        );
+        if (!worldItem.ReleaseItem(
+                item))
+        {
+            return false;
+        }
+
+        if (itemAudioFeedback != null)
+        {
+            itemAudioFeedback
+                .PlayLooseItemPickup();
+        }
+
+        return true;
     }
 
     internal bool TryHoldWorldItem(
