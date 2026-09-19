@@ -40,6 +40,61 @@ public sealed class PlayerItemHandlingController :
         worldItemSpawner = spawner;
     }
 
+    public bool TryAcquireWorldItem(
+        WorldItem worldItem,
+        GripType gripType,
+        int gripCount,
+        out InventoryItemInstance item)
+    {
+        item = null;
+
+        if (IsBusy ||
+            worldItem == null ||
+            gripState == null)
+        {
+            return false;
+        }
+
+        InventoryItemInstance worldItemInstance =
+            worldItem.Item;
+
+        if (worldItemInstance == null ||
+            worldItemInstance.IsEmpty ||
+            worldItemInstance.Definition == null)
+        {
+            return false;
+        }
+
+        IsBusy = true;
+        ActiveItem = worldItemInstance;
+
+        if (!gripState.TryHold(
+                worldItemInstance,
+                gripType,
+                gripCount))
+        {
+            ClearOperation();
+            return false;
+        }
+
+        if (!worldItem.ReleaseItem(
+                worldItemInstance))
+        {
+            gripState.Release(
+                worldItemInstance
+            );
+
+            ClearOperation();
+            return false;
+        }
+
+        item = worldItemInstance;
+
+        ClearOperation();
+
+        return true;
+    }
+
     public bool TryDropHeldItem(
         InventoryItemInstance item,
         out WorldItem worldItem)

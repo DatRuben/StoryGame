@@ -627,28 +627,24 @@ public sealed class InventoryInteractionController :
             return false;
         }
 
-        if (!gripState.TryHold(
-                item,
-                gripType,
-                gripCount))
-        {
+        if (itemHandlingController == null)
             return false;
-        }
 
         if (!cursor.Select(
                 item,
                 0,
                 Vector2Int.zero))
         {
-            gripState.Release(
-                item
-            );
-
             return false;
         }
 
-        if (!worldItem.ReleaseItem(
-                item))
+        if (!itemHandlingController
+            .TryAcquireWorldItem(
+                worldItem,
+                gripType,
+                gripCount,
+                out InventoryItemInstance
+                    acquiredItem))
         {
             if (ReferenceEquals(
                     cursor.SelectedItem,
@@ -657,10 +653,14 @@ public sealed class InventoryInteractionController :
                 cursor.ClearSelection();
             }
 
-            gripState.Release(
-                item
-            );
+            return false;
+        }
 
+        if (!ReferenceEquals(
+                acquiredItem,
+                item))
+        {
+            cursor.ClearSelection();
             return false;
         }
 
