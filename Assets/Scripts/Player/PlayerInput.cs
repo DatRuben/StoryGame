@@ -95,6 +95,13 @@ public class PlayerInput : MonoBehaviour
     [SerializeField]
     private EntityResources playerResources;
 
+    [Header("Animation")]
+    [SerializeField]
+    private Animator characterAnimator;
+
+    [SerializeField]
+    private string isMovingParameter = "isMoving";
+
     private Vector3 groundNormal = Vector3.up;
     private Vector3 wallNormal = Vector3.zero;
 
@@ -168,6 +175,12 @@ public class PlayerInput : MonoBehaviour
         primaryActionController =
             GetComponent<
                 PlayerPrimaryActionController>();
+
+        if (characterAnimator == null)
+        {
+            characterAnimator =
+                GetComponentInChildren<Animator>();
+        }
     }
 
     private void OnEnable()
@@ -251,6 +264,18 @@ public class PlayerInput : MonoBehaviour
             SwitchWeaponSet;
 
         move = null;
+    }
+
+    private void SetMovementAnimation(
+    bool isMoving)
+    {
+        if (characterAnimator == null)
+            return;
+
+        characterAnimator.SetBool(
+            isMovingParameter,
+            isMoving
+        );
     }
 
     private void HandleCapabilitiesInterrupted(
@@ -381,6 +406,8 @@ public class PlayerInput : MonoBehaviour
 
         if (isDodging)
         {
+            SetMovementAnimation(false);
+
             rb.linearVelocity =
                 new Vector3(
                     dodgeDirection.x * (dodgeDistance / dodgeDuration),
@@ -411,6 +438,9 @@ public class PlayerInput : MonoBehaviour
 
         bool hasMovementDirection =
             movement.sqrMagnitude > 0.01f;
+        SetMovementAnimation(
+            hasMovementDirection
+         );
 
         float handCarryMoveMultiplier =
             GetHandCarryMoveMultiplier();
@@ -777,6 +807,7 @@ public class PlayerInput : MonoBehaviour
             !gameplayState.Allows(
                 PlayerGameplayCapability.Movement))
         {
+            SetMovementAnimation(false);
             return;
         }
 
@@ -827,6 +858,7 @@ public class PlayerInput : MonoBehaviour
         if (storageInteract != null &&
             storageInteract.HasOpenContainer)
         {
+            SetMovementAnimation(false);
             return;
         }
 
