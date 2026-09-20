@@ -52,7 +52,7 @@ MonoBehaviour:
   totalAttributePointsPreview: 90
   size: 0
   bodyType: 0
-  previewPrefab: {fileID: 919127572346095599, guid: 029b73a182ea393409676f87c7de6353, type: 3}
+  previewPrefab: {fileID: 8275497055224690379, guid: 964714dbdaf2a394bb98776a88d13581, type: 3}
   standingGripProfile:
     handGripCount: 2
     mouthGripCount: 0

@@ -266,9 +266,20 @@ public class PlayerInput : MonoBehaviour
         move = null;
     }
 
-    private void SetMovementAnimation(
-    bool isMoving)
+    private void ResolveCharacterAnimator()
     {
+        if (characterAnimator != null)
+            return;
+
+        characterAnimator =
+            GetComponentInChildren<Animator>(true);
+    }
+
+    private void SetMovementAnimation(
+     bool isMoving)
+    {
+        ResolveCharacterAnimator();
+
         if (characterAnimator == null)
             return;
 
