@@ -496,6 +496,15 @@ public sealed class InventoryInteractionController :
             return false;
         }
 
+        if (!TryFindHoldPlan(
+                worldItem.Item,
+                out _,
+                out _))
+        {
+            disabledReason = "Can't hold";
+            return false;
+        }
+
         return true;
     }
 
@@ -529,7 +538,9 @@ public sealed class InventoryInteractionController :
         WorldItem worldItem)
     {
         if (worldItem == null ||
-            playerInventory == null)
+            playerInventory == null ||
+            gripState == null ||
+            itemHandlingController == null)
         {
             return false;
         }
@@ -544,41 +555,33 @@ public sealed class InventoryInteractionController :
             return false;
         }
 
-        int quantityBefore =
-            item.Quantity;
-
-        playerInventory.TryTransferIn(
-            item,
-            0,
-            out int remainingQuantity
-        );
-
-        int quantityAfter =
-            item.IsEmpty
-                ? 0
-                : item.Quantity;
-
-        bool movedAnything =
-            quantityAfter <
-                quantityBefore ||
-            remainingQuantity <= 0;
-
-        if (!movedAnything)
-            return false;
-
-        if (remainingQuantity > 0 &&
-            !item.IsEmpty)
+        if (!playerInventory.CanTransferIn(
+                item))
         {
-            if (itemAudioFeedback != null)
-            {
-                itemAudioFeedback
-                    .PlayLooseItemPickup();
-            }
-
-            return true;
+            return false;
         }
 
-        if (!worldItem.ReleaseItem(
+        if (!TryFindHoldPlan(
+                item,
+                out GripType gripType,
+                out int gripCount))
+        {
+            return false;
+        }
+
+        if (!itemHandlingController
+            .TryAcquireWorldItem(
+                worldItem,
+                gripType,
+                gripCount,
+                out InventoryItemInstance
+                    acquiredItem))
+        {
+            return false;
+        }
+
+        if (!ReferenceEquals(
+                acquiredItem,
                 item))
         {
             return false;
@@ -588,6 +591,51 @@ public sealed class InventoryInteractionController :
         {
             itemAudioFeedback
                 .PlayLooseItemPickup();
+        }
+
+        int quantityBefore =
+            acquiredItem.Quantity;
+
+        playerInventory.TryTransferIn(
+            acquiredItem,
+            0,
+            out int remainingQuantity
+        );
+
+        int quantityAfter =
+            acquiredItem.IsEmpty
+                ? 0
+                : acquiredItem.Quantity;
+
+        bool movedAnything =
+            quantityAfter <
+                quantityBefore ||
+            remainingQuantity <= 0;
+
+        if (!movedAnything)
+        {
+            return false;
+        }
+
+        if (remainingQuantity <= 0 ||
+            acquiredItem.IsEmpty)
+        {
+            if (gripState.IsHolding(
+                    acquiredItem))
+            {
+                gripState.Release(
+                    acquiredItem
+                );
+            }
+
+            if (ReferenceEquals(
+                    cursor.SelectedItem,
+                    acquiredItem))
+            {
+                cursor.ClearSelection();
+            }
+
+            return true;
         }
 
         return true;
