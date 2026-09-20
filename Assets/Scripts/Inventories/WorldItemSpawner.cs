@@ -33,6 +33,47 @@ public sealed class WorldItemSpawner :
         if (worldItem == null)
             return false;
 
+        if (worldItem.Initialize(item))
+        {
+            worldItem.LiftAboveSurface(
+                position.y
+            );
+
+            return true;
+        }
+
+        Destroy(worldItem.gameObject);
+        worldItem = null;
+
+        return false;
+    }
+
+    public bool TrySpawnForRelease(
+        InventoryItemInstance item,
+        Pose releasePose,
+        out WorldItem worldItem)
+    {
+        worldItem = null;
+
+        if (worldItemPrefab == null ||
+            item == null ||
+            item.IsEmpty ||
+            item.Definition == null ||
+            item.Definition.worldPrefab == null)
+        {
+            return false;
+        }
+
+        worldItem =
+            Instantiate(
+                worldItemPrefab,
+                releasePose.position,
+                releasePose.rotation
+            );
+
+        if (worldItem == null)
+            return false;
+
         Rigidbody body =
             worldItem.GetComponent<Rigidbody>();
 
@@ -41,37 +82,8 @@ public sealed class WorldItemSpawner :
             body.isKinematic = true;
         }
 
-        Vector3 rayStart =
-            position + Vector3.up * 2f;
-
-        bool foundSurface =
-            Physics.Raycast(
-                rayStart,
-                Vector3.down,
-                out RaycastHit hit,
-                5f
-            );
-
         if (worldItem.Initialize(item))
         {
-            if (foundSurface)
-            {
-                worldItem.LiftAboveSurface(
-                    hit.point.y
-                );
-            }
-
-            if (body != null)
-            {
-                body.linearVelocity =
-                    Vector3.zero;
-
-                body.angularVelocity =
-                    Vector3.zero;
-
-                body.isKinematic = false;
-            }
-
             return true;
         }
 

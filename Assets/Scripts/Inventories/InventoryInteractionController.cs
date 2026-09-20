@@ -15,6 +15,12 @@ using UnityEngine.InputSystem;
     typeof(PlayerCharacterProfile)
 )]
 [RequireComponent(typeof(PlayerGameplayState))]
+[RequireComponent(
+    typeof(PlayerItemHandlingController)
+)]
+[RequireComponent(
+    typeof(PlayerItemAudioFeedback)
+)]
 
 public sealed class InventoryInteractionController :
     MonoBehaviour
@@ -40,9 +46,11 @@ public sealed class InventoryInteractionController :
 
     private PlayerGameplayState gameplayState;
 
-    private InventoryItemInstance
-        loadoutAssignmentItem;
+    private PlayerItemHandlingController itemHandlingController;
 
+    private InventoryItemInstance loadoutAssignmentItem;
+
+    private PlayerItemAudioFeedback itemAudioFeedback;
     public bool HasSelection =>
         cursor.HasSelection;
 
@@ -238,34 +246,19 @@ public sealed class InventoryInteractionController :
     internal bool TryDropHeldItem(
         InventoryItemInstance item)
     {
-        if (item == null ||
-            item.IsEmpty ||
-            gripState == null ||
-            !gripState.IsHolding(item) ||
-            worldItemSpawner == null)
-        {
+        if (itemHandlingController == null)
             return false;
-        }
 
-        if (!TrySpawnDroppedWorldItem(
+        if (!itemHandlingController.TryDropHeldItem(
                 item,
-                out WorldItem worldItem))
+                out _))
         {
-            return false;
-        }
-
-        if (!gripState.Release(item))
-        {
-            Destroy(
-                worldItem.gameObject
-            );
-
             return false;
         }
 
         if (ReferenceEquals(
-            cursor.SelectedItem,
-            item))
+                cursor.SelectedItem,
+                item))
         {
             cursor.ClearSelection();
         }
@@ -447,6 +440,12 @@ public sealed class InventoryInteractionController :
             return;
         }
 
+        if (itemHandlingController != null)
+        {
+            itemHandlingController
+                .CancelActiveOperation();
+        }
+
         TryDropLooseHeldItems();
     }
 
@@ -503,6 +502,15 @@ public sealed class InventoryInteractionController :
             return false;
         }
 
+        if (!TryFindHoldPlan(
+                worldItem.Item,
+                out _,
+                out _))
+        {
+            disabledReason = "Can't hold";
+            return false;
+        }
+
         return true;
     }
 
@@ -536,7 +544,9 @@ public sealed class InventoryInteractionController :
         WorldItem worldItem)
     {
         if (worldItem == null ||
-            playerInventory == null)
+            playerInventory == null ||
+            gripState == null ||
+            itemHandlingController == null)
         {
             return false;
         }
@@ -551,37 +561,53 @@ public sealed class InventoryInteractionController :
             return false;
         }
 
-        int quantityBefore =
-            item.Quantity;
-
-        playerInventory.TryTransferIn(
-            item,
-            0,
-            out int remainingQuantity
-        );
-
-        int quantityAfter =
-            item.IsEmpty
-                ? 0
-                : item.Quantity;
-
-        bool movedAnything =
-            quantityAfter <
-                quantityBefore ||
-            remainingQuantity <= 0;
-
-        if (!movedAnything)
-            return false;
-
-        if (remainingQuantity > 0 &&
-            !item.IsEmpty)
+        if (!playerInventory.CanTransferIn(
+                item))
         {
-            return true;
+            return false;
         }
 
-        return worldItem.ReleaseItem(
-            item
-        );
+        if (!TryFindHoldPlan(
+                item,
+                out GripType gripType,
+                out int gripCount))
+        {
+            return false;
+        }
+
+        if (!itemHandlingController
+            .TryAcquireWorldItem(
+                worldItem,
+                gripType,
+                gripCount,
+                out InventoryItemInstance
+                    acquiredItem))
+        {
+            return false;
+        }
+
+        if (!ReferenceEquals(
+                acquiredItem,
+                item))
+        {
+            return false;
+        }
+
+        if (itemAudioFeedback != null)
+        {
+            itemAudioFeedback
+                .PlayLooseItemPickup();
+        }
+
+        if (!itemHandlingController
+            .TryBeginStoreHeldItem(
+                acquiredItem,
+                playerInventory))
+        {
+            return false;
+        }
+
+        return true;
     }
 
     internal bool TryHoldWorldItem(
@@ -618,28 +644,24 @@ public sealed class InventoryInteractionController :
             return false;
         }
 
-        if (!gripState.TryHold(
-                item,
-                gripType,
-                gripCount))
-        {
+        if (itemHandlingController == null)
             return false;
-        }
 
         if (!cursor.Select(
                 item,
                 0,
                 Vector2Int.zero))
         {
-            gripState.Release(
-                item
-            );
-
             return false;
         }
 
-        if (!worldItem.ReleaseItem(
-                item))
+        if (!itemHandlingController
+            .TryAcquireWorldItem(
+                worldItem,
+                gripType,
+                gripCount,
+                out InventoryItemInstance
+                    acquiredItem))
         {
             if (ReferenceEquals(
                     cursor.SelectedItem,
@@ -648,11 +670,21 @@ public sealed class InventoryInteractionController :
                 cursor.ClearSelection();
             }
 
-            gripState.Release(
-                item
-            );
-
             return false;
+        }
+
+        if (!ReferenceEquals(
+                acquiredItem,
+                item))
+        {
+            cursor.ClearSelection();
+            return false;
+        }
+
+        if (itemAudioFeedback != null)
+        {
+            itemAudioFeedback
+                .PlayLooseItemPickup();
         }
 
         return true;
@@ -678,6 +710,9 @@ public sealed class InventoryInteractionController :
         playerInventory =
             GetComponent<InventoryContainer>();
 
+        itemHandlingController =
+            GetComponent<PlayerItemHandlingController>();
+
         cursor.Changed +=
             OnStateChanged;
 
@@ -695,6 +730,9 @@ public sealed class InventoryInteractionController :
 
         gameplayState =
             GetComponent<PlayerGameplayState>();
+
+        itemAudioFeedback =
+            GetComponent<PlayerItemAudioFeedback>();
     }
 
     private void OnEnable()

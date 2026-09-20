@@ -109,9 +109,22 @@ public sealed class CharacterRuntimeBinder :
                 player.GetComponent<
                     InventoryInteractionController>();
 
+        PlayerItemHandlingController
+            itemHandlingController =
+                player.GetComponent<
+                    PlayerItemHandlingController>();
+
         if (interactionController != null)
         {
             interactionController
+                .BindWorldItemSpawner(
+                    worldItemSpawner
+                );
+        }
+
+        if (itemHandlingController != null)
+        {
+            itemHandlingController
                 .BindWorldItemSpawner(
                     worldItemSpawner
                 );
