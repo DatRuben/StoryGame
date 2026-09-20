@@ -440,6 +440,12 @@ public sealed class InventoryInteractionController :
             return;
         }
 
+        if (itemHandlingController != null)
+        {
+            itemHandlingController
+                .CancelActiveOperation();
+        }
+
         TryDropLooseHeldItems();
     }
 
@@ -593,49 +599,12 @@ public sealed class InventoryInteractionController :
                 .PlayLooseItemPickup();
         }
 
-        int quantityBefore =
-            acquiredItem.Quantity;
-
-        playerInventory.TryTransferIn(
-            acquiredItem,
-            0,
-            out int remainingQuantity
-        );
-
-        int quantityAfter =
-            acquiredItem.IsEmpty
-                ? 0
-                : acquiredItem.Quantity;
-
-        bool movedAnything =
-            quantityAfter <
-                quantityBefore ||
-            remainingQuantity <= 0;
-
-        if (!movedAnything)
+        if (!itemHandlingController
+            .TryBeginStoreHeldItem(
+                acquiredItem,
+                playerInventory))
         {
             return false;
-        }
-
-        if (remainingQuantity <= 0 ||
-            acquiredItem.IsEmpty)
-        {
-            if (gripState.IsHolding(
-                    acquiredItem))
-            {
-                gripState.Release(
-                    acquiredItem
-                );
-            }
-
-            if (ReferenceEquals(
-                    cursor.SelectedItem,
-                    acquiredItem))
-            {
-                cursor.ClearSelection();
-            }
-
-            return true;
         }
 
         return true;
