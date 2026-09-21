@@ -19,6 +19,9 @@ public sealed class PlayerItemHandlingController :
     private InventoryContainer
         activeTargetContainer;
 
+    private InventoryTransferReservation
+        activeTransferReservation;
+
     private float operationElapsed;
     private float operationDuration;
 
@@ -216,12 +219,23 @@ public sealed class PlayerItemHandlingController :
 
     private void ClearOperation()
     {
+        if (activeTransferReservation != null &&
+            activeTransferReservation.IsActive &&
+            activeTargetContainer != null)
+        {
+            activeTargetContainer
+                .CancelTransferReservation(
+                    activeTransferReservation
+                );
+        }
+
         ActiveItem = null;
 
         ActiveOperation =
             ItemHandlingOperationType.None;
 
         activeTargetContainer = null;
+        activeTransferReservation = null;
 
         operationElapsed = 0f;
         operationDuration = 0f;
@@ -238,8 +252,16 @@ public sealed class PlayerItemHandlingController :
             item.IsEmpty ||
             gripState == null ||
             !gripState.IsHolding(item) ||
-            target == null ||
-            !target.CanTransferIn(item))
+            target == null)
+        {
+            return false;
+        }
+
+        if (!target.TryReserveTransferIn(
+                item,
+                0,
+                out InventoryTransferReservation
+                    reservation))
         {
             return false;
         }
@@ -252,6 +274,9 @@ public sealed class PlayerItemHandlingController :
 
         activeTargetContainer =
             target;
+
+        activeTransferReservation =
+            reservation;
 
         operationElapsed = 0f;
 
@@ -284,7 +309,9 @@ public sealed class PlayerItemHandlingController :
             gripState == null ||
             !gripState.IsHolding(
                 ActiveItem) ||
-            activeTargetContainer == null)
+            activeTargetContainer == null ||
+            activeTransferReservation == null ||
+            !activeTransferReservation.IsActive)
         {
             CancelActiveOperation();
             return;
@@ -310,32 +337,25 @@ public sealed class PlayerItemHandlingController :
         InventoryContainer target =
             activeTargetContainer;
 
+        InventoryTransferReservation
+            reservation =
+                activeTransferReservation;
+
         if (item == null ||
             item.IsEmpty ||
-            target == null)
+            target == null ||
+            reservation == null ||
+            !reservation.IsActive)
         {
             ClearOperation();
             return;
         }
 
-        int quantityBefore =
-            item.Quantity;
-
-        target.TryTransferIn(
-            item,
-            0,
-            out int remainingQuantity
-        );
-
-        int quantityAfter =
-            item.IsEmpty
-                ? 0
-                : item.Quantity;
-
         bool movedAnything =
-            quantityAfter <
-                quantityBefore ||
-            remainingQuantity <= 0;
+            target.TryCommitTransferReservation(
+                reservation,
+                out int remainingQuantity
+            );
 
         if (movedAnything &&
             (remainingQuantity <= 0 ||
