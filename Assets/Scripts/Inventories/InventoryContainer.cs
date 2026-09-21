@@ -224,10 +224,25 @@ public class InventoryContainer : MonoBehaviour
                         placed
                     );
 
-                    if (itemInstance.CanStackWith(
-                            placed.ItemInstance) &&
+                    if (!itemInstance.CanStackWith(
+                            placed.ItemInstance))
+                    {
+                        continue;
+                    }
+
+                    int reservedQuantity =
+                        GetReservedStackQuantity(
+                            placed.ItemInstance,
+                            null
+                        );
+
+                    int available =
                         placed.ItemInstance
-                            .HasRoomInStack)
+                            .MaxStackSize -
+                        placed.ItemInstance.Quantity -
+                        reservedQuantity;
+
+                    if (available > 0)
                     {
                         return true;
                     }
@@ -648,6 +663,25 @@ public class InventoryContainer : MonoBehaviour
 
         reservation =
             newReservation;
+
+        return true;
+    }
+
+    public bool CancelTransferReservation(
+        InventoryTransferReservation
+            reservation)
+    {
+        if (!OwnsActiveReservation(
+                reservation))
+        {
+            return false;
+        }
+
+        transferReservations.Remove(
+            reservation
+        );
+
+        reservation.IsActive = false;
 
         return true;
     }
