@@ -59,6 +59,9 @@ public sealed class CharacterRuntimeBinder :
     private PlayerStatusEffectsUI playerStatusEffectsUI;
 
     [SerializeField]
+    private ItemHandlingProgressUI itemHandlingProgressUI;
+
+    [SerializeField]
     private TextMeshProUGUI speedText;
 
     [Header("Runtime Camera")]
@@ -357,6 +360,13 @@ public sealed class CharacterRuntimeBinder :
             playerCharacterInfoUI.BindPlayer(
                 characterProfile,
                 playerResources
+            );
+        }
+
+        if (itemHandlingProgressUI != null)
+        {
+            itemHandlingProgressUI.BindPlayer(
+                itemHandlingController
             );
         }
 
