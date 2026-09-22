@@ -1,11 +1,5 @@
 using UnityEngine;
 
-public enum ItemHandlingOperationType
-{
-    None,
-    Store
-}
-
 [RequireComponent(typeof(PlayerGripState))]
 [RequireComponent(typeof(PlayerHeldItemPresenter))]
 
@@ -16,38 +10,9 @@ public sealed class PlayerItemHandlingController :
     [Min(0.05f)]
     private float defaultStoreDuration = 0.75f;
 
-    private InventoryContainer
-        activeTargetContainer;
+    private ItemHandlingOperation activeOperation;
 
-    private InventoryTransferReservation
-        activeTransferReservation;
-
-    private float operationElapsed;
-    private float operationDuration;
-
-    public ItemHandlingOperationType
-        ActiveOperation
-    {
-        get;
-        private set;
-    }
-
-    public float OperationProgress01
-    {
-        get
-        {
-            if (!IsBusy ||
-                operationDuration <= 0f)
-            {
-                return 0f;
-            }
-
-            return Mathf.Clamp01(
-                operationElapsed /
-                operationDuration
-            );
-        }
-    }
+    private bool immediateActionInProgress;
 
     private PlayerGripState gripState;
 
@@ -57,17 +22,29 @@ public sealed class PlayerItemHandlingController :
     private WorldItemSpawner
         worldItemSpawner;
 
-    public bool IsBusy
-    {
-        get;
-        private set;
-    }
+    public ItemHandlingOperation
+        CurrentOperation =>
+            activeOperation;
 
-    public InventoryItemInstance ActiveItem
-    {
-        get;
-        private set;
-    }
+    public ItemHandlingOperationType
+        ActiveOperation =>
+            activeOperation != null
+                ? activeOperation.Type
+                : ItemHandlingOperationType.None;
+
+    public float OperationProgress01 =>
+        activeOperation != null
+            ? activeOperation.Progress01
+            : 0f;
+
+    public bool IsBusy =>
+        immediateActionInProgress ||
+        activeOperation != null;
+
+    public InventoryItemInstance ActiveItem =>
+        activeOperation != null
+            ? activeOperation.Item
+            : null;
 
     private void Awake()
     {
@@ -109,15 +86,14 @@ public sealed class PlayerItemHandlingController :
             return false;
         }
 
-        IsBusy = true;
-        ActiveItem = worldItemInstance;
+        immediateActionInProgress = true;
 
         if (!gripState.TryHold(
                 worldItemInstance,
                 gripType,
                 gripCount))
         {
-            ClearOperation();
+            immediateActionInProgress = false;
             return false;
         }
 
@@ -128,13 +104,13 @@ public sealed class PlayerItemHandlingController :
                 worldItemInstance
             );
 
-            ClearOperation();
+            immediateActionInProgress = false;
             return false;
         }
 
         item = worldItemInstance;
 
-        ClearOperation();
+        immediateActionInProgress = false;
 
         return true;
     }
@@ -163,8 +139,7 @@ public sealed class PlayerItemHandlingController :
             return false;
         }
 
-        IsBusy = true;
-        ActiveItem = item;
+        immediateActionInProgress = true;
 
         bool spawned =
             worldItemSpawner
@@ -176,7 +151,7 @@ public sealed class PlayerItemHandlingController :
 
         if (!spawned)
         {
-            ClearOperation();
+            immediateActionInProgress = false;
             return false;
         }
 
@@ -195,7 +170,7 @@ public sealed class PlayerItemHandlingController :
 
             worldItem = null;
 
-            ClearOperation();
+            immediateActionInProgress = false;
 
             return false;
         }
@@ -208,39 +183,33 @@ public sealed class PlayerItemHandlingController :
 
             worldItem = null;
 
-            ClearOperation();
+            immediateActionInProgress = false;
             return false;
         }
 
-        ClearOperation();
+        immediateActionInProgress = false;
 
         return true;
     }
 
     private void ClearOperation()
     {
-        if (activeTransferReservation != null &&
-            activeTransferReservation.IsActive &&
-            activeTargetContainer != null)
+        if (activeOperation != null &&
+            activeOperation
+                .TransferReservation != null &&
+            activeOperation
+                .TransferReservation.IsActive &&
+            activeOperation.TargetContainer != null)
         {
-            activeTargetContainer
+            activeOperation
+                .TargetContainer
                 .CancelTransferReservation(
-                    activeTransferReservation
+                    activeOperation
+                        .TransferReservation
                 );
         }
 
-        ActiveItem = null;
-
-        ActiveOperation =
-            ItemHandlingOperationType.None;
-
-        activeTargetContainer = null;
-        activeTransferReservation = null;
-
-        operationElapsed = 0f;
-        operationDuration = 0f;
-
-        IsBusy = false;
+        activeOperation = null;
     }
 
     public bool TryBeginStoreHeldItem(
@@ -266,24 +235,14 @@ public sealed class PlayerItemHandlingController :
             return false;
         }
 
-        IsBusy = true;
-        ActiveItem = item;
-
-        ActiveOperation =
-            ItemHandlingOperationType.Store;
-
-        activeTargetContainer =
-            target;
-
-        activeTransferReservation =
-            reservation;
-
-        operationElapsed = 0f;
-
-        operationDuration =
-            Mathf.Max(
-                0.05f,
-                defaultStoreDuration
+        activeOperation =
+            new ItemHandlingOperation(
+                ItemHandlingOperationType.Store,
+                item,
+                defaultStoreDuration,
+                null,
+                target,
+                reservation
             );
 
         return true;
@@ -304,42 +263,57 @@ public sealed class PlayerItemHandlingController :
 
     private void UpdateStoreOperation()
     {
-        if (ActiveItem == null ||
-            ActiveItem.IsEmpty ||
+        ItemHandlingOperation operation =
+            activeOperation;
+
+        if (operation == null ||
+            operation.Type !=
+                ItemHandlingOperationType.Store ||
+            operation.Item == null ||
+            operation.Item.IsEmpty ||
             gripState == null ||
             !gripState.IsHolding(
-                ActiveItem) ||
-            activeTargetContainer == null ||
-            activeTransferReservation == null ||
-            !activeTransferReservation.IsActive)
+                operation.Item) ||
+            operation.TargetContainer == null ||
+            operation.TransferReservation == null ||
+            !operation.TransferReservation.IsActive)
         {
             CancelActiveOperation();
             return;
         }
 
-        operationElapsed +=
-            Time.deltaTime;
+        operation.Advance(
+            Time.deltaTime
+        );
 
-        if (operationElapsed <
-            operationDuration)
-        {
+        if (!operation.IsComplete)
             return;
-        }
 
         CompleteStoreOperation();
     }
 
     private void CompleteStoreOperation()
     {
+        ItemHandlingOperation operation =
+            activeOperation;
+
+        if (operation == null ||
+            operation.Type !=
+                ItemHandlingOperationType.Store)
+        {
+            ClearOperation();
+            return;
+        }
+
         InventoryItemInstance item =
-            ActiveItem;
+            operation.Item;
 
         InventoryContainer target =
-            activeTargetContainer;
+            operation.TargetContainer;
 
         InventoryTransferReservation
             reservation =
-                activeTransferReservation;
+                operation.TransferReservation;
 
         if (item == null ||
             item.IsEmpty ||
@@ -375,7 +349,7 @@ public sealed class PlayerItemHandlingController :
 
     public bool CancelActiveOperation()
     {
-        if (!IsBusy)
+        if (activeOperation == null)
             return false;
 
         ClearOperation();
