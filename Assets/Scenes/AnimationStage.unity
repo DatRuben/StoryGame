@@ -333,7 +333,7 @@ Transform:
   m_GameObject: {fileID: 353076050}
   serializedVersion: 2
   m_LocalRotation: {x: 0.0012693986, y: -0.99839777, z: 0.052771065, w: 0.020383846}
-  m_LocalPosition: {x: -0.017215842, y: 1.5285313, z: 2.6517062}
+  m_LocalPosition: {x: -0.02, y: 1.53, z: 2.66}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -514,7 +514,7 @@ Transform:
   m_GameObject: {fileID: 488874016}
   serializedVersion: 2
   m_LocalRotation: {x: -0.00118262, y: -0.6998725, z: 0.0013800524, w: -0.7142655}
-  m_LocalPosition: {x: -2.861592, y: 1.2487115, z: -0.27953047}
+  m_LocalPosition: {x: -3.42, y: 1.25, z: -0.3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -580,6 +580,10 @@ PrefabInstance:
     - target: {fileID: 8275497055224690379, guid: 964714dbdaf2a394bb98776a88d13581, type: 3}
       propertyPath: m_Name
       value: RinV1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8275497055224690379, guid: 964714dbdaf2a394bb98776a88d13581, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8760530510306159729, guid: 964714dbdaf2a394bb98776a88d13581, type: 3}
       propertyPath: m_LocalPosition.x
@@ -760,12 +764,101 @@ Transform:
   m_GameObject: {fileID: 1909248795}
   serializedVersion: 2
   m_LocalRotation: {x: -0.0046550115, y: 0.6959646, z: -0.00426476, w: -0.71804833}
-  m_LocalPosition: {x: 1.6458168, y: 0.7702516, z: 0.023449827}
+  m_LocalPosition: {x: 3.52, y: 0.8, z: -0.04}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &1923601766
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 2507215300961610520, guid: df2b2b5b23120464e9dfc7bb6495df5b, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2507215300961610520, guid: df2b2b5b23120464e9dfc7bb6495df5b, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2507215300961610520, guid: df2b2b5b23120464e9dfc7bb6495df5b, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2507215300961610520, guid: df2b2b5b23120464e9dfc7bb6495df5b, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2507215300961610520, guid: df2b2b5b23120464e9dfc7bb6495df5b, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2507215300961610520, guid: df2b2b5b23120464e9dfc7bb6495df5b, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2507215300961610520, guid: df2b2b5b23120464e9dfc7bb6495df5b, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2507215300961610520, guid: df2b2b5b23120464e9dfc7bb6495df5b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2507215300961610520, guid: df2b2b5b23120464e9dfc7bb6495df5b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2507215300961610520, guid: df2b2b5b23120464e9dfc7bb6495df5b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2648280739292642205, guid: df2b2b5b23120464e9dfc7bb6495df5b, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2990596469239443874, guid: df2b2b5b23120464e9dfc7bb6495df5b, type: 3}
+      propertyPath: m_Name
+      value: NightcrawlerV1_AttackAnim
+      objectReference: {fileID: 0}
+    - target: {fileID: 3277523805643596677, guid: df2b2b5b23120464e9dfc7bb6495df5b, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4246456408248034152, guid: df2b2b5b23120464e9dfc7bb6495df5b, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6535449329731612544, guid: df2b2b5b23120464e9dfc7bb6495df5b, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7399495330060228584, guid: df2b2b5b23120464e9dfc7bb6495df5b, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8199511408225536399, guid: df2b2b5b23120464e9dfc7bb6495df5b, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8315075363605364710, guid: df2b2b5b23120464e9dfc7bb6495df5b, type: 3}
+      propertyPath: m_Avatar
+      value: 
+      objectReference: {fileID: 9000000, guid: a19c1e8a97a86594390d9e68fc2cdd51, type: 3}
+    - target: {fileID: 8315075363605364710, guid: df2b2b5b23120464e9dfc7bb6495df5b, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: d899b540ff13aa648a056e57d4206a59, type: 2}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: df2b2b5b23120464e9dfc7bb6495df5b, type: 3}
 --- !u!1 &1972202011
 GameObject:
   m_ObjectHideFlags: 0
@@ -897,7 +990,7 @@ Transform:
   m_GameObject: {fileID: 1972202011}
   serializedVersion: 2
   m_LocalRotation: {x: 0.046170995, y: -0.013212712, z: -0.00046004914, w: -0.9988461}
-  m_LocalPosition: {x: -0.10276262, y: 1.236653, z: -3.1753488}
+  m_LocalPosition: {x: -0.08, y: 1.33, z: -2.19}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -999,3 +1092,4 @@ SceneRoots:
   - {fileID: 1909248799}
   - {fileID: 1622996011}
   - {fileID: 10800771}
+  - {fileID: 1923601766}
