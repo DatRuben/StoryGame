@@ -266,6 +266,18 @@ public sealed class InventoryInteractionController :
         return true;
     }
 
+    internal bool TryBeginDropHeldItem(
+        InventoryItemInstance item)
+    {
+        if (itemHandlingController == null)
+            return false;
+
+        return itemHandlingController
+            .TryBeginDropHeldItem(
+                item
+            );
+    }
+
     internal bool TryDropItemFromContainer(
         InventoryContainer source,
         Vector2Int coordinate)
@@ -346,7 +358,7 @@ public sealed class InventoryInteractionController :
             return false;
         }
 
-        return TryDropHeldItem(
+        return TryBeginDropHeldItem(
             item
         );
     }
@@ -816,6 +828,13 @@ public sealed class InventoryInteractionController :
     {
         if (TryDropSelection())
             return;
+
+        if (itemHandlingController != null &&
+            itemHandlingController
+        .       TryRedirectActiveHeldItemToDrop())
+        {
+            return;
+        }
 
         if (gripState != null &&
             gripState.HasAnyHeldItem)

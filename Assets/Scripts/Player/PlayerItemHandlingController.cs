@@ -11,6 +11,10 @@ public sealed class PlayerItemHandlingController :
     [Min(0.05f)]
     private float defaultStoreDuration = 0.75f;
 
+    [SerializeField]
+    [Min(0.05f)]
+    private float defaultDropDuration = 0.5f;
+
     private ItemHandlingOperation activeOperation;
 
     private readonly List<ItemHandlingOperation>
@@ -134,7 +138,32 @@ public sealed class PlayerItemHandlingController :
         worldItem = null;
 
         if (IsBusy ||
-            item == null ||
+            item == null)
+        {
+            return false;
+        }
+
+        immediateActionInProgress = true;
+
+        bool dropped =
+            TryReleaseHeldItemToWorld(
+                item,
+                out worldItem
+            );
+
+        immediateActionInProgress = false;
+
+        return dropped;
+    }
+
+    private bool TryReleaseHeldItemToWorld(
+        InventoryItemInstance item,
+        out WorldItem worldItem)
+    {
+        worldItem = null;
+
+        if (item == null ||
+            item.IsEmpty ||
             gripState == null ||
             !gripState.IsHolding(item) ||
             heldItemPresenter == null ||
@@ -151,8 +180,6 @@ public sealed class PlayerItemHandlingController :
             return false;
         }
 
-        immediateActionInProgress = true;
-
         bool spawned =
             worldItemSpawner
                 .TrySpawnForRelease(
@@ -163,7 +190,6 @@ public sealed class PlayerItemHandlingController :
 
         if (!spawned)
         {
-            immediateActionInProgress = false;
             return false;
         }
 
@@ -182,8 +208,6 @@ public sealed class PlayerItemHandlingController :
 
             worldItem = null;
 
-            immediateActionInProgress = false;
-
             return false;
         }
 
@@ -195,11 +219,8 @@ public sealed class PlayerItemHandlingController :
 
             worldItem = null;
 
-            immediateActionInProgress = false;
             return false;
         }
-
-        immediateActionInProgress = false;
 
         return true;
     }
@@ -300,6 +321,72 @@ public sealed class PlayerItemHandlingController :
         return true;
     }
 
+    public bool TryBeginDropHeldItem(
+        InventoryItemInstance item)
+    {
+        if (item == null ||
+            item.IsEmpty ||
+            gripState == null ||
+            !gripState.IsHolding(item) ||
+            heldItemPresenter == null ||
+            worldItemSpawner == null ||
+            HasOperationForItem(item))
+        {
+            return false;
+        }
+
+        ItemHandlingOperation operation =
+            new ItemHandlingOperation(
+                ItemHandlingOperationType.Drop,
+                item,
+                defaultDropDuration
+            );
+
+        queuedOperations.Add(
+            operation
+        );
+
+        TryStartNextOperation();
+
+        return true;
+    }
+
+    public bool TryRedirectActiveHeldItemToDrop()
+    {
+        ItemHandlingOperation operation =
+            activeOperation;
+
+        if (operation == null ||
+            operation.Item == null ||
+            operation.Item.IsEmpty ||
+            operation.Type ==
+                ItemHandlingOperationType.Drop ||
+            gripState == null ||
+            !gripState.IsHolding(
+                operation.Item) ||
+            heldItemPresenter == null ||
+            worldItemSpawner == null)
+        {
+            return false;
+        }
+
+        InventoryItemInstance item =
+            operation.Item;
+
+        CancelOperationReservation(
+            operation
+        );
+
+        activeOperation =
+            new ItemHandlingOperation(
+                ItemHandlingOperationType.Drop,
+                item,
+                defaultDropDuration
+            );
+
+        return true;
+    }
+
     private bool HasOperationForItem(
         InventoryItemInstance item)
     {
@@ -363,7 +450,67 @@ public sealed class PlayerItemHandlingController :
             case ItemHandlingOperationType.Store:
                 UpdateStoreOperation();
                 break;
+            case ItemHandlingOperationType.Drop:
+                UpdateDropOperation();
+                break;
         }
+    }
+
+    private void UpdateDropOperation()
+    {
+        ItemHandlingOperation operation =
+            activeOperation;
+
+        if (operation == null ||
+            operation.Type !=
+                ItemHandlingOperationType.Drop ||
+            operation.Item == null ||
+            operation.Item.IsEmpty ||
+            gripState == null ||
+            !gripState.IsHolding(
+                operation.Item) ||
+            heldItemPresenter == null ||
+            worldItemSpawner == null)
+        {
+            CancelActiveOperation();
+            return;
+        }
+
+        operation.Advance(
+            Time.deltaTime
+        );
+
+        if (!operation.IsComplete)
+            return;
+
+        CompleteDropOperation();
+    }
+
+    private void CompleteDropOperation()
+    {
+        ItemHandlingOperation operation =
+            activeOperation;
+
+        if (operation == null ||
+            operation.Type !=
+                ItemHandlingOperationType.Drop)
+        {
+            ClearOperation();
+            return;
+        }
+
+        InventoryItemInstance item =
+            operation.Item;
+
+        if (!TryReleaseHeldItemToWorld(
+                item,
+                out _))
+        {
+            ClearOperation();
+            return;
+        }
+
+        ClearOperation();
     }
 
     private void UpdateStoreOperation()

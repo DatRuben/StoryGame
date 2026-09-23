@@ -741,7 +741,7 @@ public sealed class InventoryGridUI :
         {
             bool dropped =
                 interactionController
-                    .TryDropHeldItem(
+                    .TryBeginDropHeldItem(
                         draggedItem
                     );
 
