@@ -911,9 +911,17 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 615463529}
     m_Modifications:
+    - target: {fileID: 5700228334452481709, guid: 671443c6aff1e4a41b39cd71e85c7da6, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6060643367178977144, guid: 671443c6aff1e4a41b39cd71e85c7da6, type: 3}
       propertyPath: m_Name
       value: RinSlayer
+      objectReference: {fileID: 0}
+    - target: {fileID: 6060643367178977144, guid: 671443c6aff1e4a41b39cd71e85c7da6, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6868107786974651842, guid: 671443c6aff1e4a41b39cd71e85c7da6, type: 3}
       propertyPath: m_LocalScale.x
