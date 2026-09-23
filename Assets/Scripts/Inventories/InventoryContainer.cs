@@ -226,16 +226,16 @@ public class InventoryContainer : MonoBehaviour
                             y
                         );
 
-                    if (IsTakeReserved(
-                        placed.ItemInstance))
-                    {
-                        continue;
-                    }
-
                     if (placed == null ||
                         placed.ItemInstance == null ||
                         checkedItems.Contains(
                             placed))
+                    {
+                        continue;
+                    }
+
+                    if (IsTakeReserved(
+                            placed.ItemInstance))
                     {
                         continue;
                     }
@@ -419,15 +419,16 @@ public class InventoryContainer : MonoBehaviour
                         y
                     );
 
-                if (IsTakeReserved(
-                    placed.ItemInstance))
+                if (target == null ||
+                    target.ItemInstance == null ||
+                    checkedItems.Contains(
+                        target))
                 {
                     continue;
                 }
 
-                if (target == null ||
-                    target.ItemInstance == null ||
-                    checkedItems.Contains(target))
+                if (IsTakeReserved(
+                        target.ItemInstance))
                 {
                     continue;
                 }
@@ -561,6 +562,36 @@ public class InventoryContainer : MonoBehaviour
         takeReservations =
             new List<
                 InventoryTakeReservation>();
+    public bool IsTakeReserved(
+        InventoryItemInstance item)
+    {
+        if (item == null)
+            return false;
+
+        for (int i = 0;
+             i < takeReservations.Count;
+             i++)
+        {
+            InventoryTakeReservation
+                reservation =
+                    takeReservations[i];
+
+            if (reservation == null ||
+                !reservation.IsActive)
+            {
+                continue;
+            }
+
+            if (ReferenceEquals(
+                    reservation.Item,
+                    item))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     public bool TryReserveTakeAt(
         int x,
@@ -614,6 +645,24 @@ public class InventoryContainer : MonoBehaviour
         return true;
     }
 
+    public bool CancelTakeReservation(
+        InventoryTakeReservation reservation)
+    {
+        if (!OwnsActiveTakeReservation(
+                reservation))
+        {
+            return false;
+        }
+
+        takeReservations.Remove(
+            reservation
+        );
+
+        reservation.IsActive = false;
+
+        return true;
+    }
+
     private bool OwnsActiveTakeReservation(
         InventoryTakeReservation reservation)
     {
@@ -627,6 +676,71 @@ public class InventoryContainer : MonoBehaviour
             takeReservations.Contains(
                 reservation
             );
+    }
+
+    public bool TryCommitTakeReservation(
+        InventoryTakeReservation reservation,
+        out PlacedInventoryItem removedItem)
+    {
+        removedItem = null;
+
+        if (!OwnsActiveTakeReservation(
+                reservation))
+        {
+            return false;
+        }
+
+        PlacedInventoryItem current =
+            grid.GetPlacedItem(
+                reservation.Position.x,
+                reservation.Position.y
+            );
+
+        if (current == null ||
+            !ReferenceEquals(
+                current.ItemInstance,
+                reservation.Item))
+        {
+            CancelTakeReservation(
+                reservation
+            );
+
+            return false;
+        }
+
+        removedItem =
+            grid.PickUpItemAt(
+                reservation.Position.x,
+                reservation.Position.y
+            );
+
+        if (removedItem == null ||
+            !ReferenceEquals(
+                removedItem.ItemInstance,
+                reservation.Item))
+        {
+            removedItem = null;
+
+            CancelTakeReservation(
+                reservation
+            );
+
+            return false;
+        }
+
+        UnsubscribeItem(
+            removedItem.ItemInstance
+        );
+
+        takeReservations.Remove(
+            reservation
+        );
+
+        reservation.IsActive = false;
+
+        Changed?.Invoke();
+
+        return true;
     }
 
     public bool TryReserveTransferIn(
@@ -693,6 +807,12 @@ public class InventoryContainer : MonoBehaviour
                     InventoryItemInstance
                         target =
                             placed.ItemInstance;
+
+                    if (IsTakeReserved(
+                            target))
+                    {
+                        continue;
+                    }
 
                     if (!itemInstance
                         .CanStackWith(target))
@@ -833,10 +953,9 @@ public class InventoryContainer : MonoBehaviour
             InventoryItemInstance target =
                 stackTransfer.Target;
 
-            if (IsTakeReserved(target))
-                continue;
-
             if (target == null ||
+                IsTakeReserved(
+                    target) ||
                 !ContainsItemInstance(
                     target) ||
                 !source.CanStackWith(
