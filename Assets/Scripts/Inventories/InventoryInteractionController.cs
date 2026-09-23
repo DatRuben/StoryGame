@@ -270,8 +270,11 @@ public sealed class InventoryInteractionController :
         InventoryContainer source,
         Vector2Int coordinate)
     {
-        if (source == null)
+        if (source == null ||
+            itemHandlingController == null)
+        {
             return false;
+        }
 
         PlacedInventoryItem placedItem =
             source.GetItemAt(
@@ -289,50 +292,21 @@ public sealed class InventoryInteractionController :
         InventoryItemInstance item =
             placedItem.ItemInstance;
 
-        Vector2Int originalPosition =
-            placedItem.Position;
-
-        int originalRotation =
-            placedItem.RotationSteps;
-
-        PlacedInventoryItem removedItem =
-            source.TakeItemAt(
-                coordinate.x,
-                coordinate.y
-            );
-
-        if (removedItem == null ||
-            !ReferenceEquals(
-                removedItem.ItemInstance,
-                item))
+        if (!TryFindHoldPlan(
+                item,
+                out GripType gripType,
+                out int gripCount))
         {
             return false;
         }
 
-        if (TrySpawnDroppedWorldItem(
-                item,
-                out _))
-        {
-            return true;
-        }
-
-        bool restored =
-            source.PlaceInstance(
-                item,
-                originalPosition.x,
-                originalPosition.y,
-                originalRotation
+        return itemHandlingController
+            .TryBeginRetrieveThenDrop(
+                source,
+                coordinate,
+                gripType,
+                gripCount
             );
-
-        if (!restored)
-        {
-            Debug.LogError(
-                "Dropped inventory item could not be spawned or restored.",
-                this
-            );
-        }
-
-        return false;
     }
 
     internal bool TryDropSelection()

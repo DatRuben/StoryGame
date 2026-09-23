@@ -11,6 +11,10 @@ public sealed class PlayerItemHandlingController :
     [Min(0.05f)]
     private float defaultStoreDuration = 0.75f;
 
+    [SerializeField]
+    [Min(0.05f)]
+    private float defaultRetrieveDuration = 0.75f;
+
     private ItemHandlingOperation activeOperation;
 
     private readonly List<ItemHandlingOperation>
@@ -235,18 +239,28 @@ public sealed class PlayerItemHandlingController :
     private void CancelOperationReservation(
         ItemHandlingOperation operation)
     {
-        if (operation == null ||
-            operation.TransferReservation == null ||
-            !operation.TransferReservation.IsActive ||
-            operation.TargetContainer == null)
-        {
+        if (operation == null)
             return;
+
+        if (operation.TransferReservation != null &&
+            operation.TransferReservation.IsActive &&
+            operation.TargetContainer != null)
+        {
+            operation.TargetContainer
+                .CancelTransferReservation(
+                    operation.TransferReservation
+                );
         }
 
-        operation.TargetContainer
-            .CancelTransferReservation(
-                operation.TransferReservation
-            );
+        if (operation.TakeReservation != null &&
+            operation.TakeReservation.IsActive &&
+            operation.SourceContainer != null)
+        {
+            operation.SourceContainer
+                .CancelTakeReservation(
+                    operation.TakeReservation
+                );
+        }
     }
 
     public bool CancelAllOperations()
@@ -273,6 +287,38 @@ public sealed class PlayerItemHandlingController :
         queuedOperations.Clear();
 
         return cancelledAnything;
+    }
+
+    private void CancelQueuedOperationsForItem(
+        InventoryItemInstance item)
+    {
+        if (item == null)
+            return;
+
+        for (int i =
+                 queuedOperations.Count - 1;
+             i >= 0;
+             i--)
+        {
+            ItemHandlingOperation operation =
+                queuedOperations[i];
+
+            if (operation == null ||
+                !ReferenceEquals(
+                    operation.Item,
+                    item))
+            {
+                continue;
+            }
+
+            CancelOperationReservation(
+                operation
+            );
+
+            queuedOperations.RemoveAt(
+                i
+            );
+        }
     }
 
     public bool TryBeginStoreHeldItem(
@@ -424,6 +470,13 @@ public sealed class PlayerItemHandlingController :
             case ItemHandlingOperationType.Store:
                 UpdateStoreOperation();
                 break;
+            case ItemHandlingOperationType.Retrieve:
+                UpdateRetrieveOperation();
+                break;
+
+            case ItemHandlingOperationType.Drop:
+                CompleteDropOperation();
+                break;
         }
     }
 
@@ -456,6 +509,140 @@ public sealed class PlayerItemHandlingController :
             return;
 
         CompleteStoreOperation();
+    }
+
+    private void UpdateRetrieveOperation()
+    {
+        ItemHandlingOperation operation =
+            activeOperation;
+
+        if (operation == null ||
+            operation.Type !=
+                ItemHandlingOperationType.Retrieve ||
+            operation.Item == null ||
+            operation.Item.IsEmpty ||
+            operation.SourceContainer == null ||
+            operation.TakeReservation == null ||
+            !operation.TakeReservation.IsActive ||
+            gripState == null ||
+            gripState.IsHolding(
+                operation.Item))
+        {
+            CancelActiveOperation();
+            return;
+        }
+
+        if (gripState.GetFreeGripCount(
+                operation.TargetGripType) <
+            operation.TargetGripCount)
+        {
+            CancelActiveOperation();
+            return;
+        }
+
+        operation.Advance(
+            Time.deltaTime
+        );
+
+        if (!operation.IsComplete)
+            return;
+
+        CompleteRetrieveOperation();
+    }
+
+    private void CompleteRetrieveOperation()
+    {
+        ItemHandlingOperation operation =
+            activeOperation;
+
+        if (operation == null ||
+            operation.Type !=
+                ItemHandlingOperationType.Retrieve)
+        {
+            CancelActiveOperation();
+            return;
+        }
+
+        InventoryContainer source =
+            operation.SourceContainer;
+
+        InventoryTakeReservation reservation =
+            operation.TakeReservation;
+
+        InventoryItemInstance item =
+            operation.Item;
+
+        if (!source.TryCommitTakeReservation(
+                reservation,
+                out PlacedInventoryItem
+                    removedItem))
+        {
+            CancelActiveOperation();
+            return;
+        }
+
+        if (removedItem == null ||
+            !ReferenceEquals(
+                removedItem.ItemInstance,
+                item))
+        {
+            CancelActiveOperation();
+            return;
+        }
+
+        if (!gripState.TryHold(
+                item,
+                operation.TargetGripType,
+                operation.TargetGripCount))
+        {
+            bool restored =
+                source.PlaceInstance(
+                    item,
+                    reservation.Position.x,
+                    reservation.Position.y,
+                    reservation.RotationSteps
+                );
+
+            if (!restored)
+            {
+                Debug.LogError(
+                    "Retrieved item could not be held or restored.",
+                    this
+                );
+            }
+
+            CancelActiveOperation();
+            return;
+        }
+
+        ClearOperation();
+    }
+
+    private void CompleteDropOperation()
+    {
+        ItemHandlingOperation operation =
+            activeOperation;
+
+        if (operation == null ||
+            operation.Type !=
+                ItemHandlingOperationType.Drop ||
+            operation.Item == null ||
+            !gripState.IsHolding(
+                operation.Item))
+        {
+            CancelActiveOperation();
+            return;
+        }
+
+        if (!TryReleaseHeldItemToWorld(
+                operation.Item,
+                out _))
+        {
+            CancelActiveOperation();
+            return;
+        }
+
+        ClearOperation();
     }
 
     private void CompleteStoreOperation()
@@ -518,7 +705,96 @@ public sealed class PlayerItemHandlingController :
         if (activeOperation == null)
             return false;
 
+        InventoryItemInstance item =
+            activeOperation.Item;
+
+        CancelQueuedOperationsForItem(
+            item
+        );
+
         ClearOperation();
+
+        return true;
+    }
+
+    public bool TryBeginRetrieveThenDrop(
+        InventoryContainer source,
+        Vector2Int coordinate,
+        GripType gripType,
+        int gripCount)
+    {
+        if (source == null ||
+            gripState == null ||
+            gripCount <= 0)
+        {
+            return false;
+        }
+
+        PlacedInventoryItem placed =
+            source.GetItemAt(
+                coordinate.x,
+                coordinate.y
+            );
+
+        if (placed == null ||
+            placed.ItemInstance == null ||
+            placed.ItemInstance.IsEmpty)
+        {
+            return false;
+        }
+
+        InventoryItemInstance item =
+            placed.ItemInstance;
+
+        if (HasOperationForItem(
+                item))
+        {
+            return false;
+        }
+
+        if (gripState.GetFreeGripCount(
+                gripType) < gripCount)
+        {
+            return false;
+        }
+
+        if (!source.TryReserveTakeAt(
+                coordinate.x,
+                coordinate.y,
+                out InventoryTakeReservation
+                    takeReservation))
+        {
+            return false;
+        }
+
+        ItemHandlingOperation retrieve =
+            new ItemHandlingOperation(
+                ItemHandlingOperationType.Retrieve,
+                item,
+                defaultRetrieveDuration,
+                sourceContainer: source,
+                takeReservation:
+                    takeReservation,
+                targetGripType: gripType,
+                targetGripCount: gripCount
+            );
+
+        ItemHandlingOperation drop =
+            new ItemHandlingOperation(
+                ItemHandlingOperationType.Drop,
+                item,
+                0f
+            );
+
+        queuedOperations.Add(
+            retrieve
+        );
+
+        queuedOperations.Add(
+            drop
+        );
+
+        TryStartNextOperation();
 
         return true;
     }

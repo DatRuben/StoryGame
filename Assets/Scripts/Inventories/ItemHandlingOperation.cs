@@ -40,6 +40,22 @@ public sealed class ItemHandlingOperation
         get;
     }
 
+    public InventoryTakeReservation
+    TakeReservation
+    {
+        get;
+    }
+
+    public GripType TargetGripType
+    {
+        get;
+    }
+
+    public int TargetGripCount
+    {
+        get;
+    }
+
     public float Duration
     {
         get;
@@ -74,14 +90,18 @@ public sealed class ItemHandlingOperation
         InventoryContainer sourceContainer = null,
         InventoryContainer targetContainer = null,
         InventoryTransferReservation
-            transferReservation = null)
+            transferReservation = null,
+        InventoryTakeReservation
+            takeReservation = null,
+        GripType targetGripType = GripType.Hand,
+        int targetGripCount = 0)
     {
         Type = type;
         Item = item;
 
         Duration =
             Mathf.Max(
-                0.05f,
+                0f,
                 duration
             );
 
@@ -93,6 +113,18 @@ public sealed class ItemHandlingOperation
 
         TransferReservation =
             transferReservation;
+
+        TakeReservation =
+            takeReservation;
+
+        TargetGripType =
+            targetGripType;
+
+        TargetGripCount =
+            Mathf.Max(
+                0,
+                targetGripCount
+            );
     }
 
     internal void Advance(

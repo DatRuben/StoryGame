@@ -32,7 +32,9 @@ public sealed class ItemHandlingProgressUI :
         bool visible =
             itemHandlingController != null &&
             itemHandlingController
-                .CurrentOperation != null;
+                .CurrentOperation != null &&
+            itemHandlingController
+                .CurrentOperation.Duration > 0f;
 
         if (progressRoot != null &&
             progressRoot.activeSelf != visible)
