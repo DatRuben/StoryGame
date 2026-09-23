@@ -443,7 +443,7 @@ public sealed class InventoryInteractionController :
         if (itemHandlingController != null)
         {
             itemHandlingController
-                .CancelActiveOperation();
+                .CancelAllOperations();
         }
 
         TryDropLooseHeldItems();

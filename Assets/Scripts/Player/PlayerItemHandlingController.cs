@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(PlayerGripState))]
@@ -12,6 +13,10 @@ public sealed class PlayerItemHandlingController :
 
     private ItemHandlingOperation activeOperation;
 
+    private readonly List<ItemHandlingOperation>
+        queuedOperations =
+            new List<ItemHandlingOperation>();
+
     private bool immediateActionInProgress;
 
     private PlayerGripState gripState;
@@ -25,6 +30,13 @@ public sealed class PlayerItemHandlingController :
     public ItemHandlingOperation
         CurrentOperation =>
             activeOperation;
+
+    public IReadOnlyList<ItemHandlingOperation>
+    QueuedOperations =>
+        queuedOperations;
+
+    public int QueuedOperationCount =>
+        queuedOperations.Count;
 
     public ItemHandlingOperationType
         ActiveOperation =>
@@ -194,34 +206,68 @@ public sealed class PlayerItemHandlingController :
 
     private void ClearOperation()
     {
-        if (activeOperation != null &&
+        CancelOperationReservation(
             activeOperation
-                .TransferReservation != null &&
-            activeOperation
-                .TransferReservation.IsActive &&
-            activeOperation.TargetContainer != null)
+        );
+
+        activeOperation = null;
+
+        TryStartNextOperation();
+    }
+
+    private void CancelOperationReservation(
+        ItemHandlingOperation operation)
+    {
+        if (operation == null ||
+            operation.TransferReservation == null ||
+            !operation.TransferReservation.IsActive ||
+            operation.TargetContainer == null)
         {
+            return;
+        }
+
+        operation.TargetContainer
+            .CancelTransferReservation(
+                operation.TransferReservation
+            );
+    }
+
+    public bool CancelAllOperations()
+    {
+        bool cancelledAnything =
+            activeOperation != null ||
+            queuedOperations.Count > 0;
+
+        CancelOperationReservation(
             activeOperation
-                .TargetContainer
-                .CancelTransferReservation(
-                    activeOperation
-                        .TransferReservation
-                );
+        );
+
+        for (int i = 0;
+             i < queuedOperations.Count;
+             i++)
+        {
+            CancelOperationReservation(
+                queuedOperations[i]
+            );
         }
 
         activeOperation = null;
+
+        queuedOperations.Clear();
+
+        return cancelledAnything;
     }
 
     public bool TryBeginStoreHeldItem(
         InventoryItemInstance item,
         InventoryContainer target)
     {
-        if (IsBusy ||
-            item == null ||
+        if (item == null ||
             item.IsEmpty ||
             gripState == null ||
             !gripState.IsHolding(item) ||
-            target == null)
+            target == null ||
+            HasOperationForItem(item))
         {
             return false;
         }
@@ -235,7 +281,7 @@ public sealed class PlayerItemHandlingController :
             return false;
         }
 
-        activeOperation =
+        ItemHandlingOperation operation =
             new ItemHandlingOperation(
                 ItemHandlingOperationType.Store,
                 item,
@@ -245,13 +291,72 @@ public sealed class PlayerItemHandlingController :
                 reservation
             );
 
+        queuedOperations.Add(
+            operation
+        );
+
+        TryStartNextOperation();
+
         return true;
+    }
+
+    private bool HasOperationForItem(
+        InventoryItemInstance item)
+    {
+        if (item == null)
+            return false;
+
+        if (activeOperation != null &&
+            ReferenceEquals(
+                activeOperation.Item,
+                item))
+        {
+            return true;
+        }
+
+        for (int i = 0;
+             i < queuedOperations.Count;
+             i++)
+        {
+            ItemHandlingOperation operation =
+                queuedOperations[i];
+
+            if (operation != null &&
+                ReferenceEquals(
+                    operation.Item,
+                    item))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void TryStartNextOperation()
+    {
+        if (activeOperation != null ||
+            immediateActionInProgress ||
+            queuedOperations.Count == 0)
+        {
+            return;
+        }
+
+        activeOperation =
+            queuedOperations[0];
+
+        queuedOperations.RemoveAt(0);
     }
 
     private void Update()
     {
-        if (!IsBusy)
-            return;
+        if (activeOperation == null)
+        {
+            TryStartNextOperation();
+
+            if (activeOperation == null)
+                return;
+        }
 
         switch (ActiveOperation)
         {
