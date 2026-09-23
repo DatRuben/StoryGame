@@ -1142,6 +1142,12 @@ public sealed class InventoryInteractionController :
         InventoryItemInstance targetInstance =
             placedTarget.ItemInstance;
 
+        if (target.IsTakeReserved(
+            targetInstance))
+        {
+            return false;
+        }
+
         if (!selected.CanStackWith(
             targetInstance))
         {
@@ -1224,6 +1230,12 @@ public sealed class InventoryInteractionController :
             if (targetStack.ItemInstance == null)
                 return false;
 
+            if (target.IsTakeReserved(
+                targetStack.ItemInstance))
+            {
+                return false;
+            }
+
             int moved =
                 selected.MoveQuantityTo(
                     targetStack.ItemInstance,
@@ -1302,6 +1314,12 @@ public sealed class InventoryInteractionController :
 
         InventoryItemInstance sourceInstance =
             placedItem.ItemInstance;
+
+        if (source.IsTakeReserved(
+            sourceInstance))
+        {
+            return false;
+        }
 
         int splitQuantity =
             Mathf.CeilToInt(

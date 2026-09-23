@@ -335,12 +335,6 @@ public sealed class PlayerItemHandlingController :
         InventoryItemInstance item =
             operation.Item;
 
-        CancelOperationReservation(
-            operation
-        );
-
-        activeOperation = null;
-
         immediateActionInProgress = true;
 
         bool dropped =
@@ -351,9 +345,20 @@ public sealed class PlayerItemHandlingController :
 
         immediateActionInProgress = false;
 
+        if (!dropped)
+        {
+            return false;
+        }
+
+        CancelOperationReservation(
+            operation
+        );
+
+        activeOperation = null;
+
         TryStartNextOperation();
 
-        return dropped;
+        return true;
     }
 
     private bool HasOperationForItem(

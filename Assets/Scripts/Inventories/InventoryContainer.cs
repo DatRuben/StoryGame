@@ -163,6 +163,20 @@ public class InventoryContainer : MonoBehaviour
         if (grid == null)
             return null;
 
+        PlacedInventoryItem existing =
+            grid.GetPlacedItem(
+                x,
+                y
+            );
+
+        if (existing == null ||
+            existing.ItemInstance == null ||
+            IsTakeReserved(
+                existing.ItemInstance))
+        {
+            return null;
+        }
+
         PlacedInventoryItem item =
             grid.PickUpItemAt(
                 x,
@@ -211,6 +225,12 @@ public class InventoryContainer : MonoBehaviour
                             x,
                             y
                         );
+
+                    if (IsTakeReserved(
+                        placed.ItemInstance))
+                    {
+                        continue;
+                    }
 
                     if (placed == null ||
                         placed.ItemInstance == null ||
@@ -399,6 +419,12 @@ public class InventoryContainer : MonoBehaviour
                         y
                     );
 
+                if (IsTakeReserved(
+                    placed.ItemInstance))
+                {
+                    continue;
+                }
+
                 if (target == null ||
                     target.ItemInstance == null ||
                     checkedItems.Contains(target))
@@ -529,6 +555,79 @@ public class InventoryContainer : MonoBehaviour
         transferReservations =
             new List<
                 InventoryTransferReservation>();
+
+    private readonly List<
+        InventoryTakeReservation>
+        takeReservations =
+            new List<
+                InventoryTakeReservation>();
+
+    public bool TryReserveTakeAt(
+        int x,
+        int y,
+        out InventoryTakeReservation
+            reservation)
+    {
+        reservation = null;
+
+        if (grid == null)
+            return false;
+
+        PlacedInventoryItem placed =
+            grid.GetPlacedItem(
+                x,
+                y
+            );
+
+        if (placed == null ||
+            placed.ItemInstance == null ||
+            placed.ItemInstance.IsEmpty)
+        {
+            return false;
+        }
+
+        InventoryItemInstance item =
+            placed.ItemInstance;
+
+        if (IsTakeReserved(item))
+            return false;
+
+        if (GetReservedStackQuantity(
+                item,
+                null) > 0)
+        {
+            return false;
+        }
+
+        reservation =
+            new InventoryTakeReservation(
+                this,
+                item,
+                placed.Position,
+                placed.RotationSteps
+            );
+
+        takeReservations.Add(
+            reservation
+        );
+
+        return true;
+    }
+
+    private bool OwnsActiveTakeReservation(
+        InventoryTakeReservation reservation)
+    {
+        return
+            reservation != null &&
+            reservation.IsActive &&
+            ReferenceEquals(
+                reservation.Owner,
+                this
+            ) &&
+            takeReservations.Contains(
+                reservation
+            );
+    }
 
     public bool TryReserveTransferIn(
         InventoryItemInstance itemInstance,
@@ -733,6 +832,9 @@ public class InventoryContainer : MonoBehaviour
 
             InventoryItemInstance target =
                 stackTransfer.Target;
+
+            if (IsTakeReserved(target))
+                continue;
 
             if (target == null ||
                 !ContainsItemInstance(
