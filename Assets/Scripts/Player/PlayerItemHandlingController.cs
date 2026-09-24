@@ -798,4 +798,107 @@ public sealed class PlayerItemHandlingController :
 
         return true;
     }
+
+    public bool TryBeginTransferFromContainer(
+        InventoryContainer source,
+        InventoryContainer target,
+        Vector2Int coordinate,
+        GripType gripType,
+        int gripCount)
+    {
+        if (source == null ||
+            target == null ||
+            ReferenceEquals(
+                source,
+                target) ||
+            gripState == null ||
+            gripCount <= 0)
+        {
+            return false;
+        }
+
+        PlacedInventoryItem placed =
+            source.GetItemAt(
+                coordinate.x,
+                coordinate.y
+            );
+
+        if (placed == null ||
+            placed.ItemInstance == null ||
+            placed.ItemInstance.IsEmpty)
+        {
+            return false;
+        }
+
+        InventoryItemInstance item =
+            placed.ItemInstance;
+
+        if (HasOperationForItem(
+                item))
+        {
+            return false;
+        }
+
+        if (gripState.GetFreeGripCount(
+                gripType) < gripCount)
+        {
+            return false;
+        }
+
+        if (!source.TryReserveTakeAt(
+                coordinate.x,
+                coordinate.y,
+                out InventoryTakeReservation
+                    takeReservation))
+        {
+            return false;
+        }
+
+        if (!target.TryReserveTransferIn(
+                item,
+                placed.RotationSteps,
+                out InventoryTransferReservation
+                    transferReservation))
+        {
+            source.CancelTakeReservation(
+                takeReservation
+            );
+
+            return false;
+        }
+
+        ItemHandlingOperation retrieve =
+            new ItemHandlingOperation(
+                ItemHandlingOperationType.Retrieve,
+                item,
+                defaultRetrieveDuration,
+                sourceContainer: source,
+                takeReservation:
+                    takeReservation,
+                targetGripType: gripType,
+                targetGripCount: gripCount
+            );
+
+        ItemHandlingOperation store =
+            new ItemHandlingOperation(
+                ItemHandlingOperationType.Store,
+                item,
+                defaultStoreDuration,
+                targetContainer: target,
+                transferReservation:
+                    transferReservation
+            );
+
+        queuedOperations.Add(
+            retrieve
+        );
+
+        queuedOperations.Add(
+            store
+        );
+
+        TryStartNextOperation();
+
+        return true;
+    }
 }

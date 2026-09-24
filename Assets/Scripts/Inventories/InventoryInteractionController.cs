@@ -893,38 +893,6 @@ public sealed class InventoryInteractionController :
         );
     }
 
-    private bool TrySpawnDroppedWorldItem(
-        InventoryItemInstance item,
-        out WorldItem worldItem)
-    {
-        worldItem = null;
-
-        if (item == null ||
-            item.IsEmpty ||
-            worldItemSpawner == null)
-        {
-            return false;
-        }
-
-        Vector3 dropPosition =
-            transform.position +
-            transform.forward * 1.25f;
-
-        Quaternion dropRotation =
-            Quaternion.Euler(
-                0f,
-                transform.eulerAngles.y,
-                0f
-            );
-
-        return worldItemSpawner.TrySpawn(
-            item,
-            dropPosition,
-            dropRotation,
-            out worldItem
-        );
-    }
-
     public bool TryPickUpItemFromContainer(
         InventoryContainer source,
         Vector2Int coordinate)
@@ -1416,26 +1384,58 @@ public sealed class InventoryInteractionController :
         InventoryContainer target,
         Vector2Int coordinate)
     {
+        if (gameplayState != null &&
+            !gameplayState.Allows(
+                PlayerGameplayCapability
+                    .ItemHandling))
+        {
+            return false;
+        }
+
         if (source == null ||
             target == null ||
             ReferenceEquals(
                 source,
                 target) ||
-            cursor.HasSelection)
+            cursor.HasSelection ||
+            loadoutAssignmentItem != null ||
+            itemHandlingController == null)
         {
             return false;
         }
 
-        if (!TryPickUpItemFromContainer(
-            source,
-            coordinate))
+        PlacedInventoryItem placed =
+            source.GetItemAt(
+                coordinate.x,
+                coordinate.y
+            );
+
+        if (placed == null ||
+            placed.ItemInstance == null ||
+            placed.ItemInstance.IsEmpty)
         {
             return false;
         }
 
-        return TryTransferSelectionIntoContainer(
-            target
-        );
+        InventoryItemInstance item =
+            placed.ItemInstance;
+
+        if (!TryFindHoldPlan(
+                item,
+                out GripType gripType,
+                out int gripCount))
+        {
+            return false;
+        }
+
+        return itemHandlingController
+            .TryBeginTransferFromContainer(
+                source,
+                target,
+                coordinate,
+                gripType,
+                gripCount
+            );
     }
 
     public bool CanAssignSelectedWeapon(
