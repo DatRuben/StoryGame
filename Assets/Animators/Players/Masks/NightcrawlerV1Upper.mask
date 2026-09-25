@@ -1,0 +1,75 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!319 &31900000
+AvatarMask:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: NightcrawlerV1Upper
+  m_Mask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+  m_Elements:
+  - m_Path: 
+    m_Weight: 1
+  - m_Path: Armature.001
+    m_Weight: 0
+  - m_Path: Armature.001/Bone.005
+    m_Weight: 0
+  - m_Path: Armature.001/Bone.005/Bone.004
+    m_Weight: 1
+  - m_Path: Armature.001/Bone.005/Bone.004/Bone.003
+    m_Weight: 1
+  - m_Path: Armature.001/Bone.005/Bone.004/Bone.003/Bone
+    m_Weight: 1
+  - m_Path: Armature.001/Bone.005/Bone.004/Bone.003/Bone/Bone.009
+    m_Weight: 1
+  - m_Path: Armature.001/Bone.005/Bone.004/Bone.003/Bone/Bone.009/Bone.010
+    m_Weight: 1
+  - m_Path: Armature.001/Bone.005/Bone.004/Bone.003/Bone/Bone.009/Bone.010/Bone.011
+    m_Weight: 1
+  - m_Path: Armature.001/Bone.005/Bone.004/Bone.003/Bone/Bone.009/Bone.010/Bone.011/Bone.011_end
+    m_Weight: 1
+  - m_Path: Armature.001/Bone.005/Bone.004/Bone.003/Bone.002
+    m_Weight: 1
+  - m_Path: Armature.001/Bone.005/Bone.004/Bone.003/Bone.002/Bone.001
+    m_Weight: 1
+  - m_Path: Armature.001/Bone.005/Bone.004/Bone.003/Bone.002/Bone.001/Bone.001_end
+    m_Weight: 1
+  - m_Path: Armature.001/Bone.005/Bone.004/Bone.003/Bone.012
+    m_Weight: 1
+  - m_Path: Armature.001/Bone.005/Bone.004/Bone.003/Bone.012/Bone.013
+    m_Weight: 1
+  - m_Path: Armature.001/Bone.005/Bone.004/Bone.003/Bone.012/Bone.013/Bone.014
+    m_Weight: 1
+  - m_Path: Armature.001/Bone.005/Bone.004/Bone.003/Bone.012/Bone.013/Bone.014/Bone.015
+    m_Weight: 1
+  - m_Path: Armature.001/Bone.005/Bone.004/Bone.003/Bone.012/Bone.013/Bone.014/Bone.015/Bone.015_end
+    m_Weight: 1
+  - m_Path: Armature.001/Bone.005/Bone.007
+    m_Weight: 0
+  - m_Path: Armature.001/Bone.005/Bone.007/Bone.008
+    m_Weight: 0
+  - m_Path: Armature.001/Bone.005/Bone.007/Bone.008/Bone.008_end
+    m_Weight: 0
+  - m_Path: Armature.001/Bone.005/Bone.016
+    m_Weight: 0
+  - m_Path: Armature.001/Bone.005/Bone.016/Bone.017
+    m_Weight: 0
+  - m_Path: Armature.001/Bone.005/Bone.016/Bone.017/Bone.018
+    m_Weight: 0
+  - m_Path: Armature.001/Bone.005/Bone.016/Bone.017/Bone.018/Bone.019
+    m_Weight: 0
+  - m_Path: Armature.001/Bone.005/Bone.016/Bone.017/Bone.018/Bone.019/Bone.019_end
+    m_Weight: 0
+  - m_Path: Armature.001/Bone.005/Bone.020
+    m_Weight: 0
+  - m_Path: Armature.001/Bone.005/Bone.020/Bone.021
+    m_Weight: 0
+  - m_Path: Armature.001/Bone.005/Bone.020/Bone.021/Bone.022
+    m_Weight: 0
+  - m_Path: Armature.001/Bone.005/Bone.020/Bone.021/Bone.022/Bone.023
+    m_Weight: 0
+  - m_Path: Armature.001/Bone.005/Bone.020/Bone.021/Bone.022/Bone.023/Bone.023_end
+    m_Weight: 0
+  - m_Path: Nightcrawler
+    m_Weight: 0
