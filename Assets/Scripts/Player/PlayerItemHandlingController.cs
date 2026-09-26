@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -61,6 +62,15 @@ public sealed class PlayerItemHandlingController :
         activeOperation != null
             ? activeOperation.Item
             : null;
+
+    public event Action<ItemHandlingOperation>
+        OperationStarted;
+
+    public event Action<ItemHandlingOperation>
+        OperationCompleted;
+
+    public event Action<ItemHandlingOperation>
+        OperationCancelled;
 
     private void Awake()
     {
@@ -225,13 +235,19 @@ public sealed class PlayerItemHandlingController :
         return true;
     }
 
-    private void ClearOperation()
+    private void CompleteActiveOperation()
     {
-        CancelOperationReservation(
-            activeOperation
-        );
+        ItemHandlingOperation operation =
+            activeOperation;
+
+        if (operation == null)
+            return;
 
         activeOperation = null;
+
+        OperationCompleted?.Invoke(
+            operation
+        );
 
         TryStartNextOperation();
     }
@@ -269,22 +285,45 @@ public sealed class PlayerItemHandlingController :
             activeOperation != null ||
             queuedOperations.Count > 0;
 
-        CancelOperationReservation(
-            activeOperation
-        );
+        ItemHandlingOperation current =
+            activeOperation;
 
-        for (int i = 0;
-             i < queuedOperations.Count;
-             i++)
+        if (current != null)
         {
             CancelOperationReservation(
-                queuedOperations[i]
+                current
             );
         }
 
         activeOperation = null;
 
-        queuedOperations.Clear();
+        for (int i =
+                 queuedOperations.Count - 1;
+             i >= 0;
+             i--)
+        {
+            ItemHandlingOperation operation =
+                queuedOperations[i];
+
+            CancelOperationReservation(
+                operation
+            );
+
+            queuedOperations.RemoveAt(
+                i
+            );
+
+            OperationCancelled?.Invoke(
+                operation
+            );
+        }
+
+        if (current != null)
+        {
+            OperationCancelled?.Invoke(
+                current
+            );
+        }
 
         return cancelledAnything;
     }
@@ -396,13 +435,7 @@ public sealed class PlayerItemHandlingController :
             return false;
         }
 
-        CancelOperationReservation(
-            operation
-        );
-
-        activeOperation = null;
-
-        TryStartNextOperation();
+        CancelActiveOperation();
 
         return true;
     }
@@ -453,6 +486,10 @@ public sealed class PlayerItemHandlingController :
             queuedOperations[0];
 
         queuedOperations.RemoveAt(0);
+
+        OperationStarted?.Invoke(
+            activeOperation
+        );
     }
 
     private void Update()
@@ -615,7 +652,7 @@ public sealed class PlayerItemHandlingController :
             return;
         }
 
-        ClearOperation();
+        CancelActiveOperation();
     }
 
     private void CompleteDropOperation()
@@ -642,7 +679,7 @@ public sealed class PlayerItemHandlingController :
             return;
         }
 
-        ClearOperation();
+        CancelActiveOperation();
     }
 
     private void CompleteStoreOperation()
@@ -654,7 +691,7 @@ public sealed class PlayerItemHandlingController :
             operation.Type !=
                 ItemHandlingOperationType.Store)
         {
-            ClearOperation();
+            CancelActiveOperation();
             return;
         }
 
@@ -674,7 +711,7 @@ public sealed class PlayerItemHandlingController :
             reservation == null ||
             !reservation.IsActive)
         {
-            ClearOperation();
+            CancelActiveOperation();
             return;
         }
 
@@ -683,6 +720,12 @@ public sealed class PlayerItemHandlingController :
                 reservation,
                 out int remainingQuantity
             );
+
+        if (!movedAnything)
+        {
+            CancelActiveOperation();
+            return;
+        }
 
         if (movedAnything &&
             (remainingQuantity <= 0 ||
@@ -697,22 +740,36 @@ public sealed class PlayerItemHandlingController :
             }
         }
 
-        ClearOperation();
+        CancelActiveOperation();
     }
 
     public bool CancelActiveOperation()
     {
-        if (activeOperation == null)
+        ItemHandlingOperation operation =
+            activeOperation;
+
+        if (operation == null)
             return false;
 
-        InventoryItemInstance item =
-            activeOperation.Item;
-
         CancelQueuedOperationsForItem(
-            item
+            operation.Item
         );
 
-        ClearOperation();
+        OperationCancelled?.Invoke(
+            operation
+        );
+
+        CancelOperationReservation(
+            operation
+        );
+
+        activeOperation = null;
+
+        OperationCancelled?.Invoke(
+            operation
+        );
+
+        TryStartNextOperation();
 
         return true;
     }
