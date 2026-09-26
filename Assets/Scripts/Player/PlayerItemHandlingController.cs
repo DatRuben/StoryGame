@@ -357,6 +357,10 @@ public sealed class PlayerItemHandlingController :
             queuedOperations.RemoveAt(
                 i
             );
+
+            OperationCancelled?.Invoke(
+                operation
+            );
         }
     }
 
@@ -652,7 +656,7 @@ public sealed class PlayerItemHandlingController :
             return;
         }
 
-        CancelActiveOperation();
+        CompleteActiveOperation();
     }
 
     private void CompleteDropOperation()
@@ -679,7 +683,7 @@ public sealed class PlayerItemHandlingController :
             return;
         }
 
-        CancelActiveOperation();
+        CompleteActiveOperation();
     }
 
     private void CompleteStoreOperation()
@@ -740,7 +744,7 @@ public sealed class PlayerItemHandlingController :
             }
         }
 
-        CancelActiveOperation();
+        CompleteActiveOperation();
     }
 
     public bool CancelActiveOperation()
@@ -753,10 +757,6 @@ public sealed class PlayerItemHandlingController :
 
         CancelQueuedOperationsForItem(
             operation.Item
-        );
-
-        OperationCancelled?.Invoke(
-            operation
         );
 
         CancelOperationReservation(
