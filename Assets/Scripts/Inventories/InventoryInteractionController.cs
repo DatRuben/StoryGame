@@ -54,6 +54,12 @@ public sealed class InventoryInteractionController :
 
     private ItemHandlingOperation pendingSelectionOperation;
 
+    private ItemHandlingOperation pendingStoreSelectionOperation;
+
+    private int pendingStoreSelectionRotation;
+
+    private Vector2Int pendingStoreSelectionGrabOffset;
+
     private int pendingSelectionRotation;
 
     private Vector2Int pendingSelectionGrabOffset;
@@ -2663,6 +2669,17 @@ public sealed class InventoryInteractionController :
             return;
         }
 
+        if (ReferenceEquals(
+                operation,
+                pendingStoreSelectionOperation))
+        {
+            RestorePendingStoreSelection(
+                operation
+            );
+
+            return;
+        }
+
         InventoryItemInstance item =
             operation.Item;
 
@@ -2697,6 +2714,17 @@ public sealed class InventoryInteractionController :
                 operation,
                 pendingSelectionOperation))
         {
+            return;
+        }
+
+        if (ReferenceEquals(
+                operation,
+                pendingStoreSelectionOperation))
+        {
+            RestorePendingStoreSelection(
+                operation
+            );
+
             return;
         }
 
@@ -2802,5 +2830,107 @@ public sealed class InventoryInteractionController :
             .TryCancelOperation(
                 operation
             );
+    }
+
+    private void ClearPendingStoreSelectionOperation()
+    {
+        pendingStoreSelectionOperation =
+            null;
+
+        pendingStoreSelectionRotation = 0;
+
+        pendingStoreSelectionGrabOffset =
+            Vector2Int.zero;
+    }
+
+    private void RestorePendingStoreSelection(
+        ItemHandlingOperation operation)
+    {
+        InventoryItemInstance item =
+            operation != null
+                ? operation.Item
+                : null;
+
+        int rotation =
+            pendingStoreSelectionRotation;
+
+        Vector2Int grabOffset =
+            pendingStoreSelectionGrabOffset;
+
+        ClearPendingStoreSelectionOperation();
+
+        if (item == null ||
+            item.IsEmpty ||
+            gripState == null ||
+            !gripState.IsHolding(
+                item))
+        {
+            return;
+        }
+
+        cursor.Select(
+            item,
+            rotation,
+            grabOffset
+        );
+    }
+
+    public bool TryBeginStoreSelectionAt(
+        InventoryContainer target,
+        Vector2Int stackCoordinate,
+        Vector2Int placementOrigin)
+    {
+        if (gameplayState != null &&
+            !gameplayState.Allows(
+                PlayerGameplayCapability
+                    .ItemHandling))
+        {
+            return false;
+        }
+
+        InventoryItemInstance selected =
+            cursor.SelectedItem;
+
+        if (target == null ||
+            itemHandlingController == null ||
+            pendingStoreSelectionOperation !=
+                null ||
+            !IsPlacementCandidate(
+                selected))
+        {
+            return false;
+        }
+
+        int rotation =
+            cursor.RotationSteps;
+
+        Vector2Int grabOffset =
+            cursor.GrabOffset;
+
+        if (!itemHandlingController
+            .TryBeginStoreHeldItemAt(
+                selected,
+                target,
+                stackCoordinate,
+                placementOrigin,
+                rotation,
+                out ItemHandlingOperation
+                    operation))
+        {
+            return false;
+        }
+
+        pendingStoreSelectionOperation =
+            operation;
+
+        pendingStoreSelectionRotation =
+            rotation;
+
+        pendingStoreSelectionGrabOffset =
+            grabOffset;
+
+        cursor.ClearSelection();
+
+        return true;
     }
 }

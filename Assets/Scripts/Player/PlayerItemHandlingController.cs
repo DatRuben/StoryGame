@@ -1085,4 +1085,69 @@ public sealed class PlayerItemHandlingController :
 
         return true;
     }
+
+    public bool TryBeginStoreHeldItemAt(
+        InventoryItemInstance item,
+        InventoryContainer target,
+        Vector2Int stackCoordinate,
+        Vector2Int placementOrigin,
+        int rotationSteps,
+        out ItemHandlingOperation operation)
+    {
+        operation = null;
+
+        if (item == null ||
+            item.IsEmpty ||
+            gripState == null ||
+            !gripState.IsHolding(item) ||
+            target == null ||
+            HasOperationForItem(item))
+        {
+            return false;
+        }
+
+        InventoryTransferReservation
+            reservation;
+
+        bool reserved =
+            target.TryReserveStackTransferAt(
+                item,
+                stackCoordinate.x,
+                stackCoordinate.y,
+                out reservation
+            );
+
+        if (!reserved)
+        {
+            reserved =
+                target.TryReservePlacementAt(
+                    item,
+                    placementOrigin.x,
+                    placementOrigin.y,
+                    rotationSteps,
+                    out reservation
+                );
+        }
+
+        if (!reserved)
+            return false;
+
+        operation =
+            new ItemHandlingOperation(
+                ItemHandlingOperationType.Store,
+                item,
+                defaultStoreDuration,
+                targetContainer: target,
+                transferReservation:
+                    reservation
+            );
+
+        queuedOperations.Add(
+            operation
+        );
+
+        TryStartNextOperation();
+
+        return true;
+    }
 }

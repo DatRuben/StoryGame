@@ -807,22 +807,15 @@ public sealed class InventoryGridUI :
             return false;
         }
 
-        if (interactionController
-            .TryMergeSelectionIntoStackAt(
-                inventoryContainer,
-                coordinate))
-        {
-            return true;
-        }
-
         Vector2Int origin =
             coordinate -
             interactionController
                 .SelectedGrabOffset;
 
         return interactionController
-            .TryPlaceSelection(
+            .TryBeginStoreSelectionAt(
                 inventoryContainer,
+                coordinate,
                 origin
             );
     }

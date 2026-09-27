@@ -886,6 +886,148 @@ public class InventoryContainer : MonoBehaviour
         return true;
     }
 
+    public bool TryReserveStackTransferAt(
+        InventoryItemInstance itemInstance,
+        int x,
+        int y,
+        out InventoryTransferReservation
+            reservation)
+    {
+        reservation = null;
+
+        if (grid == null ||
+            itemInstance == null ||
+            itemInstance.IsEmpty ||
+            !itemInstance.IsStackable)
+        {
+            return false;
+        }
+
+        PlacedInventoryItem placed =
+            grid.GetPlacedItem(
+                x,
+                y
+            );
+
+        if (placed == null ||
+            placed.ItemInstance == null)
+        {
+            return false;
+        }
+
+        InventoryItemInstance target =
+            placed.ItemInstance;
+
+        if (IsTakeReserved(
+                target) ||
+            !itemInstance.CanStackWith(
+                target))
+        {
+            return false;
+        }
+
+        int reservedAlready =
+            GetReservedStackQuantity(
+                target,
+                null
+            );
+
+        int available =
+            target.MaxStackSize -
+            target.Quantity -
+            reservedAlready;
+
+        if (available <= 0)
+            return false;
+
+        int quantityToReserve =
+            Mathf.Min(
+                itemInstance.Quantity,
+                available
+            );
+
+        InventoryTransferReservation
+            newReservation =
+                new InventoryTransferReservation(
+                    this,
+                    itemInstance
+                );
+
+        newReservation.AddStackTransfer(
+            target,
+            quantityToReserve
+        );
+
+        transferReservations.Add(
+            newReservation
+        );
+
+        reservation =
+            newReservation;
+
+        return true;
+    }
+
+    public bool TryReservePlacementAt(
+        InventoryItemInstance itemInstance,
+        int x,
+        int y,
+        int rotationSteps,
+        out InventoryTransferReservation
+            reservation)
+    {
+        reservation = null;
+
+        if (grid == null ||
+            itemInstance == null ||
+            itemInstance.IsEmpty ||
+            itemInstance.Definition == null)
+        {
+            return false;
+        }
+
+        rotationSteps =
+            ItemDefinition
+                .NormalizeRotationSteps(
+                    rotationSteps
+                );
+
+        if (!CanPlaceWithReservations(
+                itemInstance.Definition,
+                x,
+                y,
+                rotationSteps,
+                null))
+        {
+            return false;
+        }
+
+        InventoryTransferReservation
+            newReservation =
+                new InventoryTransferReservation(
+                    this,
+                    itemInstance
+                );
+
+        newReservation.ReservePlacement(
+            new Vector2Int(
+                x,
+                y
+            ),
+            rotationSteps,
+            itemInstance.Quantity
+        );
+
+        transferReservations.Add(
+            newReservation
+        );
+
+        reservation =
+            newReservation;
+
+        return true;
+    }
+
     public bool CancelTransferReservation(
         InventoryTransferReservation
             reservation)
