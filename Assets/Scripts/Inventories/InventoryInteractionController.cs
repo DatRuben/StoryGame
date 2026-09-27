@@ -2662,13 +2662,6 @@ public sealed class InventoryInteractionController :
     private void OnItemHandlingOperationCompleted(
         ItemHandlingOperation operation)
     {
-        if (!ReferenceEquals(
-                operation,
-                pendingSelectionOperation))
-        {
-            return;
-        }
-
         if (ReferenceEquals(
                 operation,
                 pendingStoreSelectionOperation))
@@ -2677,6 +2670,13 @@ public sealed class InventoryInteractionController :
                 operation
             );
 
+            return;
+        }
+
+        if (!ReferenceEquals(
+                operation,
+                pendingSelectionOperation))
+        {
             return;
         }
 
@@ -2710,13 +2710,6 @@ public sealed class InventoryInteractionController :
     private void OnItemHandlingOperationCancelled(
         ItemHandlingOperation operation)
     {
-        if (!ReferenceEquals(
-                operation,
-                pendingSelectionOperation))
-        {
-            return;
-        }
-
         if (ReferenceEquals(
                 operation,
                 pendingStoreSelectionOperation))
@@ -2725,6 +2718,13 @@ public sealed class InventoryInteractionController :
                 operation
             );
 
+            return;
+        }
+
+        if (!ReferenceEquals(
+                operation,
+                pendingSelectionOperation))
+        {
             return;
         }
 
