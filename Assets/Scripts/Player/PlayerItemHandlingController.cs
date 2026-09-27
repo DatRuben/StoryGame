@@ -774,6 +774,60 @@ public sealed class PlayerItemHandlingController :
         return true;
     }
 
+    public bool TryCancelOperation(
+        ItemHandlingOperation operation)
+    {
+        if (operation == null)
+            return false;
+
+        if (ReferenceEquals(
+                activeOperation,
+                operation))
+        {
+            return CancelActiveOperation();
+        }
+
+        for (int i = 0;
+             i < queuedOperations.Count;
+             i++)
+        {
+            if (!ReferenceEquals(
+                    queuedOperations[i],
+                    operation))
+            {
+                continue;
+            }
+
+            InventoryItemInstance item =
+                operation.Item;
+
+            if (item != null)
+            {
+                CancelQueuedOperationsForItem(
+                    item
+                );
+            }
+            else
+            {
+                CancelOperationReservation(
+                    operation
+                );
+
+                queuedOperations.RemoveAt(
+                    i
+                );
+
+                OperationCancelled?.Invoke(
+                    operation
+                );
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
     public bool TryBeginRetrieveThenDrop(
         InventoryContainer source,
         Vector2Int coordinate,

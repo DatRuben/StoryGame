@@ -106,6 +106,7 @@ public sealed class InventoryGridUI :
     private bool pointerIsDown;
     private bool pendingDragPickup;
     private bool isDraggingItem;
+    private bool awaitingDragRetrieve;
     private bool suppressNextClick;
 
     private Vector2 pointerDownScreenPosition;
@@ -153,6 +154,13 @@ public sealed class InventoryGridUI :
 
     private void OnDisable()
     {
+        if (awaitingDragRetrieve &&
+            interactionController != null)
+        {
+            interactionController
+                .TryCancelPendingSelectionOperation();
+        }
+
         if (isDraggingItem &&
             interactionController != null &&
             interactionController.HasSelection &&
@@ -177,6 +185,7 @@ public sealed class InventoryGridUI :
         pointerIsDown = false;
         pendingDragPickup = false;
         isDraggingItem = false;
+        awaitingDragRetrieve = false;
 
         dragSourceContainer = null;
         draggedItem = null;
@@ -185,6 +194,7 @@ public sealed class InventoryGridUI :
     private void Update()
     {
         HandleDragDetection();
+        HandlePendingDragRetrieve();
         HandleOutsideSelectionDrop();
         HandleDragRelease();
         UpdateHoveredCoordinateFromMouse();
@@ -638,8 +648,14 @@ public sealed class InventoryGridUI :
                 pointerDownCoordinate.y
             );
 
-        if (placedItem == null)
+        if (placedItem == null ||
+            placedItem.ItemInstance == null)
+        {
             return;
+        }
+
+        InventoryItemInstance item =
+            placedItem.ItemInstance;
 
         dragSourceContainer =
             inventoryContainer;
@@ -650,21 +666,23 @@ public sealed class InventoryGridUI :
         dragOriginalRotationSteps =
             placedItem.RotationSteps;
 
-        bool pickedUp =
+        bool pickupStarted =
             interactionController
-                .TryPickUpItemFromContainer(
+                .TryBeginPickUpItemFromContainer(
                     inventoryContainer,
                     pointerDownCoordinate
                 );
 
-        if (!pickedUp)
+        if (!pickupStarted)
+        {
+            dragSourceContainer = null;
             return;
+        }
 
         draggedItem =
-            interactionController
-                .SelectedItem;
+            item;
 
-        isDraggingItem = true;
+        awaitingDragRetrieve = true;
         pendingDragPickup = false;
         suppressNextClick = true;
 
@@ -2142,5 +2160,85 @@ public sealed class InventoryGridUI :
             if (grid != null)
                 grid.Refresh();
         }
+    }
+
+    private void HandlePendingDragRetrieve()
+    {
+        if (!awaitingDragRetrieve)
+            return;
+
+        if (interactionController == null ||
+            draggedItem == null ||
+            dragSourceContainer == null ||
+            Mouse.current == null)
+        {
+            if (interactionController != null)
+            {
+                interactionController
+                    .TryCancelPendingSelectionOperation();
+            }
+
+            ClearPendingDragRetrieve();
+
+            return;
+        }
+
+        bool itemIsReady =
+            interactionController.HasSelection &&
+            ReferenceEquals(
+                interactionController.SelectedItem,
+                draggedItem
+            );
+
+        if (itemIsReady)
+        {
+            awaitingDragRetrieve = false;
+
+            if (Mouse.current.leftButton
+                .isPressed)
+            {
+                isDraggingItem = true;
+
+                RefreshAllGrids();
+                return;
+            }
+
+            interactionController
+                .TryReturnSelectionToContainer(
+                    dragSourceContainer,
+                    dragOriginalPosition,
+                    dragOriginalRotationSteps
+                );
+
+            ClearPendingDragRetrieve();
+
+            RefreshAllGrids();
+
+            return;
+        }
+
+        if (Mouse.current.leftButton
+            .isPressed)
+        {
+            return;
+        }
+
+        interactionController
+            .TryCancelPendingSelectionOperation();
+
+        ClearPendingDragRetrieve();
+
+        RefreshAllGrids();
+    }
+
+    private void ClearPendingDragRetrieve()
+    {
+        awaitingDragRetrieve = false;
+        pointerIsDown = false;
+        pendingDragPickup = false;
+        isDraggingItem = false;
+
+        dragSourceContainer = null;
+        draggedItem = null;
     }
 }

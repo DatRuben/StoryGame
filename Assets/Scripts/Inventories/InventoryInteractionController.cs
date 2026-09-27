@@ -2786,4 +2786,21 @@ public sealed class InventoryInteractionController :
 
         return true;
     }
+
+    public bool TryCancelPendingSelectionOperation()
+    {
+        ItemHandlingOperation operation =
+            pendingSelectionOperation;
+
+        if (operation == null ||
+            itemHandlingController == null)
+        {
+            return false;
+        }
+
+        return itemHandlingController
+            .TryCancelOperation(
+                operation
+            );
+    }
 }
