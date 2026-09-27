@@ -51,6 +51,13 @@ public sealed class InventoryInteractionController :
     private InventoryItemInstance loadoutAssignmentItem;
 
     private PlayerItemAudioFeedback itemAudioFeedback;
+
+    private ItemHandlingOperation pendingSelectionOperation;
+
+    private int pendingSelectionRotation;
+
+    private Vector2Int pendingSelectionGrabOffset;
+
     public bool HasSelection =>
         cursor.HasSelection;
 
@@ -686,6 +693,17 @@ public sealed class InventoryInteractionController :
 
         itemHandlingController =
             GetComponent<PlayerItemHandlingController>();
+
+        if (itemHandlingController != null)
+        {
+            itemHandlingController
+                .OperationCompleted +=
+                    OnItemHandlingOperationCompleted;
+
+            itemHandlingController
+                .OperationCancelled +=
+                    OnItemHandlingOperationCancelled;
+        }
 
         cursor.Changed +=
             OnStateChanged;
@@ -2509,6 +2527,17 @@ public sealed class InventoryInteractionController :
             characterProfile.AttributesChanged -=
                 OnStateChanged;
         }
+
+        if (itemHandlingController != null)
+        {
+            itemHandlingController
+                .OperationCompleted -=
+                    OnItemHandlingOperationCompleted;
+
+            itemHandlingController
+                .OperationCancelled -=
+                    OnItemHandlingOperationCancelled;
+        }
     }
 
     public bool TryReturnSelectionToContainer(
@@ -2620,6 +2649,140 @@ public sealed class InventoryInteractionController :
             return false;
 
         item.RemoveQuantity(1);
+
+        return true;
+    }
+
+    private void OnItemHandlingOperationCompleted(
+        ItemHandlingOperation operation)
+    {
+        if (!ReferenceEquals(
+                operation,
+                pendingSelectionOperation))
+        {
+            return;
+        }
+
+        InventoryItemInstance item =
+            operation.Item;
+
+        int rotation =
+            pendingSelectionRotation;
+
+        Vector2Int grabOffset =
+            pendingSelectionGrabOffset;
+
+        ClearPendingSelectionOperation();
+
+        if (item == null ||
+            item.IsEmpty ||
+            gripState == null ||
+            !gripState.IsHolding(
+                item))
+        {
+            return;
+        }
+
+        cursor.Select(
+            item,
+            rotation,
+            grabOffset
+        );
+    }
+
+    private void OnItemHandlingOperationCancelled(
+        ItemHandlingOperation operation)
+    {
+        if (!ReferenceEquals(
+                operation,
+                pendingSelectionOperation))
+        {
+            return;
+        }
+
+        ClearPendingSelectionOperation();
+    }
+
+    private void ClearPendingSelectionOperation()
+    {
+        pendingSelectionOperation = null;
+
+        pendingSelectionRotation = 0;
+
+        pendingSelectionGrabOffset =
+            Vector2Int.zero;
+    }
+
+    public bool TryBeginPickUpItemFromContainer(
+        InventoryContainer source,
+        Vector2Int coordinate)
+    {
+        if (gameplayState != null &&
+            !gameplayState.Allows(
+                PlayerGameplayCapability
+                    .ItemHandling))
+        {
+            return false;
+        }
+
+        if (loadoutAssignmentItem != null ||
+            source == null ||
+            cursor.HasSelection ||
+            pendingSelectionOperation != null ||
+            itemHandlingController == null)
+        {
+            return false;
+        }
+
+        PlacedInventoryItem placed =
+            source.GetItemAt(
+                coordinate.x,
+                coordinate.y
+            );
+
+        if (placed == null ||
+            placed.ItemInstance == null ||
+            placed.ItemInstance.IsEmpty ||
+            placed.ItemDefinition == null)
+        {
+            return false;
+        }
+
+        InventoryItemInstance item =
+            placed.ItemInstance;
+
+        if (!TryFindHoldPlan(
+                item,
+                out GripType gripType,
+                out int gripCount))
+        {
+            return false;
+        }
+
+        Vector2Int grabOffset =
+            coordinate -
+            placed.Position;
+
+        if (!itemHandlingController
+            .TryBeginRetrieveFromContainer(
+                source,
+                coordinate,
+                gripType,
+                gripCount,
+                out ItemHandlingOperation
+                    operation))
+        {
+            return false;
+        }
+
+        pendingSelectionOperation =
+            operation;
+
+        pendingSelectionRotation =
+            placed.RotationSteps;
+
+        pendingSelectionGrabOffset =
+            grabOffset;
 
         return true;
     }

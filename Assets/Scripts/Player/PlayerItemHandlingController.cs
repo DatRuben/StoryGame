@@ -958,4 +958,77 @@ public sealed class PlayerItemHandlingController :
 
         return true;
     }
+
+    public bool TryBeginRetrieveFromContainer(
+        InventoryContainer source,
+        Vector2Int coordinate,
+        GripType gripType,
+        int gripCount,
+        out ItemHandlingOperation operation)
+    {
+        operation = null;
+
+        if (source == null ||
+            gripState == null ||
+            gripCount <= 0)
+        {
+            return false;
+        }
+
+        PlacedInventoryItem placed =
+            source.GetItemAt(
+                coordinate.x,
+                coordinate.y
+            );
+
+        if (placed == null ||
+            placed.ItemInstance == null ||
+            placed.ItemInstance.IsEmpty)
+        {
+            return false;
+        }
+
+        InventoryItemInstance item =
+            placed.ItemInstance;
+
+        if (HasOperationForItem(
+                item))
+        {
+            return false;
+        }
+
+        if (gripState.GetFreeGripCount(
+                gripType) < gripCount)
+        {
+            return false;
+        }
+
+        if (!source.TryReserveTakeAt(
+                coordinate.x,
+                coordinate.y,
+                out InventoryTakeReservation
+                    reservation))
+        {
+            return false;
+        }
+
+        operation =
+            new ItemHandlingOperation(
+                ItemHandlingOperationType.Retrieve,
+                item,
+                defaultRetrieveDuration,
+                sourceContainer: source,
+                takeReservation: reservation,
+                targetGripType: gripType,
+                targetGripCount: gripCount
+            );
+
+        queuedOperations.Add(
+            operation
+        );
+
+        TryStartNextOperation();
+
+        return true;
+    }
 }

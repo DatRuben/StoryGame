@@ -474,7 +474,7 @@ public sealed class InventoryGridUI :
         }
 
         interactionController
-            .TryPickUpItemFromContainer(
+            .TryBeginPickUpItemFromContainer(
                 inventoryContainer,
                 coordinate
             );
