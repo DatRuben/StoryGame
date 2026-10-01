@@ -164,11 +164,6 @@ public sealed class PlayerHeldItemPresenter :
             return;
         }
 
-        visual =
-            Instantiate(
-                item.Definition.worldPrefab
-            );
-
         GameObject visualRoot =
             new GameObject(
                 "HeldItemVisual"
@@ -330,10 +325,7 @@ public sealed class PlayerHeldItemPresenter :
             rightVisual != null)
         {
             Transform releaseFrame =
-                rightVisual.transform.parent;
-
-            if (releaseFrame == null)
-                return false;
+                rightVisual.transform;
 
             pose = new Pose(
                 releaseFrame.position,
@@ -349,10 +341,7 @@ public sealed class PlayerHeldItemPresenter :
             mouthVisual != null)
         {
             Transform releaseFrame =
-                mouthVisual.transform.parent;
-
-            if (releaseFrame == null)
-                return false;
+                mouthVisual.transform;
 
             pose = new Pose(
                 releaseFrame.position,
