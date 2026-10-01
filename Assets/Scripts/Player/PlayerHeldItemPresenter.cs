@@ -98,6 +98,7 @@ public sealed class PlayerHeldItemPresenter :
             RefreshVisual(
                 leftItem,
                 anchors.RightHand,
+                GripType.Hand,
                 ref rightVisualItem,
                 ref rightVisual
             );
@@ -112,6 +113,7 @@ public sealed class PlayerHeldItemPresenter :
             RefreshVisual(
                 leftItem,
                 anchors.LeftHand,
+                GripType.Hand,
                 ref leftVisualItem,
                 ref leftVisual
             );
@@ -119,6 +121,7 @@ public sealed class PlayerHeldItemPresenter :
             RefreshVisual(
                 rightItem,
                 anchors.RightHand,
+                GripType.Hand,
                 ref rightVisualItem,
                 ref rightVisual
             );
@@ -127,6 +130,7 @@ public sealed class PlayerHeldItemPresenter :
         RefreshVisual(
             mouthItem,
             anchors.Mouth,
+            GripType.Mouth,
             ref mouthVisualItem,
             ref mouthVisual
         );
@@ -135,6 +139,7 @@ public sealed class PlayerHeldItemPresenter :
     private void RefreshVisual(
         InventoryItemInstance item,
         Transform anchor,
+        GripType gripType,
         ref InventoryItemInstance shownItem,
         ref GameObject visual)
     {
@@ -164,27 +169,69 @@ public sealed class PlayerHeldItemPresenter :
                 item.Definition.worldPrefab
             );
 
-        Transform visualTransform =
-            visual.transform;
+        GameObject visualRoot =
+            new GameObject(
+                "HeldItemVisual"
+            );
 
-        Vector3 authoredLocalPosition =
-            visualTransform.localPosition;
+        Transform rootTransform =
+            visualRoot.transform;
 
-        Quaternion authoredLocalRotation =
-            visualTransform.localRotation;
+        rootTransform.position =
+            anchor.position;
 
-        visualTransform.SetParent(
+        rootTransform.rotation =
+            anchor.rotation;
+
+        rootTransform.localScale =
+            Vector3.one;
+
+        rootTransform.SetParent(
             anchor,
             true
         );
 
-        visualTransform.localPosition =
-            authoredLocalPosition;
+        GameObject itemVisual =
+            Instantiate(
+                item.Definition.worldPrefab,
+                rootTransform,
+                false
+            );
 
-        visualTransform.localRotation =
-            authoredLocalRotation;
+        if (itemVisual == null)
+        {
+            Destroy(
+                visualRoot
+            );
 
-        shownItem = item;
+            return;
+        }
+
+        HeldItemGripPoints gripPoints =
+            itemVisual.GetComponentInChildren<
+                HeldItemGripPoints>(true);
+
+        Transform gripPoint =
+            gripPoints != null
+                ? gripPoints.GetPrimaryGrip(
+                    gripType
+                )
+                : null;
+
+        if (gripPoint != null)
+        {
+            AlignGripPointToAnchor(
+                rootTransform,
+                gripPoint,
+                anchor
+            );
+        }
+
+        visual =
+            visualRoot;
+
+        shownItem =
+            item;
 
         DisablePhysics(
             visual
@@ -267,10 +314,7 @@ public sealed class PlayerHeldItemPresenter :
             leftVisual != null)
         {
             Transform releaseFrame =
-                leftVisual.transform.parent;
-
-            if (releaseFrame == null)
-                return false;
+                leftVisual.transform;
 
             pose = new Pose(
                 releaseFrame.position,
@@ -319,5 +363,35 @@ public sealed class PlayerHeldItemPresenter :
         }
 
         return false;
+    }
+
+    private static void AlignGripPointToAnchor(
+        Transform itemRoot,
+        Transform gripPoint,
+        Transform anchor)
+    {
+        if (itemRoot == null ||
+            gripPoint == null ||
+            anchor == null)
+        {
+            return;
+        }
+
+        Quaternion rotationDelta =
+            anchor.rotation *
+            Quaternion.Inverse(
+                gripPoint.rotation
+            );
+
+        itemRoot.rotation =
+            rotationDelta *
+            itemRoot.rotation;
+
+        Vector3 positionDelta =
+            anchor.position -
+            gripPoint.position;
+
+        itemRoot.position +=
+            positionDelta;
     }
 }
