@@ -47,6 +47,8 @@ public class InventoryContainer : MonoBehaviour
 
     public event Action Changed;
 
+    public event Action ReservationsChanged;
+
     private void Awake()
     {
         grid =
@@ -562,6 +564,12 @@ public class InventoryContainer : MonoBehaviour
         takeReservations =
             new List<
                 InventoryTakeReservation>();
+
+    public IReadOnlyList<
+        InventoryTransferReservation>
+        TransferReservations =>
+            transferReservations;
+
     public bool IsTakeReserved(
         InventoryItemInstance item)
     {
@@ -883,6 +891,8 @@ public class InventoryContainer : MonoBehaviour
         reservation =
             newReservation;
 
+        ReservationsChanged?.Invoke();
+
         return true;
     }
 
@@ -965,6 +975,8 @@ public class InventoryContainer : MonoBehaviour
         reservation =
             newReservation;
 
+        ReservationsChanged?.Invoke();
+
         return true;
     }
 
@@ -1025,6 +1037,8 @@ public class InventoryContainer : MonoBehaviour
         reservation =
             newReservation;
 
+        ReservationsChanged?.Invoke();
+
         return true;
     }
 
@@ -1043,6 +1057,8 @@ public class InventoryContainer : MonoBehaviour
         );
 
         reservation.IsActive = false;
+
+        ReservationsChanged?.Invoke();
 
         return true;
     }
@@ -1180,6 +1196,7 @@ public class InventoryContainer : MonoBehaviour
         );
 
         reservation.IsActive = false;
+        ReservationsChanged?.Invoke();
 
         if (movedAnything)
         {

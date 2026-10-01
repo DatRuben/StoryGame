@@ -9,34 +9,34 @@ public sealed class InventoryTransferReservation
             new List<
                 InventoryStackTransferReservation>();
 
-    internal InventoryContainer Owner
+    public InventoryContainer Owner
     {
         get;
     }
 
-    internal InventoryItemInstance SourceItem
+    public InventoryItemInstance SourceItem
     {
         get;
     }
 
-    internal IReadOnlyList<
+    public IReadOnlyList<
         InventoryStackTransferReservation>
         StackTransfers =>
             stackTransfers;
 
-    internal bool HasPlacement
+    public bool HasPlacement
     {
         get;
         private set;
     }
 
-    internal Vector2Int PlacementPosition
+    public Vector2Int PlacementPosition
     {
         get;
         private set;
     }
 
-    internal int PlacementRotationSteps
+    public int PlacementRotationSteps
     {
         get;
         private set;
@@ -108,15 +108,15 @@ public sealed class InventoryTransferReservation
     }
 }
 
-internal readonly struct
+public readonly struct
     InventoryStackTransferReservation
 {
-    internal InventoryItemInstance Target
+    public InventoryItemInstance Target
     {
         get;
     }
 
-    internal int Quantity
+    public int Quantity
     {
         get;
     }

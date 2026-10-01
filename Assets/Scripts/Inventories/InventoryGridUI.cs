@@ -65,6 +65,10 @@ public sealed class InventoryGridUI :
     private Color dragOriginalGhostColor =
         new Color(0.45f, 0.45f, 0.45f, 0.35f);
 
+    [SerializeField]
+    private Color reservedDestinationColor =
+        new Color(0.35f, 0.75f, 1f, 0.45f);
+
     [Header("Item Outlines")]
     [SerializeField]
     private Color itemOutlineColor =
@@ -283,6 +287,14 @@ public sealed class InventoryGridUI :
 
             inventoryContainer.Changed +=
                 Refresh;
+
+            inventoryContainer
+                .ReservationsChanged -=
+                    Refresh;
+
+            inventoryContainer
+                .ReservationsChanged +=
+                    Refresh;
         }
 
         if (interactionController != null)
@@ -301,6 +313,10 @@ public sealed class InventoryGridUI :
         {
             inventoryContainer.Changed -=
                 Refresh;
+
+            inventoryContainer
+                .ReservationsChanged -=
+                    Refresh;
         }
 
         if (interactionController != null)
@@ -946,6 +962,22 @@ public sealed class InventoryGridUI :
                 );
 
                 cell.SetQuantityText("");
+                continue;
+            }
+
+            if (TryGetReservationPreview(
+                coordinate,
+                out Color reservationColor,
+                out string reservationQuantity))
+            {
+                cell.SetColor(
+                    reservationColor
+                );
+
+                cell.SetQuantityText(
+                    reservationQuantity
+                );
+
                 continue;
             }
 
@@ -2233,5 +2265,135 @@ public sealed class InventoryGridUI :
 
         dragSourceContainer = null;
         draggedItem = null;
+    }
+
+    private bool TryGetReservationPreview(
+        Vector2Int coordinate,
+        out Color color,
+        out string quantityText)
+    {
+        color =
+            reservedDestinationColor;
+
+        quantityText = "";
+
+        if (inventoryContainer == null)
+            return false;
+
+        IReadOnlyList<
+            InventoryTransferReservation>
+            reservations =
+                inventoryContainer
+                    .TransferReservations;
+
+        for (int i = 0;
+             i < reservations.Count;
+             i++)
+        {
+            InventoryTransferReservation
+                reservation =
+                    reservations[i];
+
+            if (reservation == null ||
+                !reservation.IsActive)
+            {
+                continue;
+            }
+
+            if (TryGetPlacementReservationPreview(
+                    reservation,
+                    coordinate))
+            {
+                return true;
+            }
+
+            if (TryGetStackReservationPreview(
+                    reservation,
+                    coordinate,
+                    out quantityText))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool TryGetPlacementReservationPreview(
+        InventoryTransferReservation reservation,
+        Vector2Int coordinate)
+    {
+        if (!reservation.HasPlacement ||
+            reservation.SourceItem == null ||
+            reservation.SourceItem.Definition == null)
+        {
+            return false;
+        }
+
+        return InventoryShapeUtility
+            .IsOccupiedInShape(
+                reservation
+                    .SourceItem
+                    .Definition,
+                coordinate.x -
+                    reservation
+                        .PlacementPosition.x,
+                coordinate.y -
+                    reservation
+                        .PlacementPosition.y,
+                reservation
+                    .PlacementRotationSteps
+            );
+    }
+
+    private bool TryGetStackReservationPreview(
+        InventoryTransferReservation reservation,
+        Vector2Int coordinate,
+        out string quantityText)
+    {
+        quantityText = "";
+
+        IReadOnlyList<
+            InventoryStackTransferReservation>
+            transfers =
+                reservation.StackTransfers;
+
+        for (int i = 0;
+             i < transfers.Count;
+             i++)
+        {
+            InventoryStackTransferReservation
+                transfer =
+                    transfers[i];
+
+            if (transfer.Target == null)
+                continue;
+
+            PlacedInventoryItem placed =
+                inventoryContainer.GetItemAt(
+                    coordinate.x,
+                    coordinate.y
+                );
+
+            if (placed == null ||
+                !ReferenceEquals(
+                    placed.ItemInstance,
+                    transfer.Target))
+            {
+                continue;
+            }
+
+            if (coordinate ==
+                placed.Position)
+            {
+                quantityText =
+                    "+" +
+                    transfer.Quantity;
+            }
+
+            return true;
+        }
+
+        return false;
     }
 }
