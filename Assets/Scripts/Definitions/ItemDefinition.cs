@@ -151,6 +151,10 @@ public class ItemDefinition : ScriptableObject
         IsConventionalWeapon ||
         IsAttachedWeapon;
 
+    [Header("Weapon Actions")]
+
+    public WeaponActionDefinition secondaryWeaponAction;
+
     [Header("Weapon Combat")]
 
     [Min(0f)]
