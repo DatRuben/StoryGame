@@ -644,6 +644,12 @@ public class ItemDefinitionEditor : Editor
             EditorStyles.boldLabel
         );
 
+        item.isRangedWeapon =
+            EditorGUILayout.Toggle(
+                "Is Ranged Weapon",
+                item.isRangedWeapon
+            );
+
         item.baseDamage =
             Mathf.Max(
                 0f,
@@ -667,6 +673,18 @@ public class ItemDefinitionEditor : Editor
                     item.attackReach
                 )
             );
+
+        string rangedWeaponWarning =
+            item.GetRangedWeaponSetupWarning();
+
+        if (!string.IsNullOrEmpty(
+                rangedWeaponWarning))
+        {
+            EditorGUILayout.HelpBox(
+                rangedWeaponWarning,
+                MessageType.Warning
+            );
+        }
 
         EditorGUILayout.Space();
     }
