@@ -157,6 +157,8 @@ public class ItemDefinition : ScriptableObject
 
     [Header("Weapon Combat")]
 
+    public bool isRangedWeapon;
+
     [Min(0f)]
     public float baseDamage = 10f;
 
@@ -230,6 +232,20 @@ public class ItemDefinition : ScriptableObject
 
 #if UNITY_EDITOR
         EnsureDefaultWorldPrefab();
+
+        string rangedWeaponWarning =
+            GetRangedWeaponSetupWarning();
+
+        if (!string.IsNullOrEmpty(
+                rangedWeaponWarning))
+        {
+            Debug.LogWarning(
+                itemName +
+                ": " +
+                rangedWeaponWarning,
+                this
+            );
+        }
 #endif
 
         int requiredSize =
@@ -305,6 +321,39 @@ public class ItemDefinition : ScriptableObject
             equipmentCombatRole |=
                 EquipmentCombatRole.Weapon;
         }
+    }
+
+    public string GetRangedWeaponSetupWarning()
+    {
+        if (!IsLoadoutWeapon ||
+            !isRangedWeapon)
+        {
+            return null;
+        }
+
+        if (worldPrefab == null)
+        {
+            return
+                "Ranged weapon has no world prefab.";
+        }
+
+        ItemActionPoints actionPoints =
+            worldPrefab.GetComponentInChildren<
+                ItemActionPoints>(true);
+
+        if (actionPoints == null)
+        {
+            return
+                "Ranged weapon world prefab is missing ItemActionPoints.";
+        }
+
+        if (actionPoints.CastPoint == null)
+        {
+            return
+                "Ranged weapon has no CastPoint assigned.";
+        }
+
+        return null;
     }
 
     private bool HasAnyOccupiedCell()
