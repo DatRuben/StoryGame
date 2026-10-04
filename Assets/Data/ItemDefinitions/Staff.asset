@@ -19,7 +19,7 @@ MonoBehaviour:
   weight: 1
   minimumHandUseGripCount: 1
   canUseWithHands: 1
-  canUseWithMouth: 0
+  canUseWithMouth: 1
   heldControlsText: 
   weaponControlsText: 
   equipmentSlotType: 2
