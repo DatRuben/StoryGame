@@ -560,8 +560,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CombatSkillLoadout
   skillSlots:
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 11400000, guid: f0714d005d6ce6949b0fe028d59eabfa, type: 2}
+  - {fileID: 11400000, guid: 35e3f1d6f5097b0418d9b0896ae1eea3, type: 2}
   - {fileID: 0}
   - {fileID: 0}
 --- !u!82 &5825084448164040582
