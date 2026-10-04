@@ -15,6 +15,12 @@ public class PlayerInputRouter : MonoBehaviour
     public InputAction PrimaryAttackAction =>
         GetActions().Player.PrimaryAttack;
 
+    public InputAction Skill1Action =>
+        GetActions().Player.Skill1;
+
+    public InputAction Skill2Action =>
+        GetActions().Player.Skill2;
+
     public InputAction CameraLockAction =>
         GetActions().Player.CameraLock;
 
