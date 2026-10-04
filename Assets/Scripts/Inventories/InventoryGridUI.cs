@@ -34,7 +34,7 @@ public sealed class InventoryGridUI :
 
     [Header("Drag Detection")]
     [SerializeField]
-    private float dragStartDistance = 12f;
+    private float dragStartDistance = 4f;
 
     [Header("Colors")]
     [SerializeField]
@@ -684,7 +684,7 @@ public sealed class InventoryGridUI :
 
         bool pickupStarted =
             interactionController
-                .TryBeginPickUpItemFromContainer(
+                .TryPickUpItemFromContainer(
                     inventoryContainer,
                     pointerDownCoordinate
                 );
@@ -698,7 +698,7 @@ public sealed class InventoryGridUI :
         draggedItem =
             item;
 
-        awaitingDragRetrieve = true;
+        isDraggingItem = true;
         pendingDragPickup = false;
         suppressNextClick = true;
 
