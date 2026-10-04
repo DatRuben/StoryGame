@@ -131,6 +131,7 @@ GameObject:
   - component: {fileID: -5287534700248064661}
   - component: {fileID: 4972074243843039869}
   - component: {fileID: 4913475778947590220}
+  - component: {fileID: -7965249869414821225}
   - component: {fileID: 5825084448164040582}
   - component: {fileID: 2184393796824224367}
   m_Layer: 0
@@ -404,6 +405,8 @@ MonoBehaviour:
   weaponDeployment: {fileID: 5893228079581215452}
   storageInteract: {fileID: 6082714783708757298}
   playerResources: {fileID: 5991753881997761642}
+  characterAnimator: {fileID: 0}
+  isMovingParameter: isMoving
 --- !u!114 &5991753881997761642
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -542,6 +545,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 628c6c7ecccac354e993940baa9be3ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerItemHandlingController
+  defaultStoreDuration: 0.75
+  defaultRetrieveDuration: 0.75
+--- !u!114 &-7965249869414821225
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3981885625536899075}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b79b0c2db4214fe4fbbcf822adcbc4f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CombatSkillLoadout
+  skillSlots:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
 --- !u!82 &5825084448164040582
 AudioSource:
   m_ObjectHideFlags: 0
