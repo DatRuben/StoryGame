@@ -52,7 +52,8 @@ public sealed class PlayerItemHandlingController :
 
     public bool IsBusy =>
         immediateActionInProgress ||
-        activeOperation != null;
+        activeOperation != null ||
+        queuedOperations.Count > 0;
 
     public InventoryItemInstance ActiveItem =>
         activeOperation != null
@@ -364,40 +365,104 @@ public sealed class PlayerItemHandlingController :
         InventoryItemInstance item,
         InventoryContainer target)
     {
-        if (item == null ||
+        if (IsBusy ||
+            item == null ||
             item.IsEmpty ||
             gripState == null ||
             !gripState.IsHolding(item) ||
-            target == null ||
-            HasOperationForItem(item))
+            target == null)
         {
             return false;
         }
 
-        if (!target.TryReserveTransferIn(
-                item,
-                0,
-                out InventoryTransferReservation
-                    reservation))
-        {
-            return false;
-        }
+        immediateActionInProgress = true;
 
-        ItemHandlingOperation operation =
-            new ItemHandlingOperation(
-                ItemHandlingOperationType.Store,
+        try
+        {
+            if (!target.TryReserveTransferIn(
+                    item,
+                    0,
+                    out InventoryTransferReservation
+                        reservation))
+            {
+                return false;
+            }
+
+            return TryCommitStore(
                 item,
-                defaultStoreDuration,
-                null,
                 target,
-                reservation
+                reservation,
+                out _
+            );
+        }
+        finally
+        {
+            immediateActionInProgress = false;
+        }
+    }
+
+    private bool TryCommitStore(
+        InventoryItemInstance item,
+        InventoryContainer target,
+        InventoryTransferReservation reservation,
+        out int remainingQuantity)
+    {
+        remainingQuantity =
+            item != null
+                ? item.Quantity
+                : 0;
+
+        if (item == null ||
+            item.IsEmpty ||
+            target == null ||
+            reservation == null ||
+            !reservation.IsActive ||
+            gripState == null ||
+            !gripState.IsHolding(item))
+        {
+            if (reservation != null &&
+                reservation.IsActive &&
+                target != null)
+            {
+                target.CancelTransferReservation(
+                    reservation
+                );
+            }
+
+            return false;
+        }
+
+        bool movedAnything =
+            target.TryCommitTransferReservation(
+                reservation,
+                out remainingQuantity
             );
 
-        queuedOperations.Add(
-            operation
-        );
+        if (!movedAnything)
+        {
+            if (reservation.IsActive)
+            {
+                target.CancelTransferReservation(
+                    reservation
+                );
+            }
 
-        TryStartNextOperation();
+            return false;
+        }
+
+        if (remainingQuantity <= 0 ||
+            item.IsEmpty)
+        {
+            if (!gripState.Release(item))
+            {
+                Debug.LogError(
+                    "Stored item successfully but could not release it from PlayerGripState.",
+                    this
+                );
+
+                return false;
+            }
+        }
 
         return true;
     }
@@ -476,20 +541,167 @@ public sealed class PlayerItemHandlingController :
     private void TryStartNextOperation()
     {
         if (activeOperation != null ||
-            immediateActionInProgress ||
-            queuedOperations.Count == 0)
+            immediateActionInProgress)
         {
             return;
         }
 
-        activeOperation =
-            queuedOperations[0];
+        while (queuedOperations.Count > 0)
+        {
+            activeOperation =
+                queuedOperations[0];
 
-        queuedOperations.RemoveAt(0);
+            queuedOperations.RemoveAt(0);
 
-        OperationStarted?.Invoke(
-            activeOperation
+            if (!TryBeginActiveOperation(
+                    activeOperation))
+            {
+                ItemHandlingOperation failed =
+                    activeOperation;
+
+                CancelOperationReservation(
+                    failed
+                );
+
+                activeOperation = null;
+
+                OperationCancelled?.Invoke(
+                    failed
+                );
+
+                continue;
+            }
+
+            OperationStarted?.Invoke(
+                activeOperation
+            );
+
+            return;
+        }
+    }
+
+    private bool TryBeginActiveOperation(
+        ItemHandlingOperation operation)
+    {
+        if (operation == null)
+            return false;
+
+        switch (operation.Type)
+        {
+            case ItemHandlingOperationType.Transfer:
+                return TryBeginTransferOperation(
+                    operation
+                );
+
+            default:
+                return true;
+        }
+    }
+
+    private bool TryBeginTransferOperation(
+        ItemHandlingOperation operation)
+    {
+        if (operation == null ||
+            operation.Type !=
+                ItemHandlingOperationType.Transfer ||
+            operation.Item == null ||
+            operation.Item.IsEmpty ||
+            operation.SourceContainer == null ||
+            operation.TakeReservation == null ||
+            !operation.TakeReservation.IsActive ||
+            operation.TargetContainer == null ||
+            operation.TransferReservation == null ||
+            !operation.TransferReservation.IsActive ||
+            gripState == null)
+        {
+            return false;
+        }
+
+        return gripState.GetFreeGripCount(
+                   operation.TargetGripType) >=
+               operation.TargetGripCount;
+    }
+
+    private void UpdateTransferOperation()
+    {
+        ItemHandlingOperation operation =
+            activeOperation;
+
+        if (operation == null ||
+            operation.Type !=
+                ItemHandlingOperationType.Transfer ||
+            operation.Item == null ||
+            operation.Item.IsEmpty ||
+            operation.SourceContainer == null ||
+            operation.TakeReservation == null ||
+            !operation.TakeReservation.IsActive ||
+            operation.TargetContainer == null ||
+            operation.TransferReservation == null ||
+            !operation.TransferReservation.IsActive ||
+            gripState == null)
+        {
+            CancelActiveOperation();
+            return;
+        }
+
+        if (gripState.GetFreeGripCount(
+                operation.TargetGripType) <
+            operation.TargetGripCount)
+        {
+            CancelActiveOperation();
+            return;
+        }
+
+        operation.Advance(
+            Time.deltaTime
         );
+
+        if (!operation.IsComplete)
+            return;
+
+        CompleteTransferOperation();
+    }
+
+    private void CompleteTransferOperation()
+    {
+        ItemHandlingOperation operation =
+            activeOperation;
+
+        if (operation == null ||
+            operation.Type !=
+                ItemHandlingOperationType.Transfer)
+        {
+            CancelActiveOperation();
+            return;
+        }
+
+        bool movedAnything =
+            operation.TargetContainer
+                .TryCommitTransferReservation(
+                    operation.TransferReservation,
+                    out int remainingQuantity
+                );
+
+        if (!movedAnything)
+        {
+            CancelActiveOperation();
+            return;
+        }
+
+        if (remainingQuantity <= 0 ||
+            operation.Item.IsEmpty)
+        {
+            if (!gripState.Release(
+                    operation.Item))
+            {
+                Debug.LogError(
+                    "Transferred item reached its destination but could not be released from PlayerGripState.",
+                    this
+                );
+            }
+        }
+
+        CompleteActiveOperation();
     }
 
     private void Update()
@@ -504,11 +716,12 @@ public sealed class PlayerItemHandlingController :
 
         switch (ActiveOperation)
         {
-            case ItemHandlingOperationType.Store:
-                UpdateStoreOperation();
-                break;
             case ItemHandlingOperationType.Retrieve:
                 UpdateRetrieveOperation();
+                break;
+
+            case ItemHandlingOperationType.Transfer:
+                UpdateTransferOperation();
                 break;
 
             case ItemHandlingOperationType.Drop:
@@ -650,68 +863,6 @@ public sealed class PlayerItemHandlingController :
 
         CompleteActiveOperation();
     }
-
-    private void CompleteStoreOperation()
-    {
-        ItemHandlingOperation operation =
-            activeOperation;
-
-        if (operation == null ||
-            operation.Type !=
-                ItemHandlingOperationType.Store)
-        {
-            CancelActiveOperation();
-            return;
-        }
-
-        InventoryItemInstance item =
-            operation.Item;
-
-        InventoryContainer target =
-            operation.TargetContainer;
-
-        InventoryTransferReservation
-            reservation =
-                operation.TransferReservation;
-
-        if (item == null ||
-            item.IsEmpty ||
-            target == null ||
-            reservation == null ||
-            !reservation.IsActive)
-        {
-            CancelActiveOperation();
-            return;
-        }
-
-        bool movedAnything =
-            target.TryCommitTransferReservation(
-                reservation,
-                out int remainingQuantity
-            );
-
-        if (!movedAnything)
-        {
-            CancelActiveOperation();
-            return;
-        }
-
-        if (movedAnything &&
-            (remainingQuantity <= 0 ||
-             item.IsEmpty))
-        {
-            if (gripState.IsHolding(
-                    item))
-            {
-                gripState.Release(
-                    item
-                );
-            }
-        }
-
-        CompleteActiveOperation();
-    }
-
     public bool CancelActiveOperation()
     {
         ItemHandlingOperation operation =
@@ -909,17 +1060,8 @@ public sealed class PlayerItemHandlingController :
         InventoryItemInstance item =
             placed.ItemInstance;
 
-        if (HasOperationForItem(
-                item))
-        {
+        if (HasOperationForItem(item))
             return false;
-        }
-
-        if (gripState.GetFreeGripCount(
-                gripType) < gripCount)
-        {
-            return false;
-        }
 
         if (!source.TryReserveTakeAt(
                 coordinate.x,
@@ -943,34 +1085,23 @@ public sealed class PlayerItemHandlingController :
             return false;
         }
 
-        ItemHandlingOperation retrieve =
+        ItemHandlingOperation operation =
             new ItemHandlingOperation(
-                ItemHandlingOperationType.Retrieve,
+                ItemHandlingOperationType.Transfer,
                 item,
                 defaultRetrieveDuration,
                 sourceContainer: source,
+                targetContainer: target,
+                transferReservation:
+                    transferReservation,
                 takeReservation:
                     takeReservation,
                 targetGripType: gripType,
                 targetGripCount: gripCount
             );
 
-        ItemHandlingOperation store =
-            new ItemHandlingOperation(
-                ItemHandlingOperationType.Store,
-                item,
-                defaultStoreDuration,
-                targetContainer: target,
-                transferReservation:
-                    transferReservation
-            );
-
         queuedOperations.Add(
-            retrieve
-        );
-
-        queuedOperations.Add(
-            store
+            operation
         );
 
         TryStartNextOperation();
@@ -1057,62 +1188,63 @@ public sealed class PlayerItemHandlingController :
         Vector2Int stackCoordinate,
         Vector2Int placementOrigin,
         int rotationSteps,
-        out ItemHandlingOperation operation)
+        out int remainingQuantity)
     {
-        operation = null;
+        remainingQuantity =
+            item != null
+                ? item.Quantity
+                : 0;
 
-        if (item == null ||
+        if (IsBusy ||
+            item == null ||
             item.IsEmpty ||
             gripState == null ||
             !gripState.IsHolding(item) ||
-            target == null ||
-            HasOperationForItem(item))
+            target == null)
         {
             return false;
         }
 
-        InventoryTransferReservation
-            reservation;
+        immediateActionInProgress = true;
 
-        bool reserved =
-            target.TryReserveStackTransferAt(
-                item,
-                stackCoordinate.x,
-                stackCoordinate.y,
-                out reservation
-            );
-
-        if (!reserved)
+        try
         {
-            reserved =
-                target.TryReservePlacementAt(
+            InventoryTransferReservation
+                reservation;
+
+            bool reserved =
+                target.TryReserveStackTransferAt(
                     item,
-                    placementOrigin.x,
-                    placementOrigin.y,
-                    rotationSteps,
+                    stackCoordinate.x,
+                    stackCoordinate.y,
                     out reservation
                 );
-        }
 
-        if (!reserved)
-            return false;
+            if (!reserved)
+            {
+                reserved =
+                    target.TryReservePlacementAt(
+                        item,
+                        placementOrigin.x,
+                        placementOrigin.y,
+                        rotationSteps,
+                        out reservation
+                    );
+            }
 
-        operation =
-            new ItemHandlingOperation(
-                ItemHandlingOperationType.Store,
+            if (!reserved)
+                return false;
+
+            return TryCommitStore(
                 item,
-                defaultStoreDuration,
-                targetContainer: target,
-                transferReservation:
-                    reservation
+                target,
+                reservation,
+                out remainingQuantity
             );
-
-        queuedOperations.Add(
-            operation
-        );
-
-        TryStartNextOperation();
-
-        return true;
+        }
+        finally
+        {
+            immediateActionInProgress = false;
+        }
     }
 }

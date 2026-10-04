@@ -54,12 +54,6 @@ public sealed class InventoryInteractionController :
 
     private ItemHandlingOperation pendingSelectionOperation;
 
-    private ItemHandlingOperation pendingStoreSelectionOperation;
-
-    private int pendingStoreSelectionRotation;
-
-    private Vector2Int pendingStoreSelectionGrabOffset;
-
     private int pendingSelectionRotation;
 
     private Vector2Int pendingSelectionGrabOffset;
@@ -587,7 +581,7 @@ public sealed class InventoryInteractionController :
         }
 
         if (!itemHandlingController
-            .TryBeginStoreHeldItem(
+            .TryStoreHeldItem(
                 acquiredItem,
                 playerInventory))
         {
@@ -2662,17 +2656,6 @@ public sealed class InventoryInteractionController :
     private void OnItemHandlingOperationCompleted(
         ItemHandlingOperation operation)
     {
-        if (ReferenceEquals(
-                operation,
-                pendingStoreSelectionOperation))
-        {
-            RestorePendingStoreSelection(
-                operation
-            );
-
-            return;
-        }
-
         if (!ReferenceEquals(
                 operation,
                 pendingSelectionOperation))
@@ -2710,17 +2693,6 @@ public sealed class InventoryInteractionController :
     private void OnItemHandlingOperationCancelled(
         ItemHandlingOperation operation)
     {
-        if (ReferenceEquals(
-                operation,
-                pendingStoreSelectionOperation))
-        {
-            RestorePendingStoreSelection(
-                operation
-            );
-
-            return;
-        }
-
         if (!ReferenceEquals(
                 operation,
                 pendingSelectionOperation))
@@ -2832,50 +2804,7 @@ public sealed class InventoryInteractionController :
             );
     }
 
-    private void ClearPendingStoreSelectionOperation()
-    {
-        pendingStoreSelectionOperation =
-            null;
-
-        pendingStoreSelectionRotation = 0;
-
-        pendingStoreSelectionGrabOffset =
-            Vector2Int.zero;
-    }
-
-    private void RestorePendingStoreSelection(
-        ItemHandlingOperation operation)
-    {
-        InventoryItemInstance item =
-            operation != null
-                ? operation.Item
-                : null;
-
-        int rotation =
-            pendingStoreSelectionRotation;
-
-        Vector2Int grabOffset =
-            pendingStoreSelectionGrabOffset;
-
-        ClearPendingStoreSelectionOperation();
-
-        if (item == null ||
-            item.IsEmpty ||
-            gripState == null ||
-            !gripState.IsHolding(
-                item))
-        {
-            return;
-        }
-
-        cursor.Select(
-            item,
-            rotation,
-            grabOffset
-        );
-    }
-
-    public bool TryBeginStoreSelectionAt(
+    public bool TryStoreSelectionAt(
         InventoryContainer target,
         Vector2Int stackCoordinate,
         Vector2Int placementOrigin)
@@ -2893,8 +2822,6 @@ public sealed class InventoryInteractionController :
 
         if (target == null ||
             itemHandlingController == null ||
-            pendingStoreSelectionOperation !=
-                null ||
             !IsPlacementCandidate(
                 selected))
         {
@@ -2904,32 +2831,25 @@ public sealed class InventoryInteractionController :
         int rotation =
             cursor.RotationSteps;
 
-        Vector2Int grabOffset =
-            cursor.GrabOffset;
-
         if (!itemHandlingController
-            .TryBeginStoreHeldItemAt(
+            .TryStoreHeldItemAt(
                 selected,
                 target,
                 stackCoordinate,
                 placementOrigin,
                 rotation,
-                out ItemHandlingOperation
-                    operation))
+                out int remainingQuantity))
         {
             return false;
         }
 
-        pendingStoreSelectionOperation =
-            operation;
-
-        pendingStoreSelectionRotation =
-            rotation;
-
-        pendingStoreSelectionGrabOffset =
-            grabOffset;
-
-        cursor.ClearSelection();
+        if (remainingQuantity <= 0 ||
+            selected.IsEmpty ||
+            !gripState.IsHolding(
+                selected))
+        {
+            cursor.ClearSelection();
+        }
 
         return true;
     }

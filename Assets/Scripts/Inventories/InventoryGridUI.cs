@@ -829,7 +829,7 @@ public sealed class InventoryGridUI :
                 .SelectedGrabOffset;
 
         return interactionController
-            .TryBeginStoreSelectionAt(
+            .TryStoreSelectionAt(
                 inventoryContainer,
                 coordinate,
                 origin
