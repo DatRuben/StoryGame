@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using static ItemHandlingOperation;
 
 [RequireComponent(typeof(PlayerGripState))]
 [RequireComponent(typeof(PlayerHeldItemPresenter))]
@@ -288,6 +287,10 @@ public sealed class PlayerItemHandlingController :
 
         if (current != null)
         {
+            ResolveInterruptedOperation(
+                current
+            );
+
             CancelOperationReservation(
                 current
             );
@@ -589,8 +592,9 @@ public sealed class PlayerItemHandlingController :
 
         switch (operation.Type)
         {
+            case ItemHandlingOperationType.Retrieve:
             case ItemHandlingOperationType.Transfer:
-                return TryBeginTransferOperation(
+                return TryBeginContainerRetrieve(
                     operation
                 );
 
@@ -599,23 +603,37 @@ public sealed class PlayerItemHandlingController :
         }
     }
 
-    private bool TryBeginTransferOperation(
+    private bool TryBeginContainerRetrieve(
         ItemHandlingOperation operation)
     {
         if (operation == null ||
-            operation.Type !=
-                ItemHandlingOperationType.Transfer ||
             operation.Item == null ||
             operation.Item.IsEmpty ||
             operation.SourceContainer == null ||
             operation.TakeReservation == null ||
             !operation.TakeReservation.IsActive ||
-            operation.TargetContainer == null ||
-            operation.TransferReservation == null ||
-            !operation.TransferReservation.IsActive ||
             gripState == null)
         {
             return false;
+        }
+
+        if (operation.Type !=
+                ItemHandlingOperationType.Retrieve &&
+            operation.Type !=
+                ItemHandlingOperationType.Transfer)
+        {
+            return false;
+        }
+
+        if (operation.Type ==
+            ItemHandlingOperationType.Transfer)
+        {
+            if (operation.TargetContainer == null ||
+                operation.TransferReservation == null ||
+                !operation.TransferReservation.IsActive)
+            {
+                return false;
+            }
         }
 
         if (gripState.GetFreeGripCount(
@@ -625,12 +643,10 @@ public sealed class PlayerItemHandlingController :
             return false;
         }
 
-        operation.Phase =
-            ItemHandlingOperationPhase.Retrieving;
-
-        return true;
+        return TryAcquireOperationItem(
+            operation
+        );
     }
-
     private void UpdateTransferOperation()
     {
         ItemHandlingOperation operation =
@@ -641,21 +657,12 @@ public sealed class PlayerItemHandlingController :
                 ItemHandlingOperationType.Transfer ||
             operation.Item == null ||
             operation.Item.IsEmpty ||
-            operation.SourceContainer == null ||
-            operation.TakeReservation == null ||
-            !operation.TakeReservation.IsActive ||
+            gripState == null ||
+            !gripState.IsHolding(
+                operation.Item) ||
             operation.TargetContainer == null ||
             operation.TransferReservation == null ||
-            !operation.TransferReservation.IsActive ||
-            gripState == null)
-        {
-            CancelActiveOperation();
-            return;
-        }
-
-        if (gripState.GetFreeGripCount(
-                operation.TargetGripType) <
-            operation.TargetGripCount)
+            !operation.TransferReservation.IsActive)
         {
             CancelActiveOperation();
             return;
@@ -671,7 +678,7 @@ public sealed class PlayerItemHandlingController :
         CompleteTransferOperation();
     }
 
-    private bool TryAcquireTransferItem(
+    private bool TryAcquireOperationItem(
         ItemHandlingOperation operation)
     {
         if (operation == null ||
@@ -719,7 +726,7 @@ public sealed class PlayerItemHandlingController :
         if (!restored)
         {
             Debug.LogError(
-                "Transfer item could not be held or restored to its source container.",
+                "Retrieved item could not be held or restored to its source container.",
                 this
             );
         }
@@ -734,21 +741,19 @@ public sealed class PlayerItemHandlingController :
 
         if (operation == null ||
             operation.Type !=
-                ItemHandlingOperationType.Transfer)
+                ItemHandlingOperationType.Transfer ||
+            operation.Item == null ||
+            operation.Item.IsEmpty ||
+            gripState == null ||
+            !gripState.IsHolding(
+                operation.Item) ||
+            operation.TargetContainer == null ||
+            operation.TransferReservation == null ||
+            !operation.TransferReservation.IsActive)
         {
             CancelActiveOperation();
             return;
         }
-
-        if (!TryAcquireTransferItem(
-                operation))
-        {
-            CancelActiveOperation();
-            return;
-        }
-
-        operation.Phase =
-            ItemHandlingOperationPhase.InTransit;
 
         if (!TryCommitStore(
                 operation.Item,
@@ -764,8 +769,6 @@ public sealed class PlayerItemHandlingController :
     }
 
     private void ResolveInterruptedOperation(
-        
-        
         ItemHandlingOperation operation)
     {
         if (operation == null)
@@ -773,31 +776,20 @@ public sealed class PlayerItemHandlingController :
 
         switch (operation.Type)
         {
+            case ItemHandlingOperationType.Retrieve:
             case ItemHandlingOperationType.Transfer:
-                ResolveInterruptedTransfer(
+                ResolveInterruptedRetrievedItem(
                     operation
                 );
                 break;
         }
     }
 
-    private void ResolveInterruptedTransfer(
+    private void ResolveInterruptedRetrievedItem(
         ItemHandlingOperation operation)
     {
         if (operation == null)
             return;
-
-        if (operation.Phase ==
-            ItemHandlingOperationPhase.Retrieving)
-        {
-            return;
-        }
-
-        if (operation.Phase !=
-            ItemHandlingOperationPhase.InTransit)
-        {
-            return;
-        }
 
         InventoryItemInstance item =
             operation.Item;
@@ -839,7 +831,7 @@ public sealed class PlayerItemHandlingController :
         }
 
         Debug.LogError(
-            "Interrupted transfer could not return or drop its held item. The item remains in PlayerGripState to avoid losing ownership.",
+            "Interrupted item retrieval could not return or drop the held item. The item remains in PlayerGripState to preserve ownership.",
             this
         );
     }
@@ -880,20 +872,9 @@ public sealed class PlayerItemHandlingController :
                 ItemHandlingOperationType.Retrieve ||
             operation.Item == null ||
             operation.Item.IsEmpty ||
-            operation.SourceContainer == null ||
-            operation.TakeReservation == null ||
-            !operation.TakeReservation.IsActive ||
             gripState == null ||
-            gripState.IsHolding(
+            !gripState.IsHolding(
                 operation.Item))
-        {
-            CancelActiveOperation();
-            return;
-        }
-
-        if (gripState.GetFreeGripCount(
-                operation.TargetGripType) <
-            operation.TargetGripCount)
         {
             CancelActiveOperation();
             return;
@@ -905,74 +886,6 @@ public sealed class PlayerItemHandlingController :
 
         if (!operation.IsComplete)
             return;
-
-        CompleteRetrieveOperation();
-    }
-
-    private void CompleteRetrieveOperation()
-    {
-        ItemHandlingOperation operation =
-            activeOperation;
-
-        if (operation == null ||
-            operation.Type !=
-                ItemHandlingOperationType.Retrieve)
-        {
-            CancelActiveOperation();
-            return;
-        }
-
-        InventoryContainer source =
-            operation.SourceContainer;
-
-        InventoryTakeReservation reservation =
-            operation.TakeReservation;
-
-        InventoryItemInstance item =
-            operation.Item;
-
-        if (!source.TryCommitTakeReservation(
-                reservation,
-                out PlacedInventoryItem
-                    removedItem))
-        {
-            CancelActiveOperation();
-            return;
-        }
-
-        if (removedItem == null ||
-            !ReferenceEquals(
-                removedItem.ItemInstance,
-                item))
-        {
-            CancelActiveOperation();
-            return;
-        }
-
-        if (!gripState.TryHold(
-                item,
-                operation.TargetGripType,
-                operation.TargetGripCount))
-        {
-            bool restored =
-                source.PlaceInstance(
-                    item,
-                    reservation.Position.x,
-                    reservation.Position.y,
-                    reservation.RotationSteps
-                );
-
-            if (!restored)
-            {
-                Debug.LogError(
-                    "Retrieved item could not be held or restored.",
-                    this
-                );
-            }
-
-            CancelActiveOperation();
-            return;
-        }
 
         CompleteActiveOperation();
     }

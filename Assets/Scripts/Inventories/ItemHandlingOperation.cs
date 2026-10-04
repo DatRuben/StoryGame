@@ -18,13 +18,6 @@ public sealed class ItemHandlingOperation
         get;
     }
 
-    public enum ItemHandlingOperationPhase
-    {
-        None,
-        Retrieving,
-        InTransit
-    }
-
     public InventoryItemInstance Item
     {
         get;
@@ -50,12 +43,6 @@ public sealed class ItemHandlingOperation
         TakeReservation
     {
         get;
-    }
-
-    public ItemHandlingOperationPhase Phase
-    {
-        get;
-        internal set;
     }
 
     public GripType TargetGripType
@@ -137,8 +124,6 @@ public sealed class ItemHandlingOperation
                 0,
                 targetGripCount
             );
-
-        Phase = ItemHandlingOperationPhase.None;
     }
 
     internal void Advance(
