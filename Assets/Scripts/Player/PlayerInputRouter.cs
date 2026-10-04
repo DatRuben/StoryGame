@@ -26,6 +26,7 @@ public class PlayerInputRouter : MonoBehaviour
 
     public InputAction Skill4Action =>
         GetActions().Player.Skill4;
+
     public InputAction CameraLockAction =>
         GetActions().Player.CameraLock;
 
