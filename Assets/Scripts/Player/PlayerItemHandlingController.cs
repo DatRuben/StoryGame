@@ -10,10 +10,6 @@ public sealed class PlayerItemHandlingController :
 {
     [SerializeField]
     [Min(0.05f)]
-    private float defaultStoreDuration = 0.75f;
-
-    [SerializeField]
-    [Min(0.05f)]
     private float defaultRetrieveDuration = 0.75f;
 
     private ItemHandlingOperation activeOperation;
@@ -364,7 +360,7 @@ public sealed class PlayerItemHandlingController :
         }
     }
 
-    public bool TryBeginStoreHeldItem(
+    public bool TryStoreHeldItem(
         InventoryItemInstance item,
         InventoryContainer target)
     {
@@ -519,37 +515,6 @@ public sealed class PlayerItemHandlingController :
                 CompleteDropOperation();
                 break;
         }
-    }
-
-    private void UpdateStoreOperation()
-    {
-        ItemHandlingOperation operation =
-            activeOperation;
-
-        if (operation == null ||
-            operation.Type !=
-                ItemHandlingOperationType.Store ||
-            operation.Item == null ||
-            operation.Item.IsEmpty ||
-            gripState == null ||
-            !gripState.IsHolding(
-                operation.Item) ||
-            operation.TargetContainer == null ||
-            operation.TransferReservation == null ||
-            !operation.TransferReservation.IsActive)
-        {
-            CancelActiveOperation();
-            return;
-        }
-
-        operation.Advance(
-            Time.deltaTime
-        );
-
-        if (!operation.IsComplete)
-            return;
-
-        CompleteStoreOperation();
     }
 
     private void UpdateRetrieveOperation()
@@ -1086,7 +1051,7 @@ public sealed class PlayerItemHandlingController :
         return true;
     }
 
-    public bool TryBeginStoreHeldItemAt(
+    public bool TryStoreHeldItemAt(
         InventoryItemInstance item,
         InventoryContainer target,
         Vector2Int stackCoordinate,
