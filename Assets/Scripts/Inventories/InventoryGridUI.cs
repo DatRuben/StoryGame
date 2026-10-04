@@ -110,7 +110,7 @@ public sealed class InventoryGridUI :
     private bool pointerIsDown;
     private bool pendingDragPickup;
     private bool isDraggingItem;
-    private bool suppressNextClick;
+    private int suppressClickFrame = -1;
 
     private Vector2 pointerDownScreenPosition;
     private Vector2Int pointerDownCoordinate;
@@ -119,6 +119,7 @@ public sealed class InventoryGridUI :
     private InventoryItemInstance draggedItem;
     private Vector2Int dragOriginalPosition;
     private int dragOriginalRotationSteps;
+    private Vector2Int dragGrabOffset;
 
     public InventoryContainer Container =>
         inventoryContainer;
@@ -421,31 +422,23 @@ public sealed class InventoryGridUI :
             return;
         }
 
-        if (suppressNextClick)
+        if (suppressClickFrame ==
+            Time.frameCount)
         {
-            suppressNextClick = false;
             return;
         }
 
         if (interactionController.HasSelection)
         {
-            if (interactionController
-                .TryMergeSelectionIntoStackAt(
-                    inventoryContainer,
-                    coordinate))
-            {
-                RefreshAllGrids();
-                return;
-            }
-
             Vector2Int origin =
                 coordinate -
                 interactionController
                     .SelectedGrabOffset;
 
             interactionController
-                .TryPlaceSelection(
+                .TryStoreSelectionAt(
                     inventoryContainer,
+                    coordinate,
                     origin
                 );
 
@@ -527,9 +520,6 @@ public sealed class InventoryGridUI :
         {
             return;
         }
-
-        if (suppressNextClick)
-            suppressNextClick = false;
 
         pointerIsDown = true;
         pendingDragPickup = false;
@@ -653,14 +643,34 @@ public sealed class InventoryGridUI :
         dragOriginalPosition =
             placedItem.Position;
 
+        dragGrabOffset =
+            pointerDownCoordinate -
+            placedItem.Position;
+
         dragOriginalRotationSteps =
             placedItem.RotationSteps;
 
         isDraggingItem = true;
         pendingDragPickup = false;
-        suppressNextClick = true;
 
         RefreshAllGrids();
+    }
+
+    private void ClearDragState()
+    {
+        pointerIsDown = false;
+        pendingDragPickup = false;
+        isDraggingItem = false;
+
+        dragSourceContainer = null;
+        draggedItem = null;
+
+        dragOriginalPosition =
+            Vector2Int.zero;
+
+        dragOriginalRotationSteps = 0;
+        dragGrabOffset =
+            Vector2Int.zero;
     }
 
     private void HandleDragRelease()
@@ -680,18 +690,18 @@ public sealed class InventoryGridUI :
 
     private void CompleteDragDrop()
     {
+        suppressClickFrame =
+            Time.frameCount;
+
         pointerIsDown = false;
         pendingDragPickup = false;
-        suppressNextClick = true;
 
         if (interactionController == null ||
-            !interactionController.HasSelection ||
+            dragSourceContainer == null ||
+            draggedItem == null ||
             Mouse.current == null)
         {
-            isDraggingItem = false;
-            dragSourceContainer = null;
-            draggedItem = null;
-
+            ClearDragState();
             RefreshAllGrids();
             return;
         }
@@ -699,7 +709,7 @@ public sealed class InventoryGridUI :
         Vector2 screenPosition =
             Mouse.current.position.ReadValue();
 
-        bool acceptedDrop = false;
+        bool pointerOverGrid = false;
 
         for (int i = 0;
              i < activeGrids.Count;
@@ -709,89 +719,65 @@ public sealed class InventoryGridUI :
                 activeGrids[i];
 
             if (grid == null ||
-                !grid.isActiveAndEnabled)
+                !grid.isActiveAndEnabled ||
+                grid.inventoryContainer == null)
             {
                 continue;
             }
 
-            if (!grid.TryDropSelectionAtScreenPoint(
-                screenPosition))
+            if (!grid.TryGetGridCoordinateFromScreenPoint(
+                    screenPosition,
+                    out Vector2Int coordinate))
             {
                 continue;
             }
 
-            acceptedDrop = true;
+            pointerOverGrid = true;
+
+            Vector2Int targetOrigin =
+                coordinate -
+                dragGrabOffset;
+
+            if (ReferenceEquals(
+                    grid.inventoryContainer,
+                    dragSourceContainer))
+            {
+                interactionController
+                    .TryRepositionItem(
+                        dragSourceContainer,
+                        draggedItem,
+                        dragOriginalPosition,
+                        targetOrigin,
+                        dragOriginalRotationSteps
+                    );
+            }
+            else
+            {
+                interactionController
+                    .TryBeginDragTransfer(
+                        dragSourceContainer,
+                        grid.inventoryContainer,
+                        dragOriginalPosition,
+                        coordinate,
+                        targetOrigin,
+                        dragOriginalRotationSteps
+                    );
+            }
+
             break;
         }
 
-        if (!acceptedDrop &&
-            dragSourceContainer != null &&
-            draggedItem != null &&
-            ReferenceEquals(
-                interactionController.SelectedItem,
-                draggedItem))
+        if (!pointerOverGrid)
         {
-            bool dropped =
-                interactionController
-                    .TryDropHeldItem(
-                        draggedItem
-                    );
-
-            if (!dropped)
-            {
-                bool returned =
-                    interactionController
-                        .TryReturnSelectionToContainer(
-                            dragSourceContainer,
-                            dragOriginalPosition,
-                            dragOriginalRotationSteps
-                        );
-
-                if (!returned)
-                {
-                    Debug.LogWarning(
-                        "Dragged item could not be dropped or returned to its original inventory position.",
-                        this
-                    );
-                }
-            }
-        }
-
-        isDraggingItem = false;
-        dragSourceContainer = null;
-        draggedItem = null;
-
-        RefreshAllGrids();
-    }
-
-    public bool TryDropSelectionAtScreenPoint(
-        Vector2 screenPosition)
-    {
-        if (inventoryContainer == null ||
-            interactionController == null ||
-            !interactionController.HasSelection)
-        {
-            return false;
-        }
-
-        if (!TryGetGridCoordinateFromScreenPoint(
-            screenPosition,
-            out Vector2Int coordinate))
-        {
-            return false;
-        }
-
-        Vector2Int origin =
-            coordinate -
             interactionController
-                .SelectedGrabOffset;
+                .TryDropItemFromContainer(
+                    dragSourceContainer,
+                    dragOriginalPosition
+                );
+        }
 
-        return interactionController
-            .TryStoreSelectionAt(
-                inventoryContainer,
-                coordinate,
-                origin
-            );
+        ClearDragState();
+        RefreshAllGrids();
     }
 
     private bool IsQuickTransferHeld()

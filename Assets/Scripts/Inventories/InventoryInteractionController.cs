@@ -911,109 +911,6 @@ public sealed class InventoryInteractionController :
         );
     }
 
-    public bool TryPickUpItemFromContainer(
-        InventoryContainer source,
-        Vector2Int coordinate)
-    {
-        if (gameplayState != null &&
-            !gameplayState.Allows(
-            PlayerGameplayCapability.ItemHandling))
-        {
-            return false;
-        }
-
-        if (loadoutAssignmentItem != null ||
-            source == null ||
-            cursor.HasSelection)
-        {
-            return false;
-        }
-
-        PlacedInventoryItem placedItem =
-            source.GetItemAt(
-                coordinate.x,
-                coordinate.y
-            );
-
-        if (placedItem == null ||
-            placedItem.ItemInstance == null ||
-            placedItem.ItemDefinition == null)
-        {
-            return false;
-        }
-
-        InventoryItemInstance itemInstance =
-            placedItem.ItemInstance;
-
-        if (!TryFindHoldPlan(
-            itemInstance,
-            out GripType gripType,
-            out int gripCount))
-        {
-            return false;
-        }
-
-        Vector2Int originalPosition =
-            placedItem.Position;
-
-        int originalRotation =
-            placedItem.RotationSteps;
-
-        Vector2Int grabOffset =
-            coordinate -
-            originalPosition;
-
-        PlacedInventoryItem removedItem =
-            source.TakeItemAt(
-                coordinate.x,
-                coordinate.y
-            );
-
-        if (removedItem == null ||
-            !ReferenceEquals(
-                removedItem.ItemInstance,
-                itemInstance))
-        {
-            return false;
-        }
-
-        if (!gripState.TryHold(
-            itemInstance,
-            gripType,
-            gripCount))
-        {
-            source.PlaceInstance(
-                itemInstance,
-                originalPosition.x,
-                originalPosition.y,
-                originalRotation
-            );
-
-            return false;
-        }
-
-        if (!cursor.Select(
-            itemInstance,
-            originalRotation,
-            grabOffset))
-        {
-            gripState.Release(
-                itemInstance
-            );
-
-            source.PlaceInstance(
-                itemInstance,
-                originalPosition.x,
-                originalPosition.y,
-                originalRotation
-            );
-
-            return false;
-        }
-
-        return true;
-    }
-
     public bool CanPlaceSelection(
         InventoryContainer target,
         Vector2Int origin)
@@ -2540,54 +2437,32 @@ public sealed class InventoryInteractionController :
         }
     }
 
-    public bool TryReturnSelectionToContainer(
-    InventoryContainer target,
-    Vector2Int originalPosition,
-    int originalRotationSteps)
+    private void TrySelectPendingRetrieve(
+        ItemHandlingOperation operation)
     {
-        InventoryItemInstance selected =
-            cursor.SelectedItem;
-
-        if (target == null ||
-            !IsPlacementCandidate(
-                selected))
+        if (!ReferenceEquals(
+                operation,
+                pendingSelectionOperation))
         {
-            return false;
+            return;
         }
 
-        if (!cursor.Select(
-            selected,
-            originalRotationSteps,
-            Vector2Int.zero))
+        InventoryItemInstance item =
+            operation.Item;
+
+        if (item == null ||
+            item.IsEmpty ||
+            gripState == null ||
+            !gripState.IsHolding(item))
         {
-            return false;
+            return;
         }
 
-        bool placed =
-            target.PlaceInstance(
-                selected,
-                originalPosition.x,
-                originalPosition.y,
-                originalRotationSteps
-            );
-
-        if (!placed)
-            return false;
-
-        if (!gripState.Release(
-            selected))
-        {
-            target.TakeItemAt(
-                originalPosition.x,
-                originalPosition.y
-            );
-
-            return false;
-        }
-
-        cursor.ClearSelection();
-
-        return true;
+        cursor.Select(
+            item,
+            pendingSelectionRotation,
+            pendingSelectionGrabOffset
+        );
     }
 
     public bool HasUsableSelectedHeldItem
@@ -2666,31 +2541,7 @@ public sealed class InventoryInteractionController :
             return;
         }
 
-        InventoryItemInstance item =
-            operation.Item;
-
-        int rotation =
-            pendingSelectionRotation;
-
-        Vector2Int grabOffset =
-            pendingSelectionGrabOffset;
-
         ClearPendingSelectionOperation();
-
-        if (item == null ||
-            item.IsEmpty ||
-            gripState == null ||
-            !gripState.IsHolding(
-                item))
-        {
-            return;
-        }
-
-        cursor.Select(
-            item,
-            rotation,
-            grabOffset
-        );
     }
 
     private void OnItemHandlingOperationCancelled(
@@ -2701,6 +2552,13 @@ public sealed class InventoryInteractionController :
                 pendingSelectionOperation))
         {
             return;
+        }
+
+        if (ReferenceEquals(
+                cursor.SelectedItem,
+                operation.Item))
+        {
+            cursor.ClearSelection();
         }
 
         ClearPendingSelectionOperation();
@@ -2786,6 +2644,10 @@ public sealed class InventoryInteractionController :
 
         pendingSelectionGrabOffset =
             grabOffset;
+
+        TrySelectPendingRetrieve(
+            operation
+        );
 
         return true;
     }
@@ -2945,5 +2807,13 @@ public sealed class InventoryInteractionController :
                 gripType,
                 gripCount
             );
+    }
+
+    private void OnItemHandlingOperationStarted(
+        ItemHandlingOperation operation)
+    {
+        TrySelectPendingRetrieve(
+            operation
+        );
     }
 }
