@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using static ItemHandlingOperation;
 
 [RequireComponent(typeof(PlayerGripState))]
 [RequireComponent(typeof(PlayerHeldItemPresenter))]
@@ -617,9 +618,17 @@ public sealed class PlayerItemHandlingController :
             return false;
         }
 
-        return gripState.GetFreeGripCount(
-                   operation.TargetGripType) >=
-               operation.TargetGripCount;
+        if (gripState.GetFreeGripCount(
+                operation.TargetGripType) <
+            operation.TargetGripCount)
+        {
+            return false;
+        }
+
+        operation.Phase =
+            ItemHandlingOperationPhase.Retrieving;
+
+        return true;
     }
 
     private void UpdateTransferOperation()
@@ -662,6 +671,62 @@ public sealed class PlayerItemHandlingController :
         CompleteTransferOperation();
     }
 
+    private bool TryAcquireTransferItem(
+        ItemHandlingOperation operation)
+    {
+        if (operation == null ||
+            operation.SourceContainer == null ||
+            operation.TakeReservation == null ||
+            !operation.TakeReservation.IsActive ||
+            gripState == null)
+        {
+            return false;
+        }
+
+        if (!operation.SourceContainer
+            .TryCommitTakeReservation(
+                operation.TakeReservation,
+                out PlacedInventoryItem removedItem))
+        {
+            return false;
+        }
+
+        if (removedItem == null ||
+            !ReferenceEquals(
+                removedItem.ItemInstance,
+                operation.Item))
+        {
+            return false;
+        }
+
+        if (gripState.TryHold(
+                operation.Item,
+                operation.TargetGripType,
+                operation.TargetGripCount))
+        {
+            return true;
+        }
+
+        bool restored =
+            operation.SourceContainer
+                .PlaceInstance(
+                    operation.Item,
+                    operation.TakeReservation.Position.x,
+                    operation.TakeReservation.Position.y,
+                    operation.TakeReservation.RotationSteps
+                );
+
+        if (!restored)
+        {
+            Debug.LogError(
+                "Transfer item could not be held or restored to its source container.",
+                this
+            );
+        }
+
+        return false;
+    }
+
     private void CompleteTransferOperation()
     {
         ItemHandlingOperation operation =
@@ -675,33 +740,108 @@ public sealed class PlayerItemHandlingController :
             return;
         }
 
-        bool movedAnything =
-            operation.TargetContainer
-                .TryCommitTransferReservation(
-                    operation.TransferReservation,
-                    out int remainingQuantity
-                );
-
-        if (!movedAnything)
+        if (!TryAcquireTransferItem(
+                operation))
         {
             CancelActiveOperation();
             return;
         }
 
-        if (remainingQuantity <= 0 ||
-            operation.Item.IsEmpty)
+        operation.Phase =
+            ItemHandlingOperationPhase.InTransit;
+
+        if (!TryCommitStore(
+                operation.Item,
+                operation.TargetContainer,
+                operation.TransferReservation,
+                out _))
         {
-            if (!gripState.Release(
-                    operation.Item))
-            {
-                Debug.LogError(
-                    "Transferred item reached its destination but could not be released from PlayerGripState.",
-                    this
-                );
-            }
+            CancelActiveOperation();
+            return;
         }
 
         CompleteActiveOperation();
+    }
+
+    private void ResolveInterruptedOperation(
+        
+        
+        ItemHandlingOperation operation)
+    {
+        if (operation == null)
+            return;
+
+        switch (operation.Type)
+        {
+            case ItemHandlingOperationType.Transfer:
+                ResolveInterruptedTransfer(
+                    operation
+                );
+                break;
+        }
+    }
+
+    private void ResolveInterruptedTransfer(
+        ItemHandlingOperation operation)
+    {
+        if (operation == null)
+            return;
+
+        if (operation.Phase ==
+            ItemHandlingOperationPhase.Retrieving)
+        {
+            return;
+        }
+
+        if (operation.Phase !=
+            ItemHandlingOperationPhase.InTransit)
+        {
+            return;
+        }
+
+        InventoryItemInstance item =
+            operation.Item;
+
+        if (item == null ||
+            item.IsEmpty ||
+            gripState == null ||
+            !gripState.IsHolding(item))
+        {
+            return;
+        }
+
+        bool returnedToSource = false;
+
+        if (operation.SourceContainer != null &&
+            operation.TakeReservation != null)
+        {
+            returnedToSource =
+                operation.SourceContainer
+                    .PlaceInstance(
+                        item,
+                        operation.TakeReservation.Position.x,
+                        operation.TakeReservation.Position.y,
+                        operation.TakeReservation.RotationSteps
+                    );
+        }
+
+        if (returnedToSource)
+        {
+            gripState.Release(item);
+            return;
+        }
+
+        if (TryReleaseHeldItemToWorld(
+                item,
+                out _))
+        {
+            return;
+        }
+
+        Debug.LogError(
+            "Interrupted transfer could not return or drop its held item. The item remains in PlayerGripState to avoid losing ownership.",
+            this
+        );
     }
 
     private void Update()
@@ -873,6 +1013,10 @@ public sealed class PlayerItemHandlingController :
 
         CancelQueuedOperationsForItem(
             operation.Item
+        );
+
+        ResolveInterruptedOperation(
+            operation
         );
 
         CancelOperationReservation(

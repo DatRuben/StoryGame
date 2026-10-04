@@ -4,7 +4,6 @@ public enum ItemHandlingOperationType
 {
     None,
     Pickup,
-    Store,
     Retrieve,
     Transfer,
     Drop,
@@ -17,6 +16,13 @@ public sealed class ItemHandlingOperation
     public ItemHandlingOperationType Type
     {
         get;
+    }
+
+    public enum ItemHandlingOperationPhase
+    {
+        None,
+        Retrieving,
+        InTransit
     }
 
     public InventoryItemInstance Item
@@ -41,9 +47,15 @@ public sealed class ItemHandlingOperation
     }
 
     public InventoryTakeReservation
-    TakeReservation
+        TakeReservation
     {
         get;
+    }
+
+    public ItemHandlingOperationPhase Phase
+    {
+        get;
+        internal set;
     }
 
     public GripType TargetGripType
@@ -125,6 +137,8 @@ public sealed class ItemHandlingOperation
                 0,
                 targetGripCount
             );
+
+        Phase = ItemHandlingOperationPhase.None;
     }
 
     internal void Advance(
