@@ -158,6 +158,122 @@ public class InventoryContainer : MonoBehaviour
         return true;
     }
 
+    public bool TryRepositionItem(
+        InventoryItemInstance itemInstance,
+        Vector2Int sourceCoordinate,
+        Vector2Int targetPosition,
+        int targetRotationSteps)
+    {
+        if (grid == null ||
+            itemInstance == null ||
+            itemInstance.IsEmpty ||
+            itemInstance.Definition == null)
+        {
+            return false;
+        }
+
+        PlacedInventoryItem placed =
+            grid.GetPlacedItem(
+                sourceCoordinate.x,
+                sourceCoordinate.y
+            );
+
+        if (placed == null ||
+            !ReferenceEquals(
+                placed.ItemInstance,
+                itemInstance))
+        {
+            return false;
+        }
+
+        if (IsTakeReserved(
+                itemInstance) ||
+            GetReservedStackQuantity(
+                itemInstance,
+                null) > 0)
+        {
+            return false;
+        }
+
+        Vector2Int originalPosition =
+            placed.Position;
+
+        int originalRotation =
+            placed.RotationSteps;
+
+        targetRotationSteps =
+            ItemDefinition
+                .NormalizeRotationSteps(
+                    targetRotationSteps
+                );
+
+        if (originalPosition ==
+                targetPosition &&
+            originalRotation ==
+                targetRotationSteps)
+        {
+            return true;
+        }
+
+        PlacedInventoryItem removed =
+            grid.PickUpItemAt(
+                sourceCoordinate.x,
+                sourceCoordinate.y
+            );
+
+        if (removed == null ||
+            !ReferenceEquals(
+                removed.ItemInstance,
+                itemInstance))
+        {
+            return false;
+        }
+
+        bool canPlace =
+            CanPlaceWithReservations(
+                itemInstance.Definition,
+                targetPosition.x,
+                targetPosition.y,
+                targetRotationSteps,
+                null
+            );
+
+        bool moved =
+            canPlace &&
+            grid.PlaceItem(
+                itemInstance,
+                targetPosition.x,
+                targetPosition.y,
+                targetRotationSteps
+            );
+
+        if (moved)
+        {
+            Changed?.Invoke();
+            return true;
+        }
+
+        bool restored =
+            grid.PlaceItem(
+                itemInstance,
+                originalPosition.x,
+                originalPosition.y,
+                originalRotation
+            );
+
+        if (!restored)
+        {
+            Debug.LogError(
+                "Inventory item reposition failed and its original placement could not be restored.",
+                this
+            );
+
+            Changed?.Invoke();
+        }
+
+        return false;
+    }
+
     public PlacedInventoryItem TakeItemAt(
         int x,
         int y)

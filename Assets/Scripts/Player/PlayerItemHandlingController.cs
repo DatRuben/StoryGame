@@ -1142,6 +1142,149 @@ public sealed class PlayerItemHandlingController :
             return false;
         }
 
+        return QueueContainerTransfer(
+            item,
+            source,
+            target,
+            takeReservation,
+            transferReservation,
+            gripType,
+            gripCount
+        );
+    }
+
+    public bool TryBeginTransferFromContainerAt(
+        InventoryContainer source,
+        InventoryContainer target,
+        Vector2Int sourceCoordinate,
+        Vector2Int targetStackCoordinate,
+        Vector2Int targetPlacementOrigin,
+        int targetRotationSteps,
+        GripType gripType,
+        int gripCount)
+    {
+        if (source == null ||
+            target == null ||
+            ReferenceEquals(
+                source,
+                target) ||
+            gripState == null ||
+            gripCount <= 0)
+        {
+            return false;
+        }
+
+        PlacedInventoryItem placed =
+            source.GetItemAt(
+                sourceCoordinate.x,
+                sourceCoordinate.y
+            );
+
+        if (placed == null ||
+            placed.ItemInstance == null ||
+            placed.ItemInstance.IsEmpty)
+        {
+            return false;
+        }
+
+        InventoryItemInstance item =
+            placed.ItemInstance;
+
+        if (HasOperationForItem(item))
+            return false;
+
+        if (!source.TryReserveTakeAt(
+                sourceCoordinate.x,
+                sourceCoordinate.y,
+                out InventoryTakeReservation
+                    takeReservation))
+        {
+            return false;
+        }
+
+        InventoryTransferReservation
+            transferReservation;
+
+        bool reserved =
+            target.TryReserveStackTransferAt(
+                item,
+                targetStackCoordinate.x,
+                targetStackCoordinate.y,
+                out transferReservation
+            );
+
+        if (!reserved)
+        {
+            reserved =
+                target.TryReservePlacementAt(
+                    item,
+                    targetPlacementOrigin.x,
+                    targetPlacementOrigin.y,
+                    targetRotationSteps,
+                    out transferReservation
+                );
+        }
+
+        if (!reserved)
+        {
+            source.CancelTakeReservation(
+                takeReservation
+            );
+
+            return false;
+        }
+
+        return QueueContainerTransfer(
+            item,
+            source,
+            target,
+            takeReservation,
+            transferReservation,
+            gripType,
+            gripCount
+        );
+    }
+
+    private bool QueueContainerTransfer(
+        InventoryItemInstance item,
+        InventoryContainer source,
+        InventoryContainer target,
+        InventoryTakeReservation takeReservation,
+        InventoryTransferReservation transferReservation,
+        GripType gripType,
+        int gripCount)
+    {
+        if (item == null ||
+            item.IsEmpty ||
+            source == null ||
+            target == null ||
+            takeReservation == null ||
+            !takeReservation.IsActive ||
+            transferReservation == null ||
+            !transferReservation.IsActive ||
+            gripCount <= 0)
+        {
+            if (takeReservation != null &&
+                takeReservation.IsActive &&
+                source != null)
+            {
+                source.CancelTakeReservation(
+                    takeReservation
+                );
+            }
+
+            if (transferReservation != null &&
+                transferReservation.IsActive &&
+                target != null)
+            {
+                target.CancelTransferReservation(
+                    transferReservation
+                );
+            }
+
+            return false;
+        }
+
         ItemHandlingOperation operation =
             new ItemHandlingOperation(
                 ItemHandlingOperationType.Transfer,

@@ -2856,4 +2856,94 @@ public sealed class InventoryInteractionController :
 
         return true;
     }
+
+    public bool TryRepositionItem(
+        InventoryContainer container,
+        InventoryItemInstance item,
+        Vector2Int sourceCoordinate,
+        Vector2Int targetPosition,
+        int rotationSteps)
+    {
+        if (gameplayState != null &&
+            !gameplayState.Allows(
+                PlayerGameplayCapability.ItemHandling))
+        {
+            return false;
+        }
+
+        if (container == null ||
+            item == null ||
+            item.IsEmpty ||
+            loadoutAssignmentItem != null)
+        {
+            return false;
+        }
+
+        return container.TryRepositionItem(
+            item,
+            sourceCoordinate,
+            targetPosition,
+            rotationSteps
+        );
+    }
+
+    public bool TryBeginDragTransfer(
+        InventoryContainer source,
+        InventoryContainer target,
+        Vector2Int sourceCoordinate,
+        Vector2Int targetStackCoordinate,
+        Vector2Int targetPlacementOrigin,
+        int targetRotationSteps)
+    {
+        if (gameplayState != null &&
+            !gameplayState.Allows(
+                PlayerGameplayCapability.ItemHandling))
+        {
+            return false;
+        }
+
+        if (source == null ||
+            target == null ||
+            ReferenceEquals(
+                source,
+                target) ||
+            itemHandlingController == null ||
+            loadoutAssignmentItem != null)
+        {
+            return false;
+        }
+
+        PlacedInventoryItem placed =
+            source.GetItemAt(
+                sourceCoordinate.x,
+                sourceCoordinate.y
+            );
+
+        if (placed == null ||
+            placed.ItemInstance == null ||
+            placed.ItemInstance.IsEmpty)
+        {
+            return false;
+        }
+
+        if (!TryFindHoldPlan(
+                placed.ItemInstance,
+                out GripType gripType,
+                out int gripCount))
+        {
+            return false;
+        }
+
+        return itemHandlingController
+            .TryBeginTransferFromContainerAt(
+                source,
+                target,
+                sourceCoordinate,
+                targetStackCoordinate,
+                targetPlacementOrigin,
+                targetRotationSteps,
+                gripType,
+                gripCount
+            );
+    }
 }
