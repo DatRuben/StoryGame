@@ -653,6 +653,8 @@ public sealed class InventoryGridUI :
         isDraggingItem = true;
         pendingDragPickup = false;
 
+        BuildHeldItemPreview();
+
         RefreshAllGrids();
     }
 
@@ -671,6 +673,8 @@ public sealed class InventoryGridUI :
         dragOriginalRotationSteps = 0;
         dragGrabOffset =
             Vector2Int.zero;
+
+        BuildHeldItemPreview();
     }
 
     private void HandleDragRelease()
@@ -1398,10 +1402,7 @@ public sealed class InventoryGridUI :
         );
 
         if (!heldPreviewEnabled ||
-            interactionController == null ||
-            !interactionController.HasSelection ||
-            interactionController
-                .SelectedDefinition == null)
+            !HasItemPreview)
         {
             heldPreviewRoot.gameObject
                 .SetActive(false);
@@ -1410,12 +1411,10 @@ public sealed class InventoryGridUI :
         }
 
         ItemDefinition definition =
-            interactionController
-                .SelectedDefinition;
+            PreviewDefinition;
 
         int rotation =
-            interactionController
-                .SelectedRotationSteps;
+            PreviewRotationSteps;
 
         int width =
             definition.GetWidth(
@@ -1535,8 +1534,7 @@ public sealed class InventoryGridUI :
 
         bool shouldShow =
             heldPreviewEnabled &&
-            interactionController != null &&
-            interactionController.HasSelection &&
+            HasItemPreview &&
             InventoryMenuController
                 .IsInventoryOpen;
 
@@ -1595,15 +1593,13 @@ public sealed class InventoryGridUI :
     private Vector2 GetPreviewGrabPoint()
     {
         ItemDefinition definition =
-            interactionController
-                .SelectedDefinition;
+            PreviewDefinition;
 
         if (definition == null)
             return Vector2.zero;
 
         int rotation =
-            interactionController
-                .SelectedRotationSteps;
+            PreviewRotationSteps;
 
         int height =
             definition.GetHeight(
@@ -1617,8 +1613,7 @@ public sealed class InventoryGridUI :
             heldPreviewLayoutGroup.spacing;
 
         Vector2Int grabOffset =
-            interactionController
-                .SelectedGrabOffset;
+            PreviewGrabOffset;
 
         int visualRowFromTop =
             height -
@@ -2260,4 +2255,43 @@ public sealed class InventoryGridUI :
 
         return false;
     }
+
+    private InventoryItemInstance PreviewItem
+    {
+        get
+        {
+            if (isDraggingItem)
+                return draggedItem;
+
+            return interactionController != null
+                ? interactionController.SelectedItem
+                : null;
+        }
+    }
+
+    private ItemDefinition PreviewDefinition =>
+        PreviewItem != null
+            ? PreviewItem.Definition
+            : null;
+
+    private int PreviewRotationSteps =>
+        isDraggingItem
+            ? dragOriginalRotationSteps
+            : interactionController != null
+                ? interactionController
+                    .SelectedRotationSteps
+                : 0;
+
+    private Vector2Int PreviewGrabOffset =>
+        isDraggingItem
+            ? dragGrabOffset
+            : interactionController != null
+                ? interactionController
+                    .SelectedGrabOffset
+                : Vector2Int.zero;
+
+    private bool HasItemPreview =>
+        PreviewItem != null &&
+        !PreviewItem.IsEmpty &&
+        PreviewDefinition != null;
 }

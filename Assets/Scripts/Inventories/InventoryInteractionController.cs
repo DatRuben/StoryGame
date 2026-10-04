@@ -697,6 +697,10 @@ public sealed class InventoryInteractionController :
         if (itemHandlingController != null)
         {
             itemHandlingController
+                .OperationStarted +=
+                    OnItemHandlingOperationStarted;
+
+            itemHandlingController
                 .OperationCompleted +=
                     OnItemHandlingOperationCompleted;
 
@@ -1023,42 +1027,6 @@ public sealed class InventoryInteractionController :
             availableSpace;
 
         return true;
-    }
-
-    public bool TryMergeSelectionIntoStackAt(
-        InventoryContainer target,
-        Vector2Int coordinate)
-    {
-        if (!CanMergeSelectionIntoStackAt(
-            target,
-            coordinate,
-            out _))
-        {
-            return false;
-        }
-
-        InventoryItemInstance selected =
-            cursor.SelectedItem;
-
-        PlacedInventoryItem placedTarget =
-            target.GetItemAt(
-                coordinate.x,
-                coordinate.y
-            );
-
-        if (placedTarget == null ||
-            placedTarget.ItemInstance == null)
-        {
-            return false;
-        }
-
-        int moved =
-            selected.MoveQuantityTo(
-                placedTarget.ItemInstance,
-                selected.Quantity
-            );
-
-        return moved > 0;
     }
 
     public bool TryPlaceOneSelection(
@@ -2427,6 +2395,10 @@ public sealed class InventoryInteractionController :
 
         if (itemHandlingController != null)
         {
+            itemHandlingController
+                .OperationStarted -=
+                    OnItemHandlingOperationStarted;
+
             itemHandlingController
                 .OperationCompleted -=
                     OnItemHandlingOperationCompleted;
