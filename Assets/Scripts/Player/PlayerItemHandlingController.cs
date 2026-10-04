@@ -1304,4 +1304,20 @@ public sealed class PlayerItemHandlingController :
             immediateActionInProgress = false;
         }
     }
+
+    public bool IsItemReadyForUse(
+        InventoryItemInstance item)
+    {
+        if (item == null ||
+            item.IsEmpty ||
+            gripState == null ||
+            !gripState.IsHolding(item))
+        {
+            return false;
+        }
+
+        return !HasOperationForItem(
+            item
+        );
+    }
 }

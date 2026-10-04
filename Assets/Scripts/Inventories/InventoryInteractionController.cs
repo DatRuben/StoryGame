@@ -2602,6 +2602,9 @@ public sealed class InventoryInteractionController :
                 !item.IsEmpty &&
                 gripState != null &&
                 gripState.IsHolding(item) &&
+                itemHandlingController != null &&
+                itemHandlingController
+                    .IsItemReadyForUse(item) &&
                 item.Definition != null &&
                 item.Definition.IsUsable;
         }
