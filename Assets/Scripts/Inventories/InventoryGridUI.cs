@@ -1494,23 +1494,15 @@ public sealed class InventoryGridUI :
                 bool showQuantity =
                     occupied &&
                     !quantityAssigned &&
-                    interactionController
-                        .SelectedItem != null &&
-                    interactionController
-                        .SelectedItem
-                        .IsStackable &&
-                    interactionController
-                        .SelectedItem
-                        .Quantity > 1;
+                    PreviewItem != null &&
+                    PreviewItem.IsStackable &&
+                    PreviewItem.Quantity > 1;
 
                 if (quantityText != null)
                 {
                     quantityText.text =
                         showQuantity
-                            ? interactionController
-                                .SelectedItem
-                                .Quantity
-                                .ToString()
+                            ? PreviewItem.Quantity.ToString()
                             : "";
 
                     quantityText.gameObject
