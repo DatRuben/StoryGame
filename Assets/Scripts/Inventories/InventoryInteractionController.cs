@@ -2261,12 +2261,22 @@ public sealed class InventoryInteractionController :
         return GripType.Hand;
     }
 
+    private bool IsHeldItem(
+        InventoryItemInstance itemInstance)
+    {
+        return
+            itemInstance != null &&
+            !itemInstance.IsEmpty &&
+            gripState != null &&
+            gripState.IsHolding(
+                itemInstance
+            );
+    }
+
     private bool IsPlacementCandidate(
         InventoryItemInstance itemInstance)
     {
-        if (itemInstance == null ||
-            itemInstance.IsEmpty ||
-            !gripState.IsHolding(
+        if (!IsHeldItem(
                 itemInstance))
         {
             return false;
@@ -2609,7 +2619,7 @@ public sealed class InventoryInteractionController :
 
         if (target == null ||
             itemHandlingController == null ||
-            !IsPlacementCandidate(
+            !IsHeldItem(
                 selected))
         {
             return false;

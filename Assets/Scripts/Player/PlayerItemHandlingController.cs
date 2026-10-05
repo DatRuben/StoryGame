@@ -1306,7 +1306,9 @@ public sealed class PlayerItemHandlingController :
 
         TryStartNextOperation();
 
-        return true;
+        return IsOperationScheduled(
+            operation
+        );
     }
 
     public bool TryBeginRetrieveFromContainer(
@@ -1378,6 +1380,13 @@ public sealed class PlayerItemHandlingController :
         );
 
         TryStartNextOperation();
+
+        if (!IsOperationScheduled(
+                operation))
+        {
+            operation = null;
+            return false;
+        }
 
         return true;
     }
@@ -1461,6 +1470,24 @@ public sealed class PlayerItemHandlingController :
 
         return !HasOperationForItem(
             item
+        );
+    }
+
+    private bool IsOperationScheduled(
+        ItemHandlingOperation operation)
+    {
+        if (operation == null)
+            return false;
+
+        if (ReferenceEquals(
+                activeOperation,
+                operation))
+        {
+            return true;
+        }
+
+        return queuedOperations.Contains(
+            operation
         );
     }
 }

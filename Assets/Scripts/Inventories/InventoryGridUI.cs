@@ -446,23 +446,21 @@ public sealed class InventoryGridUI :
             return;
         }
 
-        if (IsQuickTransferHeld() &&
-            quickTransferTarget != null &&
-            quickTransferTarget.Container != null)
+        if (IsQuickTransferHeld())
         {
-            bool transferred =
+            if (quickTransferTarget != null &&
+                quickTransferTarget.Container != null)
+            {
                 interactionController
                     .TryQuickTransfer(
                         inventoryContainer,
                         quickTransferTarget.Container,
                         coordinate
                     );
-
-            if (transferred)
-            {
-                RefreshAllGrids();
-                return;
             }
+
+            RefreshAllGrids();
+            return;
         }
 
         interactionController
