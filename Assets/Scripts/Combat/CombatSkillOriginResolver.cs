@@ -4,7 +4,7 @@ public static class CombatSkillOriginResolver
 {
     public static bool TryResolve(
         CombatSkillRequestContext context,
-        out Transform origin,
+        out ICombatSkillOrigin origin,
         out string error)
     {
         origin = null;
@@ -64,7 +64,7 @@ public static class CombatSkillOriginResolver
     private static bool TryResolveCharacterOrigin(
         GameObject actor,
         CombatSkillDefinition skill,
-        out Transform origin,
+        out ICombatSkillOrigin origin,
         out string error)
     {
         origin = null;
@@ -112,7 +112,7 @@ public static class CombatSkillOriginResolver
         if (!actionPoints.TryGetPoint(
                 skill.characterActionPoint,
                 skill.customActionPointId,
-                out origin))
+                out Transform point))
         {
             string pointName =
                 skill.characterActionPoint ==
@@ -128,6 +128,11 @@ public static class CombatSkillOriginResolver
 
             return false;
         }
+
+        origin =
+            new TransformCombatSkillOrigin(
+                point
+            );
 
         return true;
     }

@@ -46,7 +46,7 @@ public sealed class CombatSkillController :
 
         if (!CombatSkillOriginResolver.TryResolve(
                 context,
-                out Transform origin,
+                out ICombatSkillOrigin origin,
                 out string originError))
         {
             Debug.LogError(
@@ -60,7 +60,7 @@ public sealed class CombatSkillController :
         Debug.Log(
             $"Requested skill: {skill.skillName}" +
             (origin != null
-                ? $" from action point '{origin.name}'."
+                ? $" from action point '{origin.Name}'."
                 : "."),
             this
         );
