@@ -25,6 +25,10 @@ public sealed class CombatSkillDefinition :
     [Header("Identity")]
     public string skillName;
 
+    [Header("Gameplay Action")]
+
+    public CombatSkillActionDefinition action;
+
     [Header("Timing")]
 
     [Min(0f)]
@@ -64,6 +68,7 @@ public sealed class CombatSkillDefinitionEditor :
     private SerializedProperty castTime;
     private SerializedProperty cooldown;
     private SerializedProperty aetherCost;
+    private SerializedProperty action;
 
     private SerializedProperty originSource;
     private SerializedProperty characterActionPoint;
@@ -75,6 +80,11 @@ public sealed class CombatSkillDefinitionEditor :
         skillName =
             serializedObject.FindProperty(
                 "skillName"
+            );
+
+        action =
+            serializedObject.FindProperty(
+                "action"
             );
 
         castTime =
@@ -121,8 +131,23 @@ public sealed class CombatSkillDefinitionEditor :
         DrawTiming();
         DrawResourceCost();
         DrawActionOrigin();
+        DrawGameplayAction();
 
         serializedObject.ApplyModifiedProperties();
+    }
+
+    private void DrawGameplayAction()
+    {
+        EditorGUILayout.LabelField(
+            "Gameplay Action",
+            EditorStyles.boldLabel
+        );
+
+        EditorGUILayout.PropertyField(
+            action
+        );
+
+        EditorGUILayout.Space();
     }
 
     private void DrawIdentity()
