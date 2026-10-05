@@ -354,6 +354,58 @@ public sealed class PlayerHeldItemPresenter :
         return false;
     }
 
+    public bool TryGetHeldItemCastPoint(
+        InventoryItemInstance item,
+        out Transform castPoint)
+    {
+        castPoint = null;
+
+        if (item == null)
+            return false;
+
+        GameObject heldVisual = null;
+
+        if (ReferenceEquals(
+                item,
+                leftVisualItem))
+        {
+            heldVisual =
+                leftVisual;
+        }
+        else if (ReferenceEquals(
+                     item,
+                     rightVisualItem))
+        {
+            heldVisual =
+                rightVisual;
+        }
+        else if (ReferenceEquals(
+                     item,
+                     mouthVisualItem))
+        {
+            heldVisual =
+                mouthVisual;
+        }
+
+        if (heldVisual == null)
+            return false;
+
+        ItemActionPoints actionPoints =
+            heldVisual.GetComponentInChildren<
+                ItemActionPoints>(true);
+
+        if (actionPoints == null ||
+            actionPoints.CastPoint == null)
+        {
+            return false;
+        }
+
+        castPoint =
+            actionPoints.CastPoint;
+
+        return true;
+    }
+
     private static void AlignGripPointToAnchor(
         Transform itemRoot,
         Transform gripPoint,

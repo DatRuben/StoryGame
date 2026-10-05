@@ -151,7 +151,13 @@ public class ItemDefinition : ScriptableObject
         IsConventionalWeapon ||
         IsAttachedWeapon;
 
+    [Header("Weapon Actions")]
+
+    public WeaponActionDefinition secondaryWeaponAction;
+
     [Header("Weapon Combat")]
+
+    public bool isRangedWeapon;
 
     [Min(0f)]
     public float baseDamage = 10f;
@@ -226,6 +232,20 @@ public class ItemDefinition : ScriptableObject
 
 #if UNITY_EDITOR
         EnsureDefaultWorldPrefab();
+
+        string rangedWeaponWarning =
+            GetRangedWeaponSetupWarning();
+
+        if (!string.IsNullOrEmpty(
+                rangedWeaponWarning))
+        {
+            Debug.LogWarning(
+                itemName +
+                ": " +
+                rangedWeaponWarning,
+                this
+            );
+        }
 #endif
 
         int requiredSize =
@@ -301,6 +321,39 @@ public class ItemDefinition : ScriptableObject
             equipmentCombatRole |=
                 EquipmentCombatRole.Weapon;
         }
+    }
+
+    public string GetRangedWeaponSetupWarning()
+    {
+        if (!IsLoadoutWeapon ||
+            !isRangedWeapon)
+        {
+            return null;
+        }
+
+        if (worldPrefab == null)
+        {
+            return
+                "Ranged weapon has no world prefab.";
+        }
+
+        ItemActionPoints actionPoints =
+            worldPrefab.GetComponentInChildren<
+                ItemActionPoints>(true);
+
+        if (actionPoints == null)
+        {
+            return
+                "Ranged weapon world prefab is missing ItemActionPoints.";
+        }
+
+        if (actionPoints.CastPoint == null)
+        {
+            return
+                "Ranged weapon has no CastPoint assigned.";
+        }
+
+        return null;
     }
 
     private bool HasAnyOccupiedCell()
@@ -591,6 +644,12 @@ public class ItemDefinitionEditor : Editor
             EditorStyles.boldLabel
         );
 
+        item.isRangedWeapon =
+            EditorGUILayout.Toggle(
+                "Is Ranged Weapon",
+                item.isRangedWeapon
+            );
+
         item.baseDamage =
             Mathf.Max(
                 0f,
@@ -614,6 +673,18 @@ public class ItemDefinitionEditor : Editor
                     item.attackReach
                 )
             );
+
+        string rangedWeaponWarning =
+            item.GetRangedWeaponSetupWarning();
+
+        if (!string.IsNullOrEmpty(
+                rangedWeaponWarning))
+        {
+            EditorGUILayout.HelpBox(
+                rangedWeaponWarning,
+                MessageType.Warning
+            );
+        }
 
         EditorGUILayout.Space();
     }

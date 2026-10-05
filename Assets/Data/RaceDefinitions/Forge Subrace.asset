@@ -54,7 +54,7 @@ MonoBehaviour:
   bodyType: 2
   previewPrefab: {fileID: 0}
   standingGripProfile:
-    handGripCount: 2
+    maxHandGripUsage: 2
     mouthGripCount: 0
     maxHandGripsWhileMoving: 2
     maxHandGripsWhileSprinting: 2
@@ -63,12 +63,12 @@ MonoBehaviour:
     canOperateWithMouth: 0
     weaponMode: 0
   feralGripProfile:
-    handGripCount: 2
-    mouthGripCount: 0
-    maxHandGripsWhileMoving: 2
-    maxHandGripsWhileSprinting: 2
+    maxHandGripUsage: 1
+    mouthGripCount: 1
+    maxHandGripsWhileMoving: 1
+    maxHandGripsWhileSprinting: 1
     handCarryMoveMultiplier: 1
     canOperateWithHands: 1
-    canOperateWithMouth: 0
-    weaponMode: 0
+    canOperateWithMouth: 1
+    weaponMode: 2
   canEquipSaddles: 1

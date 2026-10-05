@@ -4886,6 +4886,7 @@ MonoBehaviour:
   invalidPlacementColor: {r: 1, g: 0.2, b: 0.2, a: 0.85}
   heldPreviewColor: {r: 1, g: 1, b: 1, a: 0.65}
   dragOriginalGhostColor: {r: 0.45, g: 0.45, b: 0.45, a: 0.35}
+  reservedDestinationColor: {r: 0.35, g: 0.75, b: 1, a: 0.45}
   itemOutlineColor: {r: 0, g: 0, b: 0, a: 0.95}
   dragOriginalOutlineColor: {r: 0, g: 0, b: 0, a: 0.9}
   itemOutlineThickness: 3
@@ -22218,17 +22219,17 @@ MonoBehaviour:
   gridHeight: 10
   startingItems:
   - item: {fileID: 11400000, guid: 00840a1482c71db4d9ff7c9360be1132, type: 2}
-    quantity: 0
+    quantity: 1
     x: 0
     y: 0
     rotationSteps: 0
   - item: {fileID: 11400000, guid: 9372a7989bcb50c438d1a072aed52ae1, type: 2}
-    quantity: 0
+    quantity: 1
     x: 3
     y: 0
     rotationSteps: 0
   - item: {fileID: 11400000, guid: 9372a7989bcb50c438d1a072aed52ae1, type: 2}
-    quantity: 0
+    quantity: 1
     x: 6
     y: 0
     rotationSteps: 0
@@ -22236,6 +22237,11 @@ MonoBehaviour:
     quantity: 1
     x: 7
     y: 7
+    rotationSteps: 0
+  - item: {fileID: 11400000, guid: 9d03ad027aa691f42b140034f64dbd35, type: 2}
+    quantity: 1
+    x: 9
+    y: 0
     rotationSteps: 0
 --- !u!1 &958245277
 GameObject:
@@ -38098,6 +38104,7 @@ MonoBehaviour:
   invalidPlacementColor: {r: 1, g: 0.2, b: 0.2, a: 0.85}
   heldPreviewColor: {r: 1, g: 1, b: 1, a: 0.65}
   dragOriginalGhostColor: {r: 0.39215687, g: 0.39215687, b: 0.39215687, a: 0.78431374}
+  reservedDestinationColor: {r: 0.35, g: 0.75, b: 1, a: 0.45}
   itemOutlineColor: {r: 0, g: 0, b: 0, a: 0.88235295}
   dragOriginalOutlineColor: {r: 0, g: 0, b: 0, a: 0.88235295}
   itemOutlineThickness: 3

@@ -4,7 +4,6 @@ public enum ItemHandlingOperationType
 {
     None,
     Pickup,
-    Store,
     Retrieve,
     Transfer,
     Drop,
@@ -41,7 +40,7 @@ public sealed class ItemHandlingOperation
     }
 
     public InventoryTakeReservation
-    TakeReservation
+        TakeReservation
     {
         get;
     }

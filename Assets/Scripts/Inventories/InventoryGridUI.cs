@@ -34,7 +34,7 @@ public sealed class InventoryGridUI :
 
     [Header("Drag Detection")]
     [SerializeField]
-    private float dragStartDistance = 12f;
+    private float dragStartDistance = 4f;
 
     [Header("Colors")]
     [SerializeField]
@@ -110,8 +110,7 @@ public sealed class InventoryGridUI :
     private bool pointerIsDown;
     private bool pendingDragPickup;
     private bool isDraggingItem;
-    private bool awaitingDragRetrieve;
-    private bool suppressNextClick;
+    private int suppressClickFrame = -1;
 
     private Vector2 pointerDownScreenPosition;
     private Vector2Int pointerDownCoordinate;
@@ -158,30 +157,6 @@ public sealed class InventoryGridUI :
 
     private void OnDisable()
     {
-        if (awaitingDragRetrieve &&
-            interactionController != null)
-        {
-            interactionController
-                .TryCancelPendingSelectionOperation();
-        }
-
-        if (isDraggingItem &&
-            interactionController != null &&
-            interactionController.HasSelection &&
-            dragSourceContainer != null &&
-            draggedItem != null &&
-            ReferenceEquals(
-                interactionController.SelectedItem,
-                draggedItem))
-        {
-            interactionController
-                .TryReturnSelectionToContainer(
-                    dragSourceContainer,
-                    dragOriginalPosition,
-                    dragOriginalRotationSteps
-                );
-        }
-
         activeGrids.Remove(this);
 
         UnsubscribeState();
@@ -189,7 +164,6 @@ public sealed class InventoryGridUI :
         pointerIsDown = false;
         pendingDragPickup = false;
         isDraggingItem = false;
-        awaitingDragRetrieve = false;
 
         dragSourceContainer = null;
         draggedItem = null;
@@ -198,7 +172,7 @@ public sealed class InventoryGridUI :
     private void Update()
     {
         HandleDragDetection();
-        HandlePendingDragRetrieve();
+        HandleSelectionPlacementRelease();
         HandleOutsideSelectionDrop();
         HandleDragRelease();
         UpdateHoveredCoordinateFromMouse();
@@ -221,9 +195,17 @@ public sealed class InventoryGridUI :
             return;
         }
 
-        if (EventSystem.current != null &&
-            EventSystem.current
-                .IsPointerOverGameObject())
+        Vector2 screenPosition =
+            Mouse.current.position.ReadValue();
+
+        if (IsScreenPointOverAnyInventoryGrid(
+                screenPosition))
+        {
+            return;
+        }
+
+        if (IsScreenPointOverInteractiveUI(
+                screenPosition))
         {
             return;
         }
@@ -448,55 +430,40 @@ public sealed class InventoryGridUI :
             return;
         }
 
-        if (suppressNextClick)
+        if (suppressClickFrame ==
+            Time.frameCount)
         {
-            suppressNextClick = false;
             return;
         }
 
         if (interactionController.HasSelection)
         {
-            if (interactionController
-                .TryMergeSelectionIntoStackAt(
-                    inventoryContainer,
-                    coordinate))
+            if (Mouse.current != null)
             {
-                RefreshAllGrids();
-                return;
+                TryPlaceSelectionAtScreenPoint(
+                    Mouse.current.position
+                        .ReadValue()
+                );
             }
 
-            Vector2Int origin =
-                coordinate -
-                interactionController
-                    .SelectedGrabOffset;
-
-            interactionController
-                .TryPlaceSelection(
-                    inventoryContainer,
-                    origin
-                );
-
-            RefreshAllGrids();
             return;
         }
 
-        if (IsQuickTransferHeld() &&
-            quickTransferTarget != null &&
-            quickTransferTarget.Container != null)
+        if (IsQuickTransferHeld())
         {
-            bool transferred =
+            if (quickTransferTarget != null &&
+                quickTransferTarget.Container != null)
+            {
                 interactionController
                     .TryQuickTransfer(
                         inventoryContainer,
                         quickTransferTarget.Container,
                         coordinate
                     );
-
-            if (transferred)
-            {
-                RefreshAllGrids();
-                return;
             }
+
+            RefreshAllGrids();
+            return;
         }
 
         interactionController
@@ -506,6 +473,144 @@ public sealed class InventoryGridUI :
             );
 
         RefreshAllGrids();
+    }
+
+    private static bool IsScreenPointOverInteractiveUI(
+        Vector2 screenPosition)
+    {
+        if (EventSystem.current == null)
+            return false;
+
+        PointerEventData pointerData =
+            new PointerEventData(
+                EventSystem.current
+            );
+
+        pointerData.position =
+            screenPosition;
+
+        List<RaycastResult> results =
+            new List<RaycastResult>();
+
+        EventSystem.current.RaycastAll(
+            pointerData,
+            results
+        );
+
+        for (int i = 0;
+             i < results.Count;
+             i++)
+        {
+            GameObject hitObject =
+                results[i].gameObject;
+
+            if (hitObject == null)
+                continue;
+
+            Selectable selectable =
+                hitObject.GetComponentInParent<
+                    Selectable>();
+
+            if (selectable != null &&
+                selectable.interactable)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool IsScreenPointOverAnyInventoryGrid(
+        Vector2 screenPosition)
+    {
+        for (int i = 0;
+             i < activeGrids.Count;
+             i++)
+        {
+            InventoryGridUI grid =
+                activeGrids[i];
+
+            if (grid == null ||
+                !grid.isActiveAndEnabled ||
+                grid.inventoryContainer == null)
+            {
+                continue;
+            }
+
+            if (grid.TryGetGridCoordinateFromScreenPoint(
+                    screenPosition,
+                    out _))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool TryPlaceSelectionAtScreenPoint(
+        Vector2 screenPosition)
+    {
+        if (inventoryContainer == null ||
+            interactionController == null ||
+            !interactionController.HasSelection)
+        {
+            return false;
+        }
+
+        if (!TryGetGridCoordinateFromScreenPoint(
+                screenPosition,
+                out Vector2Int stackCoordinate))
+        {
+            return false;
+        }
+
+        if (!TryGetPlacementOriginFromScreenPoint(
+                screenPosition,
+                interactionController
+                    .SelectedDefinition,
+                interactionController
+                    .SelectedRotationSteps,
+                out Vector2Int placementOrigin))
+        {
+            return false;
+        }
+
+        suppressClickFrame =
+            Time.frameCount;
+
+        interactionController
+            .TryStoreSelectionAt(
+                inventoryContainer,
+                stackCoordinate,
+                placementOrigin
+            );
+
+        RefreshAllGrids();
+
+        return true;
+    }
+
+    private void HandleSelectionPlacementRelease()
+    {
+        if (!InventoryMenuController
+                .IsInventoryOpen ||
+            interactionController == null ||
+            !interactionController.HasSelection ||
+            isDraggingItem ||
+            Mouse.current == null ||
+            !Mouse.current.leftButton
+                .wasReleasedThisFrame ||
+            suppressClickFrame ==
+                Time.frameCount)
+        {
+            return;
+        }
+
+        TryPlaceSelectionAtScreenPoint(
+            Mouse.current.position.ReadValue()
+        );
     }
 
     private void OnCellRightClicked(
@@ -521,10 +626,18 @@ public sealed class InventoryGridUI :
 
         if (interactionController.HasSelection)
         {
-            Vector2Int origin =
-                coordinate -
-                interactionController
-                    .SelectedGrabOffset;
+            if (Mouse.current == null ||
+                !TryGetPlacementOriginFromScreenPoint(
+                    Mouse.current.position
+                        .ReadValue(),
+                    interactionController
+                        .SelectedDefinition,
+                    interactionController
+                        .SelectedRotationSteps,
+                    out Vector2Int origin))
+            {
+                return;
+            }
 
             interactionController
                 .TryPlaceOneSelection(
@@ -554,9 +667,6 @@ public sealed class InventoryGridUI :
         {
             return;
         }
-
-        if (suppressNextClick)
-            suppressNextClick = false;
 
         pointerIsDown = true;
         pendingDragPickup = false;
@@ -665,16 +775,17 @@ public sealed class InventoryGridUI :
             );
 
         if (placedItem == null ||
-            placedItem.ItemInstance == null)
+            placedItem.ItemInstance == null ||
+            placedItem.ItemInstance.IsEmpty)
         {
             return;
         }
 
-        InventoryItemInstance item =
-            placedItem.ItemInstance;
-
         dragSourceContainer =
             inventoryContainer;
+
+        draggedItem =
+            placedItem.ItemInstance;
 
         dragOriginalPosition =
             placedItem.Position;
@@ -682,27 +793,29 @@ public sealed class InventoryGridUI :
         dragOriginalRotationSteps =
             placedItem.RotationSteps;
 
-        bool pickupStarted =
-            interactionController
-                .TryBeginPickUpItemFromContainer(
-                    inventoryContainer,
-                    pointerDownCoordinate
-                );
-
-        if (!pickupStarted)
-        {
-            dragSourceContainer = null;
-            return;
-        }
-
-        draggedItem =
-            item;
-
-        awaitingDragRetrieve = true;
+        isDraggingItem = true;
         pendingDragPickup = false;
-        suppressNextClick = true;
+
+        BuildHeldItemPreview();
 
         RefreshAllGrids();
+    }
+
+    private void ClearDragState()
+    {
+        pointerIsDown = false;
+        pendingDragPickup = false;
+        isDraggingItem = false;
+
+        dragSourceContainer = null;
+        draggedItem = null;
+
+        dragOriginalPosition =
+            Vector2Int.zero;
+
+        dragOriginalRotationSteps = 0;
+
+        BuildHeldItemPreview();
     }
 
     private void HandleDragRelease()
@@ -722,18 +835,18 @@ public sealed class InventoryGridUI :
 
     private void CompleteDragDrop()
     {
+        suppressClickFrame =
+            Time.frameCount;
+
         pointerIsDown = false;
         pendingDragPickup = false;
-        suppressNextClick = true;
 
         if (interactionController == null ||
-            !interactionController.HasSelection ||
+            dragSourceContainer == null ||
+            draggedItem == null ||
             Mouse.current == null)
         {
-            isDraggingItem = false;
-            dragSourceContainer = null;
-            draggedItem = null;
-
+            ClearDragState();
             RefreshAllGrids();
             return;
         }
@@ -741,7 +854,7 @@ public sealed class InventoryGridUI :
         Vector2 screenPosition =
             Mouse.current.position.ReadValue();
 
-        bool acceptedDrop = false;
+        bool pointerOverGrid = false;
 
         for (int i = 0;
              i < activeGrids.Count;
@@ -751,89 +864,71 @@ public sealed class InventoryGridUI :
                 activeGrids[i];
 
             if (grid == null ||
-                !grid.isActiveAndEnabled)
+                !grid.isActiveAndEnabled ||
+                grid.inventoryContainer == null)
             {
                 continue;
             }
 
-            if (!grid.TryDropSelectionAtScreenPoint(
-                screenPosition))
+            if (!grid.TryGetGridCoordinateFromScreenPoint(
+                    screenPosition,
+                    out Vector2Int coordinate))
             {
                 continue;
             }
 
-            acceptedDrop = true;
+            if (!grid
+                .TryGetPlacementOriginFromScreenPoint(
+                    screenPosition,
+                    draggedItem.Definition,
+                    dragOriginalRotationSteps,
+                    out Vector2Int targetOrigin))
+            {
+                continue;
+            }
+
+            pointerOverGrid = true;
+
+            if (ReferenceEquals(
+                    grid.inventoryContainer,
+                    dragSourceContainer))
+            {
+                interactionController
+                    .TryRepositionItem(
+                        dragSourceContainer,
+                        draggedItem,
+                        dragOriginalPosition,
+                        targetOrigin,
+                        dragOriginalRotationSteps
+                    );
+            }
+            else
+            {
+                interactionController
+                    .TryBeginDragTransfer(
+                        dragSourceContainer,
+                        grid.inventoryContainer,
+                        draggedItem,
+                        coordinate,
+                        targetOrigin,
+                        dragOriginalRotationSteps
+                    );
+            }
+
             break;
         }
 
-        if (!acceptedDrop &&
-            dragSourceContainer != null &&
-            draggedItem != null &&
-            ReferenceEquals(
-                interactionController.SelectedItem,
-                draggedItem))
+        if (!pointerOverGrid)
         {
-            bool dropped =
-                interactionController
-                    .TryDropHeldItem(
+            interactionController
+                    .TryDropItemFromContainer(
+                        dragSourceContainer,
                         draggedItem
                     );
-
-            if (!dropped)
-            {
-                bool returned =
-                    interactionController
-                        .TryReturnSelectionToContainer(
-                            dragSourceContainer,
-                            dragOriginalPosition,
-                            dragOriginalRotationSteps
-                        );
-
-                if (!returned)
-                {
-                    Debug.LogWarning(
-                        "Dragged item could not be dropped or returned to its original inventory position.",
-                        this
-                    );
-                }
-            }
         }
 
-        isDraggingItem = false;
-        dragSourceContainer = null;
-        draggedItem = null;
-
+        ClearDragState();
         RefreshAllGrids();
-    }
-
-    public bool TryDropSelectionAtScreenPoint(
-        Vector2 screenPosition)
-    {
-        if (inventoryContainer == null ||
-            interactionController == null ||
-            !interactionController.HasSelection)
-        {
-            return false;
-        }
-
-        if (!TryGetGridCoordinateFromScreenPoint(
-            screenPosition,
-            out Vector2Int coordinate))
-        {
-            return false;
-        }
-
-        Vector2Int origin =
-            coordinate -
-            interactionController
-                .SelectedGrabOffset;
-
-        return interactionController
-            .TryBeginStoreSelectionAt(
-                inventoryContainer,
-                coordinate,
-                origin
-            );
     }
 
     private bool IsQuickTransferHeld()
@@ -871,11 +966,37 @@ public sealed class InventoryGridUI :
             BuildGrid();
         }
 
+        bool hasDragPreview =
+            TryGetActiveDrag(
+                out InventoryGridUI dragOwner,
+                out InventoryItemInstance
+                    placementItem,
+                out int placementRotationSteps
+            );
+
         bool hasSelection =
+            !hasDragPreview &&
             interactionController != null &&
             interactionController.HasSelection &&
             interactionController
                 .SelectedDefinition != null;
+
+        if (!hasDragPreview &&
+            hasSelection)
+        {
+            placementItem =
+                interactionController
+                    .SelectedItem;
+
+            placementRotationSteps =
+                interactionController
+                    .SelectedRotationSteps;
+        }
+
+        bool hasPlacementItem =
+            placementItem != null &&
+            !placementItem.IsEmpty &&
+            placementItem.Definition != null;
 
         bool hoverValid =
             IsValidGridCoordinate(
@@ -883,24 +1004,62 @@ public sealed class InventoryGridUI :
             );
 
         Vector2Int previewOrigin =
-            hoverValid &&
-            interactionController != null
-                ? hoveredCoordinate -
-                  interactionController
-                      .SelectedGrabOffset
-                : new Vector2Int(
-                    -999,
-                    -999
-                );
+            new Vector2Int(
+                -999,
+                -999
+            );
 
-        bool canPlace =
-            hasSelection &&
-            hoverValid &&
-            interactionController
-                .CanPlaceSelection(
-                    inventoryContainer,
-                    previewOrigin
-                );
+        bool hasPreviewOrigin =
+            hasPlacementItem &&
+            Mouse.current != null &&
+            TryGetPlacementOriginFromScreenPoint(
+                Mouse.current.position
+                    .ReadValue(),
+                placementItem.Definition,
+                placementRotationSteps,
+                out previewOrigin
+            );
+
+        bool canPlace = false;
+
+        if (hasPreviewOrigin)
+        {
+            if (hasDragPreview)
+            {
+                if (ReferenceEquals(
+                        inventoryContainer,
+                        dragOwner.dragSourceContainer))
+                {
+                    canPlace =
+                        inventoryContainer
+                            .CanRepositionItem(
+                                placementItem,
+                                previewOrigin.x,
+                                previewOrigin.y,
+                                placementRotationSteps
+                            );
+                }
+                else
+                {
+                    canPlace =
+                        inventoryContainer.CanPlace(
+                            placementItem,
+                            previewOrigin.x,
+                            previewOrigin.y,
+                            placementRotationSteps
+                        );
+                }
+            }
+            else
+            {
+                canPlace =
+                    interactionController
+                        .CanPlaceSelection(
+                            inventoryContainer,
+                            previewOrigin
+                        );
+            }
+        }
 
         for (int i = 0;
              i < cells.Count;
@@ -934,11 +1093,12 @@ public sealed class InventoryGridUI :
                 continue;
             }
 
-            if (hasSelection &&
-                hoverValid &&
-                IsSelectionPreviewCell(
+            if (hasPreviewOrigin &&
+                IsPlacementPreviewCell(
                     coordinate,
-                    previewOrigin))
+                    previewOrigin,
+                    placementItem.Definition,
+                    placementRotationSteps))
             {
                 cell.SetColor(
                     canPlace
@@ -1075,17 +1235,12 @@ public sealed class InventoryGridUI :
         return true;
     }
 
-    private bool IsSelectionPreviewCell(
+    private bool IsPlacementPreviewCell(
         Vector2Int coordinate,
-        Vector2Int origin)
+        Vector2Int origin,
+        ItemDefinition definition,
+        int rotationSteps)
     {
-        if (interactionController == null)
-            return false;
-
-        ItemDefinition definition =
-            interactionController
-                .SelectedDefinition;
-
         if (definition == null)
             return false;
 
@@ -1099,12 +1254,12 @@ public sealed class InventoryGridUI :
 
         if (localX < 0 ||
             localY < 0 ||
-            localX >= definition.GetWidth(
-                interactionController
-                    .SelectedRotationSteps) ||
-            localY >= definition.GetHeight(
-                interactionController
-                    .SelectedRotationSteps))
+            localX >=
+                definition.GetWidth(
+                    rotationSteps) ||
+            localY >=
+                definition.GetHeight(
+                    rotationSteps))
         {
             return false;
         }
@@ -1112,8 +1267,7 @@ public sealed class InventoryGridUI :
         return definition.IsCellOccupied(
             localX,
             localY,
-            interactionController
-                .SelectedRotationSteps
+            rotationSteps
         );
     }
 
@@ -1146,17 +1300,170 @@ public sealed class InventoryGridUI :
             new Vector2Int(-1, -1);
 
         if (inventoryContainer == null ||
-            cellParent == null ||
-            gridLayoutGroup == null ||
-            rootCanvas == null)
+            rootCanvas == null ||
+            cells == null ||
+            cells.Count == 0 ||
+            cells.Count !=
+                cellCoordinates.Count)
         {
             return false;
         }
 
-        RectTransform rect =
+        Camera canvasCamera =
+            rootCanvas.renderMode ==
+                RenderMode.ScreenSpaceOverlay
+                ? null
+                : rootCanvas.worldCamera;
+
+        RectTransform gridRect =
             cellParent as RectTransform;
 
-        if (rect == null)
+        if (gridRect == null ||
+            !RectTransformUtility
+                .RectangleContainsScreenPoint(
+                    gridRect,
+                    screenPosition,
+                    canvasCamera))
+        {
+            return false;
+        }
+
+        float closestDistance =
+            float.PositiveInfinity;
+
+        bool foundCandidate =
+            false;
+
+        for (int i = 0;
+             i < cells.Count;
+             i++)
+        {
+            InventoryCellUI cell =
+                cells[i];
+
+            if (cell == null)
+                continue;
+
+            RectTransform cellRect =
+                cell.transform
+                    as RectTransform;
+
+            if (cellRect == null)
+                continue;
+
+            Vector2 cellCenter =
+                RectTransformUtility
+                    .WorldToScreenPoint(
+                        canvasCamera,
+                        cellRect.position
+                    );
+
+            float distance =
+                Vector2.SqrMagnitude(
+                    screenPosition -
+                    cellCenter
+                );
+
+            if (distance >=
+                closestDistance)
+            {
+                continue;
+            }
+
+            closestDistance =
+                distance;
+
+            coordinate =
+                cellCoordinates[i];
+
+            foundCandidate =
+                true;
+        }
+
+        return foundCandidate;
+    }
+
+    private bool TryGetCellCenterLocal(
+        Vector2Int coordinate,
+        out Vector2 center)
+    {
+        center = Vector2.zero;
+
+        RectTransform gridRect =
+            cellParent as RectTransform;
+
+        if (gridRect == null)
+            return false;
+
+        for (int i = 0;
+             i < cells.Count;
+             i++)
+        {
+            if (i >= cellCoordinates.Count ||
+                cellCoordinates[i] != coordinate)
+            {
+                continue;
+            }
+
+            InventoryCellUI cell =
+                cells[i];
+
+            if (cell == null)
+                return false;
+
+            RectTransform cellRect =
+                cell.transform
+                    as RectTransform;
+
+            if (cellRect == null)
+                return false;
+
+            Vector3 worldCenter =
+                cellRect.TransformPoint(
+                    cellRect.rect.center
+                );
+
+            Vector3 localCenter =
+                gridRect.InverseTransformPoint(
+                    worldCenter
+                );
+
+            center =
+                new Vector2(
+                    localCenter.x,
+                    localCenter.y
+                );
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool TryGetPlacementOriginFromScreenPoint(
+        Vector2 screenPosition,
+        ItemDefinition definition,
+        int rotationSteps,
+        out Vector2Int origin)
+    {
+        origin =
+            new Vector2Int(
+                -999,
+                -999
+            );
+
+        if (inventoryContainer == null ||
+            definition == null ||
+            rootCanvas == null ||
+            gridLayoutGroup == null)
+        {
+            return false;
+        }
+
+        RectTransform gridRect =
+            cellParent as RectTransform;
+
+        if (gridRect == null)
             return false;
 
         Camera canvasCamera =
@@ -1166,8 +1473,17 @@ public sealed class InventoryGridUI :
                 : rootCanvas.worldCamera;
 
         if (!RectTransformUtility
+            .RectangleContainsScreenPoint(
+                gridRect,
+                screenPosition,
+                canvasCamera))
+        {
+            return false;
+        }
+
+        if (!RectTransformUtility
             .ScreenPointToLocalPointInRectangle(
-                rect,
+                gridRect,
                 screenPosition,
                 canvasCamera,
                 out Vector2 localPoint))
@@ -1175,75 +1491,95 @@ public sealed class InventoryGridUI :
             return false;
         }
 
-        Rect bounds =
-            rect.rect;
-
-        float xFromLeft =
-            localPoint.x -
-            bounds.xMin -
-            gridLayoutGroup.padding.left;
-
-        float yFromTop =
-            bounds.yMax -
-            localPoint.y -
-            gridLayoutGroup.padding.top;
-
-        if (xFromLeft < 0f ||
-            yFromTop < 0f)
+        if (!TryGetCellCenterLocal(
+                Vector2Int.zero,
+                out Vector2 zeroCenter))
         {
             return false;
         }
-
-        Vector2 cellSize =
-            gridLayoutGroup.cellSize;
-
-        Vector2 spacing =
-            gridLayoutGroup.spacing;
 
         float pitchX =
-            cellSize.x +
-            spacing.x;
+            gridLayoutGroup.cellSize.x +
+            gridLayoutGroup.spacing.x;
 
         float pitchY =
-            cellSize.y +
-            spacing.y;
+            gridLayoutGroup.cellSize.y +
+            gridLayoutGroup.spacing.y;
 
-        if (pitchX <= 0f ||
-            pitchY <= 0f)
+        if (inventoryContainer.Width > 1 &&
+            TryGetCellCenterLocal(
+                new Vector2Int(1, 0),
+                out Vector2 rightCenter))
+        {
+            pitchX =
+                rightCenter.x -
+                zeroCenter.x;
+        }
+
+        if (inventoryContainer.Height > 1 &&
+            TryGetCellCenterLocal(
+                new Vector2Int(0, 1),
+                out Vector2 upperCenter))
+        {
+            pitchY =
+                upperCenter.y -
+                zeroCenter.y;
+        }
+
+        if (Mathf.Abs(pitchX) <
+                Mathf.Epsilon ||
+            Mathf.Abs(pitchY) <
+                Mathf.Epsilon)
         {
             return false;
         }
 
-        int x =
-            Mathf.FloorToInt(
-                xFromLeft /
-                pitchX
+        float mouseGridX =
+            (localPoint.x -
+             zeroCenter.x) /
+            pitchX;
+
+        float mouseGridY =
+            (localPoint.y -
+             zeroCenter.y) /
+            pitchY;
+
+        int itemWidth =
+            definition.GetWidth(
+                rotationSteps
             );
 
-        int rowFromTop =
-            Mathf.FloorToInt(
-                yFromTop /
-                pitchY
+        int itemHeight =
+            definition.GetHeight(
+                rotationSteps
             );
 
-        if (x < 0 ||
-            rowFromTop < 0 ||
-            x >= inventoryContainer.Width ||
-            rowFromTop >=
-                inventoryContainer.Height)
-        {
-            return false;
-        }
+        float centerOffsetX =
+            (itemWidth - 1) *
+            0.5f;
 
-        int y =
-            inventoryContainer.Height -
-            1 -
-            rowFromTop;
+        float centerOffsetY =
+            (itemHeight - 1) *
+            0.5f;
 
-        coordinate =
+        int originX =
+            Mathf.FloorToInt(
+                mouseGridX -
+                centerOffsetX +
+                0.5f
+            );
+
+        int originY =
+            Mathf.FloorToInt(
+                mouseGridY -
+                centerOffsetY +
+                0.5f
+            );
+
+        origin =
             new Vector2Int(
-                x,
-                y
+                originX,
+                originY
             );
 
         return true;
@@ -1453,11 +1789,8 @@ public sealed class InventoryGridUI :
             heldPreviewRoot
         );
 
-        if (!heldPreviewEnabled ||
-            interactionController == null ||
-            !interactionController.HasSelection ||
-            interactionController
-                .SelectedDefinition == null)
+        if (!IsItemPreviewAllowed ||
+            !HasItemPreview)
         {
             heldPreviewRoot.gameObject
                 .SetActive(false);
@@ -1466,12 +1799,10 @@ public sealed class InventoryGridUI :
         }
 
         ItemDefinition definition =
-            interactionController
-                .SelectedDefinition;
+            PreviewDefinition;
 
         int rotation =
-            interactionController
-                .SelectedRotationSteps;
+            PreviewRotationSteps;
 
         int width =
             definition.GetWidth(
@@ -1551,23 +1882,15 @@ public sealed class InventoryGridUI :
                 bool showQuantity =
                     occupied &&
                     !quantityAssigned &&
-                    interactionController
-                        .SelectedItem != null &&
-                    interactionController
-                        .SelectedItem
-                        .IsStackable &&
-                    interactionController
-                        .SelectedItem
-                        .Quantity > 1;
+                    PreviewItem != null &&
+                    PreviewItem.IsStackable &&
+                    PreviewItem.Quantity > 1;
 
                 if (quantityText != null)
                 {
                     quantityText.text =
                         showQuantity
-                            ? interactionController
-                                .SelectedItem
-                                .Quantity
-                                .ToString()
+                            ? PreviewItem.Quantity.ToString()
                             : "";
 
                     quantityText.gameObject
@@ -1590,9 +1913,8 @@ public sealed class InventoryGridUI :
             return;
 
         bool shouldShow =
-            heldPreviewEnabled &&
-            interactionController != null &&
-            interactionController.HasSelection &&
+            IsItemPreviewAllowed &&
+            HasItemPreview &&
             InventoryMenuController
                 .IsInventoryOpen;
 
@@ -1651,15 +1973,21 @@ public sealed class InventoryGridUI :
     private Vector2 GetPreviewGrabPoint()
     {
         ItemDefinition definition =
-            interactionController
-                .SelectedDefinition;
+            PreviewDefinition;
 
-        if (definition == null)
+        if (definition == null ||
+            heldPreviewLayoutGroup == null)
+        {
             return Vector2.zero;
+        }
 
         int rotation =
-            interactionController
-                .SelectedRotationSteps;
+            PreviewRotationSteps;
+
+        int width =
+            definition.GetWidth(
+                rotation
+            );
 
         int height =
             definition.GetHeight(
@@ -1672,28 +2000,23 @@ public sealed class InventoryGridUI :
         Vector2 spacing =
             heldPreviewLayoutGroup.spacing;
 
-        Vector2Int grabOffset =
-            interactionController
-                .SelectedGrabOffset;
+        float totalWidth =
+            width * cellSize.x +
+            Mathf.Max(
+                0,
+                width - 1
+            ) * spacing.x;
 
-        int visualRowFromTop =
-            height -
-            1 -
-            grabOffset.y;
-
-        float x =
-            grabOffset.x *
-            (cellSize.x + spacing.x) +
-            cellSize.x * 0.5f;
-
-        float y =
-            -visualRowFromTop *
-            (cellSize.y + spacing.y) -
-            cellSize.y * 0.5f;
+        float totalHeight =
+            height * cellSize.y +
+            Mathf.Max(
+                0,
+                height - 1
+            ) * spacing.y;
 
         return new Vector2(
-            x,
-            y
+            totalWidth * 0.5f,
+            -totalHeight * 0.5f
         );
     }
 
@@ -1762,13 +2085,16 @@ public sealed class InventoryGridUI :
             interactionController.HasSelection &&
             interactionController
                 .SelectedDefinition != null &&
-            IsValidGridCoordinate(
-                hoveredCoordinate))
-        {
-            Vector2Int origin =
-                hoveredCoordinate -
+            Mouse.current != null &&
+            TryGetPlacementOriginFromScreenPoint(
+                Mouse.current.position
+                    .ReadValue(),
                 interactionController
-                    .SelectedGrabOffset;
+                    .SelectedDefinition,
+                interactionController
+                    .SelectedRotationSteps,
+                out Vector2Int origin))
+        {
 
             DrawItemOutline(
                 interactionController
@@ -2187,84 +2513,41 @@ public sealed class InventoryGridUI :
         }
     }
 
-    private void HandlePendingDragRetrieve()
+    private static bool TryGetActiveDrag(
+        out InventoryGridUI dragOwner,
+        out InventoryItemInstance item,
+        out int rotationSteps)
     {
-        if (!awaitingDragRetrieve)
-            return;
+        dragOwner = null;
+        item = null;
+        rotationSteps = 0;
 
-        if (interactionController == null ||
-            draggedItem == null ||
-            dragSourceContainer == null ||
-            Mouse.current == null)
+        for (int i = 0;
+             i < activeGrids.Count;
+             i++)
         {
-            if (interactionController != null)
+            InventoryGridUI grid =
+                activeGrids[i];
+
+            if (grid == null ||
+                !grid.isActiveAndEnabled ||
+                !grid.isDraggingItem ||
+                grid.draggedItem == null ||
+                grid.draggedItem.IsEmpty)
             {
-                interactionController
-                    .TryCancelPendingSelectionOperation();
+                continue;
             }
 
-            ClearPendingDragRetrieve();
+            dragOwner = grid;
+            item = grid.draggedItem;
 
-            return;
+            rotationSteps =
+                grid.dragOriginalRotationSteps;
+
+            return true;
         }
 
-        bool itemIsReady =
-            interactionController.HasSelection &&
-            ReferenceEquals(
-                interactionController.SelectedItem,
-                draggedItem
-            );
-
-        if (itemIsReady)
-        {
-            awaitingDragRetrieve = false;
-
-            if (Mouse.current.leftButton
-                .isPressed)
-            {
-                isDraggingItem = true;
-
-                RefreshAllGrids();
-                return;
-            }
-
-            interactionController
-                .TryReturnSelectionToContainer(
-                    dragSourceContainer,
-                    dragOriginalPosition,
-                    dragOriginalRotationSteps
-                );
-
-            ClearPendingDragRetrieve();
-
-            RefreshAllGrids();
-
-            return;
-        }
-
-        if (Mouse.current.leftButton
-            .isPressed)
-        {
-            return;
-        }
-
-        interactionController
-            .TryCancelPendingSelectionOperation();
-
-        ClearPendingDragRetrieve();
-
-        RefreshAllGrids();
-    }
-
-    private void ClearPendingDragRetrieve()
-    {
-        awaitingDragRetrieve = false;
-        pointerIsDown = false;
-        pendingDragPickup = false;
-        isDraggingItem = false;
-
-        dragSourceContainer = null;
-        draggedItem = null;
+        return false;
     }
 
     private bool TryGetReservationPreview(
@@ -2396,4 +2679,39 @@ public sealed class InventoryGridUI :
 
         return false;
     }
+
+    private InventoryItemInstance PreviewItem
+    {
+        get
+        {
+            if (isDraggingItem)
+                return draggedItem;
+
+            return interactionController != null
+                ? interactionController.SelectedItem
+                : null;
+        }
+    }
+
+    private ItemDefinition PreviewDefinition =>
+        PreviewItem != null
+            ? PreviewItem.Definition
+            : null;
+
+    private int PreviewRotationSteps =>
+        isDraggingItem
+            ? dragOriginalRotationSteps
+            : interactionController != null
+                ? interactionController
+                    .SelectedRotationSteps
+                : 0;
+
+    private bool IsItemPreviewAllowed =>
+        heldPreviewEnabled ||
+        isDraggingItem;
+
+    private bool HasItemPreview =>
+        PreviewItem != null &&
+        !PreviewItem.IsEmpty &&
+        PreviewDefinition != null;
 }

@@ -29,7 +29,7 @@ public static class WeaponUsePlanResolver
             Mathf.Clamp(
                 availableHands,
                 0,
-                handling.GripProfile.HandGripCount
+                handling.GripProfile.MaxHandGripUsage
             );
 
         availableMouth =

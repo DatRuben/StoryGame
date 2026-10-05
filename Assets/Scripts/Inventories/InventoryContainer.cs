@@ -158,6 +158,168 @@ public class InventoryContainer : MonoBehaviour
         return true;
     }
 
+    public bool CanRepositionItem(
+        InventoryItemInstance itemInstance,
+        int x,
+        int y,
+        int rotationSteps)
+    {
+        if (grid == null ||
+            itemInstance == null ||
+            itemInstance.IsEmpty ||
+            itemInstance.Definition == null)
+        {
+            return false;
+        }
+
+        PlacedInventoryItem placed =
+            grid.GetPlacedItem(
+                itemInstance
+            );
+
+        if (placed == null ||
+            !ReferenceEquals(
+                placed.ItemInstance,
+                itemInstance))
+        {
+            return false;
+        }
+
+        if (IsTakeReserved(
+                itemInstance) ||
+            GetReservedStackQuantity(
+                itemInstance,
+                null) > 0)
+        {
+            return false;
+        }
+
+        return CanPlaceWithReservations(
+            itemInstance.Definition,
+            x,
+            y,
+            rotationSteps,
+            null,
+            itemInstance
+        );
+    }
+
+    public bool TryRepositionItem(
+        InventoryItemInstance itemInstance,
+        Vector2Int sourceCoordinate,
+        Vector2Int targetPosition,
+        int targetRotationSteps)
+    {
+        if (grid == null ||
+            itemInstance == null ||
+            itemInstance.IsEmpty ||
+            itemInstance.Definition == null)
+        {
+            return false;
+        }
+
+        PlacedInventoryItem placed =
+            grid.GetPlacedItem(
+                itemInstance
+            );
+
+        if (placed == null ||
+            !ReferenceEquals(
+                placed.ItemInstance,
+                itemInstance) ||
+            placed.Position !=
+                sourceCoordinate)
+        {
+            return false;
+        }
+
+        if (IsTakeReserved(
+                itemInstance) ||
+            GetReservedStackQuantity(
+                itemInstance,
+                null) > 0)
+        {
+            return false;
+        }
+
+        Vector2Int originalPosition =
+            placed.Position;
+
+        int originalRotation =
+            placed.RotationSteps;
+
+        targetRotationSteps =
+            ItemDefinition
+                .NormalizeRotationSteps(
+                    targetRotationSteps
+                );
+
+        if (originalPosition ==
+                targetPosition &&
+            originalRotation ==
+                targetRotationSteps)
+        {
+            return true;
+        }
+
+        PlacedInventoryItem removed =
+            grid.PickUpItem(
+                itemInstance
+            );
+
+        if (removed == null ||
+            !ReferenceEquals(
+                removed.ItemInstance,
+                itemInstance))
+        {
+            return false;
+        }
+
+        bool canPlace =
+            CanPlaceWithReservations(
+                itemInstance.Definition,
+                targetPosition.x,
+                targetPosition.y,
+                targetRotationSteps,
+                null
+            );
+
+        bool moved =
+            canPlace &&
+            grid.PlaceItem(
+                itemInstance,
+                targetPosition.x,
+                targetPosition.y,
+                targetRotationSteps
+            );
+
+        if (moved)
+        {
+            Changed?.Invoke();
+            return true;
+        }
+
+        bool restored =
+            grid.PlaceItem(
+                itemInstance,
+                originalPosition.x,
+                originalPosition.y,
+                originalRotation
+            );
+
+        if (!restored)
+        {
+            Debug.LogError(
+                "Inventory item reposition failed and its original placement could not be restored.",
+                this
+            );
+
+            Changed?.Invoke();
+        }
+
+        return false;
+    }
+
     public PlacedInventoryItem TakeItemAt(
         int x,
         int y)
@@ -601,32 +763,31 @@ public class InventoryContainer : MonoBehaviour
         return false;
     }
 
-    public bool TryReserveTakeAt(
-        int x,
-        int y,
-        out InventoryTakeReservation
-            reservation)
+    public bool TryReserveTake(
+        InventoryItemInstance item,
+        out InventoryTakeReservation reservation)
     {
         reservation = null;
 
-        if (grid == null)
-            return false;
-
-        PlacedInventoryItem placed =
-            grid.GetPlacedItem(
-                x,
-                y
-            );
-
-        if (placed == null ||
-            placed.ItemInstance == null ||
-            placed.ItemInstance.IsEmpty)
+        if (grid == null ||
+            item == null ||
+            item.IsEmpty)
         {
             return false;
         }
 
-        InventoryItemInstance item =
-            placed.ItemInstance;
+        PlacedInventoryItem placed =
+            grid.GetPlacedItem(
+                item
+            );
+
+        if (placed == null ||
+            !ReferenceEquals(
+                placed.ItemInstance,
+                item))
+        {
+            return false;
+        }
 
         if (IsTakeReserved(item))
             return false;
@@ -651,6 +812,36 @@ public class InventoryContainer : MonoBehaviour
         );
 
         return true;
+    }
+
+    public bool TryReserveTakeAt(
+        int x,
+        int y,
+        out InventoryTakeReservation
+            reservation)
+    {
+        reservation = null;
+
+        if (grid == null)
+            return false;
+
+        PlacedInventoryItem placed =
+            grid.GetPlacedItem(
+                x,
+                y
+            );
+
+        if (placed == null ||
+            placed.ItemInstance == null ||
+            placed.ItemInstance.IsEmpty)
+        {
+            return false;
+        }
+
+        return TryReserveTake(
+            placed.ItemInstance,
+            out reservation
+        );
     }
 
     public bool CancelTakeReservation(
@@ -700,14 +891,17 @@ public class InventoryContainer : MonoBehaviour
 
         PlacedInventoryItem current =
             grid.GetPlacedItem(
-                reservation.Position.x,
-                reservation.Position.y
+                reservation.Item
             );
 
         if (current == null ||
             !ReferenceEquals(
                 current.ItemInstance,
-                reservation.Item))
+                reservation.Item) ||
+            current.Position !=
+                reservation.Position ||
+            current.RotationSteps !=
+                reservation.RotationSteps)
         {
             CancelTakeReservation(
                 reservation
@@ -717,9 +911,8 @@ public class InventoryContainer : MonoBehaviour
         }
 
         removedItem =
-            grid.PickUpItemAt(
-                reservation.Position.x,
-                reservation.Position.y
+            grid.PickUpItem(
+                reservation.Item
             );
 
         if (removedItem == null ||
@@ -1274,37 +1467,12 @@ public class InventoryContainer : MonoBehaviour
     private bool ContainsItemInstance(
         InventoryItemInstance itemInstance)
     {
-        if (grid == null ||
-            itemInstance == null)
-        {
-            return false;
-        }
-
-        for (int y = 0;
-             y < Height;
-             y++)
-        {
-            for (int x = 0;
-                 x < Width;
-                 x++)
-            {
-                PlacedInventoryItem placed =
-                    grid.GetPlacedItem(
-                        x,
-                        y
-                    );
-
-                if (placed != null &&
-                    ReferenceEquals(
-                        placed.ItemInstance,
-                        itemInstance))
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
+        return
+            grid != null &&
+            itemInstance != null &&
+            grid.GetPlacedItem(
+                itemInstance
+            ) != null;
     }
 
     private bool TryFindAvailableSpace(
@@ -1374,7 +1542,8 @@ public class InventoryContainer : MonoBehaviour
         int startY,
         int rotationSteps,
         InventoryTransferReservation
-            excludedReservation)
+            excludedReservation,
+        InventoryItemInstance ignoredItem = null)
     {
         if (grid == null ||
             definition == null ||
@@ -1382,7 +1551,8 @@ public class InventoryContainer : MonoBehaviour
                 definition,
                 startX,
                 startY,
-                rotationSteps))
+                rotationSteps,
+                ignoredItem))
         {
             return false;
         }

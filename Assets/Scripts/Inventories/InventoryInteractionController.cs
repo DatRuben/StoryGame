@@ -54,12 +54,6 @@ public sealed class InventoryInteractionController :
 
     private ItemHandlingOperation pendingSelectionOperation;
 
-    private ItemHandlingOperation pendingStoreSelectionOperation;
-
-    private int pendingStoreSelectionRotation;
-
-    private Vector2Int pendingStoreSelectionGrabOffset;
-
     private int pendingSelectionRotation;
 
     private Vector2Int pendingSelectionGrabOffset;
@@ -587,7 +581,7 @@ public sealed class InventoryInteractionController :
         }
 
         if (!itemHandlingController
-            .TryBeginStoreHeldItem(
+            .TryStoreHeldItem(
                 acquiredItem,
                 playerInventory))
         {
@@ -702,6 +696,10 @@ public sealed class InventoryInteractionController :
 
         if (itemHandlingController != null)
         {
+            itemHandlingController
+                .OperationStarted +=
+                    OnItemHandlingOperationStarted;
+
             itemHandlingController
                 .OperationCompleted +=
                     OnItemHandlingOperationCompleted;
@@ -917,109 +915,6 @@ public sealed class InventoryInteractionController :
         );
     }
 
-    public bool TryPickUpItemFromContainer(
-        InventoryContainer source,
-        Vector2Int coordinate)
-    {
-        if (gameplayState != null &&
-            !gameplayState.Allows(
-            PlayerGameplayCapability.ItemHandling))
-        {
-            return false;
-        }
-
-        if (loadoutAssignmentItem != null ||
-            source == null ||
-            cursor.HasSelection)
-        {
-            return false;
-        }
-
-        PlacedInventoryItem placedItem =
-            source.GetItemAt(
-                coordinate.x,
-                coordinate.y
-            );
-
-        if (placedItem == null ||
-            placedItem.ItemInstance == null ||
-            placedItem.ItemDefinition == null)
-        {
-            return false;
-        }
-
-        InventoryItemInstance itemInstance =
-            placedItem.ItemInstance;
-
-        if (!TryFindHoldPlan(
-            itemInstance,
-            out GripType gripType,
-            out int gripCount))
-        {
-            return false;
-        }
-
-        Vector2Int originalPosition =
-            placedItem.Position;
-
-        int originalRotation =
-            placedItem.RotationSteps;
-
-        Vector2Int grabOffset =
-            coordinate -
-            originalPosition;
-
-        PlacedInventoryItem removedItem =
-            source.TakeItemAt(
-                coordinate.x,
-                coordinate.y
-            );
-
-        if (removedItem == null ||
-            !ReferenceEquals(
-                removedItem.ItemInstance,
-                itemInstance))
-        {
-            return false;
-        }
-
-        if (!gripState.TryHold(
-            itemInstance,
-            gripType,
-            gripCount))
-        {
-            source.PlaceInstance(
-                itemInstance,
-                originalPosition.x,
-                originalPosition.y,
-                originalRotation
-            );
-
-            return false;
-        }
-
-        if (!cursor.Select(
-            itemInstance,
-            originalRotation,
-            grabOffset))
-        {
-            gripState.Release(
-                itemInstance
-            );
-
-            source.PlaceInstance(
-                itemInstance,
-                originalPosition.x,
-                originalPosition.y,
-                originalRotation
-            );
-
-            return false;
-        }
-
-        return true;
-    }
-
     public bool CanPlaceSelection(
         InventoryContainer target,
         Vector2Int origin)
@@ -1040,40 +935,6 @@ public sealed class InventoryInteractionController :
             origin.y,
             cursor.RotationSteps
         );
-    }
-
-    public bool TryPlaceSelection(
-        InventoryContainer target,
-        Vector2Int origin)
-    {
-        InventoryItemInstance selected =
-            cursor.SelectedItem;
-
-        if (!CanPlaceSelection(
-            target,
-            origin))
-        {
-            return false;
-        }
-
-        bool placed =
-            target.PlaceInstance(
-                selected,
-                origin.x,
-                origin.y,
-                cursor.RotationSteps
-            );
-
-        if (!placed)
-            return false;
-
-        gripState.Release(
-            selected
-        );
-
-        cursor.ClearSelection();
-
-        return true;
     }
 
     public bool CanMergeSelectionIntoStackAt(
@@ -1134,42 +995,6 @@ public sealed class InventoryInteractionController :
         return true;
     }
 
-    public bool TryMergeSelectionIntoStackAt(
-        InventoryContainer target,
-        Vector2Int coordinate)
-    {
-        if (!CanMergeSelectionIntoStackAt(
-            target,
-            coordinate,
-            out _))
-        {
-            return false;
-        }
-
-        InventoryItemInstance selected =
-            cursor.SelectedItem;
-
-        PlacedInventoryItem placedTarget =
-            target.GetItemAt(
-                coordinate.x,
-                coordinate.y
-            );
-
-        if (placedTarget == null ||
-            placedTarget.ItemInstance == null)
-        {
-            return false;
-        }
-
-        int moved =
-            selected.MoveQuantityTo(
-                placedTarget.ItemInstance,
-                selected.Quantity
-            );
-
-        return moved > 0;
-    }
-
     public bool TryPlaceOneSelection(
         InventoryContainer target,
         Vector2Int origin)
@@ -1213,8 +1038,9 @@ public sealed class InventoryInteractionController :
 
         if (selected.Quantity <= 1)
         {
-            return TryPlaceSelection(
+            return TryStoreSelectionAt(
                 target,
+                origin,
                 origin
             );
         }
@@ -2435,12 +2261,22 @@ public sealed class InventoryInteractionController :
         return GripType.Hand;
     }
 
+    private bool IsHeldItem(
+        InventoryItemInstance itemInstance)
+    {
+        return
+            itemInstance != null &&
+            !itemInstance.IsEmpty &&
+            gripState != null &&
+            gripState.IsHolding(
+                itemInstance
+            );
+    }
+
     private bool IsPlacementCandidate(
         InventoryItemInstance itemInstance)
     {
-        if (itemInstance == null ||
-            itemInstance.IsEmpty ||
-            !gripState.IsHolding(
+        if (!IsHeldItem(
                 itemInstance))
         {
             return false;
@@ -2537,6 +2373,10 @@ public sealed class InventoryInteractionController :
         if (itemHandlingController != null)
         {
             itemHandlingController
+                .OperationStarted -=
+                    OnItemHandlingOperationStarted;
+
+            itemHandlingController
                 .OperationCompleted -=
                     OnItemHandlingOperationCompleted;
 
@@ -2546,54 +2386,32 @@ public sealed class InventoryInteractionController :
         }
     }
 
-    public bool TryReturnSelectionToContainer(
-    InventoryContainer target,
-    Vector2Int originalPosition,
-    int originalRotationSteps)
+    private void TrySelectPendingRetrieve(
+        ItemHandlingOperation operation)
     {
-        InventoryItemInstance selected =
-            cursor.SelectedItem;
-
-        if (target == null ||
-            !IsPlacementCandidate(
-                selected))
+        if (!ReferenceEquals(
+                operation,
+                pendingSelectionOperation))
         {
-            return false;
+            return;
         }
 
-        if (!cursor.Select(
-            selected,
-            originalRotationSteps,
-            Vector2Int.zero))
+        InventoryItemInstance item =
+            operation.Item;
+
+        if (item == null ||
+            item.IsEmpty ||
+            gripState == null ||
+            !gripState.IsHolding(item))
         {
-            return false;
+            return;
         }
 
-        bool placed =
-            target.PlaceInstance(
-                selected,
-                originalPosition.x,
-                originalPosition.y,
-                originalRotationSteps
-            );
-
-        if (!placed)
-            return false;
-
-        if (!gripState.Release(
-            selected))
-        {
-            target.TakeItemAt(
-                originalPosition.x,
-                originalPosition.y
-            );
-
-            return false;
-        }
-
-        cursor.ClearSelection();
-
-        return true;
+        cursor.Select(
+            item,
+            pendingSelectionRotation,
+            pendingSelectionGrabOffset
+        );
     }
 
     public bool HasUsableSelectedHeldItem
@@ -2608,6 +2426,9 @@ public sealed class InventoryInteractionController :
                 !item.IsEmpty &&
                 gripState != null &&
                 gripState.IsHolding(item) &&
+                itemHandlingController != null &&
+                itemHandlingController
+                    .IsItemReadyForUse(item) &&
                 item.Definition != null &&
                 item.Definition.IsUsable;
         }
@@ -2662,17 +2483,6 @@ public sealed class InventoryInteractionController :
     private void OnItemHandlingOperationCompleted(
         ItemHandlingOperation operation)
     {
-        if (ReferenceEquals(
-                operation,
-                pendingStoreSelectionOperation))
-        {
-            RestorePendingStoreSelection(
-                operation
-            );
-
-            return;
-        }
-
         if (!ReferenceEquals(
                 operation,
                 pendingSelectionOperation))
@@ -2680,52 +2490,24 @@ public sealed class InventoryInteractionController :
             return;
         }
 
-        InventoryItemInstance item =
-            operation.Item;
-
-        int rotation =
-            pendingSelectionRotation;
-
-        Vector2Int grabOffset =
-            pendingSelectionGrabOffset;
-
         ClearPendingSelectionOperation();
-
-        if (item == null ||
-            item.IsEmpty ||
-            gripState == null ||
-            !gripState.IsHolding(
-                item))
-        {
-            return;
-        }
-
-        cursor.Select(
-            item,
-            rotation,
-            grabOffset
-        );
     }
 
     private void OnItemHandlingOperationCancelled(
         ItemHandlingOperation operation)
     {
-        if (ReferenceEquals(
-                operation,
-                pendingStoreSelectionOperation))
-        {
-            RestorePendingStoreSelection(
-                operation
-            );
-
-            return;
-        }
-
         if (!ReferenceEquals(
                 operation,
                 pendingSelectionOperation))
         {
             return;
+        }
+
+        if (ReferenceEquals(
+                cursor.SelectedItem,
+                operation.Item))
+        {
+            cursor.ClearSelection();
         }
 
         ClearPendingSelectionOperation();
@@ -2812,70 +2594,14 @@ public sealed class InventoryInteractionController :
         pendingSelectionGrabOffset =
             grabOffset;
 
+        TrySelectPendingRetrieve(
+            operation
+        );
+
         return true;
     }
 
-    public bool TryCancelPendingSelectionOperation()
-    {
-        ItemHandlingOperation operation =
-            pendingSelectionOperation;
-
-        if (operation == null ||
-            itemHandlingController == null)
-        {
-            return false;
-        }
-
-        return itemHandlingController
-            .TryCancelOperation(
-                operation
-            );
-    }
-
-    private void ClearPendingStoreSelectionOperation()
-    {
-        pendingStoreSelectionOperation =
-            null;
-
-        pendingStoreSelectionRotation = 0;
-
-        pendingStoreSelectionGrabOffset =
-            Vector2Int.zero;
-    }
-
-    private void RestorePendingStoreSelection(
-        ItemHandlingOperation operation)
-    {
-        InventoryItemInstance item =
-            operation != null
-                ? operation.Item
-                : null;
-
-        int rotation =
-            pendingStoreSelectionRotation;
-
-        Vector2Int grabOffset =
-            pendingStoreSelectionGrabOffset;
-
-        ClearPendingStoreSelectionOperation();
-
-        if (item == null ||
-            item.IsEmpty ||
-            gripState == null ||
-            !gripState.IsHolding(
-                item))
-        {
-            return;
-        }
-
-        cursor.Select(
-            item,
-            rotation,
-            grabOffset
-        );
-    }
-
-    public bool TryBeginStoreSelectionAt(
+    public bool TryStoreSelectionAt(
         InventoryContainer target,
         Vector2Int stackCoordinate,
         Vector2Int placementOrigin)
@@ -2893,9 +2619,7 @@ public sealed class InventoryInteractionController :
 
         if (target == null ||
             itemHandlingController == null ||
-            pendingStoreSelectionOperation !=
-                null ||
-            !IsPlacementCandidate(
+            !IsHeldItem(
                 selected))
         {
             return false;
@@ -2904,33 +2628,142 @@ public sealed class InventoryInteractionController :
         int rotation =
             cursor.RotationSteps;
 
-        Vector2Int grabOffset =
-            cursor.GrabOffset;
-
         if (!itemHandlingController
-            .TryBeginStoreHeldItemAt(
+            .TryStoreHeldItemAt(
                 selected,
                 target,
                 stackCoordinate,
                 placementOrigin,
                 rotation,
-                out ItemHandlingOperation
-                    operation))
+                out int remainingQuantity))
         {
             return false;
         }
 
-        pendingStoreSelectionOperation =
-            operation;
-
-        pendingStoreSelectionRotation =
-            rotation;
-
-        pendingStoreSelectionGrabOffset =
-            grabOffset;
-
-        cursor.ClearSelection();
+        if (remainingQuantity <= 0 ||
+            selected.IsEmpty ||
+            !gripState.IsHolding(
+                selected))
+        {
+            cursor.ClearSelection();
+        }
 
         return true;
+    }
+
+    public bool TryRepositionItem(
+        InventoryContainer container,
+        InventoryItemInstance item,
+        Vector2Int sourceCoordinate,
+        Vector2Int targetPosition,
+        int rotationSteps)
+    {
+        if (gameplayState != null &&
+            !gameplayState.Allows(
+                PlayerGameplayCapability.ItemHandling))
+        {
+            return false;
+        }
+
+        if (container == null ||
+            item == null ||
+            item.IsEmpty ||
+            loadoutAssignmentItem != null)
+        {
+            return false;
+        }
+
+        return container.TryRepositionItem(
+            item,
+            sourceCoordinate,
+            targetPosition,
+            rotationSteps
+        );
+    }
+
+    public bool TryBeginDragTransfer(
+        InventoryContainer source,
+        InventoryContainer target,
+        InventoryItemInstance item,
+        Vector2Int targetStackCoordinate,
+        Vector2Int targetPlacementOrigin,
+        int targetRotationSteps)
+    {
+        if (gameplayState != null &&
+            !gameplayState.Allows(
+                PlayerGameplayCapability.ItemHandling))
+        {
+            return false;
+        }
+
+        if (source == null ||
+            target == null ||
+            item == null ||
+            item.IsEmpty ||
+            ReferenceEquals(
+                source,
+                target) ||
+            itemHandlingController == null ||
+            loadoutAssignmentItem != null)
+        {
+            return false;
+        }
+
+        if (!TryFindHoldPlan(
+                item,
+                out GripType gripType,
+                out int gripCount))
+        {
+            return false;
+        }
+
+        return itemHandlingController
+            .TryBeginTransferFromContainerAt(
+                source,
+                target,
+                item,
+                targetStackCoordinate,
+                targetPlacementOrigin,
+                targetRotationSteps,
+                gripType,
+                gripCount
+            );
+    }
+
+    private void OnItemHandlingOperationStarted(
+        ItemHandlingOperation operation)
+    {
+        TrySelectPendingRetrieve(
+            operation
+        );
+    }
+
+    internal bool TryDropItemFromContainer(
+        InventoryContainer source,
+        InventoryItemInstance item)
+    {
+        if (source == null ||
+            item == null ||
+            item.IsEmpty ||
+            itemHandlingController == null)
+        {
+            return false;
+        }
+
+        if (!TryFindHoldPlan(
+                item,
+                out GripType gripType,
+                out int gripCount))
+        {
+            return false;
+        }
+
+        return itemHandlingController
+            .TryBeginRetrieveThenDrop(
+                source,
+                item,
+                gripType,
+                gripCount
+            );
     }
 }

@@ -204,6 +204,8 @@ public class PlayerCharacterProfile : MonoBehaviour
         RaceDefinition = raceDefinition;
         SubraceDefinition = subraceDefinition;
 
+        ValidateCharacterModel();
+
         formState =
             GetComponent<PlayerFormState>();
 
@@ -789,6 +791,27 @@ public class PlayerCharacterProfile : MonoBehaviour
             $"{FinalMovementStats.deceleration}, " +
             $"JUMP " +
             $"{FinalMovementStats.jumpForce}",
+            this
+        );
+    }
+
+    private void ValidateCharacterModel()
+    {
+        if (SubraceDefinition == null)
+            return;
+
+        if (SubraceDefinition
+            .TryValidateCharacterModel(
+                gameObject,
+                out string warning))
+        {
+            return;
+        }
+
+        Debug.LogWarning(
+            $"Character model validation failed for " +
+            $"'{SubraceDefinition.displayName}':\n" +
+            warning,
             this
         );
     }

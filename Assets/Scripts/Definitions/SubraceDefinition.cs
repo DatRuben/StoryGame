@@ -327,6 +327,19 @@ public class SubraceDefinition : ScriptableObject
         }
     }
 
+    public bool TryValidateCharacterModel(
+        GameObject model,
+        out string warning)
+    {
+        return CharacterModelValidator.TryValidate(
+            model,
+            bodyType,
+            standingGripProfile,
+            feralGripProfile,
+            out warning
+        );
+    }
+
     private string MakeId(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
@@ -757,6 +770,25 @@ public class SubraceDefinitionEditor : Editor
         EditorGUILayout.PropertyField(
             previewPrefab
         );
+
+        SubraceDefinition definition =
+            target as SubraceDefinition;
+
+        GameObject model =
+            previewPrefab.objectReferenceValue
+                as GameObject;
+
+        if (definition != null &&
+            model != null &&
+            !definition.TryValidateCharacterModel(
+                model,
+                out string modelWarning))
+        {
+            EditorGUILayout.HelpBox(
+                modelWarning,
+                MessageType.Warning
+            );
+        }
 
         EditorGUILayout.Space();
     }

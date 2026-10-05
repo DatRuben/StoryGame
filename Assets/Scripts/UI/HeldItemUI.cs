@@ -344,7 +344,7 @@ public sealed class HeldItemUI :
 
         bothHandsCard.Hide();
 
-        if (gripState.HandGripCount >= 1)
+        if (gripState.HandSlotCount >= 1)
         {
             if (leftItem != null)
             {
@@ -367,7 +367,7 @@ public sealed class HeldItemUI :
             leftHandCard.Hide();
         }
 
-        if (gripState.HandGripCount >= 2)
+        if (gripState.HandSlotCount >= 2)
         {
             if (rightItem != null)
             {
