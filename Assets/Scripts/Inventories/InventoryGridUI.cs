@@ -921,11 +921,37 @@ public sealed class InventoryGridUI :
             BuildGrid();
         }
 
+        bool hasDragPreview =
+            TryGetActiveDrag(
+                out InventoryGridUI dragOwner,
+                out InventoryItemInstance
+                    placementItem,
+                out int placementRotationSteps
+            );
+
         bool hasSelection =
+            !hasDragPreview &&
             interactionController != null &&
             interactionController.HasSelection &&
             interactionController
                 .SelectedDefinition != null;
+
+        if (!hasDragPreview &&
+            hasSelection)
+        {
+            placementItem =
+                interactionController
+                    .SelectedItem;
+
+            placementRotationSteps =
+                interactionController
+                    .SelectedRotationSteps;
+        }
+
+        bool hasPlacementItem =
+            placementItem != null &&
+            !placementItem.IsEmpty &&
+            placementItem.Definition != null;
 
         bool hoverValid =
             IsValidGridCoordinate(
@@ -939,25 +965,56 @@ public sealed class InventoryGridUI :
             );
 
         bool hasPreviewOrigin =
-            hasSelection &&
+            hasPlacementItem &&
             Mouse.current != null &&
             TryGetPlacementOriginFromScreenPoint(
                 Mouse.current.position
                     .ReadValue(),
-                interactionController
-                    .SelectedDefinition,
-                interactionController
-                    .SelectedRotationSteps,
+                placementItem.Definition,
+                placementRotationSteps,
                 out previewOrigin
             );
 
-        bool canPlace =
-            hasPreviewOrigin &&
-            interactionController
-                .CanPlaceSelection(
-                    inventoryContainer,
-                    previewOrigin
-                );
+        bool canPlace = false;
+
+        if (hasPreviewOrigin)
+        {
+            if (hasDragPreview)
+            {
+                if (ReferenceEquals(
+                        inventoryContainer,
+                        dragOwner.dragSourceContainer))
+                {
+                    canPlace =
+                        inventoryContainer
+                            .CanRepositionItem(
+                                placementItem,
+                                previewOrigin.x,
+                                previewOrigin.y,
+                                placementRotationSteps
+                            );
+                }
+                else
+                {
+                    canPlace =
+                        inventoryContainer.CanPlace(
+                            placementItem,
+                            previewOrigin.x,
+                            previewOrigin.y,
+                            placementRotationSteps
+                        );
+                }
+            }
+            else
+            {
+                canPlace =
+                    interactionController
+                        .CanPlaceSelection(
+                            inventoryContainer,
+                            previewOrigin
+                        );
+            }
+        }
 
         for (int i = 0;
              i < cells.Count;
@@ -992,9 +1049,11 @@ public sealed class InventoryGridUI :
             }
 
             if (hasPreviewOrigin &&
-                IsSelectionPreviewCell(
+                IsPlacementPreviewCell(
                     coordinate,
-                    previewOrigin))
+                    previewOrigin,
+                    placementItem.Definition,
+                    placementRotationSteps))
             {
                 cell.SetColor(
                     canPlace
@@ -1131,17 +1190,12 @@ public sealed class InventoryGridUI :
         return true;
     }
 
-    private bool IsSelectionPreviewCell(
+    private bool IsPlacementPreviewCell(
         Vector2Int coordinate,
-        Vector2Int origin)
+        Vector2Int origin,
+        ItemDefinition definition,
+        int rotationSteps)
     {
-        if (interactionController == null)
-            return false;
-
-        ItemDefinition definition =
-            interactionController
-                .SelectedDefinition;
-
         if (definition == null)
             return false;
 
@@ -1155,12 +1209,12 @@ public sealed class InventoryGridUI :
 
         if (localX < 0 ||
             localY < 0 ||
-            localX >= definition.GetWidth(
-                interactionController
-                    .SelectedRotationSteps) ||
-            localY >= definition.GetHeight(
-                interactionController
-                    .SelectedRotationSteps))
+            localX >=
+                definition.GetWidth(
+                    rotationSteps) ||
+            localY >=
+                definition.GetHeight(
+                    rotationSteps))
         {
             return false;
         }
@@ -1168,8 +1222,7 @@ public sealed class InventoryGridUI :
         return definition.IsCellOccupied(
             localX,
             localY,
-            interactionController
-                .SelectedRotationSteps
+            rotationSteps
         );
     }
 
@@ -2413,6 +2466,43 @@ public sealed class InventoryGridUI :
             if (grid != null)
                 grid.Refresh();
         }
+    }
+
+    private static bool TryGetActiveDrag(
+        out InventoryGridUI dragOwner,
+        out InventoryItemInstance item,
+        out int rotationSteps)
+    {
+        dragOwner = null;
+        item = null;
+        rotationSteps = 0;
+
+        for (int i = 0;
+             i < activeGrids.Count;
+             i++)
+        {
+            InventoryGridUI grid =
+                activeGrids[i];
+
+            if (grid == null ||
+                !grid.isActiveAndEnabled ||
+                !grid.isDraggingItem ||
+                grid.draggedItem == null ||
+                grid.draggedItem.IsEmpty)
+            {
+                continue;
+            }
+
+            dragOwner = grid;
+            item = grid.draggedItem;
+
+            rotationSteps =
+                grid.dragOriginalRotationSteps;
+
+            return true;
+        }
+
+        return false;
     }
 
     private bool TryGetReservationPreview(

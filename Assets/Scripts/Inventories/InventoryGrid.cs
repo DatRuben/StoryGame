@@ -94,11 +94,29 @@ public class InventoryGrid
         int startY,
         int rotationSteps)
     {
+        return CanPlaceItem(
+            item,
+            startX,
+            startY,
+            rotationSteps,
+            null
+        );
+    }
+
+    public bool CanPlaceItem(
+        ItemDefinition item,
+        int startX,
+        int startY,
+        int rotationSteps,
+        InventoryItemInstance ignoredItem)
+    {
         if (item == null)
             return false;
 
         rotationSteps =
-            ItemDefinition.NormalizeRotationSteps(rotationSteps);
+            ItemDefinition.NormalizeRotationSteps(
+                rotationSteps
+            );
 
         int itemWidth =
             item.GetWidth(rotationSteps);
@@ -110,17 +128,34 @@ public class InventoryGrid
         {
             for (int x = 0; x < itemWidth; x++)
             {
-                if (!item.IsCellOccupied(x, y, rotationSteps))
+                if (!item.IsCellOccupied(
+                        x,
+                        y,
+                        rotationSteps))
+                {
                     continue;
+                }
 
                 int gridX = startX + x;
                 int gridY = startY + y;
 
-                if (!IsInsideGrid(gridX, gridY))
+                if (!IsInsideGrid(
+                        gridX,
+                        gridY))
+                {
                     return false;
+                }
 
-                if (cells[gridX, gridY] != null)
+                PlacedInventoryItem occupant =
+                    cells[gridX, gridY];
+
+                if (occupant != null &&
+                    !ReferenceEquals(
+                        occupant.ItemInstance,
+                        ignoredItem))
+                {
                     return false;
+                }
             }
         }
 

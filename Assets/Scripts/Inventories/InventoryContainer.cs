@@ -158,6 +158,52 @@ public class InventoryContainer : MonoBehaviour
         return true;
     }
 
+    public bool CanRepositionItem(
+        InventoryItemInstance itemInstance,
+        int x,
+        int y,
+        int rotationSteps)
+    {
+        if (grid == null ||
+            itemInstance == null ||
+            itemInstance.IsEmpty ||
+            itemInstance.Definition == null)
+        {
+            return false;
+        }
+
+        PlacedInventoryItem placed =
+            grid.GetPlacedItem(
+                itemInstance
+            );
+
+        if (placed == null ||
+            !ReferenceEquals(
+                placed.ItemInstance,
+                itemInstance))
+        {
+            return false;
+        }
+
+        if (IsTakeReserved(
+                itemInstance) ||
+            GetReservedStackQuantity(
+                itemInstance,
+                null) > 0)
+        {
+            return false;
+        }
+
+        return CanPlaceWithReservations(
+            itemInstance.Definition,
+            x,
+            y,
+            rotationSteps,
+            null,
+            itemInstance
+        );
+    }
+
     public bool TryRepositionItem(
         InventoryItemInstance itemInstance,
         Vector2Int sourceCoordinate,
@@ -1496,7 +1542,8 @@ public class InventoryContainer : MonoBehaviour
         int startY,
         int rotationSteps,
         InventoryTransferReservation
-            excludedReservation)
+            excludedReservation,
+        InventoryItemInstance ignoredItem = null)
     {
         if (grid == null ||
             definition == null ||
@@ -1504,7 +1551,8 @@ public class InventoryContainer : MonoBehaviour
                 definition,
                 startX,
                 startY,
-                rotationSteps))
+                rotationSteps,
+                ignoredItem))
         {
             return false;
         }
