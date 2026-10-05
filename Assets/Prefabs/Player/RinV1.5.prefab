@@ -316,7 +316,7 @@ Transform:
   m_GameObject: {fileID: 1139676115575052324}
   serializedVersion: 2
   m_LocalRotation: {x: -0.48590013, y: 0.72776824, z: -0.47589776, w: 0.08818088}
-  m_LocalPosition: {x: -0.36537683, y: 0.8744758, z: -0.2725174}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1172,7 +1172,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 68452c892304a9d41a6d8ac5da263278, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HeldItemAnchors
-  leftHand: {fileID: 0}
+  leftHand: {fileID: 8029919731960370168}
   rightHand: {fileID: 3934505573824520026}
   mouth: {fileID: 0}
 --- !u!95 &3813981491197264047
