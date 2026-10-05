@@ -45,7 +45,7 @@ public static class CharacterModelValidator
 
             case BodyType.Quadruped:
                 IncludeProfile(
-                    standingGripProfile,
+                    feralGripProfile,
                     ref requiresMouth
                 );
                 break;
@@ -57,7 +57,7 @@ public static class CharacterModelValidator
                 );
 
                 IncludeProfile(
-                    standingGripProfile,
+                    feralGripProfile,
                     ref requiresMouth
                 );
                 break;
