@@ -7,7 +7,13 @@ using UnityEditor;
 public enum CombatSkillOriginSource
 {
     None,
-    Character
+    Character,
+    HeldItem
+}
+
+public enum CombatSkillHeldItemSource
+{
+    SkillSourceItem
 }
 
 [CreateAssetMenu(
@@ -43,6 +49,10 @@ public sealed class CombatSkillDefinition :
             CharacterActionPointType.Center;
 
     public string customActionPointId;
+
+    public CombatSkillHeldItemSource
+        heldItemSource =
+            CombatSkillHeldItemSource.SkillSourceItem;
 }
 
 #if UNITY_EDITOR
@@ -58,6 +68,7 @@ public sealed class CombatSkillDefinitionEditor :
     private SerializedProperty originSource;
     private SerializedProperty characterActionPoint;
     private SerializedProperty customActionPointId;
+    private SerializedProperty heldItemSource;
 
     private void OnEnable()
     {
@@ -94,6 +105,11 @@ public sealed class CombatSkillDefinitionEditor :
         customActionPointId =
             serializedObject.FindProperty(
                 "customActionPointId"
+            );
+
+        heldItemSource =
+            serializedObject.FindProperty(
+                "heldItemSource"
             );
     }
 
@@ -181,9 +197,23 @@ public sealed class CombatSkillDefinitionEditor :
             case CombatSkillOriginSource.Character:
                 DrawCharacterOrigin();
                 break;
+
+            case CombatSkillOriginSource.HeldItem:
+                DrawHeldItemOrigin();
+                break;
         }
 
         EditorGUILayout.Space();
+    }
+
+    private void DrawHeldItemOrigin()
+    {
+        EditorGUILayout.PropertyField(
+            heldItemSource,
+            new GUIContent(
+                "Held Item Source"
+            )
+        );
     }
 
     private void DrawCharacterOrigin()
