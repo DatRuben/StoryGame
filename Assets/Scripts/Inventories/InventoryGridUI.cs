@@ -863,7 +863,7 @@ public sealed class InventoryGridUI :
                     .TryBeginDragTransfer(
                         dragSourceContainer,
                         grid.inventoryContainer,
-                        dragOriginalPosition,
+                        draggedItem,
                         coordinate,
                         targetOrigin,
                         dragOriginalRotationSteps
@@ -876,10 +876,10 @@ public sealed class InventoryGridUI :
         if (!pointerOverGrid)
         {
             interactionController
-                .TryDropItemFromContainer(
-                    dragSourceContainer,
-                    dragOriginalPosition
-                );
+                    .TryDropItemFromContainer(
+                        dragSourceContainer,
+                        draggedItem
+                    );
         }
 
         ClearDragState();

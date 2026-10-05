@@ -1074,12 +1074,8 @@ public sealed class PlayerItemHandlingController :
         GripType gripType,
         int gripCount)
     {
-        if (source == null ||
-            gripState == null ||
-            gripCount <= 0)
-        {
+        if (source == null)
             return false;
-        }
 
         PlacedInventoryItem placed =
             source.GetItemAt(
@@ -1094,8 +1090,28 @@ public sealed class PlayerItemHandlingController :
             return false;
         }
 
-        InventoryItemInstance item =
-            placed.ItemInstance;
+        return TryBeginRetrieveThenDrop(
+            source,
+            placed.ItemInstance,
+            gripType,
+            gripCount
+        );
+    }
+
+    public bool TryBeginRetrieveThenDrop(
+        InventoryContainer source,
+        InventoryItemInstance item,
+        GripType gripType,
+        int gripCount)
+    {
+        if (source == null ||
+            item == null ||
+            item.IsEmpty ||
+            gripState == null ||
+            gripCount <= 0)
+        {
+            return false;
+        }
 
         if (gripState.IsHolding(item))
         {
@@ -1119,9 +1135,8 @@ public sealed class PlayerItemHandlingController :
             return false;
         }
 
-        if (!source.TryReserveTakeAt(
-                coordinate.x,
-                coordinate.y,
+        if (!source.TryReserveTake(
+                item,
                 out InventoryTakeReservation
                     takeReservation))
         {
@@ -1250,16 +1265,8 @@ public sealed class PlayerItemHandlingController :
         GripType gripType,
         int gripCount)
     {
-        if (source == null ||
-            target == null ||
-            ReferenceEquals(
-                source,
-                target) ||
-            gripState == null ||
-            gripCount <= 0)
-        {
+        if (source == null)
             return false;
-        }
 
         PlacedInventoryItem placed =
             source.GetItemAt(
@@ -1274,8 +1281,40 @@ public sealed class PlayerItemHandlingController :
             return false;
         }
 
-        InventoryItemInstance item =
-            placed.ItemInstance;
+        return TryBeginTransferFromContainerAt(
+            source,
+            target,
+            placed.ItemInstance,
+            targetStackCoordinate,
+            targetPlacementOrigin,
+            targetRotationSteps,
+            gripType,
+            gripCount
+        );
+    }
+
+    public bool TryBeginTransferFromContainerAt(
+        InventoryContainer source,
+        InventoryContainer target,
+        InventoryItemInstance item,
+        Vector2Int targetStackCoordinate,
+        Vector2Int targetPlacementOrigin,
+        int targetRotationSteps,
+        GripType gripType,
+        int gripCount)
+    {
+        if (source == null ||
+            target == null ||
+            ReferenceEquals(
+                source,
+                target) ||
+            item == null ||
+            item.IsEmpty ||
+            gripState == null ||
+            gripCount <= 0)
+        {
+            return false;
+        }
 
         if (gripState.IsHolding(item))
         {
@@ -1290,9 +1329,8 @@ public sealed class PlayerItemHandlingController :
         if (HasOperationForItem(item))
             return false;
 
-        if (!source.TryReserveTakeAt(
-                sourceCoordinate.x,
-                sourceCoordinate.y,
+        if (!source.TryReserveTake(
+                item,
                 out InventoryTakeReservation
                     takeReservation))
         {

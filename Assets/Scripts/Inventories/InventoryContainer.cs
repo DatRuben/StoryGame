@@ -717,32 +717,31 @@ public class InventoryContainer : MonoBehaviour
         return false;
     }
 
-    public bool TryReserveTakeAt(
-        int x,
-        int y,
-        out InventoryTakeReservation
-            reservation)
+    public bool TryReserveTake(
+        InventoryItemInstance item,
+        out InventoryTakeReservation reservation)
     {
         reservation = null;
 
-        if (grid == null)
-            return false;
-
-        PlacedInventoryItem placed =
-            grid.GetPlacedItem(
-                x,
-                y
-            );
-
-        if (placed == null ||
-            placed.ItemInstance == null ||
-            placed.ItemInstance.IsEmpty)
+        if (grid == null ||
+            item == null ||
+            item.IsEmpty)
         {
             return false;
         }
 
-        InventoryItemInstance item =
-            placed.ItemInstance;
+        PlacedInventoryItem placed =
+            grid.GetPlacedItem(
+                item
+            );
+
+        if (placed == null ||
+            !ReferenceEquals(
+                placed.ItemInstance,
+                item))
+        {
+            return false;
+        }
 
         if (IsTakeReserved(item))
             return false;
@@ -767,6 +766,36 @@ public class InventoryContainer : MonoBehaviour
         );
 
         return true;
+    }
+
+    public bool TryReserveTakeAt(
+        int x,
+        int y,
+        out InventoryTakeReservation
+            reservation)
+    {
+        reservation = null;
+
+        if (grid == null)
+            return false;
+
+        PlacedInventoryItem placed =
+            grid.GetPlacedItem(
+                x,
+                y
+            );
+
+        if (placed == null ||
+            placed.ItemInstance == null ||
+            placed.ItemInstance.IsEmpty)
+        {
+            return false;
+        }
+
+        return TryReserveTake(
+            placed.ItemInstance,
+            out reservation
+        );
     }
 
     public bool CancelTakeReservation(

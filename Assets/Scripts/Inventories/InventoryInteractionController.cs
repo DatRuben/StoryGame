@@ -2684,7 +2684,7 @@ public sealed class InventoryInteractionController :
     public bool TryBeginDragTransfer(
         InventoryContainer source,
         InventoryContainer target,
-        Vector2Int sourceCoordinate,
+        InventoryItemInstance item,
         Vector2Int targetStackCoordinate,
         Vector2Int targetPlacementOrigin,
         int targetRotationSteps)
@@ -2698,6 +2698,8 @@ public sealed class InventoryInteractionController :
 
         if (source == null ||
             target == null ||
+            item == null ||
+            item.IsEmpty ||
             ReferenceEquals(
                 source,
                 target) ||
@@ -2707,21 +2709,8 @@ public sealed class InventoryInteractionController :
             return false;
         }
 
-        PlacedInventoryItem placed =
-            source.GetItemAt(
-                sourceCoordinate.x,
-                sourceCoordinate.y
-            );
-
-        if (placed == null ||
-            placed.ItemInstance == null ||
-            placed.ItemInstance.IsEmpty)
-        {
-            return false;
-        }
-
         if (!TryFindHoldPlan(
-                placed.ItemInstance,
+                item,
                 out GripType gripType,
                 out int gripCount))
         {
@@ -2732,7 +2721,7 @@ public sealed class InventoryInteractionController :
             .TryBeginTransferFromContainerAt(
                 source,
                 target,
-                sourceCoordinate,
+                item,
                 targetStackCoordinate,
                 targetPlacementOrigin,
                 targetRotationSteps,
@@ -2747,5 +2736,34 @@ public sealed class InventoryInteractionController :
         TrySelectPendingRetrieve(
             operation
         );
+    }
+
+    internal bool TryDropItemFromContainer(
+        InventoryContainer source,
+        InventoryItemInstance item)
+    {
+        if (source == null ||
+            item == null ||
+            item.IsEmpty ||
+            itemHandlingController == null)
+        {
+            return false;
+        }
+
+        if (!TryFindHoldPlan(
+                item,
+                out GripType gripType,
+                out int gripCount))
+        {
+            return false;
+        }
+
+        return itemHandlingController
+            .TryBeginRetrieveThenDrop(
+                source,
+                item,
+                gripType,
+                gripCount
+            );
     }
 }
