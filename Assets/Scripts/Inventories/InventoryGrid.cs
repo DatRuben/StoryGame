@@ -38,6 +38,56 @@ public class InventoryGrid
         return cells[x, y];
     }
 
+    public PlacedInventoryItem GetPlacedItem(
+        InventoryItemInstance itemInstance)
+    {
+        if (itemInstance == null)
+            return null;
+
+        for (int y = 0;
+             y < height;
+             y++)
+        {
+            for (int x = 0;
+                 x < width;
+                 x++)
+            {
+                PlacedInventoryItem placed =
+                    cells[x, y];
+
+                if (placed != null &&
+                    ReferenceEquals(
+                        placed.ItemInstance,
+                        itemInstance))
+                {
+                    return placed;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public PlacedInventoryItem PickUpItem(
+        InventoryItemInstance itemInstance)
+    {
+        PlacedInventoryItem placedItem =
+            GetPlacedItem(
+                itemInstance
+            );
+
+        if (placedItem == null)
+            return null;
+
+        if (!RemoveItem(
+                placedItem))
+        {
+            return null;
+        }
+
+        return placedItem;
+    }
+
     public bool CanPlaceItem(
         ItemDefinition item,
         int startX,

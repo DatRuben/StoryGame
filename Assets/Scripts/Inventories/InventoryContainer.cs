@@ -174,8 +174,7 @@ public class InventoryContainer : MonoBehaviour
 
         PlacedInventoryItem placed =
             grid.GetPlacedItem(
-                sourceCoordinate.x,
-                sourceCoordinate.y
+                itemInstance
             );
 
         if (placed == null ||
@@ -216,15 +215,16 @@ public class InventoryContainer : MonoBehaviour
         }
 
         PlacedInventoryItem removed =
-            grid.PickUpItemAt(
-                sourceCoordinate.x,
-                sourceCoordinate.y
+            grid.PickUpItem(
+                itemInstance
             );
 
-        if (removed == null ||
+        if (placed == null ||
             !ReferenceEquals(
-                removed.ItemInstance,
-                itemInstance))
+                placed.ItemInstance,
+                itemInstance) ||
+            placed.Position !=
+                sourceCoordinate)
         {
             return false;
         }
@@ -816,14 +816,17 @@ public class InventoryContainer : MonoBehaviour
 
         PlacedInventoryItem current =
             grid.GetPlacedItem(
-                reservation.Position.x,
-                reservation.Position.y
+                reservation.Item
             );
 
         if (current == null ||
             !ReferenceEquals(
                 current.ItemInstance,
-                reservation.Item))
+                reservation.Item) ||
+            current.Position !=
+                reservation.Position ||
+            current.RotationSteps !=
+                reservation.RotationSteps)
         {
             CancelTakeReservation(
                 reservation
@@ -833,9 +836,8 @@ public class InventoryContainer : MonoBehaviour
         }
 
         removedItem =
-            grid.PickUpItemAt(
-                reservation.Position.x,
-                reservation.Position.y
+            grid.PickUpItem(
+                reservation.Item
             );
 
         if (removedItem == null ||
@@ -1390,37 +1392,12 @@ public class InventoryContainer : MonoBehaviour
     private bool ContainsItemInstance(
         InventoryItemInstance itemInstance)
     {
-        if (grid == null ||
-            itemInstance == null)
-        {
-            return false;
-        }
-
-        for (int y = 0;
-             y < Height;
-             y++)
-        {
-            for (int x = 0;
-                 x < Width;
-                 x++)
-            {
-                PlacedInventoryItem placed =
-                    grid.GetPlacedItem(
-                        x,
-                        y
-                    );
-
-                if (placed != null &&
-                    ReferenceEquals(
-                        placed.ItemInstance,
-                        itemInstance))
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
+        return
+            grid != null &&
+            itemInstance != null &&
+            grid.GetPlacedItem(
+                itemInstance
+            ) != null;
     }
 
     private bool TryFindAvailableSpace(
