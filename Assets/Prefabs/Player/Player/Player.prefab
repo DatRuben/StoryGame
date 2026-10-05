@@ -133,6 +133,8 @@ GameObject:
   - component: {fileID: -7965249869414821225}
   - component: {fileID: 5825084448164040582}
   - component: {fileID: 2184393796824224367}
+  - component: {fileID: 5595385236447183496}
+  - component: {fileID: 4881143217785274146}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -653,6 +655,31 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerItemAudioFeedback
   looseItemPickupClip: {fileID: 8300000, guid: 2908abea0239d4a49a560cd3ef58d234, type: 3}
+--- !u!114 &5595385236447183496
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3981885625536899075}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4809ec2d542a01547abbbb7dd1c255e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CombatSkillController
+--- !u!114 &4881143217785274146
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3981885625536899075}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1b0be11ff301fc48bf1e310ccd26019, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerCombatSkillInput
+  skillController: {fileID: 0}
 --- !u!1 &4361632423051394989
 GameObject:
   m_ObjectHideFlags: 0
