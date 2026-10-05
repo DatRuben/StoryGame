@@ -937,40 +937,6 @@ public sealed class InventoryInteractionController :
         );
     }
 
-    public bool TryPlaceSelection(
-        InventoryContainer target,
-        Vector2Int origin)
-    {
-        InventoryItemInstance selected =
-            cursor.SelectedItem;
-
-        if (!CanPlaceSelection(
-            target,
-            origin))
-        {
-            return false;
-        }
-
-        bool placed =
-            target.PlaceInstance(
-                selected,
-                origin.x,
-                origin.y,
-                cursor.RotationSteps
-            );
-
-        if (!placed)
-            return false;
-
-        gripState.Release(
-            selected
-        );
-
-        cursor.ClearSelection();
-
-        return true;
-    }
-
     public bool CanMergeSelectionIntoStackAt(
         InventoryContainer target,
         Vector2Int coordinate,
@@ -1072,8 +1038,9 @@ public sealed class InventoryInteractionController :
 
         if (selected.Quantity <= 1)
         {
-            return TryPlaceSelection(
+            return TryStoreSelectionAt(
                 target,
+                origin,
                 origin
             );
         }
@@ -2622,23 +2589,6 @@ public sealed class InventoryInteractionController :
         );
 
         return true;
-    }
-
-    public bool TryCancelPendingSelectionOperation()
-    {
-        ItemHandlingOperation operation =
-            pendingSelectionOperation;
-
-        if (operation == null ||
-            itemHandlingController == null)
-        {
-            return false;
-        }
-
-        return itemHandlingController
-            .TryCancelOperation(
-                operation
-            );
     }
 
     public bool TryStoreSelectionAt(
