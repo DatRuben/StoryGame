@@ -1,5 +1,9 @@
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 public enum CombatSkillOriginSource
 {
     None,
@@ -40,3 +44,173 @@ public sealed class CombatSkillDefinition :
 
     public string customActionPointId;
 }
+
+#if UNITY_EDITOR
+[CustomEditor(typeof(CombatSkillDefinition))]
+public sealed class CombatSkillDefinitionEditor :
+    Editor
+{
+    private SerializedProperty skillName;
+    private SerializedProperty castTime;
+    private SerializedProperty cooldown;
+    private SerializedProperty aetherCost;
+
+    private SerializedProperty originSource;
+    private SerializedProperty characterActionPoint;
+    private SerializedProperty customActionPointId;
+
+    private void OnEnable()
+    {
+        skillName =
+            serializedObject.FindProperty(
+                "skillName"
+            );
+
+        castTime =
+            serializedObject.FindProperty(
+                "castTime"
+            );
+
+        cooldown =
+            serializedObject.FindProperty(
+                "cooldown"
+            );
+
+        aetherCost =
+            serializedObject.FindProperty(
+                "aetherCost"
+            );
+
+        originSource =
+            serializedObject.FindProperty(
+                "originSource"
+            );
+
+        characterActionPoint =
+            serializedObject.FindProperty(
+                "characterActionPoint"
+            );
+
+        customActionPointId =
+            serializedObject.FindProperty(
+                "customActionPointId"
+            );
+    }
+
+    public override void OnInspectorGUI()
+    {
+        serializedObject.Update();
+
+        DrawIdentity();
+        DrawTiming();
+        DrawResourceCost();
+        DrawActionOrigin();
+
+        serializedObject.ApplyModifiedProperties();
+    }
+
+    private void DrawIdentity()
+    {
+        EditorGUILayout.LabelField(
+            "Identity",
+            EditorStyles.boldLabel
+        );
+
+        EditorGUILayout.PropertyField(
+            skillName
+        );
+
+        EditorGUILayout.Space();
+    }
+
+    private void DrawTiming()
+    {
+        EditorGUILayout.LabelField(
+            "Timing",
+            EditorStyles.boldLabel
+        );
+
+        EditorGUILayout.PropertyField(
+            castTime
+        );
+
+        EditorGUILayout.PropertyField(
+            cooldown
+        );
+
+        EditorGUILayout.Space();
+    }
+
+    private void DrawResourceCost()
+    {
+        EditorGUILayout.LabelField(
+            "Resource Cost",
+            EditorStyles.boldLabel
+        );
+
+        EditorGUILayout.PropertyField(
+            aetherCost
+        );
+
+        EditorGUILayout.Space();
+    }
+
+    private void DrawActionOrigin()
+    {
+        EditorGUILayout.LabelField(
+            "Action Origin",
+            EditorStyles.boldLabel
+        );
+
+        EditorGUILayout.PropertyField(
+            originSource,
+            new GUIContent(
+                "Origin Source"
+            )
+        );
+
+        CombatSkillOriginSource selectedSource =
+            (CombatSkillOriginSource)
+                originSource.enumValueIndex;
+
+        switch (selectedSource)
+        {
+            case CombatSkillOriginSource.None:
+                break;
+
+            case CombatSkillOriginSource.Character:
+                DrawCharacterOrigin();
+                break;
+        }
+
+        EditorGUILayout.Space();
+    }
+
+    private void DrawCharacterOrigin()
+    {
+        EditorGUILayout.PropertyField(
+            characterActionPoint,
+            new GUIContent(
+                "Character Action Point"
+            )
+        );
+
+        CharacterActionPointType selectedPoint =
+            (CharacterActionPointType)
+                characterActionPoint.enumValueIndex;
+
+        if (selectedPoint !=
+            CharacterActionPointType.Custom)
+        {
+            return;
+        }
+
+        EditorGUILayout.PropertyField(
+            customActionPointId,
+            new GUIContent(
+                "Custom Action Point ID"
+            )
+        );
+    }
+}
+#endif
