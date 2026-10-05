@@ -27,9 +27,25 @@ public sealed class CombatSkillController :
         if (skill == null)
             return false;
 
+        if (!CombatSkillOriginResolver.TryResolve(
+        gameObject,
+        skill,
+        out Transform origin,
+        out string originError))
+        {
+            Debug.LogError(
+                originError,
+                this
+            );
+
+            return false;
+        }
+
         Debug.Log(
-            "Requested skill: " +
-            skill.skillName,
+            $"Requested skill: {skill.skillName}" +
+            (origin != null
+                ? $" from action point '{origin.name}'."
+                : "."),
             this
         );
 

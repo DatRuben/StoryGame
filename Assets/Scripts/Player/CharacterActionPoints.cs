@@ -123,6 +123,26 @@ public sealed class CharacterActionPoints :
         }
     }
 
+    public bool TryGetPoint(
+        CharacterActionPointType type,
+        string customId,
+        out Transform point)
+    {
+        if (type ==
+            CharacterActionPointType.Custom)
+        {
+            return TryGetAdditionalPoint(
+                customId,
+                out point
+            );
+        }
+
+        point =
+            GetPoint(type);
+
+        return point != null;
+    }
+
     public bool TryGetAdditionalPoint(
         string id,
         out Transform point)
