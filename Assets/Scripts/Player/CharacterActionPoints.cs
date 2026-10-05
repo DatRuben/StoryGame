@@ -33,6 +33,14 @@ public sealed class AdditionalCharacterActionPoint
 public sealed class CharacterActionPoints :
     MonoBehaviour
 {
+    [Header("Setup")]
+
+    [SerializeField]
+    private Transform actionPointsRoot;
+
+    public Transform ActionPointsRoot =>
+        actionPointsRoot;
+
     [Header("Standard Action Points")]
 
     [SerializeField]
@@ -151,5 +159,21 @@ public sealed class CharacterActionPoints :
         }
 
         return false;
+    }
+
+    private void Reset()
+    {
+        GameObject root =
+            new GameObject(
+                "ActionPoints"
+            );
+
+        root.transform.SetParent(
+            transform,
+            false
+        );
+
+        actionPointsRoot =
+            root.transform;
     }
 }

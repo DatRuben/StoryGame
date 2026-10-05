@@ -56,6 +56,14 @@ public static class CharacterModelValidator
             return false;
         }
 
+        if (actionPoints.ActionPointsRoot == null)
+        {
+            warning =
+                $"Character model '{configuredModel.name}' is missing its ActionPoints root.";
+
+            return false;
+        }
+
         HeldItemAnchors anchors =
             setup.HeldItemAnchors;
 
