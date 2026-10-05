@@ -1092,18 +1092,14 @@ public sealed class InventoryGridUI :
             new Vector2Int(-1, -1);
 
         if (inventoryContainer == null ||
-            cellParent == null ||
-            gridLayoutGroup == null ||
-            rootCanvas == null)
+            rootCanvas == null ||
+            cells == null ||
+            cells.Count == 0 ||
+            cells.Count !=
+                cellCoordinates.Count)
         {
             return false;
         }
-
-        RectTransform rect =
-            cellParent as RectTransform;
-
-        if (rect == null)
-            return false;
 
         Camera canvasCamera =
             rootCanvas.renderMode ==
@@ -1111,113 +1107,72 @@ public sealed class InventoryGridUI :
                 ? null
                 : rootCanvas.worldCamera;
 
-        if (!RectTransformUtility
-            .ScreenPointToLocalPointInRectangle(
-                rect,
-                screenPosition,
-                canvasCamera,
-                out Vector2 localPoint))
+        RectTransform gridRect =
+            cellParent as RectTransform;
+
+        if (gridRect == null ||
+            !RectTransformUtility
+                .RectangleContainsScreenPoint(
+                    gridRect,
+                    screenPosition,
+                    canvasCamera))
         {
             return false;
         }
 
-        Rect bounds =
-            rect.rect;
+        float closestDistance =
+            float.PositiveInfinity;
 
-        float xFromLeft =
-            localPoint.x -
-            bounds.xMin -
-            gridLayoutGroup.padding.left;
+        bool foundCandidate =
+            false;
 
-        float yFromTop =
-            bounds.yMax -
-            localPoint.y -
-            gridLayoutGroup.padding.top;
-
-        if (xFromLeft < 0f ||
-            yFromTop < 0f)
+        for (int i = 0;
+             i < cells.Count;
+             i++)
         {
-            return false;
+            InventoryCellUI cell =
+                cells[i];
+
+            if (cell == null)
+                continue;
+
+            RectTransform cellRect =
+                cell.transform
+                    as RectTransform;
+
+            if (cellRect == null)
+                continue;
+
+            Vector2 cellCenter =
+                RectTransformUtility
+                    .WorldToScreenPoint(
+                        canvasCamera,
+                        cellRect.position
+                    );
+
+            float distance =
+                Vector2.SqrMagnitude(
+                    screenPosition -
+                    cellCenter
+                );
+
+            if (distance >=
+                closestDistance)
+            {
+                continue;
+            }
+
+            closestDistance =
+                distance;
+
+            coordinate =
+                cellCoordinates[i];
+
+            foundCandidate =
+                true;
         }
 
-        Vector2 cellSize =
-            gridLayoutGroup.cellSize;
-
-        Vector2 spacing =
-            gridLayoutGroup.spacing;
-
-        float pitchX =
-            cellSize.x +
-            spacing.x;
-
-        float pitchY =
-            cellSize.y +
-            spacing.y;
-
-        if (pitchX <= 0f ||
-            pitchY <= 0f)
-        {
-            return false;
-        }
-
-        float usedWidth =
-            inventoryContainer.Width *
-                cellSize.x +
-            (inventoryContainer.Width - 1) *
-                spacing.x;
-
-        float usedHeight =
-            inventoryContainer.Height *
-                cellSize.y +
-            (inventoryContainer.Height - 1) *
-                spacing.y;
-
-        if (xFromLeft > usedWidth ||
-            yFromTop > usedHeight)
-        {
-            return false;
-        }
-
-        int x =
-            Mathf.FloorToInt(
-                (xFromLeft +
-                 spacing.x * 0.5f) /
-                pitchX
-            );
-
-        int rowFromTop =
-            Mathf.FloorToInt(
-                (yFromTop +
-                 spacing.y * 0.5f) /
-                pitchY
-            );
-
-        x =
-            Mathf.Clamp(
-                x,
-                0,
-                inventoryContainer.Width - 1
-            );
-
-        rowFromTop =
-            Mathf.Clamp(
-                rowFromTop,
-                0,
-                inventoryContainer.Height - 1
-            );
-
-        int y =
-            inventoryContainer.Height -
-            1 -
-            rowFromTop;
-
-        coordinate =
-            new Vector2Int(
-                x,
-                y
-            );
-
-        return true;
+        return foundCandidate;
     }
 
     private bool IsValidGridCoordinate(
