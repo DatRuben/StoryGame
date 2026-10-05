@@ -636,10 +636,29 @@ public sealed class PlayerItemHandlingController :
             }
         }
 
-        if (gripState.GetFreeGripCount(
-                operation.TargetGripType) <
+        int freeGripCount =
+            gripState.GetFreeGripCount(
+                operation.TargetGripType
+            );
+
+        if (freeGripCount <
             operation.TargetGripCount)
         {
+            Debug.LogError(
+                "Item handling could not start because there are not enough free grips. " +
+                "Item: " +
+                (operation.Item.Definition != null
+                    ? operation.Item.Definition.itemName
+                    : "Unknown") +
+                ", Grip Type: " +
+                operation.TargetGripType +
+                ", Required: " +
+                operation.TargetGripCount +
+                ", Free: " +
+                freeGripCount,
+                this
+            );
+
             return false;
         }
 
@@ -708,6 +727,15 @@ public sealed class PlayerItemHandlingController :
                 operation.TakeReservation,
                 out PlacedInventoryItem removedItem))
         {
+            Debug.LogError(
+                "Item handling failed while committing the source Take reservation for " +
+                (operation.Item.Definition != null
+                    ? operation.Item.Definition.itemName
+                    : "Unknown") +
+                ".",
+                this
+            );
+
             return false;
         }
 
@@ -716,6 +744,11 @@ public sealed class PlayerItemHandlingController :
                 removedItem.ItemInstance,
                 operation.Item))
         {
+            Debug.LogError(
+                "Item handling committed a Take reservation but received the wrong item instance.",
+                this
+            );
+
             return false;
         }
 
@@ -727,8 +760,29 @@ public sealed class PlayerItemHandlingController :
             return true;
         }
 
+        Debug.LogError(
+            "PlayerGripState rejected a retrieved item after it was removed from its source. " +
+            "Item: " +
+            (operation.Item.Definition != null
+                ? operation.Item.Definition.itemName
+                : "Unknown") +
+            ", Grip Type: " +
+            operation.TargetGripType +
+            ", Requested Grips: " +
+            operation.TargetGripCount +
+            ", Free Grips Now: " +
+            gripState.GetFreeGripCount(
+                operation.TargetGripType
+            ) +
+            ", Already Holding Same Item: " +
+            gripState.IsHolding(
+                operation.Item
+            ),
+            this
+        );
+
         bool restored =
-            operation.SourceContainer
+                    operation.SourceContainer
                 .PlaceInstance(
                     operation.Item,
                     operation.TakeReservation.Position.x,
