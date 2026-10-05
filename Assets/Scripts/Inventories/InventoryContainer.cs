@@ -180,7 +180,9 @@ public class InventoryContainer : MonoBehaviour
         if (placed == null ||
             !ReferenceEquals(
                 placed.ItemInstance,
-                itemInstance))
+                itemInstance) ||
+            placed.Position !=
+                sourceCoordinate)
         {
             return false;
         }
@@ -219,12 +221,10 @@ public class InventoryContainer : MonoBehaviour
                 itemInstance
             );
 
-        if (placed == null ||
+        if (removed == null ||
             !ReferenceEquals(
-                placed.ItemInstance,
-                itemInstance) ||
-            placed.Position !=
-                sourceCoordinate)
+                removed.ItemInstance,
+                itemInstance))
         {
             return false;
         }

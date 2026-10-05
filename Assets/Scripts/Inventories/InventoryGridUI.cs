@@ -1160,26 +1160,51 @@ public sealed class InventoryGridUI :
             return false;
         }
 
+        float usedWidth =
+            inventoryContainer.Width *
+                cellSize.x +
+            (inventoryContainer.Width - 1) *
+                spacing.x;
+
+        float usedHeight =
+            inventoryContainer.Height *
+                cellSize.y +
+            (inventoryContainer.Height - 1) *
+                spacing.y;
+
+        if (xFromLeft > usedWidth ||
+            yFromTop > usedHeight)
+        {
+            return false;
+        }
+
         int x =
             Mathf.FloorToInt(
-                xFromLeft /
+                (xFromLeft +
+                 spacing.x * 0.5f) /
                 pitchX
             );
 
         int rowFromTop =
             Mathf.FloorToInt(
-                yFromTop /
+                (yFromTop +
+                 spacing.y * 0.5f) /
                 pitchY
             );
 
-        if (x < 0 ||
-            rowFromTop < 0 ||
-            x >= inventoryContainer.Width ||
-            rowFromTop >=
-                inventoryContainer.Height)
-        {
-            return false;
-        }
+        x =
+            Mathf.Clamp(
+                x,
+                0,
+                inventoryContainer.Width - 1
+            );
+
+        rowFromTop =
+            Mathf.Clamp(
+                rowFromTop,
+                0,
+                inventoryContainer.Height - 1
+            );
 
         int y =
             inventoryContainer.Height -
