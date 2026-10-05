@@ -14,15 +14,26 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
   itemName: Sword
   itemCategory: 0
+  worldPrefab: {fileID: 6086656152923968378, guid: 3a36b50f717e0044b8f539c5f24503b8, type: 3}
   itemIcon: {fileID: 0}
-  handUsage: 0
+  weight: 1
+  minimumHandUseGripCount: 1
+  canUseWithHands: 1
+  canUseWithMouth: 0
   heldControlsText: 
   weaponControlsText: 
-  weaponUseType: 0
-  carrySize: 1
-  carryWeight: 1
+  equipmentSlotType: 2
+  equipmentCombatRole: 0
+  consumableEffects: []
+  secondaryWeaponAction: {fileID: 0}
+  isRangedWeapon: 0
+  baseDamage: 10
+  damageType: 0
+  attackReach: 2
   hasManualSaddleTurret: 0
   manualSaddleTurretControlsText: 
+  isStackable: 0
+  maxStackSize: 1
   shapeWidth: 3
   shapeHeight: 5
   occupiedCells: 000100010101000100000100000100
