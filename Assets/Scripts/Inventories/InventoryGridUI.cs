@@ -204,9 +204,8 @@ public sealed class InventoryGridUI :
             return;
         }
 
-        if (EventSystem.current != null &&
-            EventSystem.current
-                .IsPointerOverGameObject())
+        if (IsScreenPointOverInteractiveUI(
+                screenPosition))
         {
             return;
         }
@@ -474,6 +473,52 @@ public sealed class InventoryGridUI :
             );
 
         RefreshAllGrids();
+    }
+
+    private static bool IsScreenPointOverInteractiveUI(
+        Vector2 screenPosition)
+    {
+        if (EventSystem.current == null)
+            return false;
+
+        PointerEventData pointerData =
+            new PointerEventData(
+                EventSystem.current
+            );
+
+        pointerData.position =
+            screenPosition;
+
+        List<RaycastResult> results =
+            new List<RaycastResult>();
+
+        EventSystem.current.RaycastAll(
+            pointerData,
+            results
+        );
+
+        for (int i = 0;
+             i < results.Count;
+             i++)
+        {
+            GameObject hitObject =
+                results[i].gameObject;
+
+            if (hitObject == null)
+                continue;
+
+            Selectable selectable =
+                hitObject.GetComponentInParent<
+                    Selectable>();
+
+            if (selectable != null &&
+                selectable.interactable)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static bool IsScreenPointOverAnyInventoryGrid(
