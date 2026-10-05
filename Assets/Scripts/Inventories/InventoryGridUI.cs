@@ -1691,7 +1691,7 @@ public sealed class InventoryGridUI :
             heldPreviewRoot
         );
 
-        if (!heldPreviewEnabled ||
+        if (!IsItemPreviewAllowed ||
             !HasItemPreview)
         {
             heldPreviewRoot.gameObject
@@ -1815,7 +1815,7 @@ public sealed class InventoryGridUI :
             return;
 
         bool shouldShow =
-            heldPreviewEnabled &&
+            IsItemPreviewAllowed &&
             HasItemPreview &&
             InventoryMenuController
                 .IsInventoryOpen;
@@ -2570,6 +2570,10 @@ public sealed class InventoryGridUI :
                 ? interactionController
                     .SelectedRotationSteps
                 : 0;
+
+    private bool IsItemPreviewAllowed =>
+        heldPreviewEnabled ||
+        isDraggingItem;
 
     private bool HasItemPreview =>
         PreviewItem != null &&
