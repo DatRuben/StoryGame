@@ -27,11 +27,16 @@ public sealed class CombatSkillController :
         if (skill == null)
             return false;
 
+        CombatSkillRequestContext context =
+            new CombatSkillRequestContext(
+                gameObject,
+                skill
+            );
+
         if (!CombatSkillOriginResolver.TryResolve(
-        gameObject,
-        skill,
-        out Transform origin,
-        out string originError))
+                context,
+                out Transform origin,
+                out string originError))
         {
             Debug.LogError(
                 originError,

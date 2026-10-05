@@ -3,13 +3,26 @@ using UnityEngine;
 public static class CombatSkillOriginResolver
 {
     public static bool TryResolve(
-        GameObject actor,
-        CombatSkillDefinition skill,
+        CombatSkillRequestContext context,
         out Transform origin,
         out string error)
     {
         origin = null;
         error = "";
+
+        if (context == null)
+        {
+            error =
+                "Cannot resolve a combat skill origin because the request context is missing.";
+
+            return false;
+        }
+
+        GameObject actor =
+            context.Actor;
+
+        CombatSkillDefinition skill =
+            context.Skill;
 
         if (actor == null)
         {
