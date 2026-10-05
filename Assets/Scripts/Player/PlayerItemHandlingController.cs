@@ -682,11 +682,24 @@ public sealed class PlayerItemHandlingController :
         ItemHandlingOperation operation)
     {
         if (operation == null ||
+            operation.Item == null ||
+            operation.Item.IsEmpty ||
             operation.SourceContainer == null ||
             operation.TakeReservation == null ||
             !operation.TakeReservation.IsActive ||
             gripState == null)
         {
+            return false;
+        }
+
+        if (gripState.IsHolding(
+                operation.Item))
+        {
+            Debug.LogError(
+                "Cannot retrieve item because the same item instance is already in PlayerGripState while still owned by a source container.",
+                this
+            );
+
             return false;
         }
 
@@ -1030,6 +1043,16 @@ public sealed class PlayerItemHandlingController :
         InventoryItemInstance item =
             placed.ItemInstance;
 
+        if (gripState.IsHolding(item))
+        {
+            Debug.LogError(
+                "Item is in an inventory container but is also already registered in PlayerGripState.",
+                this
+            );
+
+            return false;
+        }
+
         if (HasOperationForItem(
                 item))
         {
@@ -1117,6 +1140,16 @@ public sealed class PlayerItemHandlingController :
         InventoryItemInstance item =
             placed.ItemInstance;
 
+        if (gripState.IsHolding(item))
+        {
+            Debug.LogError(
+                "Item is in an inventory container but is also already registered in PlayerGripState.",
+                this
+            );
+
+            return false;
+        }
+
         if (HasOperationForItem(item))
             return false;
 
@@ -1189,6 +1222,16 @@ public sealed class PlayerItemHandlingController :
 
         InventoryItemInstance item =
             placed.ItemInstance;
+
+        if (gripState.IsHolding(item))
+        {
+            Debug.LogError(
+                "Item is in an inventory container but is also already registered in PlayerGripState.",
+                this
+            );
+
+            return false;
+        }
 
         if (HasOperationForItem(item))
             return false;
@@ -1342,6 +1385,16 @@ public sealed class PlayerItemHandlingController :
 
         InventoryItemInstance item =
             placed.ItemInstance;
+
+        if (gripState.IsHolding(item))
+        {
+            Debug.LogError(
+                "Item is in an inventory container but is also already registered in PlayerGripState.",
+                this
+            );
+
+            return false;
+        }
 
         if (HasOperationForItem(
                 item))

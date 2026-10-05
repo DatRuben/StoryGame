@@ -22219,17 +22219,17 @@ MonoBehaviour:
   gridHeight: 10
   startingItems:
   - item: {fileID: 11400000, guid: 00840a1482c71db4d9ff7c9360be1132, type: 2}
-    quantity: 0
+    quantity: 1
     x: 0
     y: 0
     rotationSteps: 0
   - item: {fileID: 11400000, guid: 9372a7989bcb50c438d1a072aed52ae1, type: 2}
-    quantity: 0
+    quantity: 1
     x: 3
     y: 0
     rotationSteps: 0
   - item: {fileID: 11400000, guid: 9372a7989bcb50c438d1a072aed52ae1, type: 2}
-    quantity: 0
+    quantity: 1
     x: 6
     y: 0
     rotationSteps: 0
