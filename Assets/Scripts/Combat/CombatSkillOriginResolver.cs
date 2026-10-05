@@ -4,7 +4,7 @@ public static class CombatSkillOriginResolver
 {
     public static bool TryResolve(
         CombatSkillRequestContext context,
-        out ICombatSkillOrigin origin,
+        out CombatSkillOrigin origin,
         out string error)
     {
         origin = null;
@@ -64,7 +64,7 @@ public static class CombatSkillOriginResolver
     private static bool TryResolveCharacterOrigin(
         GameObject actor,
         CombatSkillDefinition skill,
-        out ICombatSkillOrigin origin,
+        out CombatSkillOrigin origin,
         out string error)
     {
         origin = null;

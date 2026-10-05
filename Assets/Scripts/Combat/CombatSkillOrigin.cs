@@ -1,19 +1,19 @@
 using UnityEngine;
 
-public interface ICombatSkillOrigin
+public abstract class CombatSkillOrigin
 {
-    string Name { get; }
+    public abstract string Name { get; }
 
-    bool TryGetPose(
+    public abstract bool TryGetPose(
         out Pose pose);
 }
 
 public sealed class TransformCombatSkillOrigin :
-    ICombatSkillOrigin
+    CombatSkillOrigin
 {
     private readonly Transform point;
 
-    public string Name =>
+    public override string Name =>
         point != null
             ? point.name
             : "Missing";
@@ -21,11 +21,10 @@ public sealed class TransformCombatSkillOrigin :
     public TransformCombatSkillOrigin(
         Transform point)
     {
-        this.point =
-            point;
+        this.point = point;
     }
 
-    public bool TryGetPose(
+    public override bool TryGetPose(
         out Pose pose)
     {
         pose = default;

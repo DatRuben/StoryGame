@@ -46,7 +46,7 @@ public sealed class CombatSkillController :
 
         if (!CombatSkillOriginResolver.TryResolve(
                 context,
-                out ICombatSkillOrigin origin,
+                out CombatSkillOrigin origin,
                 out string originError))
         {
             Debug.LogError(
