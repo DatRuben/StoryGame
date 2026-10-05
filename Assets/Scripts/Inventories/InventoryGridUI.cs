@@ -680,8 +680,6 @@ public sealed class InventoryGridUI :
             Vector2Int.zero;
 
         dragOriginalRotationSteps = 0;
-        dragGrabOffset =
-            Vector2Int.zero;
 
         BuildHeldItemPreview();
     }
@@ -745,8 +743,6 @@ public sealed class InventoryGridUI :
                 continue;
             }
 
-            pointerOverGrid = true;
-
             if (!grid
                 .TryGetPlacementOriginFromScreenPoint(
                     screenPosition,
@@ -756,6 +752,8 @@ public sealed class InventoryGridUI :
             {
                 continue;
             }
+
+            pointerOverGrid = true;
 
             if (ReferenceEquals(
                     grid.inventoryContainer,
