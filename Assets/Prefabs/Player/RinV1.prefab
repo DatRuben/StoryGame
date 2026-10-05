@@ -897,6 +897,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 18fd2733a27218247b91177d977e4dc7, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3552277740623673383}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 18fd2733a27218247b91177d977e4dc7, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -8821857669023151871}
   m_SourcePrefab: {fileID: 100100000, guid: 18fd2733a27218247b91177d977e4dc7, type: 3}
 --- !u!4 &14935452377490614 stripped
 Transform:
@@ -3781,6 +3784,18 @@ MonoBehaviour:
   leftHand: {fileID: 5963698633300994172}
   rightHand: {fileID: 3863910693320994097}
   mouth: {fileID: 0}
+--- !u!114 &-8821857669023151871
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7170608024115322730}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbad9580d7bccca438499963f3e86319, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterModelSetup
 --- !u!4 &7171081400882030021 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8302742867755710466, guid: 18fd2733a27218247b91177d977e4dc7, type: 3}

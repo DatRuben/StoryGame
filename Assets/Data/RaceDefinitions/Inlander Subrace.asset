@@ -56,8 +56,8 @@ MonoBehaviour:
   standingGripProfile:
     maxHandGripUsage: 2
     mouthGripCount: 0
-    maxHandGripsWhileMoving: 1
-    maxHandGripsWhileSprinting: 1
+    maxHandGripsWhileMoving: 2
+    maxHandGripsWhileSprinting: 2
     handCarryMoveMultiplier: 1
     canOperateWithHands: 1
     canOperateWithMouth: 0

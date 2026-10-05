@@ -20,14 +20,32 @@ public static class CharacterModelValidator
             return false;
         }
 
+        CharacterModelSetup setup =
+            model.GetComponent<CharacterModelSetup>();
+
+        if (setup == null)
+        {
+            warning =
+                $"Character model '{model.name}' is missing CharacterModelSetup.";
+
+            return false;
+        }
+
+        if (setup.AnimatorComponent == null)
+        {
+            warning =
+                $"Character model '{model.name}' is missing its required Animator.";
+
+            return false;
+        }
+
         HeldItemAnchors anchors =
-            model.GetComponentInChildren<
-                HeldItemAnchors>(true);
+            setup.HeldItemAnchors;
 
         if (anchors == null)
         {
             warning =
-                $"Character model '{model.name}' is missing a HeldItemAnchors component.";
+                $"Character model '{model.name}' is missing its required HeldItemAnchors.";
 
             return false;
         }

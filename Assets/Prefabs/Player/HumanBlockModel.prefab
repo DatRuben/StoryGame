@@ -75,5 +75,68 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: de323849468fbfb4db17756b392d5f95, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2254708705638013058}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: de323849468fbfb4db17756b392d5f95, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6078523223124859188}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: de323849468fbfb4db17756b392d5f95, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4437841414293316290}
   m_SourcePrefab: {fileID: 100100000, guid: de323849468fbfb4db17756b392d5f95, type: 3}
+--- !u!1 &4522967290722631838 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: de323849468fbfb4db17756b392d5f95, type: 3}
+  m_PrefabInstance: {fileID: 3604470799948774863}
+  m_PrefabAsset: {fileID: 0}
+--- !u!95 &2254708705638013058
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4522967290722631838}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 0}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &6078523223124859188
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4522967290722631838}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68452c892304a9d41a6d8ac5da263278, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HeldItemAnchors
+  leftHand: {fileID: 0}
+  rightHand: {fileID: 0}
+  mouth: {fileID: 0}
+--- !u!114 &4437841414293316290
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4522967290722631838}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dbad9580d7bccca438499963f3e86319, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterModelSetup
