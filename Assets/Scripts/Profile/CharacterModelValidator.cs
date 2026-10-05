@@ -21,12 +21,18 @@ public static class CharacterModelValidator
         }
 
         CharacterModelSetup setup =
-            model.GetComponent<CharacterModelSetup>();
+            model.GetComponentInChildren<
+                CharacterModelSetup>(true);
+
+        GameObject configuredModel =
+            setup != null
+                ? setup.gameObject
+                : model;
 
         if (setup == null)
         {
             warning =
-                $"Character model '{model.name}' is missing CharacterModelSetup.";
+                $"Character model '{configuredModel.name}' is missing CharacterModelSetup.";
 
             return false;
         }
@@ -34,7 +40,18 @@ public static class CharacterModelValidator
         if (setup.AnimatorComponent == null)
         {
             warning =
-                $"Character model '{model.name}' is missing its required Animator.";
+                $"Character model '{configuredModel.name}' is missing its required Animator.";
+
+            return false;
+        }
+
+        CharacterActionPoints actionPoints =
+            setup.ActionPoints;
+
+        if (actionPoints == null)
+        {
+            warning =
+                $"Character model '{configuredModel.name}' is missing its required CharacterActionPoints.";
 
             return false;
         }
@@ -45,7 +62,7 @@ public static class CharacterModelValidator
         if (anchors == null)
         {
             warning =
-                $"Character model '{model.name}' is missing its required HeldItemAnchors.";
+                $"Character model '{configuredModel.name}' is missing its required HeldItemAnchors.";
 
             return false;
         }
@@ -110,7 +127,7 @@ public static class CharacterModelValidator
             return true;
 
         warning =
-            $"Character model '{model.name}' is missing required held-item anchors:\n- " +
+            $"Character model '{configuredModel.name}' is missing required held-item anchors:\n- " +
             string.Join(
                 "\n- ",
                 missingAnchors
