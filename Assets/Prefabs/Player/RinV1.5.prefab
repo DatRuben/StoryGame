@@ -1091,6 +1091,37 @@ Transform:
   - {fileID: 2594444239705972516}
   m_Father: {fileID: 7291474420594164267}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &6968530456429184901
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8984528084890818262}
+  m_Layer: 0
+  m_Name: ActionPoints
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8984528084890818262
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6968530456429184901}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8760530510306159729}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7513380192985902178
 GameObject:
   m_ObjectHideFlags: 0
@@ -1135,6 +1166,7 @@ GameObject:
   - component: {fileID: 6166155419326540791}
   - component: {fileID: 3813981491197264047}
   - component: {fileID: -3950546860052716005}
+  - component: {fileID: 2005116167343531484}
   m_Layer: 0
   m_Name: RinV1.5
   m_TagString: Untagged
@@ -1158,6 +1190,7 @@ Transform:
   - {fileID: 370277340425420015}
   - {fileID: 2645034107212982733}
   - {fileID: 1523500329461930611}
+  - {fileID: 8984528084890818262}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!114 &6166155419326540791
@@ -1209,6 +1242,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dbad9580d7bccca438499963f3e86319, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CharacterModelSetup
+--- !u!114 &2005116167343531484
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8275497055224690379}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 70bde82a98c398945ac60e056f34f6fc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterActionPoints
+  actionPointsRoot: {fileID: 8984528084890818262}
+  center: {fileID: 0}
+  ground: {fileID: 0}
+  head: {fileID: 0}
+  mouth: {fileID: 0}
+  leftHand: {fileID: 0}
+  rightHand: {fileID: 0}
+  primaryCast: {fileID: 0}
+  additionalPoints: []
 --- !u!1 &8487238880326494178
 GameObject:
   m_ObjectHideFlags: 0
