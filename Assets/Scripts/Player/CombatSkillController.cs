@@ -14,6 +14,16 @@ public sealed class CombatSkillController :
     public bool TryRequestSkill(
         int slotIndex)
     {
+        return TryRequestSkill(
+            slotIndex,
+            null
+        );
+    }
+
+    public bool TryRequestSkill(
+        int slotIndex,
+        InventoryItemInstance sourceItem)
+    {
         ResolveReferences();
 
         if (skillLoadout == null)
@@ -30,7 +40,8 @@ public sealed class CombatSkillController :
         CombatSkillRequestContext context =
             new CombatSkillRequestContext(
                 gameObject,
-                skill
+                skill,
+                sourceItem
             );
 
         if (!CombatSkillOriginResolver.TryResolve(
