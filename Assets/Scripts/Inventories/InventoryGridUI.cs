@@ -172,6 +172,7 @@ public sealed class InventoryGridUI :
     private void Update()
     {
         HandleDragDetection();
+        HandleSelectionPlacementRelease();
         HandleOutsideSelectionDrop();
         HandleDragRelease();
         UpdateHoveredCoordinateFromMouse();
@@ -190,6 +191,15 @@ public sealed class InventoryGridUI :
             Mouse.current == null ||
             !Mouse.current.leftButton
                 .wasReleasedThisFrame)
+        {
+            return;
+        }
+
+        Vector2 screenPosition =
+            Mouse.current.position.ReadValue();
+
+        if (IsScreenPointOverAnyInventoryGrid(
+                screenPosition))
         {
             return;
         }
@@ -429,27 +439,14 @@ public sealed class InventoryGridUI :
 
         if (interactionController.HasSelection)
         {
-            if (Mouse.current == null ||
-                !TryGetPlacementOriginFromScreenPoint(
-                    Mouse.current.position
-                        .ReadValue(),
-                    interactionController
-                        .SelectedDefinition,
-                    interactionController
-                        .SelectedRotationSteps,
-                    out Vector2Int origin))
+            if (Mouse.current != null)
             {
-                return;
+                TryPlaceSelectionAtScreenPoint(
+                    Mouse.current.position
+                        .ReadValue()
+                );
             }
 
-            interactionController
-                .TryStoreSelectionAt(
-                    inventoryContainer,
-                    coordinate,
-                    origin
-                );
-
-            RefreshAllGrids();
             return;
         }
 
@@ -477,6 +474,98 @@ public sealed class InventoryGridUI :
             );
 
         RefreshAllGrids();
+    }
+
+    private static bool IsScreenPointOverAnyInventoryGrid(
+        Vector2 screenPosition)
+    {
+        for (int i = 0;
+             i < activeGrids.Count;
+             i++)
+        {
+            InventoryGridUI grid =
+                activeGrids[i];
+
+            if (grid == null ||
+                !grid.isActiveAndEnabled ||
+                grid.inventoryContainer == null)
+            {
+                continue;
+            }
+
+            if (grid.TryGetGridCoordinateFromScreenPoint(
+                    screenPosition,
+                    out _))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool TryPlaceSelectionAtScreenPoint(
+        Vector2 screenPosition)
+    {
+        if (inventoryContainer == null ||
+            interactionController == null ||
+            !interactionController.HasSelection)
+        {
+            return false;
+        }
+
+        if (!TryGetGridCoordinateFromScreenPoint(
+                screenPosition,
+                out Vector2Int stackCoordinate))
+        {
+            return false;
+        }
+
+        if (!TryGetPlacementOriginFromScreenPoint(
+                screenPosition,
+                interactionController
+                    .SelectedDefinition,
+                interactionController
+                    .SelectedRotationSteps,
+                out Vector2Int placementOrigin))
+        {
+            return false;
+        }
+
+        suppressClickFrame =
+            Time.frameCount;
+
+        interactionController
+            .TryStoreSelectionAt(
+                inventoryContainer,
+                stackCoordinate,
+                placementOrigin
+            );
+
+        RefreshAllGrids();
+
+        return true;
+    }
+
+    private void HandleSelectionPlacementRelease()
+    {
+        if (!InventoryMenuController
+                .IsInventoryOpen ||
+            interactionController == null ||
+            !interactionController.HasSelection ||
+            isDraggingItem ||
+            Mouse.current == null ||
+            !Mouse.current.leftButton
+                .wasReleasedThisFrame ||
+            suppressClickFrame ==
+                Time.frameCount)
+        {
+            return;
+        }
+
+        TryPlaceSelectionAtScreenPoint(
+            Mouse.current.position.ReadValue()
+        );
     }
 
     private void OnCellRightClicked(
