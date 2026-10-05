@@ -16,3 +16,7 @@ MonoBehaviour:
   castTime: 1
   cooldown: 5
   aetherCost: 50
+  originSource: 2
+  characterActionPoint: 0
+  customActionPointId: 
+  heldItemSource: 0
