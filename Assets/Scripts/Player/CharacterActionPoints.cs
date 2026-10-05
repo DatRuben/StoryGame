@@ -163,6 +163,19 @@ public sealed class CharacterActionPoints :
 
     private void Reset()
     {
+        Transform existingRoot =
+            transform.Find(
+                "ActionPoints"
+            );
+
+        if (existingRoot != null)
+        {
+            actionPointsRoot =
+                existingRoot;
+
+            return;
+        }
+
         GameObject root =
             new GameObject(
                 "ActionPoints"
