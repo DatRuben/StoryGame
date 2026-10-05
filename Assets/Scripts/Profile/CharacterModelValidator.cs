@@ -32,7 +32,6 @@ public static class CharacterModelValidator
             return false;
         }
 
-        int requiredHandGrips = 0;
         bool requiresMouth = false;
 
         switch (bodyType)
@@ -40,15 +39,13 @@ public static class CharacterModelValidator
             case BodyType.Humanoid:
                 IncludeProfile(
                     standingGripProfile,
-                    ref requiredHandGrips,
                     ref requiresMouth
                 );
                 break;
 
             case BodyType.Quadruped:
                 IncludeProfile(
-                    feralGripProfile,
-                    ref requiredHandGrips,
+                    standingGripProfile,
                     ref requiresMouth
                 );
                 break;
@@ -56,13 +53,11 @@ public static class CharacterModelValidator
             case BodyType.StanceSwitching:
                 IncludeProfile(
                     standingGripProfile,
-                    ref requiredHandGrips,
                     ref requiresMouth
                 );
 
                 IncludeProfile(
-                    feralGripProfile,
-                    ref requiredHandGrips,
+                    standingGripProfile,
                     ref requiresMouth
                 );
                 break;
@@ -71,16 +66,14 @@ public static class CharacterModelValidator
         List<string> missingAnchors =
             new List<string>();
 
-        if (requiredHandGrips >= 1 &&
-            anchors.LeftHand == null)
+        if (anchors.LeftHand == null)
         {
             missingAnchors.Add(
                 "Left Hand"
             );
         }
 
-        if (requiredHandGrips >= 2 &&
-            anchors.RightHand == null)
+        if (anchors.RightHand == null)
         {
             missingAnchors.Add(
                 "Right Hand"
@@ -110,17 +103,10 @@ public static class CharacterModelValidator
 
     private static void IncludeProfile(
         CharacterGripProfile profile,
-        ref int requiredHandGrips,
         ref bool requiresMouth)
     {
         if (profile == null)
             return;
-
-        requiredHandGrips =
-            Mathf.Max(
-                requiredHandGrips,
-                profile.HandGripCount
-            );
 
         if (profile.MouthGripCount > 0)
         {

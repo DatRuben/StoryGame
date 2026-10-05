@@ -467,7 +467,7 @@ public static class ItemHandlingResolver
         }
 
         return character.GripProfile
-            .GetGripCount(
+            .GetMaxGripUsage(
                 gripType
             );
     }

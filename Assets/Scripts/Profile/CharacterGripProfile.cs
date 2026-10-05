@@ -18,8 +18,8 @@ public enum ConventionalWeaponMode
 public class CharacterGripProfile
 {
     [SerializeField]
-    [Range(1, 2)]
-    private int handGripCount = 2;
+    [Range(0, 2)]
+    private int maxHandGripUsage = 2;
 
     [SerializeField]
     [Range(0, 1)]
@@ -55,10 +55,10 @@ public class CharacterGripProfile
     public ConventionalWeaponMode WeaponMode =>
         weaponMode;
 
-    public int HandGripCount =>
+    public int MaxHandGripUsage =>
         Mathf.Clamp(
-            handGripCount,
-            1,
+            maxHandGripUsage,
+            0,
             2
         );
 
@@ -73,14 +73,14 @@ public class CharacterGripProfile
         Mathf.Clamp(
             maxHandGripsWhileMoving,
             0,
-            HandGripCount
+            MaxHandGripUsage
         );
 
     public int MaxHandGripsWhileSprinting =>
         Mathf.Clamp(
             maxHandGripsWhileSprinting,
             0,
-            HandGripCount
+            MaxHandGripUsage
         );
 
     public float HandCarryMoveMultiplier =>
@@ -88,13 +88,13 @@ public class CharacterGripProfile
             handCarryMoveMultiplier
         );
 
-    public int GetGripCount(
+    public int GetMaxGripUsage(
         GripType gripType)
     {
         return gripType ==
                GripType.Mouth
             ? MouthGripCount
-            : HandGripCount;
+            : MaxHandGripUsage;
     }
 
     public bool CanOperateWith(
@@ -107,13 +107,14 @@ public class CharacterGripProfile
                    canOperateWithMouth;
         }
 
-        return canOperateWithHands;
+        return MaxHandGripUsage > 0 &&
+            canOperateWithHands;
     }
 
     public void Clamp()
     {
-        handGripCount =
-            HandGripCount;
+        maxHandGripUsage =
+            MaxHandGripUsage;
 
         mouthGripCount =
             MouthGripCount;
@@ -136,7 +137,7 @@ public class CharacterGripProfile
     {
         return new CharacterGripProfile
         {
-            handGripCount = 2,
+            maxHandGripUsage = 2,
             mouthGripCount = 0,
 
             maxHandGripsWhileMoving = 2,
