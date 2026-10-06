@@ -55,7 +55,8 @@ public sealed class CombatSkillController :
             Time.deltaTime
         );
 
-        if (activeExecution.IsComplete)
+        if (activeExecution != null &&
+            activeExecution.IsComplete)
         {
             activeExecution = null;
         }
@@ -83,6 +84,9 @@ public sealed class CombatSkillController :
             skillLoadout.GetSkill(
                 slotIndex
             );
+
+        if (skill == null)
+            return false;
 
         if (gameplayState != null &&
             !gameplayState.Allows(
