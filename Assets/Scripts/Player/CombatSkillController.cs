@@ -1,14 +1,64 @@
 using UnityEngine;
 
 [RequireComponent(typeof(CombatSkillLoadout))]
+[RequireComponent(typeof(PlayerGameplayState))]
 public sealed class CombatSkillController :
     MonoBehaviour
 {
     private CombatSkillLoadout skillLoadout;
 
+    private PlayerGameplayState gameplayState;
+
+    private CombatSkillExecution
+        activeExecution;
+
+    public CombatSkillExecution
+        ActiveExecution =>
+            activeExecution;
+
+    public bool IsExecuting =>
+        activeExecution != null;
+
     private void Awake()
     {
         ResolveReferences();
+    }
+
+    private void OnEnable()
+    {
+        ResolveReferences();
+
+        if (gameplayState != null)
+        {
+            gameplayState.OnCapabilitiesInterrupted +=
+                HandleCapabilitiesInterrupted;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (gameplayState != null)
+        {
+            gameplayState.OnCapabilitiesInterrupted -=
+                HandleCapabilitiesInterrupted;
+        }
+
+        CancelActiveExecution();
+    }
+
+    private void Update()
+    {
+        if (activeExecution == null)
+            return;
+
+        activeExecution.Tick(
+            Time.deltaTime
+        );
+
+        if (activeExecution.IsComplete)
+        {
+            activeExecution = null;
+        }
     }
 
     public bool TryRequestSkill(
@@ -34,8 +84,17 @@ public sealed class CombatSkillController :
                 slotIndex
             );
 
-        if (skill == null)
+        if (gameplayState != null &&
+            !gameplayState.Allows(
+                PlayerGameplayCapability.Combat))
+        {
             return false;
+        }
+
+        if (activeExecution != null)
+        {
+            return false;
+        }
 
         CombatSkillRequestContext context =
             new CombatSkillRequestContext(
@@ -57,13 +116,61 @@ public sealed class CombatSkillController :
             return false;
         }
 
-        Debug.Log(
-            $"Requested skill: {skill.skillName}" +
-            (origin != null
-                ? $" from action point '{origin.Name}'."
-                : "."),
-            this
-        );
+        if (skill.action == null)
+        {
+            Debug.LogError(
+                $"Cannot use skill '{skill.skillName}'. " +
+                "No gameplay action is configured.",
+                this
+            );
+
+            return false;
+        }
+
+        CombatSkillActionContext actionContext =
+            new CombatSkillActionContext(
+                gameObject,
+                skill,
+                sourceItem,
+                origin
+            );
+
+        if (!skill.action.TryCreateExecution(
+                actionContext,
+                out CombatSkillExecution execution,
+                out string executionError))
+        {
+            Debug.LogError(
+                executionError,
+                this
+            );
+
+            return false;
+        }
+
+        if (execution == null)
+        {
+            Debug.LogError(
+                $"Skill '{skill.skillName}' created no execution.",
+                this
+            );
+
+            return false;
+        }
+
+        if (!execution.TryBegin(
+                out string beginError))
+        {
+            Debug.LogError(
+                beginError,
+                this
+            );
+
+            return false;
+        }
+
+        activeExecution =
+            execution;
 
         return true;
     }
@@ -76,5 +183,33 @@ public sealed class CombatSkillController :
                 GetComponent<
                     CombatSkillLoadout>();
         }
+
+        if (gameplayState == null)
+        {
+            gameplayState =
+                GetComponent<
+                    PlayerGameplayState>();
+        }
+    }
+
+    private void HandleCapabilitiesInterrupted(
+        PlayerGameplayCapability capabilities)
+    {
+        if ((capabilities &
+             PlayerGameplayCapability.Combat) == 0)
+        {
+            return;
+        }
+
+        CancelActiveExecution();
+    }
+
+    public void CancelActiveExecution()
+    {
+        if (activeExecution == null)
+            return;
+
+        activeExecution.Cancel();
+        activeExecution = null;
     }
 }
