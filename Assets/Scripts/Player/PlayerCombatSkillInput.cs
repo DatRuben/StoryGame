@@ -2,10 +2,13 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(PlayerInputRouter))]
+[RequireComponent(typeof(InventoryInteractionController))]
 public sealed class PlayerCombatSkillInput :
     MonoBehaviour
 {
     private PlayerInputRouter inputRouter;
+
+    private InventoryInteractionController inventoryInteractionController;
 
     [SerializeField]
     private CombatSkillController
@@ -90,8 +93,14 @@ public sealed class PlayerCombatSkillInput :
         if (skillController == null)
             return;
 
+        InventoryItemInstance sourceItem =
+            inventoryInteractionController != null
+                ? inventoryInteractionController.SelectedItem
+                : null;
+
         skillController.TryRequestSkill(
-            slotIndex
+            slotIndex,
+            sourceItem
         );
     }
 
@@ -109,6 +118,13 @@ public sealed class PlayerCombatSkillInput :
             skillController =
                 GetComponent<
                     CombatSkillController>();
+        }
+
+        if (inventoryInteractionController == null)
+        {
+            inventoryInteractionController =
+                GetComponent<
+                    InventoryInteractionController>();
         }
     }
 }

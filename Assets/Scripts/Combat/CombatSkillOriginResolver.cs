@@ -53,6 +53,13 @@ public static class CombatSkillOriginResolver
                     out error
                 );
 
+            case CombatSkillOriginSource.HeldItem:
+                return TryResolveHeldItemOrigin(
+                    context,
+                    out origin,
+                    out error
+                );
+
             default:
                 error =
                     $"Skill '{skill.skillName}' has an unsupported action origin source.";
@@ -132,6 +139,88 @@ public static class CombatSkillOriginResolver
         origin =
             new TransformCombatSkillOrigin(
                 point
+            );
+
+        return true;
+    }
+
+    private static bool TryResolveHeldItemOrigin(
+    CombatSkillRequestContext context,
+    out CombatSkillOrigin origin,
+    out string error)
+    {
+        origin = null;
+        error = "";
+
+        CombatSkillDefinition skill =
+            context.Skill;
+
+        switch (skill.heldItemSource)
+        {
+            case CombatSkillHeldItemSource.SkillSourceItem:
+                return TryResolveSkillSourceItemOrigin(
+                    context,
+                    out origin,
+                    out error
+                );
+
+            default:
+                error =
+                    $"Skill '{skill.skillName}' has an unsupported held item source.";
+
+                return false;
+        }
+    }
+
+    private static bool TryResolveSkillSourceItemOrigin(
+        CombatSkillRequestContext context,
+        out CombatSkillOrigin origin,
+        out string error)
+    {
+        origin = null;
+        error = "";
+
+        InventoryItemInstance sourceItem =
+            context.SourceItem;
+
+        if (sourceItem == null ||
+            sourceItem.IsEmpty)
+        {
+            error =
+                $"Cannot use skill '{context.Skill.skillName}'. " +
+                "It requires a held source item, but no source item was provided.";
+
+            return false;
+        }
+
+        PlayerHeldItemPresenter presenter =
+            context.Actor.GetComponent<
+                PlayerHeldItemPresenter>();
+
+        if (presenter == null)
+        {
+            error =
+                $"Cannot use skill '{context.Skill.skillName}'. " +
+                $"Actor '{context.Actor.name}' has no PlayerHeldItemPresenter.";
+
+            return false;
+        }
+
+        if (!presenter.TryGetHeldItemCastPoint(
+                sourceItem,
+                out Transform castPoint))
+        {
+            error =
+                $"Cannot use skill '{context.Skill.skillName}'. " +
+                $"Source item '{sourceItem.Definition?.itemName}' " +
+                "is not currently held or has no CastPoint configured.";
+
+            return false;
+        }
+
+        origin =
+            new TransformCombatSkillOrigin(
+                castPoint
             );
 
         return true;
