@@ -65,6 +65,24 @@ public sealed class CombatHitbox :
         }
     }
 
+    public void Configure(
+        float damageAmount,
+        DamageType damageType,
+        GameObject source)
+    {
+        this.damageAmount =
+            Mathf.Max(
+                0f,
+                damageAmount
+            );
+
+        this.damageType =
+            damageType;
+
+        this.source =
+            source;
+    }
+
     public void ActivateHitbox()
     {
         ResolveReferences();
