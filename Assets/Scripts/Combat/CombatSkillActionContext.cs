@@ -4,7 +4,7 @@ public sealed class CombatSkillActionContext
 {
     public GameObject Actor { get; }
 
-    public CombatSkillDefinition Skill { get; }
+    public ResolvedCombatSkill Skill { get; }
 
     public InventoryItemInstance SourceItem { get; }
 
@@ -12,7 +12,7 @@ public sealed class CombatSkillActionContext
 
     public CombatSkillActionContext(
         GameObject actor,
-        CombatSkillDefinition skill,
+        ResolvedCombatSkill skill,
         InventoryItemInstance sourceItem,
         CombatSkillOrigin origin)
     {

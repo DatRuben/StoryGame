@@ -4,6 +4,7 @@ public static class CombatSkillOriginResolver
 {
     public static bool TryResolve(
         CombatSkillRequestContext context,
+        ResolvedCombatSkill skill,
         out CombatSkillOrigin origin,
         out string error)
     {
@@ -21,9 +22,6 @@ public static class CombatSkillOriginResolver
         GameObject actor =
             context.Actor;
 
-        CombatSkillDefinition skill =
-            context.Skill;
-
         if (actor == null)
         {
             error =
@@ -40,7 +38,7 @@ public static class CombatSkillOriginResolver
             return false;
         }
 
-        switch (skill.originSource)
+        switch (skill.OriginSource)
         {
             case CombatSkillOriginSource.None:
                 return true;
@@ -56,13 +54,14 @@ public static class CombatSkillOriginResolver
             case CombatSkillOriginSource.HeldItem:
                 return TryResolveHeldItemOrigin(
                     context,
+                    skill,
                     out origin,
                     out error
                 );
 
             default:
                 error =
-                    $"Skill '{skill.skillName}' has an unsupported action origin source.";
+                    $"Skill '{skill.SkillName}' has an unsupported action origin source.";
 
                 return false;
         }
@@ -70,7 +69,7 @@ public static class CombatSkillOriginResolver
 
     private static bool TryResolveCharacterOrigin(
         GameObject actor,
-        CombatSkillDefinition skill,
+        ResolvedCombatSkill skill,
         out CombatSkillOrigin origin,
         out string error)
     {
@@ -84,7 +83,7 @@ public static class CombatSkillOriginResolver
         if (setup == null)
         {
             error =
-                $"Cannot use skill '{skill.skillName}'. " +
+                $"Cannot use skill '{skill.SkillName}'. " +
                 $"Actor '{actor.name}' has no CharacterModelSetup.";
 
             return false;
@@ -96,20 +95,20 @@ public static class CombatSkillOriginResolver
         if (actionPoints == null)
         {
             error =
-                $"Cannot use skill '{skill.skillName}'. " +
+                $"Cannot use skill '{skill.SkillName}'. " +
                 $"Character model '{setup.gameObject.name}' " +
                 $"has no CharacterActionPoints.";
 
             return false;
         }
 
-        if (skill.characterActionPoint ==
+        if (skill.CharacterActionPoint ==
                 CharacterActionPointType.Custom &&
             string.IsNullOrWhiteSpace(
-                skill.customActionPointId))
+                skill.CustomActionPointId))
         {
             error =
-                $"Cannot use skill '{skill.skillName}'. " +
+                $"Cannot use skill '{skill.SkillName}'. " +
                 "It requires a custom character action point, " +
                 "but no custom action point ID is configured.";
 
@@ -117,18 +116,18 @@ public static class CombatSkillOriginResolver
         }
 
         if (!actionPoints.TryGetPoint(
-                skill.characterActionPoint,
-                skill.customActionPointId,
+                skill.CharacterActionPoint,
+                skill.CustomActionPointId,
                 out Transform point))
         {
             string pointName =
-                skill.characterActionPoint ==
+                skill.CharacterActionPoint ==
                     CharacterActionPointType.Custom
-                    ? $"Custom / {skill.customActionPointId}"
-                    : skill.characterActionPoint.ToString();
+                    ? $"Custom / {skill.CustomActionPointId}"
+                    : skill.CharacterActionPoint.ToString();
 
             error =
-                $"Cannot use skill '{skill.skillName}'. " +
+                $"Cannot use skill '{skill.SkillName}'. " +
                 $"Character model '{setup.gameObject.name}' " +
                 $"does not have the required action point " +
                 $"'{pointName}' configured.";
@@ -145,28 +144,27 @@ public static class CombatSkillOriginResolver
     }
 
     private static bool TryResolveHeldItemOrigin(
-    CombatSkillRequestContext context,
-    out CombatSkillOrigin origin,
-    out string error)
+        CombatSkillRequestContext context,
+        ResolvedCombatSkill skill,
+        out CombatSkillOrigin origin,
+        out string error)
     {
         origin = null;
         error = "";
 
-        CombatSkillDefinition skill =
-            context.Skill;
-
-        switch (skill.heldItemSource)
+        switch (skill.HeldItemSource)
         {
             case CombatSkillHeldItemSource.SkillSourceItem:
                 return TryResolveSkillSourceItemOrigin(
                     context,
+                    skill,
                     out origin,
                     out error
                 );
 
             default:
                 error =
-                    $"Skill '{skill.skillName}' has an unsupported held item source.";
+                    $"Skill '{skill.SkillName}' has an unsupported held item source.";
 
                 return false;
         }
@@ -174,6 +172,7 @@ public static class CombatSkillOriginResolver
 
     private static bool TryResolveSkillSourceItemOrigin(
         CombatSkillRequestContext context,
+        ResolvedCombatSkill skill,
         out CombatSkillOrigin origin,
         out string error)
     {
@@ -187,7 +186,7 @@ public static class CombatSkillOriginResolver
             sourceItem.IsEmpty)
         {
             error =
-                $"Cannot use skill '{context.Skill.skillName}'. " +
+                $"Cannot use skill '{skill.SkillName}'. " +
                 "It requires a held source item, but no source item was provided.";
 
             return false;
@@ -200,7 +199,7 @@ public static class CombatSkillOriginResolver
         if (presenter == null)
         {
             error =
-                $"Cannot use skill '{context.Skill.skillName}'. " +
+                $"Cannot use skill '{skill.SkillName}'. " +
                 $"Actor '{context.Actor.name}' has no PlayerHeldItemPresenter.";
 
             return false;
@@ -211,7 +210,7 @@ public static class CombatSkillOriginResolver
                 out Transform castPoint))
         {
             error =
-                $"Cannot use skill '{context.Skill.skillName}'. " +
+                $"Cannot use skill '{skill.SkillName}'. " +
                 $"Source item '{sourceItem.Definition?.itemName}' " +
                 "is not currently held or has no CastPoint configured.";
 

@@ -75,55 +75,69 @@ public sealed class CombatSkillController :
         int slotIndex,
         InventoryItemInstance sourceItem)
     {
-        ResolveReferences();
+		ResolveReferences();
 
-        if (skillLoadout == null)
-            return false;
+		if (skillLoadout == null)
+			return false;
 
-        CombatSkillDefinition skill =
-            skillLoadout.GetSkill(
-                slotIndex
-            );
+		CombatSkillDefinition skillDefinition =
+			skillLoadout.GetSkill(
+				slotIndex
+			);
 
-        if (skill == null)
-            return false;
+		if (skillDefinition == null)
+			return false;
 
-        if (gameplayState != null &&
-            !gameplayState.Allows(
-                PlayerGameplayCapability.Combat))
-        {
-            return false;
-        }
+		if (gameplayState != null &&
+			!gameplayState.Allows(
+				PlayerGameplayCapability.Combat))
+		{
+			return false;
+		}
 
-        if (activeExecution != null)
-        {
-            return false;
-        }
+		if (activeExecution != null)
+		{
+			return false;
+		}
 
-        CombatSkillRequestContext context =
-            new CombatSkillRequestContext(
-                gameObject,
-                skill,
-                sourceItem
-            );
+		CombatSkillRequestContext context =
+			new CombatSkillRequestContext(
+				gameObject,
+				skillDefinition,
+				sourceItem
+			);
 
-        if (!CombatSkillOriginResolver.TryResolve(
-                context,
-                out CombatSkillOrigin origin,
-                out string originError))
+		if (!CombatSkillResolver.TryResolve(
+				context,
+				out ResolvedCombatSkill skill,
+				out string resolveError))
+		{
+			Debug.LogError(
+				resolveError,
+				this
+			);
+
+			return false;
+		}
+
+		if (!CombatSkillOriginResolver.TryResolve(
+		    context,
+		    skill,
+		    out CombatSkillOrigin origin,
+		    out string originError))
+		{
+			Debug.LogError(
+				originError,
+				this
+			);
+
+			return false;
+		}
+
+		if (skill.Action == null)
         {
             Debug.LogError(
-                originError,
-                this
-            );
-
-            return false;
-        }
-
-        if (skill.action == null)
-        {
-            Debug.LogError(
-                $"Cannot use skill '{skill.skillName}'. " +
+                $"Cannot use skill '{skill.SkillName}'. " +
                 "No gameplay action is configured.",
                 this
             );
@@ -139,7 +153,7 @@ public sealed class CombatSkillController :
                 origin
             );
 
-        if (!skill.action.TryCreateExecution(
+        if (!skill.Action.TryCreateExecution(
                 actionContext,
                 out CombatSkillExecution execution,
                 out string executionError))
@@ -155,7 +169,7 @@ public sealed class CombatSkillController :
         if (execution == null)
         {
             Debug.LogError(
-                $"Skill '{skill.skillName}' created no execution.",
+                $"Skill '{skill.SkillName}' created no execution.",
                 this
             );
 
