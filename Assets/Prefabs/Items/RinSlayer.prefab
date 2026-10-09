@@ -42,6 +42,7 @@ GameObject:
   - component: {fileID: 6868107786974651842}
   - component: {fileID: 7565959627795917415}
   - component: {fileID: 5700228334452481709}
+  - component: {fileID: 4038881116237395758}
   m_Layer: 0
   m_Name: RinSlayer
   m_TagString: Untagged
@@ -123,3 +124,18 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &4038881116237395758
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6060643367178977144}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6c7945e9bdcf404ea632604be45c0f0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HeldItemGripPoints
+  primaryHandGrip: {fileID: 4413460793939498544}
+  secondaryHandGrip: {fileID: 0}
+  mouthGrip: {fileID: 0}
