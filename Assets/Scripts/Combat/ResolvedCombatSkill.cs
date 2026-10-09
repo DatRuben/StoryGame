@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public sealed class ResolvedCombatSkill
@@ -52,6 +53,60 @@ public sealed class ResolvedCombatSkill
         HeldItemSource
     {
         get;
+    }
+
+    private readonly List<
+        ResolvedCombatSkillComponent>
+        components =
+            new List<
+                ResolvedCombatSkillComponent>();
+
+    public IReadOnlyList<
+        ResolvedCombatSkillComponent>
+        Components =>
+            components;
+
+    internal void AddComponent(
+        ResolvedCombatSkillComponent component)
+    {
+        if (component == null)
+            return;
+
+        components.Add(
+            component
+        );
+    }
+
+    public bool TryGetComponent<T>(
+        out T component)
+        where T :
+            ResolvedCombatSkillComponent
+    {
+        for (int i = 0;
+             i < components.Count;
+             i++)
+        {
+            if (components[i] is T match)
+            {
+                component =
+                    match;
+
+                return true;
+            }
+        }
+
+        component = null;
+
+        return false;
+    }
+
+    public bool HasComponent<T>()
+        where T :
+            ResolvedCombatSkillComponent
+    {
+        return TryGetComponent<T>(
+            out _
+        );
     }
 
     internal ResolvedCombatSkill(
