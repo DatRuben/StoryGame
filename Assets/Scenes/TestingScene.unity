@@ -17539,6 +17539,11 @@ MonoBehaviour:
     x: 0
     y: 0
     rotationSteps: 0
+  - item: {fileID: 11400000, guid: a7d56227a325bd74a84a3e8f7ab7a59c, type: 2}
+    quantity: 0
+    x: 7
+    y: 9
+    rotationSteps: 0
 --- !u!1 &765000580
 GameObject:
   m_ObjectHideFlags: 0
