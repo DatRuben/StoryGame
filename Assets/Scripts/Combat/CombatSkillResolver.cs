@@ -37,6 +37,14 @@ public static class CombatSkillResolver
                 context.Skill
             );
 
+        if (skill.Action != null)
+        {
+            skill.Action.BuildResolvedComponents(
+                context,
+                skill
+            );
+        }
+
         return true;
     }
 }
