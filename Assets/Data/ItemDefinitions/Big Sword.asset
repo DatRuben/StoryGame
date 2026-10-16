@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
   itemName: BigSword
   itemCategory: 0
-  worldPrefab: {fileID: 1463992047867020604, guid: 671443c6aff1e4a41b39cd71e85c7da6, type: 3}
+  worldPrefab: {fileID: 6060643367178977144, guid: 671443c6aff1e4a41b39cd71e85c7da6, type: 3}
   itemIcon: {fileID: 0}
   weight: 1
   minimumHandUseGripCount: 1
@@ -29,6 +29,8 @@ MonoBehaviour:
   equipmentSlotType: 2
   equipmentCombatRole: 0
   consumableEffects: []
+  secondaryWeaponAction: {fileID: 0}
+  isRangedWeapon: 0
   baseDamage: 10
   damageType: 0
   attackReach: 2
