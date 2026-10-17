@@ -21,12 +21,13 @@ public sealed class WorldItem :
         item;
 
     public bool Initialize(
-        InventoryItemInstance itemInstance)
+        InventoryItemInstance itemInstance,
+        GameObject visualPrefab)
     {
         if (itemInstance == null ||
             itemInstance.IsEmpty ||
             itemInstance.Definition == null ||
-            itemInstance.Definition.worldPrefab == null)
+            visualPrefab == null)
         {
             return false;
         }
@@ -34,7 +35,7 @@ public sealed class WorldItem :
         item =
             itemInstance;
 
-        if (!BuildVisual())
+        if (!BuildVisual(visualPrefab))
             return false;
 
         return BuildAutomaticColliders();
@@ -60,13 +61,12 @@ public sealed class WorldItem :
         return true;
     }
 
-    private bool BuildVisual()
+    private bool BuildVisual(
+        GameObject visualPrefab)
     {
         ClearVisual();
 
-        if (item == null ||
-            item.Definition == null ||
-            item.Definition.worldPrefab == null)
+        if (visualPrefab == null)
         {
             return false;
         }
@@ -78,7 +78,7 @@ public sealed class WorldItem :
 
         visualInstance =
             Instantiate(
-                item.Definition.worldPrefab,
+                visualPrefab,
                 parent,
                 false
             );

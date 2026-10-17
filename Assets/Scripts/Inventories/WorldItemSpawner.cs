@@ -1,10 +1,33 @@
 using UnityEngine;
 
+[RequireComponent(typeof(ItemVisualResolver))]
 public sealed class WorldItemSpawner :
     MonoBehaviour
 {
     [SerializeField]
     private WorldItem worldItemPrefab;
+
+    private ItemVisualResolver visualResolver;
+
+    public ItemVisualResolver VisualResolver
+    {
+        get
+        {
+            if (visualResolver == null)
+            {
+                visualResolver =
+                    GetComponent<ItemVisualResolver>();
+            }
+
+            return visualResolver;
+        }
+    }
+
+    private void Awake()
+    {
+        visualResolver =
+            GetComponent<ItemVisualResolver>();
+    }
 
     public bool TrySpawn(
         InventoryItemInstance item,
@@ -17,8 +40,19 @@ public sealed class WorldItemSpawner :
         if (worldItemPrefab == null ||
             item == null ||
             item.IsEmpty ||
-            item.Definition == null ||
-            item.Definition.worldPrefab == null)
+            item.Definition == null)
+        {
+            return false;
+        }
+
+        GameObject visualPrefab =
+            VisualResolver != null
+                ? VisualResolver.ResolveWorldPrefab(
+                    item.Definition
+                )
+                : null;
+
+        if (visualPrefab == null)
         {
             return false;
         }
@@ -33,7 +67,10 @@ public sealed class WorldItemSpawner :
         if (worldItem == null)
             return false;
 
-        if (worldItem.Initialize(item))
+        if (worldItem.Initialize(
+            item,
+            visualPrefab
+        ))
         {
             worldItem.LiftAboveSurface(
                 position.y
@@ -58,8 +95,19 @@ public sealed class WorldItemSpawner :
         if (worldItemPrefab == null ||
             item == null ||
             item.IsEmpty ||
-            item.Definition == null ||
-            item.Definition.worldPrefab == null)
+            item.Definition == null)
+        {
+            return false;
+        }
+
+        GameObject visualPrefab =
+            VisualResolver != null
+                ? VisualResolver.ResolveWorldPrefab(
+                    item.Definition
+                )
+                : null;
+
+        if (visualPrefab == null)
         {
             return false;
         }
@@ -82,7 +130,10 @@ public sealed class WorldItemSpawner :
             body.isKinematic = true;
         }
 
-        if (worldItem.Initialize(item))
+        if (worldItem.Initialize(
+            item,
+            visualPrefab
+        ))
         {
             return true;
         }

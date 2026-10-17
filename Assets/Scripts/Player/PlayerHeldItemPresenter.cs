@@ -4,6 +4,20 @@ using UnityEngine;
 public sealed class PlayerHeldItemPresenter :
     MonoBehaviour
 {
+    private ItemVisualResolver visualResolver;
+
+    public void BindItemVisualResolver(
+        ItemVisualResolver newVisualResolver)
+    {
+        visualResolver =
+            newVisualResolver;
+
+        if (isActiveAndEnabled)
+        {
+            Refresh();
+        }
+    }
+
     private PlayerGripState gripState;
 
     private GameObject leftVisual;
@@ -158,8 +172,19 @@ public sealed class PlayerHeldItemPresenter :
 
         if (item == null ||
             item.Definition == null ||
-            item.Definition.worldPrefab == null ||
             anchor == null)
+        {
+            return;
+        }
+
+        GameObject visualPrefab =
+            visualResolver != null
+                ? visualResolver.ResolveWorldPrefab(
+                    item.Definition
+                )
+                : item.Definition.worldPrefab;
+
+        if (visualPrefab == null)
         {
             return;
         }
@@ -188,7 +213,7 @@ public sealed class PlayerHeldItemPresenter :
 
         GameObject itemVisual =
             Instantiate(
-                item.Definition.worldPrefab,
+                visualPrefab,
                 rootTransform,
                 false
             );
