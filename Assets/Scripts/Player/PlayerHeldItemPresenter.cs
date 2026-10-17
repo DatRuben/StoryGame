@@ -4,8 +4,19 @@ using UnityEngine;
 public sealed class PlayerHeldItemPresenter :
     MonoBehaviour
 {
-    [SerializeField]
     private ItemVisualDefault visualDefault;
+
+    public void BindVisualDefault(
+        ItemVisualDefault newVisualDefault)
+    {
+        visualDefault =
+            newVisualDefault;
+
+        if (isActiveAndEnabled)
+        {
+            Refresh();
+        }
+    }
 
     private PlayerGripState gripState;
 

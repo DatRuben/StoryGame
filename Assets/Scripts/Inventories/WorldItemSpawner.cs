@@ -6,8 +6,14 @@ public sealed class WorldItemSpawner :
     [SerializeField]
     private WorldItem worldItemPrefab;
 
-    [SerializeField]
     private ItemVisualDefault visualDefault;
+
+    public void BindVisualDefault(
+        ItemVisualDefault newVisualDefault)
+    {
+        visualDefault =
+            newVisualDefault;
+    }
 
     public bool TrySpawn(
         InventoryItemInstance item,
