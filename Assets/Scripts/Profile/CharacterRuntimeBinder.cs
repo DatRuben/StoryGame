@@ -117,6 +117,11 @@ public sealed class CharacterRuntimeBinder :
                 player.GetComponent<
                     PlayerItemHandlingController>();
 
+        PlayerHeldItemPresenter
+            heldItemPresenter =
+                player.GetComponent<
+                    PlayerHeldItemPresenter>();
+
         if (interactionController != null)
         {
             interactionController
@@ -130,6 +135,19 @@ public sealed class CharacterRuntimeBinder :
             itemHandlingController
                 .BindWorldItemSpawner(
                     worldItemSpawner
+                );
+        }
+
+        ItemVisualResolver itemVisualResolver =
+            worldItemSpawner != null
+                ? worldItemSpawner.VisualResolver
+                : null;
+
+        if (heldItemPresenter != null)
+        {
+            heldItemPresenter
+                .BindItemVisualResolver(
+                    itemVisualResolver
                 );
         }
 

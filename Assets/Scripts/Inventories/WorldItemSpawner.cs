@@ -1,18 +1,32 @@
 using UnityEngine;
 
+[RequireComponent(typeof(ItemVisualResolver))]
 public sealed class WorldItemSpawner :
     MonoBehaviour
 {
     [SerializeField]
     private WorldItem worldItemPrefab;
 
-    private ItemVisualDefault visualDefault;
+    private ItemVisualResolver visualResolver;
 
-    public void BindVisualDefault(
-        ItemVisualDefault newVisualDefault)
+    public ItemVisualResolver VisualResolver
     {
-        visualDefault =
-            newVisualDefault;
+        get
+        {
+            if (visualResolver == null)
+            {
+                visualResolver =
+                    GetComponent<ItemVisualResolver>();
+            }
+
+            return visualResolver;
+        }
+    }
+
+    private void Awake()
+    {
+        visualResolver =
+            GetComponent<ItemVisualResolver>();
     }
 
     public bool TrySpawn(
@@ -32,11 +46,11 @@ public sealed class WorldItemSpawner :
         }
 
         GameObject visualPrefab =
-            visualDefault != null
-                ? visualDefault.ResolveWorldPrefab(
+            VisualResolver != null
+                ? VisualResolver.ResolveWorldPrefab(
                     item.Definition
                 )
-                : item.Definition.worldPrefab;
+                : null;
 
         if (visualPrefab == null)
         {
@@ -87,11 +101,11 @@ public sealed class WorldItemSpawner :
         }
 
         GameObject visualPrefab =
-            visualDefault != null
-                ? visualDefault.ResolveWorldPrefab(
+            VisualResolver != null
+                ? VisualResolver.ResolveWorldPrefab(
                     item.Definition
                 )
-                : item.Definition.worldPrefab;
+                : null;
 
         if (visualPrefab == null)
         {

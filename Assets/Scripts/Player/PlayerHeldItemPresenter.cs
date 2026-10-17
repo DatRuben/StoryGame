@@ -4,13 +4,13 @@ using UnityEngine;
 public sealed class PlayerHeldItemPresenter :
     MonoBehaviour
 {
-    private ItemVisualDefault visualDefault;
+    private ItemVisualResolver visualResolver;
 
-    public void BindVisualDefault(
-        ItemVisualDefault newVisualDefault)
+    public void BindItemVisualResolver(
+        ItemVisualResolver newVisualResolver)
     {
-        visualDefault =
-            newVisualDefault;
+        visualResolver =
+            newVisualResolver;
 
         if (isActiveAndEnabled)
         {
@@ -178,8 +178,8 @@ public sealed class PlayerHeldItemPresenter :
         }
 
         GameObject visualPrefab =
-            visualDefault != null
-                ? visualDefault.ResolveWorldPrefab(
+            visualResolver != null
+                ? visualResolver.ResolveWorldPrefab(
                     item.Definition
                 )
                 : item.Definition.worldPrefab;
