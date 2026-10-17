@@ -186,31 +186,6 @@ public class ItemDefinition : ScriptableObject
 
     public bool[] occupiedCells = new bool[1] { true };
 
-    private void OnEnable()
-    {
-#if UNITY_EDITOR
-        EnsureDefaultWorldPrefab();
-#endif
-    }
-
-#if UNITY_EDITOR
-    private void EnsureDefaultWorldPrefab()
-    {
-        if (worldPrefab != null)
-            return;
-
-        worldPrefab =
-            AssetDatabase.LoadAssetAtPath<GameObject>(
-                "Assets/Prefabs/Items/Bag.prefab"
-            );
-
-        if (worldPrefab != null)
-        {
-            EditorUtility.SetDirty(this);
-        }
-    }
-#endif
-
     public void RefreshHandling()
     {
         weight =
@@ -230,9 +205,6 @@ public class ItemDefinition : ScriptableObject
     {
         RefreshHandling();
 
-#if UNITY_EDITOR
-        EnsureDefaultWorldPrefab();
-
         string rangedWeaponWarning =
             GetRangedWeaponSetupWarning();
 
@@ -246,8 +218,7 @@ public class ItemDefinition : ScriptableObject
                 this
             );
         }
-#endif
-
+        
         int requiredSize =
             Mathf.Max(
                 1,

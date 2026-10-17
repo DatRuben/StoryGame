@@ -36845,6 +36845,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1677855017}
   - component: {fileID: 1677855018}
+  - component: {fileID: 1677855019}
   m_Layer: 0
   m_Name: WorldItems
   m_TagString: Untagged
@@ -36880,6 +36881,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WorldItemSpawner
   worldItemPrefab: {fileID: -2073826482975956469, guid: 1633b5a922d404e499ca04bcc7a17e66, type: 3}
+--- !u!114 &1677855019
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1677855016}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db557f199748acc449c5436398e3b904, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemVisualResolver
+  visualDefaults: {fileID: 11400000, guid: 46d9a3339afefad40bcfe212cdc02c51, type: 2}
 --- !u!1 &1678946509
 GameObject:
   m_ObjectHideFlags: 0
