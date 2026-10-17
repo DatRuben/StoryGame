@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
   itemName: Sword
   itemCategory: 0
-  worldPrefab: {fileID: 6086656152923968378, guid: 3a36b50f717e0044b8f539c5f24503b8, type: 3}
+  worldPrefab: {fileID: 0}
   itemIcon: {fileID: 0}
   weight: 1
   minimumHandUseGripCount: 1

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemDefinition
   itemName: Medkit
   itemCategory: 2
-  worldPrefab: {fileID: 6086656152923968378, guid: 3a36b50f717e0044b8f539c5f24503b8, type: 3}
+  worldPrefab: {fileID: 0}
   itemIcon: {fileID: 0}
   weight: 1
   minimumHandUseGripCount: 1
@@ -31,6 +31,8 @@ MonoBehaviour:
   - type: 1
     amount: 0
     statusEffect: {fileID: 11400000, guid: 836d41f71e5e32a4796b76c3ab65ca01, type: 2}
+  secondaryWeaponAction: {fileID: 0}
+  isRangedWeapon: 0
   baseDamage: 10
   damageType: 0
   attackReach: 2
