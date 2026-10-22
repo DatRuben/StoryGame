@@ -8,7 +8,7 @@ public readonly struct ElementApplication
 
     public float Intensity { get; }
 
-    public int Duration { get; }
+    public float Duration { get; }
 
     public CombatSourceContext Source { get; }
 
@@ -16,7 +16,7 @@ public readonly struct ElementApplication
         CombatElement element,
         float buildup,
         float intensity,
-        int duration,
+        float duration,
         CombatSourceContext source)
     {
         Element = element;
