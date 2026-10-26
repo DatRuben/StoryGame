@@ -29,6 +29,29 @@ public sealed class ElementBuildupState
         Element = element;
     }
 
+    public float NextProcAllowedTime
+    {
+        get;
+        private set;
+    }
+
+    public bool CanProc(
+        float currentTime)
+    {
+        return currentTime >=
+               NextProcAllowedTime;
+    }
+
+    internal void SetNextProcAllowedTime(
+        float nextProcAllowedTime)
+    {
+        NextProcAllowedTime =
+            Mathf.Max(
+                0f,
+                nextProcAllowedTime
+            );
+    }
+
     internal void AddBuildup(
         float amount,
         GameObject contributor)

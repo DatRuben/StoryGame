@@ -17,23 +17,29 @@ MonoBehaviour:
     baseThreshold: 100
     thresholdIncreasePerCompletion: 50
     maximumThreshold: 500
+    minimumProcInterval: 10
   - element: 2
     baseThreshold: 100
     thresholdIncreasePerCompletion: 50
     maximumThreshold: 500
+    minimumProcInterval: 10
   - element: 3
     baseThreshold: 100
     thresholdIncreasePerCompletion: 50
     maximumThreshold: 500
+    minimumProcInterval: 10
   - element: 4
     baseThreshold: 100
     thresholdIncreasePerCompletion: 50
     maximumThreshold: 500
+    minimumProcInterval: 10
   - element: 5
     baseThreshold: 100
     thresholdIncreasePerCompletion: 50
     maximumThreshold: 500
+    minimumProcInterval: 10
   - element: 6
     baseThreshold: 100
     thresholdIncreasePerCompletion: 50
     maximumThreshold: 500
+    minimumProcInterval: 10

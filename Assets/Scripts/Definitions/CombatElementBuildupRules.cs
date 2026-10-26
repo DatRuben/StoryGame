@@ -21,6 +21,16 @@ public sealed class CombatElementBuildupRule
     [Min(0.01f)]
     private float maximumThreshold = 200f;
 
+    [SerializeField]
+    [Min(0f)]
+    private float minimumProcInterval = 10f;
+
+    public float MinimumProcInterval =>
+        Mathf.Max(
+            0f,
+            minimumProcInterval
+        );
+
     public CombatElement Element =>
         element;
 
