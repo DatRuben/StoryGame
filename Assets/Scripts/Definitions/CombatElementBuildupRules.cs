@@ -81,12 +81,11 @@ public sealed class CombatElementBuildupRules :
         Array.Empty<
             CombatElementBuildupRule>();
 
-    public bool TryGetThreshold(
+    public bool TryGetRule(
         CombatElement element,
-        int completedCycles,
-        out float threshold)
+        out CombatElementBuildupRule rule)
     {
-        threshold = 0f;
+        rule = null;
 
         if (element == CombatElement.None)
             return false;
@@ -95,23 +94,42 @@ public sealed class CombatElementBuildupRules :
              i < rules.Length;
              i++)
         {
-            CombatElementBuildupRule rule =
+            CombatElementBuildupRule candidate =
                 rules[i];
 
-            if (rule == null ||
-                rule.Element != element)
+            if (candidate == null ||
+                candidate.Element != element)
             {
                 continue;
             }
 
-            threshold =
-                rule.GetThreshold(
-                    completedCycles
-                );
+            rule = candidate;
 
             return true;
         }
 
         return false;
+    }
+
+    public bool TryGetThreshold(
+        CombatElement element,
+        int completedCycles,
+        out float threshold)
+    {
+        threshold = 0f;
+
+        if (!TryGetRule(
+                element,
+                out CombatElementBuildupRule rule))
+        {
+            return false;
+        }
+
+        threshold =
+            rule.GetThreshold(
+                completedCycles
+            );
+
+        return true;
     }
 }
