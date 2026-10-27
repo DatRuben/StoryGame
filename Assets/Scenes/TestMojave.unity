@@ -272063,7 +272063,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RuntimeDiagnosticsUI
   diagnostics: {fileID: 480236728}
-  panel: {fileID: 376339421}
+  visualRoot: {fileID: 229951158}
   outputText: {fileID: 1382848578}
   refreshInterval: 0.5
   visibleOnStart: 1

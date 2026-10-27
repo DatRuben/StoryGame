@@ -15,7 +15,7 @@ public sealed class RuntimeDiagnosticsUI :
     private RuntimeDiagnostics diagnostics;
 
     [SerializeField]
-    private CanvasGroup panel;
+    private GameObject visualRoot;
 
     [SerializeField]
     private TMP_Text outputText;
@@ -106,13 +106,6 @@ public sealed class RuntimeDiagnosticsUI :
                     FindObjectsInactive
                         .Include
                 );
-        }
-
-        if (panel == null)
-        {
-            panel =
-                GetComponent<
-                    CanvasGroup>();
         }
 
         if (outputText != null)
@@ -586,18 +579,11 @@ public sealed class RuntimeDiagnosticsUI :
         isVisible =
             visible;
 
-        if (panel == null)
-            return;
-
-        panel.alpha =
-            visible
-                ? 1f
-                : 0f;
-
-        panel.interactable =
-            false;
-
-        panel.blocksRaycasts =
-            false;
+        if (visualRoot != null)
+        {
+            visualRoot.SetActive(
+                visible
+            );
+        }
     }
 }
