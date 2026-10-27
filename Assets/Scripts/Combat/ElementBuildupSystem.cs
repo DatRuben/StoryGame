@@ -13,6 +13,9 @@ public sealed class ElementBuildupSystem :
         BuildupRules =>
             buildupRules;
 
+    public bool HasBuildupRules =>
+        buildupRules != null;
+
     public event Action<
         EntityElementalState,
         ElementBuildupCompletion>

@@ -85,5 +85,28 @@ public sealed class RuntimeDiagnostics :
                 system.name
             )
         );
+
+        if (!system.HasBuildupRules)
+        {
+            checks.Add(
+                new RuntimeDiagnosticCheck(
+                    "combat.element_buildup.rules",
+                    "Element Buildup Rules",
+                    RuntimeDiagnosticStatus.Missing,
+                    "ElementBuildupSystem has no CombatElementBuildupRules asset assigned."
+                )
+            );
+
+            return;
+        }
+
+        checks.Add(
+            new RuntimeDiagnosticCheck(
+                "combat.element_buildup.rules",
+                "Element Buildup Rules",
+                RuntimeDiagnosticStatus.Ready,
+                "Rules asset is assigned."
+            )
+        );
     }
 }
