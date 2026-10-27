@@ -9,10 +9,6 @@ public sealed class ElementBuildupSystem :
     private CombatElementBuildupRules
         buildupRules;
 
-    public CombatElementBuildupRules
-        BuildupRules =>
-            buildupRules;
-
     public bool HasBuildupRules =>
         buildupRules != null;
 
