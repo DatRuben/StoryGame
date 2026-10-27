@@ -98,8 +98,19 @@ public sealed class RuntimeDiagnostics :
             checks;
 
     public RuntimeDiagnosticRequirement
-        RequiredSystems =>
-            requiredSystems;
+        RequiredSystems
+    {
+        get
+        {
+            if ((int)requiredSystems == -1)
+            {
+                return RuntimeDiagnosticRequirement
+                    .FullGameplay;
+            }
+
+            return requiredSystems;
+        }
+    }
 
     public void Refresh()
     {
@@ -1730,7 +1741,7 @@ public sealed class RuntimeDiagnostics :
             requirement)
     {
         return
-            (requiredSystems &
+            (RequiredSystems &
              requirement) != 0;
     }
 
