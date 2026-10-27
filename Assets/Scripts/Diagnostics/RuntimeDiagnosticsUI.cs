@@ -316,14 +316,14 @@ public sealed class RuntimeDiagnosticsUI :
             "Scene: "
         );
 
-        builder.AppendLine(
+        builder.Append(
             SceneManager
                 .GetActiveScene()
                 .name
         );
 
         builder.Append(
-            "Expected: "
+            "    Expected: "
         );
 
         builder.AppendLine(
@@ -391,6 +391,9 @@ public sealed class RuntimeDiagnosticsUI :
                 "</b>"
             );
 
+            bool firstCheck =
+                true;
+
             for (int checkIndex = 0;
                  checkIndex <
                  checks.Count;
@@ -407,17 +410,34 @@ public sealed class RuntimeDiagnosticsUI :
                     continue;
                 }
 
-                AppendCheck(
+                if (!firstCheck)
+                {
+                    builder.Append(
+                        "   |   "
+                    );
+                }
+
+                AppendInlineCheck(
                     check
                 );
+
+                firstCheck =
+                    false;
             }
+
+            builder.AppendLine();
+
+            AppendCategoryProblems(
+                checks,
+                category
+            );
         }
 
         outputText.text =
             builder.ToString();
     }
 
-    private void AppendCheck(
+    private void AppendInlineCheck(
         RuntimeDiagnosticCheck check)
     {
         Color color =
@@ -454,23 +474,55 @@ public sealed class RuntimeDiagnosticsUI :
             check.Label
         );
 
-        builder.AppendLine(
+        builder.Append(
             "</color>"
         );
+    }
 
-        if (string.IsNullOrWhiteSpace(
-                check.Details))
+    private void AppendCategoryProblems(
+        IReadOnlyList<
+            RuntimeDiagnosticCheck>
+            checks,
+        string category)
+    {
+        for (int i = 0;
+             i < checks.Count;
+             i++)
         {
-            return;
+            RuntimeDiagnosticCheck check =
+                checks[i];
+
+            if (check.Category !=
+                category)
+            {
+                continue;
+            }
+
+            if (check.Status ==
+                    RuntimeDiagnosticStatus.Ready ||
+                check.Status ==
+                    RuntimeDiagnosticStatus.Optional ||
+                string.IsNullOrWhiteSpace(
+                    check.Details))
+            {
+                continue;
+            }
+
+            builder.Append(
+                "    "
+            );
+
+            AppendColored(
+                check.Label + ": ",
+                GetStatusColor(
+                    check.Status
+                )
+            );
+
+            builder.AppendLine(
+                check.Details
+            );
         }
-
-        builder.Append(
-            "    "
-        );
-
-        builder.AppendLine(
-            check.Details
-        );
     }
 
     private Color GetStatusColor(
