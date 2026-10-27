@@ -9,6 +9,8 @@ using UnityEngine.SceneManagement;
 public sealed class RuntimeDiagnosticsUI :
     MonoBehaviour
 {
+    [Header("References")]
+
     [SerializeField]
     private RuntimeDiagnostics diagnostics;
 
@@ -18,6 +20,8 @@ public sealed class RuntimeDiagnosticsUI :
     [SerializeField]
     private TMP_Text outputText;
 
+    [Header("Display")]
+
     [SerializeField]
     [Min(0.1f)]
     private float refreshInterval =
@@ -25,7 +29,58 @@ public sealed class RuntimeDiagnosticsUI :
 
     [SerializeField]
     private bool visibleOnStart =
-        true;
+        false;
+
+    [Header("Status Colors")]
+
+    [SerializeField]
+    private Color readyColor =
+        new Color32(
+            80,
+            220,
+            100,
+            255
+        );
+
+    [SerializeField]
+    private Color errorColor =
+        new Color32(
+            235,
+            75,
+            75,
+            255
+        );
+
+    [SerializeField]
+    private Color warningColor =
+        new Color32(
+            240,
+            190,
+            70,
+            255
+        );
+
+    [SerializeField]
+    private Color blockedColor =
+        new Color32(
+            230,
+            145,
+            60,
+            255
+        );
+
+    [SerializeField]
+    private Color optionalColor =
+        new Color32(
+            155,
+            155,
+            155,
+            255
+        );
+
+    private PlayerInputRouter inputRouter;
+
+    private bool inputSubscribed;
 
     private bool isVisible;
 
@@ -37,6 +92,9 @@ public sealed class RuntimeDiagnosticsUI :
     private readonly List<string>
         categoryOrder =
             new List<string>();
+
+    public bool IsVisible =>
+        isVisible;
 
     private void Awake()
     {
@@ -57,30 +115,37 @@ public sealed class RuntimeDiagnosticsUI :
                     CanvasGroup>();
         }
 
+        if (outputText != null)
+        {
+            outputText.richText =
+                true;
+        }
+
         SetVisible(
             visibleOnStart
         );
     }
 
+    private void OnEnable()
+    {
+        SubscribeInput();
+    }
+
+    private void OnDisable()
+    {
+        UnsubscribeInput();
+    }
+
     private void Start()
     {
-        RefreshNow();
+        if (isVisible)
+        {
+            RefreshNow();
+        }
     }
 
     private void Update()
     {
-        if (Keyboard.current != null &&
-            Keyboard.current.f3Key
-                .wasPressedThisFrame)
-        {
-            SetVisible(
-                !isVisible
-            );
-
-            if (isVisible)
-                RefreshNow();
-        }
-
         if (!isVisible)
             return;
 
@@ -91,6 +156,49 @@ public sealed class RuntimeDiagnosticsUI :
         }
 
         RefreshNow();
+    }
+
+    public void BindInputRouter(
+        PlayerInputRouter newInputRouter)
+    {
+        if (ReferenceEquals(
+                inputRouter,
+                newInputRouter))
+        {
+            return;
+        }
+
+        UnsubscribeInput();
+
+        inputRouter =
+            newInputRouter;
+
+        if (isActiveAndEnabled)
+        {
+            SubscribeInput();
+        }
+    }
+
+    public void Show()
+    {
+        SetVisible(true);
+        RefreshNow();
+    }
+
+    public void Hide()
+    {
+        SetVisible(false);
+    }
+
+    public void Toggle()
+    {
+        if (isVisible)
+        {
+            Hide();
+            return;
+        }
+
+        Show();
     }
 
     public void RefreshNow()
@@ -108,6 +216,49 @@ public sealed class RuntimeDiagnosticsUI :
         diagnostics.Refresh();
 
         BuildOutput();
+    }
+
+    private void SubscribeInput()
+    {
+        if (inputSubscribed ||
+            inputRouter == null)
+        {
+            return;
+        }
+
+        inputRouter
+            .ToggleDiagnosticsAction
+            .performed +=
+                HandleToggleDiagnostics;
+
+        inputSubscribed =
+            true;
+    }
+
+    private void UnsubscribeInput()
+    {
+        if (!inputSubscribed ||
+            inputRouter == null)
+        {
+            inputSubscribed =
+                false;
+
+            return;
+        }
+
+        inputRouter
+            .ToggleDiagnosticsAction
+            .performed -=
+                HandleToggleDiagnostics;
+
+        inputSubscribed =
+            false;
+    }
+
+    private void HandleToggleDiagnostics(
+        InputAction.CallbackContext context)
+    {
+        Toggle();
     }
 
     private void BuildOutput()
@@ -157,11 +308,9 @@ public sealed class RuntimeDiagnosticsUI :
             }
         }
 
-        builder.Append(
+        builder.AppendLine(
             "<b>Runtime Diagnostics</b>"
         );
-
-        builder.AppendLine();
 
         builder.Append(
             "Scene: "
@@ -187,25 +336,36 @@ public sealed class RuntimeDiagnosticsUI :
             "Problems: "
         );
 
-        builder.Append(
-            problemCount
+        AppendColored(
+            problemCount.ToString(),
+            problemCount > 0
+                ? errorColor
+                : readyColor
         );
 
         builder.Append(
             "    Warnings: "
         );
 
-        builder.Append(
-            warningCount
+        AppendColored(
+            warningCount.ToString(),
+            warningCount > 0
+                ? warningColor
+                : readyColor
         );
 
         builder.Append(
             "    Blocked: "
         );
 
-        builder.AppendLine(
-            blockedCount.ToString()
+        AppendColored(
+            blockedCount.ToString(),
+            blockedCount > 0
+                ? blockedColor
+                : readyColor
         );
+
+        builder.AppendLine();
 
         for (int categoryIndex = 0;
              categoryIndex <
@@ -218,9 +378,18 @@ public sealed class RuntimeDiagnosticsUI :
                 ];
 
             builder.AppendLine();
-            builder.Append("<b>");
-            builder.Append(category);
-            builder.AppendLine("</b>");
+
+            builder.Append(
+                "<b>"
+            );
+
+            builder.Append(
+                category
+            );
+
+            builder.AppendLine(
+                "</b>"
+            );
 
             for (int checkIndex = 0;
                  checkIndex <
@@ -238,42 +407,125 @@ public sealed class RuntimeDiagnosticsUI :
                     continue;
                 }
 
-                builder.Append(
-                    "["
-                );
-
-                builder.Append(
-                    check.Status
-                        .ToString()
-                        .ToUpperInvariant()
-                );
-
-                builder.Append(
-                    "] "
-                );
-
-                builder.AppendLine(
-                    check.Label
-                );
-
-                if (string.IsNullOrWhiteSpace(
-                        check.Details))
-                {
-                    continue;
-                }
-
-                builder.Append(
-                    "    "
-                );
-
-                builder.AppendLine(
-                    check.Details
+                AppendCheck(
+                    check
                 );
             }
         }
 
         outputText.text =
             builder.ToString();
+    }
+
+    private void AppendCheck(
+        RuntimeDiagnosticCheck check)
+    {
+        Color color =
+            GetStatusColor(
+                check.Status
+            );
+
+        builder.Append(
+            "<color=#"
+        );
+
+        builder.Append(
+            ColorUtility
+                .ToHtmlStringRGB(
+                    color
+                )
+        );
+
+        builder.Append(
+            ">["
+        );
+
+        builder.Append(
+            check.Status
+                .ToString()
+                .ToUpperInvariant()
+        );
+
+        builder.Append(
+            "] "
+        );
+
+        builder.Append(
+            check.Label
+        );
+
+        builder.AppendLine(
+            "</color>"
+        );
+
+        if (string.IsNullOrWhiteSpace(
+                check.Details))
+        {
+            return;
+        }
+
+        builder.Append(
+            "    "
+        );
+
+        builder.AppendLine(
+            check.Details
+        );
+    }
+
+    private Color GetStatusColor(
+        RuntimeDiagnosticStatus status)
+    {
+        switch (status)
+        {
+            case RuntimeDiagnosticStatus.Ready:
+                return readyColor;
+
+            case RuntimeDiagnosticStatus.Missing:
+            case RuntimeDiagnosticStatus.Misbound:
+            case RuntimeDiagnosticStatus.Invalid:
+                return errorColor;
+
+            case RuntimeDiagnosticStatus.Warning:
+                return warningColor;
+
+            case RuntimeDiagnosticStatus.Blocked:
+                return blockedColor;
+
+            case RuntimeDiagnosticStatus.Optional:
+                return optionalColor;
+
+            default:
+                return optionalColor;
+        }
+    }
+
+    private void AppendColored(
+        string text,
+        Color color)
+    {
+        builder.Append(
+            "<color=#"
+        );
+
+        builder.Append(
+            ColorUtility
+                .ToHtmlStringRGB(
+                    color
+                )
+        );
+
+        builder.Append(
+            ">"
+        );
+
+        builder.Append(
+            text
+        );
+
+        builder.Append(
+            "</color>"
+        );
     }
 
     private void SetVisible(

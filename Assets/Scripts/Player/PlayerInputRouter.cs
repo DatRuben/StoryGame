@@ -57,6 +57,9 @@ public class PlayerInputRouter : MonoBehaviour
     public InputAction DropAction =>
         GetActions().Player.Drop;
 
+    public InputAction ToggleDiagnosticsAction =>
+        GetActions().Player.ToggleDiagnostics;
+
     private void Awake()
     {
         EnsureActions();
@@ -70,7 +73,9 @@ public class PlayerInputRouter : MonoBehaviour
     private void OnDisable()
     {
         if (inputActions != null)
+        {
             inputActions.Player.Disable();
+        }
     }
 
     private void OnDestroy()
@@ -85,12 +90,16 @@ public class PlayerInputRouter : MonoBehaviour
     private PlayerInputActions GetActions()
     {
         EnsureActions();
+
         return inputActions;
     }
 
     private void EnsureActions()
     {
         if (inputActions == null)
-            inputActions = new PlayerInputActions();
+        {
+            inputActions =
+                new PlayerInputActions();
+        }
     }
 }

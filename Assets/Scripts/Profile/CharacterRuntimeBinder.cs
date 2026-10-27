@@ -83,6 +83,9 @@ public sealed class CharacterRuntimeBinder :
     private string aimTargetName =
         "AimTarget";
 
+    [SerializeField]
+    private RuntimeDiagnosticsUI runtimeDiagnosticsUI;
+
     public void Bind(
         GameObject player)
     {
@@ -102,6 +105,14 @@ public sealed class CharacterRuntimeBinder :
         PlayerInputRouter inputRouter =
             player.GetComponent<
                 PlayerInputRouter>();
+
+        if (runtimeDiagnosticsUI != null)
+        {
+            runtimeDiagnosticsUI
+                .BindInputRouter(
+                    inputRouter
+                );
+        }
 
         InventoryContainer playerInventory =
             player.GetComponent<

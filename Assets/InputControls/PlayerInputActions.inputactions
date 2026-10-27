@@ -205,7 +205,7 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "F3",
+                    "name": "ToggleDiagnostics",
                     "type": "Button",
                     "id": "c5d21baa-0ec1-4a67-a2bc-f88354b206ba",
                     "expectedControlType": "",
@@ -739,7 +739,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": ";Keyboard&Mouse",
-                    "action": "F3",
+                    "action": "ToggleDiagnostics",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

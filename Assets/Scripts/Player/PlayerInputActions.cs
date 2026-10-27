@@ -291,7 +291,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": true
                 },
                 {
-                    ""name"": ""F3"",
+                    ""name"": ""ToggleDiagnostics"",
                     ""type"": ""Button"",
                     ""id"": ""c5d21baa-0ec1-4a67-a2bc-f88354b206ba"",
                     ""expectedControlType"": """",
@@ -825,7 +825,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": "";Keyboard&Mouse"",
-                    ""action"": ""F3"",
+                    ""action"": ""ToggleDiagnostics"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -919,7 +919,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         m_Player_Dodge = m_Player.FindAction("Dodge", throwIfNotFound: true);
         m_Player_Drop = m_Player.FindAction("Drop", throwIfNotFound: true);
         m_Player_Scroll = m_Player.FindAction("Scroll", throwIfNotFound: true);
-        m_Player_F3 = m_Player.FindAction("F3", throwIfNotFound: true);
+        m_Player_ToggleDiagnostics = m_Player.FindAction("ToggleDiagnostics", throwIfNotFound: true);
     }
 
     ~@PlayerInputActions()
@@ -1022,7 +1022,7 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Dodge;
     private readonly InputAction m_Player_Drop;
     private readonly InputAction m_Player_Scroll;
-    private readonly InputAction m_Player_F3;
+    private readonly InputAction m_Player_ToggleDiagnostics;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -1123,9 +1123,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @Scroll => m_Wrapper.m_Player_Scroll;
         /// <summary>
-        /// Provides access to the underlying input action "Player/F3".
+        /// Provides access to the underlying input action "Player/ToggleDiagnostics".
         /// </summary>
-        public InputAction @F3 => m_Wrapper.m_Player_F3;
+        public InputAction @ToggleDiagnostics => m_Wrapper.m_Player_ToggleDiagnostics;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -1218,9 +1218,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @Scroll.started += instance.OnScroll;
             @Scroll.performed += instance.OnScroll;
             @Scroll.canceled += instance.OnScroll;
-            @F3.started += instance.OnF3;
-            @F3.performed += instance.OnF3;
-            @F3.canceled += instance.OnF3;
+            @ToggleDiagnostics.started += instance.OnToggleDiagnostics;
+            @ToggleDiagnostics.performed += instance.OnToggleDiagnostics;
+            @ToggleDiagnostics.canceled += instance.OnToggleDiagnostics;
         }
 
         /// <summary>
@@ -1298,9 +1298,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
             @Scroll.started -= instance.OnScroll;
             @Scroll.performed -= instance.OnScroll;
             @Scroll.canceled -= instance.OnScroll;
-            @F3.started -= instance.OnF3;
-            @F3.performed -= instance.OnF3;
-            @F3.canceled -= instance.OnF3;
+            @ToggleDiagnostics.started -= instance.OnToggleDiagnostics;
+            @ToggleDiagnostics.performed -= instance.OnToggleDiagnostics;
+            @ToggleDiagnostics.canceled -= instance.OnToggleDiagnostics;
         }
 
         /// <summary>
@@ -1561,11 +1561,11 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnScroll(InputAction.CallbackContext context);
         /// <summary>
-        /// Method invoked when associated input action "F3" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// Method invoked when associated input action "ToggleDiagnostics" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnF3(InputAction.CallbackContext context);
+        void OnToggleDiagnostics(InputAction.CallbackContext context);
     }
 }
