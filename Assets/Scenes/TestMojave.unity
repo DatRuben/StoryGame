@@ -197073,6 +197073,7 @@ Transform:
   - {fileID: 1125228865}
   - {fileID: 1189862368}
   - {fileID: 480236727}
+  - {fileID: 1854526335}
   m_Father: {fileID: 2036870928}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &270383225
@@ -1327705,6 +1327706,51 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7547395281002495763, guid: 712099d1a5ab4aa6ba22bdd7489a4c7b, type: 3}
   m_PrefabInstance: {fileID: 1854421631}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1854526334
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1854526335}
+  - component: {fileID: 1854526336}
+  m_Layer: 0
+  m_Name: CombatRuntime
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1854526335
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1854526334}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 270383224}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1854526336
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1854526334}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eab7c29d396f7b0438119529b559a1e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ElementBuildupSystem
+  buildupRules: {fileID: 11400000, guid: efa40ff3a4a12fc44b5a8e77c5e1c93b, type: 2}
 --- !u!1001 &1854583764
 PrefabInstance:
   m_ObjectHideFlags: 0
