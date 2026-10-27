@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: e64cedbdc4204114b047d06edde7c779
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 8574412962073106934
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 341968
+  packageName: 'Pure Nature 2 : Mojave Desert'
+  packageVersion: 1.1
+  assetPath: Assets/BK/PureNature_Mojave/Textures/Surfaces/Layers/Sand_fine_white.terrainlayer
+  uploadId: 961202

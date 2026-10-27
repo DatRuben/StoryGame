@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: c202e2ea84db11d45832efdbbfb51735
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 341968
+  packageName: 'Pure Nature 2 : Mojave Desert'
+  packageVersion: 1.1
+  assetPath: Assets/BK/PureNature_Mojave/Settings/Mojave_PostProcess.asset
+  uploadId: 961202

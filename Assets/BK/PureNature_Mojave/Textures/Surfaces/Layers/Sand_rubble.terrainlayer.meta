@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: bffb3a4a0a9043d993c43f267cb13a4e
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 8574412962073106934
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 341968
+  packageName: 'Pure Nature 2 : Mojave Desert'
+  packageVersion: 1.1
+  assetPath: Assets/BK/PureNature_Mojave/Textures/Surfaces/Layers/Sand_rubble.terrainlayer
+  uploadId: 961202

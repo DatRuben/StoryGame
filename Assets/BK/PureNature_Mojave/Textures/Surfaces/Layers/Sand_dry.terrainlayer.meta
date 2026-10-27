@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: dbf0c9d258634042b22a9938e224253c
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 8574412962073106934
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 341968
+  packageName: 'Pure Nature 2 : Mojave Desert'
+  packageVersion: 1.1
+  assetPath: Assets/BK/PureNature_Mojave/Textures/Surfaces/Layers/Sand_dry.terrainlayer
+  uploadId: 961202

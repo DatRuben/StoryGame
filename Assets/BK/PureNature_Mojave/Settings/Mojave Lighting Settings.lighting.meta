@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: b62c68ba20e54c4882e49e50939bf5d0
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 4890085278179872738
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 341968
+  packageName: 'Pure Nature 2 : Mojave Desert'
+  packageVersion: 1.1
+  assetPath: Assets/BK/PureNature_Mojave/Settings/Mojave Lighting Settings.lighting
+  uploadId: 961202

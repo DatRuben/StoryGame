@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: c266b641562b42dc97b86ac63ee5ff54
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 341968
+  packageName: 'Pure Nature 2 : Mojave Desert'
+  packageVersion: 1.1
+  assetPath: Assets/BK/PureNature_Mojave/Models/Rubble/Textures/Materials/Rubble.mat
+  uploadId: 961202
