@@ -23,11 +23,6 @@ public sealed class RuntimeDiagnosticsUI :
     [Header("Display")]
 
     [SerializeField]
-    [Min(0.1f)]
-    private float refreshInterval =
-        0.5f;
-
-    [SerializeField]
     private bool visibleOnStart =
         false;
 
@@ -84,8 +79,6 @@ public sealed class RuntimeDiagnosticsUI :
 
     private bool isVisible;
 
-    private float nextRefreshTime;
-
     private readonly StringBuilder builder =
         new StringBuilder();
 
@@ -137,20 +130,6 @@ public sealed class RuntimeDiagnosticsUI :
         }
     }
 
-    private void Update()
-    {
-        if (!isVisible)
-            return;
-
-        if (Time.unscaledTime <
-            nextRefreshTime)
-        {
-            return;
-        }
-
-        RefreshNow();
-    }
-
     public void BindInputRouter(
         PlayerInputRouter newInputRouter)
     {
@@ -196,10 +175,6 @@ public sealed class RuntimeDiagnosticsUI :
 
     public void RefreshNow()
     {
-        nextRefreshTime =
-            Time.unscaledTime +
-            refreshInterval;
-
         if (diagnostics == null ||
             outputText == null)
         {
