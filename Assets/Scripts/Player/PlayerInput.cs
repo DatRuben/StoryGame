@@ -434,18 +434,23 @@ public class PlayerInput : MonoBehaviour
             return;
         }
 
-        Vector3 movement =
+        Vector3 movementIntent =
             input.x * GetCameraRight(playerCamera) +
             input.y * GetCameraForward(playerCamera);
 
-        // Important:
-        // Default movement should not intentionally add upward velocity.
-        movement.y = 0f;
+        movementIntent.y = 0f;
 
-        if (movement.sqrMagnitude > 1f)
-            movement.Normalize();
+        if (movementIntent.sqrMagnitude > 1f)
+        {
+            movementIntent.Normalize();
+        }
 
-        HandleWallMovement(ref movement);
+        Vector3 movement =
+            movementIntent;
+
+        HandleWallMovement(
+            ref movement
+        );
 
         bool hasMovementDirection =
             movement.sqrMagnitude > 0.01f;
@@ -518,7 +523,9 @@ public class PlayerInput : MonoBehaviour
         ClampHorizontalSpeed(currentSpeed);
         RegenerateStamina(hasMovementDirection);
         UpdateSpeedText(grounded);
-        LookAt();
+        LookAt(
+            movementIntent
+        );
     }
 
     private void StopForOpenContainer(bool grounded)
@@ -748,12 +755,16 @@ public class PlayerInput : MonoBehaviour
             "\nGround Angle: " + groundAngle.ToString("F1");
     }
 
-    private void LookAt()
+    private void LookAt(
+        Vector3 movementIntent)
     {
         if (cameraLockFramesToIgnore > 0)
         {
             cameraLockFramesToIgnore--;
-            rb.angularVelocity = Vector3.zero;
+
+            rb.angularVelocity =
+                Vector3.zero;
+
             return;
         }
 
@@ -761,29 +772,50 @@ public class PlayerInput : MonoBehaviour
 
         if (cameraLocked)
         {
-            direction = GetCameraForward(playerCamera);
+            direction =
+                GetCameraForward(
+                    playerCamera
+                );
+        }
+        else if (movementIntent.sqrMagnitude >
+                 0.01f)
+        {
+            direction =
+                movementIntent;
         }
         else
         {
-            direction = rb.linearVelocity;
+            direction =
+                rb.linearVelocity;
+
             direction.y = 0f;
         }
 
-        if (direction.sqrMagnitude <= 0.1f)
+        if (direction.sqrMagnitude <= 0.01f)
             return;
 
+        direction.Normalize();
+
         Quaternion targetRotation =
-            Quaternion.LookRotation(direction, Vector3.up);
+            Quaternion.LookRotation(
+                direction,
+                Vector3.up
+            );
 
         Quaternion smoothedRotation =
             Quaternion.Slerp(
                 rb.rotation,
                 targetRotation,
-                rotationSpeed * Time.fixedDeltaTime
+                rotationSpeed *
+                Time.fixedDeltaTime
             );
 
-        rb.MoveRotation(smoothedRotation);
-        rb.angularVelocity = Vector3.zero;
+        rb.MoveRotation(
+            smoothedRotation
+        );
+
+        rb.angularVelocity =
+            Vector3.zero;
     }
 
     private Vector3 GetCameraForward(Camera camera)
