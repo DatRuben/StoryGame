@@ -60,11 +60,11 @@ public class PlayerInput : MonoBehaviour
     [SerializeField] private bool preventSlopeSliding = true;
     [SerializeField] private float slopeSlideCancelStrength = 1f;
 
-    [Header("Default Movement Anti-Launch")]
-    [SerializeField] private bool preventDefaultMovementLaunch = true;
-    [SerializeField] private float allowedDefaultUpwardSpeed = 0.5f;
-    [SerializeField] private float recentlyGroundedTime = 0.15f;
-    [SerializeField] private float flatGroundAngle = 5f;
+    [Header("Ground Adhesion")]
+
+    [SerializeField]
+    private bool preventGroundSeparation =
+        true;
 
     [Header("External Launch")]
     [SerializeField] private float defaultExternalLaunchTime = 0.35f;
@@ -109,7 +109,6 @@ public class PlayerInput : MonoBehaviour
     private float lastDodgeTime = -999f;
     private float lastWallContactTime = -999f;
     private float lastJumpTime = -999f;
-    private float lastGroundedTime = -999f;
     private float forcedAirUntil = -999f;
     private float lastStaminaSpendTime = -999f;
 
@@ -390,11 +389,6 @@ public class PlayerInput : MonoBehaviour
             IsGrounded() &&
             canUseGround;
 
-        if (grounded)
-        {
-            lastGroundedTime = Time.time;
-        }
-
         if (gameplayState != null &&
             !gameplayState.Allows(
                 PlayerGameplayCapability.Movement))
@@ -452,6 +446,22 @@ public class PlayerInput : MonoBehaviour
             ref movement
         );
 
+        if (grounded &&
+            movement.sqrMagnitude > 0.01f)
+        {
+            movement =
+                Vector3.ProjectOnPlane(
+                    movement,
+                    groundNormal
+                );
+
+            if (movement.sqrMagnitude >
+                0.01f)
+            {
+                movement.Normalize();
+            }
+        }
+
         bool hasMovementDirection =
             movement.sqrMagnitude > 0.01f;
         SetMovementAnimation(
@@ -486,13 +496,28 @@ public class PlayerInput : MonoBehaviour
         Vector3 targetVelocity =
             movement * currentSpeed;
 
-        Vector3 currentHorizontalVelocity =
-            rb.linearVelocity;
+        Vector3 currentMovementVelocity;
 
-        currentHorizontalVelocity.y = 0f;
+        if (grounded)
+        {
+            currentMovementVelocity =
+                Vector3.ProjectOnPlane(
+                    rb.linearVelocity,
+                    groundNormal
+                );
+        }
+        else
+        {
+            currentMovementVelocity =
+                rb.linearVelocity;
+
+            currentMovementVelocity.y =
+                0f;
+        }
 
         Vector3 velocityChange =
-            targetVelocity - currentHorizontalVelocity;
+            targetVelocity -
+            currentMovementVelocity;
 
         float acceleration;
 
@@ -518,7 +543,7 @@ public class PlayerInput : MonoBehaviour
 
         PreventSlopeSliding(grounded);
         RemoveWallVelocity();
-        PreventDefaultMovementLaunch(grounded);
+        PreventGroundSeparation(grounded);
         ApplyExtraGravity(grounded);
         ClampHorizontalSpeed(currentSpeed);
         RegenerateStamina(hasMovementDirection);
@@ -630,48 +655,40 @@ public class PlayerInput : MonoBehaviour
         );
     }
 
-    private void PreventDefaultMovementLaunch(bool grounded)
+    private void PreventGroundSeparation(bool grounded)
     {
-        if (!preventDefaultMovementLaunch)
+        if (!preventGroundSeparation)
+            return;
+
+        if (!grounded)
             return;
 
         bool recentlyJumped =
-            Time.time - lastJumpTime <= jumpGroundIgnoreTime;
+            Time.time - lastJumpTime <=
+            jumpGroundIgnoreTime;
 
-        bool beingForcedIntoAir =
-            Time.time <= forcedAirUntil;
+        bool externallyLaunched =
+            Time.time <=
+            forcedAirUntil;
 
-        if (recentlyJumped || beingForcedIntoAir)
+        if (recentlyJumped ||
+            externallyLaunched)
+        {
+            return;
+        }
+
+        float separationSpeed =
+            Vector3.Dot(
+                rb.linearVelocity,
+                groundNormal
+            );
+
+        if (separationSpeed <= 0f)
             return;
 
-        bool recentlyGrounded =
-            Time.time - lastGroundedTime <= recentlyGroundedTime;
-
-        if (!grounded && !recentlyGrounded)
-            return;
-
-        float groundAngle =
-            Vector3.Angle(groundNormal, Vector3.up);
-
-        bool groundedOnRamp =
-            grounded &&
-            groundAngle > flatGroundAngle &&
-            groundAngle <= maxGroundAngle;
-
-        // Let the player climb ramps.
-        // Only clamp launch when on flat ground or right after losing ground.
-        if (groundedOnRamp)
-            return;
-
-        Vector3 velocity =
-            rb.linearVelocity;
-
-        if (velocity.y <= allowedDefaultUpwardSpeed)
-            return;
-
-        velocity.y = allowedDefaultUpwardSpeed;
-
-        rb.linearVelocity = velocity;
+        rb.linearVelocity -=
+            groundNormal *
+            separationSpeed;
     }
 
     private void RemoveWallVelocity()
