@@ -731,6 +731,9 @@ public sealed class InventoryInteractionController :
         gameplayState =
             GetComponent<PlayerGameplayState>();
 
+        downedState =
+            GetComponent<PlayerDownedState>();
+
         itemAudioFeedback =
             GetComponent<PlayerItemAudioFeedback>();
     }
