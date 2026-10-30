@@ -6,6 +6,7 @@ public class InventoryMenuController : MonoBehaviour
     [Header("References")]
     [SerializeField] private CanvasGroup inventoryCanvasGroup;
     [SerializeField] private Behaviour[] componentsDisabledWhileOpen;
+    [SerializeField] private CursorController cursorController;
 
     [Header("Settings")]
     [SerializeField] private bool startsOpen = false;
@@ -141,15 +142,12 @@ public class InventoryMenuController : MonoBehaviour
             }
         }
 
-        if (open)
+        if (cursorController != null)
         {
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-        }
-        else
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
+            cursorController.SetUnlocked(
+                this,
+                open
+            );
         }
     }
 

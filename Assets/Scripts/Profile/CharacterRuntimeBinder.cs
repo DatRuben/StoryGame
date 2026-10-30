@@ -64,6 +64,9 @@ public sealed class CharacterRuntimeBinder :
     [SerializeField]
     private TextMeshProUGUI speedText;
 
+    [SerializeField]
+    private PauseMenuController pauseMenuController;
+
     [Header("Runtime Camera")]
     [SerializeField]
     private CinemachineCamera cinemachineCamera;
@@ -199,6 +202,14 @@ public sealed class CharacterRuntimeBinder :
         PlayerGameplayState gameplayState =
             player.GetComponent<
                 PlayerGameplayState>();
+
+        if (pauseMenuController != null)
+        {
+            pauseMenuController
+                .BindPlayerGameplayState(
+                    gameplayState
+                );
+        }
 
         Camera mainCamera =
             Camera.main;

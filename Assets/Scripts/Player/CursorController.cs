@@ -1,52 +1,77 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
-public class CursorController : MonoBehaviour
+[DisallowMultipleComponent]
+public sealed class CursorController :
+    MonoBehaviour
 {
+    private readonly HashSet<object>
+        unlockRequests =
+            new HashSet<object>();
+
+    public bool IsUnlocked =>
+        unlockRequests.Count > 0;
+
     private void Start()
     {
-        LockCursor();
+        ApplyCursorState();
     }
 
-    private void OnApplicationFocus(bool hasFocus)
+    private void OnApplicationFocus(
+        bool hasFocus)
     {
         if (hasFocus)
-            LockCursor();
+        {
+            ApplyCursorState();
+        }
     }
 
-    private void Update()
+    public void SetUnlocked(
+        object source,
+        bool unlocked)
     {
-        if (InventoryMenuController.IsInventoryOpen)
+        if (source == null)
         {
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
+            throw new ArgumentNullException(
+                nameof(source)
+            );
+        }
+
+        bool changed =
+            unlocked
+                ? unlockRequests.Add(source)
+                : unlockRequests.Remove(source);
+
+        if (!changed)
             return;
-        }
 
-        // Optional: press Esc to unlock while testing in editor
-        if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
-        {
-            UnlockCursor();
-        }
-
-        // Optional: click game window to lock again
-        if (Mouse.current != null &&
-            Mouse.current.leftButton.wasPressedThisFrame &&
-            Cursor.lockState != CursorLockMode.Locked)
-        {
-            LockCursor();
-        }
+        ApplyCursorState();
     }
 
-    private void LockCursor()
+    public void ClearRequest(
+        object source)
     {
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        if (source == null)
+            return;
+
+        if (!unlockRequests.Remove(source))
+            return;
+
+        ApplyCursorState();
     }
 
-    private void UnlockCursor()
+    private void ApplyCursorState()
     {
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
+        bool unlocked =
+            unlockRequests.Count > 0;
+
+        Cursor.lockState =
+            unlocked
+                ? CursorLockMode.None
+                : CursorLockMode.Locked;
+
+        Cursor.visible =
+            unlocked;
     }
 }
