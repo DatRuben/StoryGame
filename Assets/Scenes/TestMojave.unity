@@ -42609,6 +42609,7 @@ MonoBehaviour:
   creatorModelPreview: {fileID: 1678303956}
   playerSpawner: {fileID: 1822074845}
   characterRuntimeBinder: {fileID: 1688523095}
+  cursorController: {fileID: 0}
   messageText: {fileID: 785701971}
 --- !u!4 &56657024
 Transform:
@@ -164047,6 +164048,7 @@ RectTransform:
   - {fileID: 1085209181}
   - {fileID: 1231876495}
   - {fileID: 517312582}
+  - {fileID: 376339417}
   - {fileID: 617317796}
   m_Father: {fileID: 356722465}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -272042,7 +272044,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1382848577}
-  m_Father: {fileID: 617317796}
+  m_Father: {fileID: 229951159}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -442778,7 +442780,6 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1971313784}
-  - {fileID: 376339417}
   m_Father: {fileID: 229951159}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
