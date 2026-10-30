@@ -287,10 +287,6 @@ public sealed class PlayerItemHandlingController :
 
         if (current != null)
         {
-            ResolveInterruptedOperation(
-                current
-            );
-
             CancelOperationReservation(
                 current
             );
@@ -835,74 +831,6 @@ public sealed class PlayerItemHandlingController :
         CompleteActiveOperation();
     }
 
-    private void ResolveInterruptedOperation(
-        ItemHandlingOperation operation)
-    {
-        if (operation == null)
-            return;
-
-        switch (operation.Type)
-        {
-            case ItemHandlingOperationType.Retrieve:
-            case ItemHandlingOperationType.Transfer:
-                ResolveInterruptedRetrievedItem(
-                    operation
-                );
-                break;
-        }
-    }
-
-    private void ResolveInterruptedRetrievedItem(
-        ItemHandlingOperation operation)
-    {
-        if (operation == null)
-            return;
-
-        InventoryItemInstance item =
-            operation.Item;
-
-        if (item == null ||
-            item.IsEmpty ||
-            gripState == null ||
-            !gripState.IsHolding(item))
-        {
-            return;
-        }
-
-        bool returnedToSource = false;
-
-        if (operation.SourceContainer != null &&
-            operation.TakeReservation != null)
-        {
-            returnedToSource =
-                operation.SourceContainer
-                    .PlaceInstance(
-                        item,
-                        operation.TakeReservation.Position.x,
-                        operation.TakeReservation.Position.y,
-                        operation.TakeReservation.RotationSteps
-                    );
-        }
-
-        if (returnedToSource)
-        {
-            gripState.Release(item);
-            return;
-        }
-
-        if (TryReleaseHeldItemToWorld(
-                item,
-                out _))
-        {
-            return;
-        }
-
-        Debug.LogError(
-            "Interrupted item retrieval could not return or drop the held item. The item remains in PlayerGripState to preserve ownership.",
-            this
-        );
-    }
-
     private void Update()
     {
         if (activeOperation == null)
@@ -993,10 +921,6 @@ public sealed class PlayerItemHandlingController :
 
         CancelQueuedOperationsForItem(
             operation.Item
-        );
-
-        ResolveInterruptedOperation(
-            operation
         );
 
         CancelOperationReservation(

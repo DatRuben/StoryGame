@@ -46,6 +46,8 @@ public sealed class InventoryInteractionController :
 
     private PlayerGameplayState gameplayState;
 
+    private PlayerDownedState downedState;
+
     private PlayerItemHandlingController itemHandlingController;
 
     private InventoryItemInstance loadoutAssignmentItem;
@@ -421,11 +423,13 @@ public sealed class InventoryInteractionController :
             return;
         }
 
-        if (itemHandlingController != null)
-        {
-            itemHandlingController
-                .CancelAllOperations();
-        }
+        itemHandlingController?.CancelAllOperations();
+    }
+
+    private void HandleDownedChanged(bool isDowned)
+    {
+        if (!isDowned)
+            return;
 
         TryDropLooseHeldItems();
     }
@@ -750,6 +754,20 @@ public sealed class InventoryInteractionController :
             if (!gameplayState.Allows(
                     PlayerGameplayCapability.ItemHandling))
             {
+                itemHandlingController?.CancelAllOperations();
+            }
+        }
+
+        if (downedState != null)
+        {
+            downedState.OnDownedChanged -=
+                HandleDownedChanged;
+
+            downedState.OnDownedChanged +=
+                HandleDownedChanged;
+
+            if (downedState.IsDowned)
+            {
                 TryDropLooseHeldItems();
             }
         }
@@ -782,6 +800,12 @@ public sealed class InventoryInteractionController :
         {
             gameplayState.OnCapabilitiesInterrupted -=
                 HandleCapabilitiesInterrupted;
+        }
+
+        if (downedState != null)
+        {
+            downedState.OnDownedChanged -=
+                HandleDownedChanged;
         }
 
         if (inputRouter == null)
@@ -2505,7 +2529,9 @@ public sealed class InventoryInteractionController :
 
         if (ReferenceEquals(
                 cursor.SelectedItem,
-                operation.Item))
+                operation.Item) &&
+            (gripState == null ||
+             !gripState.IsHolding(operation.Item)))
         {
             cursor.ClearSelection();
         }

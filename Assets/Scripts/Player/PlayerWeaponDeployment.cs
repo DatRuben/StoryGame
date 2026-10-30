@@ -35,6 +35,8 @@ public sealed class PlayerWeaponDeployment :
 
     private PlayerGameplayState gameplayState;
 
+    private PlayerDownedState downedState;
+
     private InventoryInteractionController
         interactionController;
 
@@ -91,17 +93,16 @@ public sealed class PlayerWeaponDeployment :
     {
         ResolveReferences();
 
-        if (gameplayState == null)
+        if (downedState == null)
             return;
 
-        gameplayState.OnCapabilitiesInterrupted -=
-            HandleCapabilitiesInterrupted;
+        downedState.OnDownedChanged -=
+            HandleDownedChanged;
 
-        gameplayState.OnCapabilitiesInterrupted +=
-            HandleCapabilitiesInterrupted;
+        downedState.OnDownedChanged +=
+            HandleDownedChanged;
 
-        if (!gameplayState.Allows(
-            PlayerGameplayCapability.ItemHandling))
+        if (downedState.IsDowned)
         {
             SheatheWeapons();
         }
@@ -109,11 +110,11 @@ public sealed class PlayerWeaponDeployment :
 
     private void OnDisable()
     {
-        if (gameplayState == null)
-            return;
-
-        gameplayState.OnCapabilitiesInterrupted -=
-            HandleCapabilitiesInterrupted;
+        if (downedState != null)
+        {
+            downedState.OnDownedChanged -=
+                HandleDownedChanged;
+        }
     }
 
     public bool IsDeployed(
@@ -551,16 +552,12 @@ public sealed class PlayerWeaponDeployment :
         return false;
     }
 
-    private void HandleCapabilitiesInterrupted(
-        PlayerGameplayCapability interruptedCapabilities)
+    private void HandleDownedChanged(bool isDowned)
     {
-        if ((interruptedCapabilities &
-             PlayerGameplayCapability.ItemHandling) == 0)
+        if (isDowned)
         {
-            return;
+            SheatheWeapons();
         }
-
-        SheatheWeapons();
     }
 
     private void ResolveReferences()
@@ -603,6 +600,12 @@ public sealed class PlayerWeaponDeployment :
         {
             gameplayState =
                 GetComponent<PlayerGameplayState>();
+        }
+
+        if (downedState == null)
+        {
+            downedState =
+                GetComponent<PlayerDownedState>();
         }
     }
 }
