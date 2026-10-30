@@ -7,7 +7,7 @@ using Unity.Cinemachine;
 [RequireComponent(typeof(PlayerGameplayState))]
 [RequireComponent(typeof(PlayerPrimaryActionController))]
 
-public class PlayerInput : MonoBehaviour
+public class PlayerInput : MonoBehaviour 
 {
     [SerializeField]
     private PlayerInputRouter inputRouter;
