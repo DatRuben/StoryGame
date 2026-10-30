@@ -300,6 +300,54 @@ public class PlayerInput : MonoBehaviour
         isDodging = false;
         isSprinting = false;
         isJumpHeld = false;
+
+        SetMovementAnimation(false);
+
+        StopPlayerMovementOnRestriction();
+    }
+
+    private void StopPlayerMovementOnRestriction()
+    {
+        if (rb == null)
+            return;
+
+        if (Time.time <= forcedAirUntil)
+            return;
+
+        bool canUseGround =
+            Time.time - lastJumpTime >
+            jumpGroundIgnoreTime;
+
+        bool grounded =
+            IsGrounded() &&
+            canUseGround;
+
+        Vector3 velocity =
+            rb.linearVelocity;
+
+        if (grounded)
+        {
+            Vector3 surfaceVelocity =
+                Vector3.ProjectOnPlane(
+                    velocity,
+                    groundNormal
+                );
+
+            velocity -=
+                surfaceVelocity;
+        }
+        else
+        {
+
+            velocity.x = 0f;
+            velocity.z = 0f;
+        }
+
+        rb.linearVelocity =
+            velocity;
+
+        rb.angularVelocity =
+            Vector3.zero;
     }
 
     public void ApplyMovementStats(FinalMovementStats movementStats)
@@ -393,9 +441,21 @@ public class PlayerInput : MonoBehaviour
             !gameplayState.Allows(
                 PlayerGameplayCapability.Movement))
         {
-            ApplyExtraGravity(grounded);
+            PreventSlopeSliding(
+                grounded
+            );
+
+            PreventGroundSeparation(
+                grounded
+            );
+
+            ApplyExtraGravity(
+                grounded
+            );
+
             RegenerateStamina(false);
             UpdateSpeedText(grounded);
+
             return;
         }
 

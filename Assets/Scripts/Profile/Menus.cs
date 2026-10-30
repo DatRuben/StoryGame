@@ -21,6 +21,7 @@ public class Menus : MonoBehaviour
     [Header("Gameplay")]
     [SerializeField] private PlayerSpawner playerSpawner;
     [SerializeField] private CharacterRuntimeBinder characterRuntimeBinder;
+    [SerializeField] private CursorController cursorController;
 
     [Header("Output")]
     [SerializeField] private TMP_Text messageText;
@@ -37,6 +38,7 @@ public class Menus : MonoBehaviour
         SetPanel(characterCreatorPanel, false);
         SetPanel(gameplayHudPanel, false);
         SetPanel(characterCreatorStage, false);
+        SetMenuCursorUnlocked(true);
 
         ShowMessage("");
     }
@@ -48,6 +50,7 @@ public class Menus : MonoBehaviour
         SetPanel(characterCreatorPanel, false);
         SetPanel(gameplayHudPanel, false);
         SetPanel(characterCreatorStage, false);
+        SetMenuCursorUnlocked(true);
 
         if (characterSelectUI != null)
             characterSelectUI.Refresh();
@@ -63,6 +66,7 @@ public class Menus : MonoBehaviour
         SetPanel(characterCreatorStage, true);
         SetPanel(characterCreatorPanel, true);
         SetPanel(gameplayHudPanel, false);
+        SetMenuCursorUnlocked(true);
 
         ShowMessage("");
     }
@@ -118,6 +122,7 @@ public class Menus : MonoBehaviour
         SetPanel(characterCreatorPanel, false);
         SetPanel(characterCreatorStage, false);
         SetPanel(gameplayHudPanel, true);
+        SetMenuCursorUnlocked(false);
 
         if (characterRuntimeBinder != null)
         {
@@ -127,6 +132,18 @@ public class Menus : MonoBehaviour
         }
 
         ShowMessage("");
+    }
+
+    private void SetMenuCursorUnlocked(
+        bool unlocked)
+    {
+        if (cursorController == null)
+            return;
+
+        cursorController.SetUnlocked(
+            this,
+            unlocked
+        );
     }
 
     public void QuitGame()

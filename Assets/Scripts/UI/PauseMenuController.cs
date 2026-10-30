@@ -109,8 +109,11 @@ public sealed class PauseMenuController :
 
     public void Pause()
     {
-        if (IsPaused)
+        if (IsPaused ||
+            gameplayState == null)
+        {
             return;
+        }
 
         IsPaused = true;
 
@@ -146,7 +149,7 @@ public sealed class PauseMenuController :
                 this
             );
         }
-
+    
         SetVisible(false);
 
         if (cursorController != null)
