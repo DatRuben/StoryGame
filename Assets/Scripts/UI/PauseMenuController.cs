@@ -21,9 +21,6 @@ public sealed class PauseMenuController :
 
     private PlayerGameplayState gameplayState;
 
-    private float previousTimeScale =
-        1f;
-
     private const PlayerGameplayCapability
         PauseRestrictions =
             PlayerGameplayCapability.Movement |
@@ -125,12 +122,6 @@ public sealed class PauseMenuController :
             );
         }
 
-        previousTimeScale =
-            Time.timeScale;
-
-        Time.timeScale =
-            0f;
-
         SetVisible(true);
 
         if (cursorController != null)
@@ -155,9 +146,6 @@ public sealed class PauseMenuController :
                 this
             );
         }
-
-        Time.timeScale =
-            previousTimeScale;
 
         SetVisible(false);
 
