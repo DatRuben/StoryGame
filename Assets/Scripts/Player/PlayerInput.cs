@@ -441,17 +441,15 @@ public class PlayerInput : MonoBehaviour
             !gameplayState.Allows(
                 PlayerGameplayCapability.Movement))
         {
-            PreventSlopeSliding(
-                grounded
+            ApplyMovementAcceleration(
+                Vector3.zero,
+                grounded,
+                false
             );
 
-            PreventGroundSeparation(
-                grounded
-            );
-
-            ApplyExtraGravity(
-                grounded
-            );
+            PreventSlopeSliding(grounded);
+            PreventGroundSeparation(grounded);
+            ApplyExtraGravity(grounded);
 
             RegenerateStamina(false);
             UpdateSpeedText(grounded);
@@ -556,49 +554,10 @@ public class PlayerInput : MonoBehaviour
         Vector3 targetVelocity =
             movement * currentSpeed;
 
-        Vector3 currentMovementVelocity;
-
-        if (grounded)
-        {
-            currentMovementVelocity =
-                Vector3.ProjectOnPlane(
-                    rb.linearVelocity,
-                    groundNormal
-                );
-        }
-        else
-        {
-            currentMovementVelocity =
-                rb.linearVelocity;
-
-            currentMovementVelocity.y =
-                0f;
-        }
-
-        Vector3 velocityChange =
-            targetVelocity -
-            currentMovementVelocity;
-
-        float acceleration;
-
-        if (grounded)
-        {
-            acceleration =
-                hasMovementDirection
-                ? groundAcceleration
-                : deceleration;
-        }
-        else
-        {
-            acceleration =
-                hasMovementDirection
-                ? airAcceleration
-                : deceleration;
-        }
-
-        rb.AddForce(
-            velocityChange * acceleration,
-            ForceMode.Acceleration
+        ApplyMovementAcceleration(
+            targetVelocity,
+            grounded,
+            hasMovementDirection
         );
 
         PreventSlopeSliding(grounded);
@@ -684,6 +643,56 @@ public class PlayerInput : MonoBehaviour
             else
                 movement = Vector3.zero;
         }
+    }
+
+    private void ApplyMovementAcceleration(
+        Vector3 targetVelocity,
+        bool grounded,
+        bool hasMovementDirection)
+    {
+        Vector3 currentMovementVelocity;
+
+        if (grounded)
+        {
+            currentMovementVelocity =
+                Vector3.ProjectOnPlane(
+                    rb.linearVelocity,
+                    groundNormal
+                );
+        }
+        else
+        {
+            currentMovementVelocity =
+                rb.linearVelocity;
+
+            currentMovementVelocity.y = 0f;
+        }
+
+        Vector3 velocityChange =
+            targetVelocity -
+            currentMovementVelocity;
+
+        float acceleration;
+
+        if (grounded)
+        {
+            acceleration =
+                hasMovementDirection
+                    ? groundAcceleration
+                    : deceleration;
+        }
+        else
+        {
+            acceleration =
+                hasMovementDirection
+                    ? airAcceleration
+                    : deceleration;
+        }
+
+        rb.AddForce(
+            velocityChange * acceleration,
+            ForceMode.Acceleration
+        );
     }
 
     private void PreventSlopeSliding(bool grounded)
