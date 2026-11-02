@@ -369,6 +369,28 @@ public class EntityResources :
         return true;
     }
 
+
+    public bool CanSpendAether(float amount)
+    {
+        if (amount <= 0f)
+            return true;
+
+        return currentAether >= amount;
+    }
+
+    public bool SpendAether(float amount)
+    {
+        if (amount <= 0f)
+            return true;
+
+        if (!CanSpendAether(amount))
+            return false;
+
+        SetAether(currentAether - amount);
+        return true;
+    }
+
+
     public void SetStamina(float value)
     {
         currentStamina = Mathf.Clamp(value, 0f, maxStamina);
