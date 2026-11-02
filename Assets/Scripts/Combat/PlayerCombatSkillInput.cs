@@ -11,8 +11,9 @@ public sealed class PlayerCombatSkillInput :
     private InventoryInteractionController inventoryInteractionController;
 
     [SerializeField]
-    private CombatSkillController
-        skillController;
+    private CombatSkillController skillController;
+
+    private PlayerWeaponDeployment weaponDeployment;
 
     private void Awake()
     {
@@ -93,10 +94,19 @@ public sealed class PlayerCombatSkillInput :
         if (skillController == null)
             return;
 
-        InventoryItemInstance sourceItem =
-            inventoryInteractionController != null
-                ? inventoryInteractionController.SelectedItem
-                : null;
+        InventoryItemInstance sourceItem = null;
+
+        if (weaponDeployment != null &&
+            weaponDeployment.TryGetPrimaryDeployedWeapon(
+                out InventoryItemInstance deployedWeapon))
+        {
+            sourceItem = deployedWeapon;
+        }
+        else if (inventoryInteractionController != null)
+        {
+            sourceItem =
+                inventoryInteractionController.SelectedItem;
+        }
 
         skillController.TryRequestSkill(
             slotIndex,
@@ -125,6 +135,12 @@ public sealed class PlayerCombatSkillInput :
             inventoryInteractionController =
                 GetComponent<
                     InventoryInteractionController>();
+        }
+
+        if (weaponDeployment == null)
+        {
+            weaponDeployment =
+                GetComponent<PlayerWeaponDeployment>();
         }
     }
 }
