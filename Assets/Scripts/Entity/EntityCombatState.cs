@@ -16,8 +16,9 @@ public sealed class EntityCombatState :
 
     public bool IsInCombat { get; private set; }
 
-    public event Action<bool>
-        OnCombatStateChanged;
+    public event Action<bool> OnCombatStateChanged;
+
+    public event Action<DamageResult> OnDamageDealt;
 
     private void Awake()
     {
@@ -56,6 +57,14 @@ public sealed class EntityCombatState :
         }
 
         SetInCombat(false);
+    }
+
+    public void RecordDamageDealt(DamageResult result)
+    {
+        OnDamageDealt?.Invoke(result);
+
+        if (result.DidDamage)
+            MarkCombatActivity();
     }
 
     public void MarkCombatActivity()

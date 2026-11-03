@@ -9,7 +9,7 @@ public class PlayerCrosshair : MonoBehaviour
     [SerializeField] private Camera playerCamera;
     [SerializeField] private RectTransform crosshair;
     [SerializeField] private Transform aimTarget;
-    [SerializeField] private PlayerCombatController combatController;
+    [SerializeField] private EntityCombatState combatState;
 
     [Header("Aim")]
     [SerializeField] private float aimHeight = 1.2f;
@@ -80,27 +80,26 @@ public class PlayerCrosshair : MonoBehaviour
 
     public void BindPlayer(
         PlayerInput newPlayerInput,
-        PlayerCombatController newCombatController,
+        EntityCombatState newCombatState,
         Transform newCharacter,
         Camera newPlayerCamera,
         Transform newAimTarget)
     {
-        if (combatController != null)
+        if (combatState != null)
         {
-            combatController.OnDamageResolved -=
-                HandleDamageResolved;
+            combatState.OnDamageDealt -= HandleDamageResolved;
         }
 
         playerInput = newPlayerInput;
         character = newCharacter;
         playerCamera = newPlayerCamera;
         aimTarget = newAimTarget;
-        combatController = newCombatController;
+        combatState = newCombatState;
 
-        if (combatController != null)
+
+        if (combatState != null)
         {
-            combatController.OnDamageResolved +=
-                HandleDamageResolved;
+            combatState.OnDamageDealt += HandleDamageResolved;
         }
 
         HideCrosshair();
@@ -245,10 +244,9 @@ public class PlayerCrosshair : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (combatController != null)
+        if (combatState != null)
         {
-            combatController.OnDamageResolved -=
-                HandleDamageResolved;
+            combatState.OnDamageDealt -= HandleDamageResolved;
         }
     }
 

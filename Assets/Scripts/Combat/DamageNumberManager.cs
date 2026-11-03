@@ -24,7 +24,7 @@ public sealed class DamageNumberManager :
 
     private Camera viewingCamera;
 
-    private PlayerCombatController combatController;
+    private EntityCombatState combatState;
 
     private float nextCleanupTime;
 
@@ -33,25 +33,21 @@ public sealed class DamageNumberManager :
             new List<ActiveDamageStack>();
 
     public void BindPlayer(
-        PlayerCombatController
-            newCombatController,
+        EntityCombatState newCombatState,
         Camera camera)
     {
-        if (combatController != null)
+        if (combatState != null)
         {
-            combatController.OnDamageResolved -=
+            combatState.OnDamageDealt -=
                 HandleDamageResolved;
         }
 
-        combatController =
-            newCombatController;
+        combatState = newCombatState;
+        viewingCamera = camera;
 
-        viewingCamera =
-            camera;
-
-        if (combatController != null)
+        if (combatState != null)
         {
-            combatController.OnDamageResolved +=
+            combatState.OnDamageDealt +=
                 HandleDamageResolved;
         }
     }
@@ -173,9 +169,9 @@ public sealed class DamageNumberManager :
 
     private void OnDestroy()
     {
-        if (combatController != null)
+        if (combatState != null)
         {
-            combatController.OnDamageResolved -=
+            combatState.OnDamageDealt -=
                 HandleDamageResolved;
         }
     }

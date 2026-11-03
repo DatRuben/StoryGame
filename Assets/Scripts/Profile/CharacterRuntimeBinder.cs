@@ -195,9 +195,8 @@ public sealed class CharacterRuntimeBinder :
         EntityResources playerResources =
             player.GetComponent<EntityResources>();
 
-        PlayerCombatController combatController =
-            player.GetComponent<
-                PlayerCombatController>();
+        EntityCombatState combatState =
+            player.GetComponent<EntityCombatState>();
 
         PlayerGameplayState gameplayState =
             player.GetComponent<
@@ -414,7 +413,7 @@ public sealed class CharacterRuntimeBinder :
         {
             playerCrosshair.BindPlayer(
                 playerInput,
-                combatController,
+                combatState,
                 player.transform,
                 mainCamera,
                 aimTarget
@@ -424,7 +423,7 @@ public sealed class CharacterRuntimeBinder :
         if (damageNumberManager != null)
         {
             damageNumberManager.BindPlayer(
-                combatController,
+                combatState,
                 mainCamera
             );
         }

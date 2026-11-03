@@ -71,16 +71,6 @@ public sealed class DamageSkillHitEffectDefinition :
 
             DamageResult result =
                 context.Target.TakeDamage(damageContext);
-
-            if (result.DidDamage)
-            {
-                EntityCombatState combatState =
-                    context.Action.Actor.GetComponent<
-                        EntityCombatState>();
-
-                if (combatState != null)
-                    combatState.MarkCombatActivity();
-            }
         }
     }
 }

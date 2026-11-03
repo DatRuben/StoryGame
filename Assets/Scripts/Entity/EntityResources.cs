@@ -321,9 +321,19 @@ public class EntityResources :
 
         OnResourcesChanged?.Invoke();
 
-        OnDamageResolved?.Invoke(
-            result
-        );
+        OnDamageResolved?.Invoke(result);
+
+        if (damage.Source != null)
+        {
+            EntityCombatState sourceCombatState =
+                damage.Source.GetComponentInParent<
+                    EntityCombatState>();
+
+            if (sourceCombatState != null)
+            {
+                sourceCombatState.RecordDamageDealt(result);
+            }
+        }
 
         if (healthDepleted)
         {

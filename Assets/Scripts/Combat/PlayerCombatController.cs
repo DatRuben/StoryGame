@@ -8,9 +8,6 @@ using UnityEngine;
 public sealed class PlayerCombatController :
     MonoBehaviour
 {
-    public event Action<DamageResult>
-    OnDamageResolved;
-
     [SerializeField]
     [Min(0.01f)]
     private float hitRadius = 0.35f;
@@ -40,7 +37,6 @@ public sealed class PlayerCombatController :
     private Collider bodyCollider;
 
     private PlayerGameplayState gameplayState;
-    private EntityCombatState combatState;
 
     private void Awake()
     {
@@ -52,9 +48,6 @@ public sealed class PlayerCombatController :
 
         gameplayState =
             GetComponent<PlayerGameplayState>();
-
-        combatState =
-            GetComponent<EntityCombatState>();
     }
 
     public bool TryPrimaryAttack()
@@ -183,19 +176,6 @@ public sealed class PlayerCombatController :
             nearestHurtbox.TakeDamage(
                 damage
             );
-
-        if (result.Target != null)
-        {
-            OnDamageResolved?.Invoke(
-                result
-            );
-        }
-
-        if (result.DidDamage &&
-            combatState != null)
-        {
-            combatState.MarkCombatActivity();
-        }
 
         return result.DidDamage;
     }
