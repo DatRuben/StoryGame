@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Aether Barrage
   m_EditorClassIdentifier: Assembly-CSharp::CombatSkillDefinition
   skillName: Aether Barrage
+  action: {fileID: 0}
   castTime: 1
   cooldown: 5
   aetherCost: 50
