@@ -69,8 +69,7 @@ public sealed class DamageSkillHitEffectDefinition :
                 context.Point,
                 context.Direction);
 
-            DamageResult result =
-                context.Target.TakeDamage(damageContext);
+            context.Target.TakeDamage(damageContext);
         }
     }
 }
