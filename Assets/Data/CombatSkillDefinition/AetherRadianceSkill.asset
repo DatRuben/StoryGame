@@ -16,7 +16,7 @@ MonoBehaviour:
   action: {fileID: 11400000, guid: 89a74a04845f2c3419fc3054b57b1edd, type: 2}
   castTime: 1
   cooldown: 5
-  aetherCost: 25
+  aetherCost: 10
   originSource: 2
   characterActionPoint: 6
   customActionPointId: 
