@@ -10,13 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 60e9588665ca569449040afa596142df, type: 3}
-  m_Name: Aether Radiance
+  m_Name: AetherRadianceSkill
   m_EditorClassIdentifier: Assembly-CSharp::CombatSkillDefinition
   skillName: Aether Radiance
+  action: {fileID: 0}
   castTime: 1
   cooldown: 5
   aetherCost: 25
-  originSource: 1
-  characterActionPoint: 3
+  originSource: 2
+  characterActionPoint: 6
   customActionPointId: 
   heldItemSource: 0
