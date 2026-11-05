@@ -23,6 +23,13 @@ public sealed class HeldItemGripPoints :
     public Transform MouthGrip =>
         mouthGrip;
 
+//adding dynamic grip context
+    public enum HeldItemGripContext
+    {
+        Default,
+        DeployedWeapon
+    }
+
     public Transform GetPrimaryGrip(
         GripType gripType)
     {
