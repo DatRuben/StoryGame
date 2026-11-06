@@ -30,6 +30,35 @@ public sealed class HeldItemGripPoints :
         DeployedWeapon
     }
 
+//adding the fields so that the items can store the transform info based on context 
+    [System.Serializable]
+    public sealed class HeldItemGripOverride
+    {
+        [SerializeField]
+        private HeldItemGripContext context;
+
+        [SerializeField]
+        private Transform primaryHandGrip;
+
+        [SerializeField]
+        private Transform secondaryHandGrip;
+
+        [SerializeField]
+        private Transform mouthGrip;
+
+        public HeldItemGripContext Context =>
+            context;
+
+        public Transform PrimaryHandGrip =>
+            primaryHandGrip;
+
+        public Transform SecondaryHandGrip =>
+            secondaryHandGrip;
+
+        public Transform MouthGrip =>
+            mouthGrip;
+    }
+
     public Transform GetPrimaryGrip(
         GripType gripType)
     {
