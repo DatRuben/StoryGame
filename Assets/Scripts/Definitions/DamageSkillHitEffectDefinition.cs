@@ -57,17 +57,29 @@ public sealed class DamageSkillHitEffectDefinition :
                 return;
             }
 
-            float multiplier = Mathf.Lerp(
+
+            float distanceMultiplier = Mathf.Lerp(
                 startingMultiplier,
                 endingMultiplier,
                 context.NormalizedDistance);
 
+            float damageMultiplier =
+                CombatValueResolver.ResolveMultiplier(
+                    context.Action.Actor,
+                    CombatValueType.Damage);
+
+            float finalDamage =
+                damage *
+                distanceMultiplier *
+                damageMultiplier;
+
             DamageContext damageContext = new DamageContext(
-                damage * multiplier,
+                finalDamage,
                 damageType,
                 context.Action.Actor,
                 context.Point,
                 context.Direction);
+
 
             context.Target.TakeDamage(damageContext);
         }
