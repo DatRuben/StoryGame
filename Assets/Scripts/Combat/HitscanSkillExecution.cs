@@ -52,12 +52,19 @@ public sealed class HitscanSkillExecution :
         Vector3 origin = pose.position;
         Vector3 direction = pose.rotation * Vector3.forward;
 
-        float impactDistance = maximumRange;
+        float effectiveRange = Mathf.Max(
+            0f,
+            maximumRange *
+            CombatValueResolver.ResolveMultiplier(
+                context.Actor,
+                CombatValueType.AttackRange));
+
+        float impactDistance = effectiveRange;
 
         RaycastHit[] hits = Physics.RaycastAll(
             origin,
             direction,
-            maximumRange,
+            effectiveRange,
             collisionLayers,
             QueryTriggerInteraction.Collide);
 
