@@ -3,8 +3,8 @@ using UnityEngine;
 //adding dynamic grip context
 public enum HeldItemGripContext
 {
-    Default,
-    DeployedWeapon
+    Held,
+    Ready
 }
 
 //adding the fields so that the items can store the transform info based on context 
@@ -15,33 +15,25 @@ public sealed class HeldItemGripSet
     private HeldItemGripContext context;
 
     [SerializeField]
-    private Transform primaryHandGrip;
-
-    [SerializeField]
-    private Transform secondaryHandGrip;
-
-    [SerializeField]
-    private Transform mouthGrip;
-
-    [SerializeField]
-    private HeldItemGripSet[] gripSets;
+    private Transform gripPoint;
 
     public HeldItemGripContext Context =>
         context;
 
-    public Transform PrimaryHandGrip =>
-        primaryHandGrip;
-
-    public Transform SecondaryHandGrip =>
-        secondaryHandGrip;
-
-    public Transform MouthGrip =>
-        mouthGrip;
+    public Transform GripPoint =>
+        gripPoint;
 }
+
+
 public sealed class HeldItemGripPoints :
     MonoBehaviour
 {
     [Header("Grip Points")]
+
+    [Header("Context Grip Points")]
+
+    [SerializeField]
+    private HeldItemGripSet[] gripSets;
 
     [SerializeField]
     private Transform primaryHandGrip;
@@ -77,5 +69,30 @@ public sealed class HeldItemGripPoints :
             default:
                 return null;
         }
+    }
+
+    public bool GetGripPoint(
+    HeldItemGripContext context,
+    out Transform gripPoint)
+    {
+        gripPoint = null;
+
+        if (gripSets == null)
+            return false;
+
+        foreach (HeldItemGripSet set in gripSets)
+        {
+            if (set == null ||
+                set.Context != context)
+            {
+                continue;
+            }
+
+            gripPoint = set.GripPoint;
+
+            return gripPoint != null;
+        }
+
+        return false;
     }
 }
