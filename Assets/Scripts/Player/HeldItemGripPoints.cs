@@ -33,6 +33,10 @@ public sealed class HeldItemGripPoints :
 
     [SerializeField]
     private HeldItemGripSet[] gripSets;
+    
+    //temporary to differentiate content from legacy vs new ones with actual grip sets
+    public bool HasGripSets =>
+    gripSets != null && gripSets.Length > 0;
 
     [SerializeField]
     private Transform primaryHandGrip;

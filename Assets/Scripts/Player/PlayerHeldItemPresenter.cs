@@ -256,25 +256,12 @@ public sealed class PlayerHeldItemPresenter :
             return;
         }
 
-        HeldItemGripPoints gripPoints =
-            itemVisual.GetComponentInChildren<
-                HeldItemGripPoints>(true);
-
-        Transform gripPoint =
-            gripPoints != null
-                ? gripPoints.GetPrimaryGrip(
-                    gripType
-                )
-                : null;
-
-        if (gripPoint != null)
-        {
-            AlignGripPointToAnchor(
-                rootTransform,
-                gripPoint,
-                anchor
+         ApplyGrip(
+             rootTransform,
+             item,
+             gripType,
+             anchor
             );
-        }
 
         visual =
             visualRoot;
@@ -286,6 +273,49 @@ public sealed class PlayerHeldItemPresenter :
             visual
         );
     }
+    
+    //apply the transform in the presenter
+    private void ApplyGrip(
+    Transform root,
+    InventoryItemInstance item,
+    GripType gripType,
+    Transform anchor)
+    {
+        HeldItemGripPoints points =
+            root.GetComponentInChildren<
+                HeldItemGripPoints>(true);
+
+        if (points == null)
+            return;
+
+        Transform gripPoint;
+
+        if (points.HasGripSets)
+        {
+            HeldItemGripContext context =
+                weaponDeployment != null
+                    ? weaponDeployment.GetGripContext(item)
+                    : HeldItemGripContext.Held;
+
+            if (!points.TryGetGripPoint(
+                    context, out gripPoint))
+            {
+                Debug.LogWarning(
+                    $"Missing {context} grip on {points.name}.",
+                    points
+                );
+                return;
+            }
+        }
+        else
+        {
+            gripPoint = points.GetPrimaryGrip(gripType);
+        }
+
+        if (gripPoint != null)
+            AlignGripPointToAnchor(root, gripPoint, anchor);
+    }
+
 
     private void DisablePhysics(
         GameObject visual)
