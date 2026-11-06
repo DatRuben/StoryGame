@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using System.Collections.Generic;
 
 public sealed class PlayerEquipment :
     MonoBehaviour
@@ -508,6 +509,31 @@ public sealed class PlayerEquipment :
             OnEquipmentChanged?.Invoke();
 
         return changed;
+    }
+
+
+    public IEnumerable<InventoryItemInstance> GetEquippedItems()
+    {
+        if (equippedArmor != null)
+            yield return equippedArmor;
+
+        if (equippedHelmet != null)
+            yield return equippedHelmet;
+
+        if (equippedSaddle != null)
+            yield return equippedSaddle;
+
+        if (equippedAccessory != null)
+            yield return equippedAccessory;
+
+        if (equippedGauntlets != null)
+            yield return equippedGauntlets;
+
+        foreach (InventoryItemInstance attachment in armAttachments)
+        {
+            if (attachment != null)
+                yield return attachment;
+        }
     }
 
     private void OnDestroy()

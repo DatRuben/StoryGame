@@ -61,9 +61,15 @@ public sealed class CombatSkillController : MonoBehaviour
     {
         if (pendingCast != null)
         {
-            pendingCast.RemainingTime -= Time.deltaTime;
+            float castSpeed = CombatValueResolver.ResolveMultiplier(
+                gameObject,
+                CombatValueType.CastSpeed);
 
-            if (pendingCast.RemainingTime <= 0f)
+            pendingCast.Advance(
+                Time.deltaTime,
+                castSpeed);
+
+            if (pendingCast.IsComplete)
             {
                 PendingCast completedCast = pendingCast;
                 pendingCast = null;
@@ -76,6 +82,7 @@ public sealed class CombatSkillController : MonoBehaviour
 
             return;
         }
+
 
         if (activeExecution == null)
             return;
@@ -316,12 +323,16 @@ public sealed class CombatSkillController : MonoBehaviour
             resources = GetComponent<EntityResources>();
     }
 
+
     private sealed class PendingCast
     {
         public ResolvedCombatSkill Skill { get; }
         public CombatSkillOrigin Origin { get; }
         public CombatSkillExecution Execution { get; }
-        public float RemainingTime { get; set; }
+
+        public float Progress { get; private set; }
+
+        public bool IsComplete => Progress >= 1f;
 
         public PendingCast(
             ResolvedCombatSkill skill,
@@ -331,7 +342,25 @@ public sealed class CombatSkillController : MonoBehaviour
             Skill = skill;
             Origin = origin;
             Execution = execution;
-            RemainingTime = skill.CastTime;
+            Progress = 0f;
         }
+        public void Advance(
+            float deltaTime,
+            float castSpeedMultiplier)
+        {
+            if (Skill.CastTime <= 0f)
+            {
+                Progress = 1f;
+                return;
+            }
+
+            Progress = Mathf.Clamp01(
+                Progress +
+                Mathf.Max(0f, deltaTime) *
+                Mathf.Max(0f, castSpeedMultiplier) /
+                Skill.CastTime);
+        }
+
     }
+
 }

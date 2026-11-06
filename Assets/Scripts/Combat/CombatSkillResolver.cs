@@ -1,3 +1,4 @@
+
 public static class CombatSkillResolver
 {
     public static bool TryResolve(
@@ -32,18 +33,9 @@ public static class CombatSkillResolver
             return false;
         }
 
-        skill =
-            new ResolvedCombatSkill(
-                context.Skill
-            );
-
-        if (skill.Action != null)
-        {
-            skill.Action.BuildResolvedComponents(
-                context,
-                skill
-            );
-        }
+        skill = new ResolvedCombatSkill(
+            context.Skill
+        );
 
         return true;
     }

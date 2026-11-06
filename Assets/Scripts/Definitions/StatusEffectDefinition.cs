@@ -1,5 +1,6 @@
 using System.Text;
 using UnityEngine;
+using System.Collections.Generic;
 
 public enum StatusEffectStacking
 {
@@ -67,6 +68,9 @@ public class StatusEffectDefinition : ScriptableObject
         attributeModifiers =
             CharacterAttributeModifiers.CreateZero();
 
+    [Header("Combat Modifiers")]
+    public List<CombatModifier> combatModifiers = new List<CombatModifier>();
+
     private void OnValidate()
     {
         if (string.IsNullOrWhiteSpace(displayName))
@@ -95,10 +99,9 @@ public class StatusEffectDefinition : ScriptableObject
     private StatusEffectDisposition ResolveDisposition(
         CharacterAttributeModifiers modifiers)
     {
-        if (modifiers == null ||
-            !modifiers.HasAny())
+        if (modifiers == null)
         {
-            return StatusEffectDisposition.Neutral;
+            modifiers = CharacterAttributeModifiers.CreateZero();
         }
 
         bool hasPositive = false;
@@ -157,6 +160,20 @@ public class StatusEffectDefinition : ScriptableObject
             ref hasPositive,
             ref hasNegative
         );
+
+        if (combatModifiers != null)
+        {
+            foreach (CombatModifier modifier in combatModifiers)
+            {
+                if (modifier == null)
+                    continue;
+
+                if (modifier.percent > 0f)
+                    hasPositive = true;
+                else if (modifier.percent < 0f)
+                    hasNegative = true;
+            }
+        }
 
         if (hasPositive && hasNegative)
             return StatusEffectDisposition.Mixed;

@@ -90,6 +90,9 @@ public class ItemDefinition : ScriptableObject
     public EquipmentCombatRole equipmentCombatRole =
         EquipmentCombatRole.None;
 
+    [Header("Combat Modifiers")]
+    public List<CombatModifier> combatModifiers = new List<CombatModifier>();
+
     [Header("Consumable Effects")]
 
     public List<ConsumableEffect>
@@ -481,6 +484,8 @@ public class ItemDefinitionEditor : Editor
     {
         ItemDefinition item = (ItemDefinition)target;
 
+        serializedObject.Update();
+
         EditorGUI.BeginChangeCheck();
 
         DrawIdentitySection(item);
@@ -491,6 +496,18 @@ public class ItemDefinitionEditor : Editor
         DrawHandlingSection(item);
         DrawStackingSection(item);
         DrawEquipmentSection(item);
+
+        if (item.itemCategory == ItemCategory.Equipment)
+        {
+            EditorGUILayout.LabelField(
+                "Combat Modifiers",
+                EditorStyles.boldLabel);
+
+            EditorGUILayout.PropertyField(
+                serializedObject.FindProperty("combatModifiers"),
+                true);
+        }
+
         DrawWeaponCombatSection(item);
         DrawInventoryShapeSection(item);
 
@@ -499,6 +516,8 @@ public class ItemDefinitionEditor : Editor
             item.RefreshHandling();
             EditorUtility.SetDirty(item);
         }
+
+        serializedObject.ApplyModifiedProperties();
     }
 
     private void DrawConsumableEffectsSection(
