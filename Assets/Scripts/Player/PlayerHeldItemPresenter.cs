@@ -19,6 +19,7 @@ public sealed class PlayerHeldItemPresenter :
     }
 
     private PlayerGripState gripState;
+    private PlayerWeaponDeployment weaponDeployment; //for holding weapon to attack instead of holding it out
 
     private GameObject leftVisual;
     private GameObject rightVisual;
@@ -37,6 +38,8 @@ public sealed class PlayerHeldItemPresenter :
     {
         gripState =
             GetComponent<PlayerGripState>();
+        weaponDeployment =
+            GetComponent<PlayerWeaponDeployment>();
     }
 
     private void OnEnable()
@@ -53,6 +56,18 @@ public sealed class PlayerHeldItemPresenter :
                 Refresh;
         }
 
+        //weapon deployemnt status
+        if (weaponDeployment == null)
+        {
+            weaponDeployment =
+                GetComponent<PlayerWeaponDeployment>();
+        }
+
+        if (weaponDeployment != null)
+        {
+            weaponDeployment.Changed += Refresh;
+        }
+
         Refresh();
     }
 
@@ -62,6 +77,11 @@ public sealed class PlayerHeldItemPresenter :
         {
             gripState.Changed -=
                 Refresh;
+        }
+        //weapon deployment status
+        if (weaponDeployment != null)
+        {
+            weaponDeployment.Changed -= Refresh;
         }
 
         ClearVisuals();
@@ -157,11 +177,20 @@ public sealed class PlayerHeldItemPresenter :
         ref InventoryItemInstance shownItem,
         ref GameObject visual)
     {
+        
+        //reposition weapon without changing its visual
         if (ReferenceEquals(
                 item,
                 shownItem) &&
             visual != null)
         {
+            ApplyGrip(
+                visual.transform,
+                item,
+                gripType,
+                anchor
+            );
+
             return;
         }
 
