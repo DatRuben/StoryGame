@@ -200,7 +200,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c7945e9bdcf404ea632604be45c0f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HeldItemGripPoints
-  gripSets: []
+  gripSets:
+  - context: 0
+    gripPoint: {fileID: 8241504726224197804}
+  - context: 1
+    gripPoint: {fileID: 8465426417322753913}
   primaryHandGrip: {fileID: 4413460793939498544}
   secondaryHandGrip: {fileID: 0}
   mouthGrip: {fileID: 0}
