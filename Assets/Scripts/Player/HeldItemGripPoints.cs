@@ -71,7 +71,7 @@ public sealed class HeldItemGripPoints :
         }
     }
 
-    public bool GetGripPoint(
+    public bool TryGetGripPoint(
     HeldItemGripContext context,
     out Transform gripPoint)
     {
