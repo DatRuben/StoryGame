@@ -61,7 +61,13 @@ public sealed class CombatSkillController : MonoBehaviour
     {
         if (pendingCast != null)
         {
-            pendingCast.Advance(Time.deltaTime);
+            float castSpeed = CombatValueResolver.ResolveMultiplier(
+                gameObject,
+                CombatValueType.CastSpeed);
+
+            pendingCast.Advance(
+                Time.deltaTime,
+                castSpeed);
 
             if (pendingCast.IsComplete)
             {
@@ -338,8 +344,9 @@ public sealed class CombatSkillController : MonoBehaviour
             Execution = execution;
             Progress = 0f;
         }
-
-        public void Advance(float deltaTime)
+        public void Advance(
+            float deltaTime,
+            float castSpeedMultiplier)
         {
             if (Skill.CastTime <= 0f)
             {
@@ -349,9 +356,11 @@ public sealed class CombatSkillController : MonoBehaviour
 
             Progress = Mathf.Clamp01(
                 Progress +
-                Mathf.Max(0f, deltaTime) /
+                Mathf.Max(0f, deltaTime) *
+                Mathf.Max(0f, castSpeedMultiplier) /
                 Skill.CastTime);
         }
+
     }
 
 }
