@@ -28,7 +28,6 @@ public sealed class HeldItemGripSet
 public sealed class HeldItemGripPoints :
     MonoBehaviour
 {
-    [Header("Grip Points")]
 
     [Header("Context Grip Points")]
 
