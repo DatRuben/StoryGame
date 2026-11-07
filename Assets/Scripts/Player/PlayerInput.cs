@@ -16,6 +16,8 @@ public class PlayerInput : MonoBehaviour
 
     private Rigidbody rb;
 
+    private CharacterAnimationDriver animationDriver;//giving player the anim driver to speak to animator
+
     [Header("Movement")]
     [SerializeField] private float groundAcceleration = 8f;
     [SerializeField] private float airAcceleration = 2f;
@@ -95,16 +97,6 @@ public class PlayerInput : MonoBehaviour
     [SerializeField]
     private EntityResources playerResources;
 
-    [Header("Animation")]
-    [SerializeField]
-    private Animator characterAnimator;
-
-    //animation trigger params
-    [SerializeField]
-    private string isMovingParameter = "isMoving";
-    [SerializeField]
-    private string isWeaponReadyParameter = "isWeaponReady";
-
     private Vector3 groundNormal = Vector3.up;
     private Vector3 wallNormal = Vector3.zero;
 
@@ -178,11 +170,9 @@ public class PlayerInput : MonoBehaviour
             GetComponent<
                 PlayerPrimaryActionController>();
 
-        if (characterAnimator == null)
-        {
-            characterAnimator =
-                GetComponentInChildren<Animator>();
-        }
+        animationDriver =
+            GetComponent<CharacterAnimationDriver>();
+
     }
 
     private void OnEnable()
@@ -268,28 +258,6 @@ public class PlayerInput : MonoBehaviour
         move = null;
     }
 
-    private void ResolveCharacterAnimator()
-    {
-        if (characterAnimator != null)
-            return;
-
-        characterAnimator =
-            GetComponentInChildren<Animator>(true);
-    }
-
-    private void SetMovementAnimation(
-     bool isMoving)
-    {
-        ResolveCharacterAnimator();
-
-        if (characterAnimator == null)
-            return;
-
-        characterAnimator.SetBool(
-            isMovingParameter,
-            isMoving
-        );
-    }
 
     private void HandleCapabilitiesInterrupted(
         PlayerGameplayCapability interruptedCapabilities)
@@ -304,7 +272,7 @@ public class PlayerInput : MonoBehaviour
         isSprinting = false;
         isJumpHeld = false;
 
-        SetMovementAnimation(false);
+        animationDriver?.SetMoving(false);
 
         StopPlayerMovementOnRestriction();
     }
@@ -472,7 +440,7 @@ public class PlayerInput : MonoBehaviour
 
         if (isDodging)
         {
-            SetMovementAnimation(false);
+            animationDriver?.SetMoving(false);
 
             rb.linearVelocity =
                 new Vector3(
@@ -525,9 +493,7 @@ public class PlayerInput : MonoBehaviour
 
         bool hasMovementDirection =
             movement.sqrMagnitude > 0.01f;
-        SetMovementAnimation(
-            hasMovementDirection
-         );
+        animationDriver?.SetMoving(hasMovementDirection);
 
         float handCarryMoveMultiplier =
             GetHandCarryMoveMultiplier();
@@ -939,7 +905,7 @@ public class PlayerInput : MonoBehaviour
             !gameplayState.Allows(
                 PlayerGameplayCapability.Movement))
         {
-            SetMovementAnimation(false);
+            animationDriver?.SetMoving(false);
             return;
         }
 
@@ -990,7 +956,7 @@ public class PlayerInput : MonoBehaviour
         if (storageInteract != null &&
             storageInteract.HasOpenContainer)
         {
-            SetMovementAnimation(false);
+            animationDriver?.SetMoving(false);
             return;
         }
 
