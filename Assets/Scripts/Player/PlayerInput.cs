@@ -99,8 +99,11 @@ public class PlayerInput : MonoBehaviour
     [SerializeField]
     private Animator characterAnimator;
 
+    //animation trigger params
     [SerializeField]
     private string isMovingParameter = "isMoving";
+    [SerializeField]
+    private string isWeaponReadyParameter = "isWeaponReady";
 
     private Vector3 groundNormal = Vector3.up;
     private Vector3 wallNormal = Vector3.zero;
