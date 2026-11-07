@@ -63,15 +63,10 @@ public sealed class DamageSkillHitEffectDefinition :
                 endingMultiplier,
                 context.NormalizedDistance);
 
-            float damageMultiplier =
-                CombatValueResolver.ResolveMultiplier(
-                    context.Action.Actor,
-                    CombatValueType.Damage);
-
             float finalDamage =
-                damage *
-                distanceMultiplier *
-                damageMultiplier;
+                CombatValueResolver.ResolveDamage(
+                    context.Action.Actor,
+                    damage * distanceMultiplier);
 
             DamageContext damageContext = new DamageContext(
                 finalDamage,

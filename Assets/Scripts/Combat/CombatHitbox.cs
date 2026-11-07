@@ -187,7 +187,9 @@ public sealed class CombatHitbox :
 
         DamageContext damage =
             new DamageContext(
-                damageAmount,
+                CombatValueResolver.ResolveDamage(
+                    source,
+                    damageAmount),
                 damageType,
                 source,
                 hitPoint,
