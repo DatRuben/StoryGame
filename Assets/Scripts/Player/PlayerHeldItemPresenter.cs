@@ -19,6 +19,7 @@ public sealed class PlayerHeldItemPresenter :
     }
 
     private PlayerGripState gripState;
+    private PlayerWeaponDeployment weaponDeployment; //for holding weapon to attack instead of holding it out
 
     private GameObject leftVisual;
     private GameObject rightVisual;
@@ -37,6 +38,8 @@ public sealed class PlayerHeldItemPresenter :
     {
         gripState =
             GetComponent<PlayerGripState>();
+        weaponDeployment =
+            GetComponent<PlayerWeaponDeployment>();
     }
 
     private void OnEnable()
@@ -53,6 +56,18 @@ public sealed class PlayerHeldItemPresenter :
                 Refresh;
         }
 
+        //weapon deployemnt status
+        if (weaponDeployment == null)
+        {
+            weaponDeployment =
+                GetComponent<PlayerWeaponDeployment>();
+        }
+
+        if (weaponDeployment != null)
+        {
+            weaponDeployment.Changed += Refresh;
+        }
+
         Refresh();
     }
 
@@ -62,6 +77,11 @@ public sealed class PlayerHeldItemPresenter :
         {
             gripState.Changed -=
                 Refresh;
+        }
+        //weapon deployment status
+        if (weaponDeployment != null)
+        {
+            weaponDeployment.Changed -= Refresh;
         }
 
         ClearVisuals();
@@ -157,11 +177,20 @@ public sealed class PlayerHeldItemPresenter :
         ref InventoryItemInstance shownItem,
         ref GameObject visual)
     {
+        
+        //reposition weapon without changing its visual
         if (ReferenceEquals(
                 item,
                 shownItem) &&
             visual != null)
         {
+            ApplyGrip(
+                visual.transform,
+                item,
+                gripType,
+                anchor
+            );
+
             return;
         }
 
@@ -227,25 +256,12 @@ public sealed class PlayerHeldItemPresenter :
             return;
         }
 
-        HeldItemGripPoints gripPoints =
-            itemVisual.GetComponentInChildren<
-                HeldItemGripPoints>(true);
-
-        Transform gripPoint =
-            gripPoints != null
-                ? gripPoints.GetPrimaryGrip(
-                    gripType
-                )
-                : null;
-
-        if (gripPoint != null)
-        {
-            AlignGripPointToAnchor(
-                rootTransform,
-                gripPoint,
-                anchor
+         ApplyGrip(
+             rootTransform,
+             item,
+             gripType,
+             anchor
             );
-        }
 
         visual =
             visualRoot;
@@ -257,6 +273,49 @@ public sealed class PlayerHeldItemPresenter :
             visual
         );
     }
+    
+    //apply the transform in the presenter
+    private void ApplyGrip(
+    Transform root,
+    InventoryItemInstance item,
+    GripType gripType,
+    Transform anchor)
+    {
+        HeldItemGripPoints points =
+            root.GetComponentInChildren<
+                HeldItemGripPoints>(true);
+
+        if (points == null)
+            return;
+
+        Transform gripPoint;
+
+        if (points.HasGripSets)
+        {
+            HeldItemGripContext context =
+                weaponDeployment != null
+                    ? weaponDeployment.GetGripContext(item)
+                    : HeldItemGripContext.Held;
+
+            if (!points.TryGetGripPoint(
+                    context, out gripPoint))
+            {
+                Debug.LogWarning(
+                    $"Missing {context} grip on {points.name}.",
+                    points
+                );
+                return;
+            }
+        }
+        else
+        {
+            gripPoint = points.GetPrimaryGrip(gripType);
+        }
+
+        if (gripPoint != null)
+            AlignGripPointToAnchor(root, gripPoint, anchor);
+    }
+
 
     private void DisablePhysics(
         GameObject visual)

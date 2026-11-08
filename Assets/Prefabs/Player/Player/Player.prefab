@@ -135,6 +135,7 @@ GameObject:
   - component: {fileID: 2184393796824224367}
   - component: {fileID: 5595385236447183496}
   - component: {fileID: 4881143217785274146}
+  - component: {fileID: -7983170388336241259}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -390,10 +391,7 @@ MonoBehaviour:
   jumpUpMultiplier: 1.75
   preventSlopeSliding: 1
   slopeSlideCancelStrength: 1
-  preventDefaultMovementLaunch: 1
-  allowedDefaultUpwardSpeed: 0.5
-  recentlyGroundedTime: 0.15
-  flatGroundAngle: 5
+  preventGroundSeparation: 1
   defaultExternalLaunchTime: 0.35
   wallContactMemory: 0.1
   orbitalFollow: {fileID: 0}
@@ -408,6 +406,7 @@ MonoBehaviour:
   playerResources: {fileID: 5991753881997761642}
   characterAnimator: {fileID: 0}
   isMovingParameter: isMoving
+  isWeaponReadyParameter: isWeaponReady
 --- !u!114 &5991753881997761642
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -680,6 +679,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerCombatSkillInput
   skillController: {fileID: 0}
+--- !u!114 &-7983170388336241259
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3981885625536899075}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32f0d576eb9e3f348a6c6ca75b9dca39, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CharacterAnimationDriver
 --- !u!1 &4361632423051394989
 GameObject:
   m_ObjectHideFlags: 0
