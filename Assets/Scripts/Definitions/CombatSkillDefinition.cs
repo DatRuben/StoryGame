@@ -62,6 +62,24 @@ public sealed class CombatSkillDefinition :
     public CombatSkillHeldItemSource
         heldItemSource =
             CombatSkillHeldItemSource.SkillSourceItem;
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        if (!string.IsNullOrWhiteSpace(skillId) ||
+            string.IsNullOrWhiteSpace(skillName))
+        {
+            return;
+        }
+
+        skillId = System.Text.RegularExpressions.Regex
+            .Replace(
+                skillName.Trim().ToLowerInvariant(),
+                @"[^a-z0-9]+",
+                "_")
+            .Trim('_');
+    }
+#endif
 }
 
 #if UNITY_EDITOR
@@ -124,18 +142,16 @@ public sealed class CombatSkillDefinitionEditor :
 
     private void DrawIdentity()
     {
-        EditorGUILayout.PropertyField(
-            skillId,
-            new GUIContent("Skill ID")
-        );
-
         EditorGUILayout.LabelField(
             "Identity",
             EditorStyles.boldLabel
         );
 
+        EditorGUILayout.PropertyField(skillName);
+
         EditorGUILayout.PropertyField(
-            skillName
+            skillId,
+            new GUIContent("Skill ID")
         );
 
         EditorGUILayout.Space();
