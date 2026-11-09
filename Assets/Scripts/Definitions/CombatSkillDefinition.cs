@@ -22,12 +22,12 @@ public enum CombatSkillHeldItemSource
 public sealed class CombatSkillDefinition :
     ScriptableObject
 {
-    [Header("Identity")]
     [SerializeField]
     private string skillId;
 
     public string SkillId => skillId;
 
+    [Header("Identity")]
     public string skillName;
 
     [Header("Gameplay Action")]
