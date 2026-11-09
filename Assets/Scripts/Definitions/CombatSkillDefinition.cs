@@ -22,13 +22,12 @@ public enum CombatSkillHeldItemSource
 public sealed class CombatSkillDefinition :
     ScriptableObject
 {
-    [SerializeField]
-    private string skillId;
-
-    public string SkillId => skillId;
-
     [Header("Identity")]
     public string skillName;
+
+    [SerializeField]
+    private string skillId;
+    public string SkillId => skillId;
 
     [Header("Gameplay Action")]
 
@@ -124,11 +123,6 @@ public sealed class CombatSkillDefinitionEditor :
 
     private void DrawIdentity()
     {
-        EditorGUILayout.LabelField(
-            "Identity",
-            EditorStyles.boldLabel
-        );
-
         EditorGUILayout.PropertyField(skillName);
 
         if (string.IsNullOrWhiteSpace(skillId.stringValue) &&
