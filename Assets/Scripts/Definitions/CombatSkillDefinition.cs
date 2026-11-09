@@ -23,6 +23,11 @@ public sealed class CombatSkillDefinition :
     ScriptableObject
 {
     [Header("Identity")]
+    [SerializeField]
+    private string skillId;
+
+    public string SkillId => skillId;
+
     public string skillName;
 
     [Header("Gameplay Action")]
@@ -64,6 +69,7 @@ public sealed class CombatSkillDefinition :
 public sealed class CombatSkillDefinitionEditor :
     Editor
 {
+    private SerializedProperty skillId;
     private SerializedProperty skillName;
     private SerializedProperty castTime;
     private SerializedProperty cooldown;
@@ -77,50 +83,16 @@ public sealed class CombatSkillDefinitionEditor :
 
     private void OnEnable()
     {
-        skillName =
-            serializedObject.FindProperty(
-                "skillName"
-            );
-
-        action =
-            serializedObject.FindProperty(
-                "action"
-            );
-
-        castTime =
-            serializedObject.FindProperty(
-                "castTime"
-            );
-
-        cooldown =
-            serializedObject.FindProperty(
-                "cooldown"
-            );
-
-        aetherCost =
-            serializedObject.FindProperty(
-                "aetherCost"
-            );
-
-        originSource =
-            serializedObject.FindProperty(
-                "originSource"
-            );
-
-        characterActionPoint =
-            serializedObject.FindProperty(
-                "characterActionPoint"
-            );
-
-        customActionPointId =
-            serializedObject.FindProperty(
-                "customActionPointId"
-            );
-
-        heldItemSource =
-            serializedObject.FindProperty(
-                "heldItemSource"
-            );
+        skillId = serializedObject.FindProperty("skillId");
+        skillName = serializedObject.FindProperty("skillName");
+        action = serializedObject.FindProperty("action");
+        castTime = serializedObject.FindProperty("castTime");
+        cooldown = serializedObject.FindProperty("cooldown");
+        aetherCost = serializedObject.FindProperty("aetherCost");
+        originSource = serializedObject.FindProperty("originSource");
+        characterActionPoint = serializedObject.FindProperty("characterActionPoint");
+        customActionPointId = serializedObject.FindProperty("customActionPointId");
+        heldItemSource = serializedObject.FindProperty("heldItemSource");
     }
 
     public override void OnInspectorGUI()
@@ -152,6 +124,11 @@ public sealed class CombatSkillDefinitionEditor :
 
     private void DrawIdentity()
     {
+        EditorGUILayout.PropertyField(
+            skillId,
+            new GUIContent("Skill ID")
+        );
+
         EditorGUILayout.LabelField(
             "Identity",
             EditorStyles.boldLabel
