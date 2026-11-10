@@ -1242,6 +1242,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dbad9580d7bccca438499963f3e86319, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CharacterModelSetup
+  wieldAnimations:
+  - style: {fileID: 11400000, guid: fdab9122f52eef54b8db6b8c57b484d2, type: 2}
+    controller: {fileID: 22100000, guid: 860d830ff40a96b41a0aa69cc7b1658a, type: 2}
+  - style: {fileID: 11400000, guid: 358a7b434618bef439aab8876d2bfa13, type: 2}
+    controller: {fileID: 22100000, guid: d72f101cabf339c4e921dc985e020c1d, type: 2}
 --- !u!114 &2005116167343531484
 MonoBehaviour:
   m_ObjectHideFlags: 0
