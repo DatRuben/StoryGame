@@ -61,7 +61,10 @@ public class LineageDefinition : ScriptableObject
         if (string.IsNullOrWhiteSpace(displayName))
             displayName = name;
 
-        lineageId = MakeId(displayName);
+        if (string.IsNullOrWhiteSpace(lineageId))
+        {
+            lineageId = MakeId(displayName);
+        }
     }
 
     private string MakeId(

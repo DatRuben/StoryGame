@@ -76,7 +76,10 @@ public class StatusEffectDefinition : ScriptableObject
         if (string.IsNullOrWhiteSpace(displayName))
             displayName = name;
 
-        effectId = MakeId(displayName);
+        if (string.IsNullOrWhiteSpace(effectId))
+        {
+            effectId = MakeId(displayName);
+        }
 
         duration =
             Mathf.Max(
