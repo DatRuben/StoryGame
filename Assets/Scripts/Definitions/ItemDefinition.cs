@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using static WeaponWieldDefinition;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -154,6 +155,8 @@ public class ItemDefinition : ScriptableObject
         IsConventionalWeapon ||
         IsAttachedWeapon;
 
+    [Header("Weapon Wield Style")]
+    public WeaponWieldStyleDefinition wieldStyle;
     [Header("Weapon Actions")]
 
     public WeaponActionDefinition secondaryWeaponAction;
