@@ -57,4 +57,13 @@ public sealed class CharacterModelSetup :
         return false;
     }
 
+
+    [Header("Shared Rig Wield Configuration")]
+    [SerializeField]
+    private WeaponWieldRigConfiguration wieldConfiguration;
+
+    public WeaponWieldRigConfiguration WieldConfiguration =>
+        wieldConfiguration;
+
+
 }
