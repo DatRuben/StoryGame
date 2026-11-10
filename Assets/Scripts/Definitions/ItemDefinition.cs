@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using static WeaponWieldDefinition;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -512,6 +511,20 @@ public class ItemDefinitionEditor : Editor
         }
 
         DrawWeaponCombatSection(item);
+        if (item.IsLoadoutWeapon)
+        {
+            EditorGUILayout.LabelField(
+                "Weapon Wield Style",
+                EditorStyles.boldLabel
+            );
+
+            EditorGUILayout.PropertyField(
+                serializedObject.FindProperty("wieldStyle"),
+                new GUIContent("Wield Style")
+            );
+
+            EditorGUILayout.Space();
+        }
         DrawInventoryShapeSection(item);
 
         if (EditorGUI.EndChangeCheck())

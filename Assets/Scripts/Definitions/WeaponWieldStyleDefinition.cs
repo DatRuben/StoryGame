@@ -1,16 +1,13 @@
 using UnityEngine;
 
-public class WeaponWieldDefinition
-{
-    [CreateAssetMenu(
+[CreateAssetMenu(
     fileName = "NewWieldStyle",
     menuName = "Game/Combat/Weapon Wield Style")]
-    public sealed class WeaponWieldStyleDefinition : ScriptableObject
-    {
-        [Header("Identity")]
-        public string displayName;
+public sealed class WeaponWieldStyleDefinition : ScriptableObject
+{
+    [Header("Identity")]
+    public string displayName;
 
-        [TextArea]
-        public string description;
-    }
+    [TextArea]
+    public string description;
 }

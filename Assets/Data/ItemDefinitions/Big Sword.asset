@@ -28,7 +28,9 @@ MonoBehaviour:
     RMB: Block'
   equipmentSlotType: 2
   equipmentCombatRole: 0
+  combatModifiers: []
   consumableEffects: []
+  wieldStyle: {fileID: 11400000, guid: fdab9122f52eef54b8db6b8c57b484d2, type: 2}
   secondaryWeaponAction: {fileID: 0}
   isRangedWeapon: 0
   baseDamage: 10

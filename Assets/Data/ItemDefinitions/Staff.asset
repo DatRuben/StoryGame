@@ -24,7 +24,9 @@ MonoBehaviour:
   weaponControlsText: 
   equipmentSlotType: 2
   equipmentCombatRole: 0
+  combatModifiers: []
   consumableEffects: []
+  wieldStyle: {fileID: 11400000, guid: 358a7b434618bef439aab8876d2bfa13, type: 2}
   secondaryWeaponAction: {fileID: 0}
   isRangedWeapon: 1
   baseDamage: 10
