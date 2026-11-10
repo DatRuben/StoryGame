@@ -16,7 +16,7 @@ MonoBehaviour:
   itemCategory: 0
   worldPrefab: {fileID: 1299846430720804019, guid: 68b114e9f678bf34583204a4391bc6f4, type: 3}
   itemIcon: {fileID: 0}
-  weight: 1
+  weight: 5
   minimumHandUseGripCount: 1
   canUseWithHands: 1
   canUseWithMouth: 1
