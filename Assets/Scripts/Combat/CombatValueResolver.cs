@@ -78,4 +78,14 @@ public static class CombatValueResolver
             totalPercent += modifier.percent * stacks;
         }
     }
+
+    public static float ResolveDamage(
+        GameObject actor,
+        float baseDamage)
+    {
+        return Mathf.Max(0f, baseDamage) *
+            ResolveMultiplier(
+                actor,
+                CombatValueType.Damage);
+    }
 }

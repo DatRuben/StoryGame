@@ -165,7 +165,9 @@ public sealed class PlayerCombatController :
 
         DamageContext damage =
             new DamageContext(
-                definition.baseDamage,
+                CombatValueResolver.ResolveDamage(
+                    gameObject,
+                    definition.baseDamage),
                 definition.damageType,
                 gameObject,
                 nearestHitPoint,

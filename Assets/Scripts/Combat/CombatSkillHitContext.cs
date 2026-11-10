@@ -7,11 +7,11 @@ public readonly struct CombatSkillHitContext
     public Vector3 Point { get; }
     public Vector3 Direction { get; }
     public float Distance { get; }
-    public float MaximumDistance { get; }
+    public float ReferenceDistance { get; }
 
     public float NormalizedDistance =>
-        MaximumDistance > 0f
-            ? Mathf.Clamp01(Distance / MaximumDistance)
+        ReferenceDistance > 0f
+            ? Mathf.Clamp01(Distance / ReferenceDistance)
             : 0f;
 
     public CombatSkillHitContext(
@@ -20,13 +20,13 @@ public readonly struct CombatSkillHitContext
         Vector3 point,
         Vector3 direction,
         float distance,
-        float maximumDistance)
+        float referenceDistance)
     {
         Action = action;
         Target = target;
         Point = point;
         Direction = direction;
         Distance = Mathf.Max(0f, distance);
-        MaximumDistance = Mathf.Max(0f, maximumDistance);
+        ReferenceDistance = Mathf.Max(0f, referenceDistance);
     }
 }
