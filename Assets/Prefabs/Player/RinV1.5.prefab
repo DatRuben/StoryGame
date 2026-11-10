@@ -1247,6 +1247,7 @@ MonoBehaviour:
     controller: {fileID: 22100000, guid: 860d830ff40a96b41a0aa69cc7b1658a, type: 2}
   - style: {fileID: 11400000, guid: 358a7b434618bef439aab8876d2bfa13, type: 2}
     controller: {fileID: 22100000, guid: d72f101cabf339c4e921dc985e020c1d, type: 2}
+  wieldConfiguration: {fileID: 11400000, guid: 78ed03bdc0589194db02243d3eca43be, type: 2}
 --- !u!114 &2005116167343531484
 MonoBehaviour:
   m_ObjectHideFlags: 0
