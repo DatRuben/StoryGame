@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 10551bd0ca1de1a4387828a69e4e131d, type: 3}
-  m_Name: Human Race
+  m_Name: Human
   m_EditorClassIdentifier: Assembly-CSharp::RaceDefinition
   raceId: human
   displayName: Human

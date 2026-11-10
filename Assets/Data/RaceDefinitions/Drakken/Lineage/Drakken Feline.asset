@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 746448876e7b0334d94f8f8f3e811a98, type: 3}
-  m_Name: Drakken Feline Lineage
+  m_Name: Drakken Feline
   m_EditorClassIdentifier: Assembly-CSharp::LineageDefinition
   lineageId: drakken_feline
   displayName: Drakken Feline

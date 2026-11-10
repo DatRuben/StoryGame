@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 10551bd0ca1de1a4387828a69e4e131d, type: 3}
-  m_Name: Drakken Race
+  m_Name: Western Dragon
   m_EditorClassIdentifier: Assembly-CSharp::RaceDefinition
-  raceId: drakken
-  displayName: Drakken
-  baseRace: 2
+  raceId: western_dragon
+  displayName: Western Dragon
+  baseRace: 7
   description: 
-  standardSubrace: {fileID: 11400000, guid: 10ccb86a2d0cb24429be39083f24cf0e, type: 2}
+  standardSubrace: {fileID: 11400000, guid: e5a75990c0f7ed14691ff7adba7a5edc, type: 2}
   baseStats:
     health: 100
     stamina: 100
@@ -25,14 +25,14 @@ MonoBehaviour:
     carryWeight: 50
   modifiersFromHuman:
     strength: 2
-    dexterity: 0
-    agility: 2
-    vitality: 0
-    endurance: -2
-    intelligence: -2
-    willpower: -2
-    spirit: 2
-    perception: 0
+    dexterity: -6
+    agility: -6
+    vitality: 4
+    endurance: 2
+    intelligence: 4
+    willpower: 2
+    spirit: 4
+    perception: -6
   attributeScaling:
     strength: 1
     dexterity: 1
@@ -45,16 +45,16 @@ MonoBehaviour:
     perception: 1
   finalAttributesPreview:
     strength: 12
-    dexterity: 10
-    agility: 12
-    vitality: 10
-    endurance: 8
-    intelligence: 8
-    willpower: 8
-    spirit: 12
-    perception: 10
+    dexterity: 4
+    agility: 4
+    vitality: 14
+    endurance: 12
+    intelligence: 14
+    willpower: 12
+    spirit: 14
+    perception: 4
   totalAttributePointsPreview: 90
-  allowedLineageType: 0
-  defaultLineage: {fileID: 11400000, guid: 859eb4e370d11e24da259978b34e9f5e, type: 2}
-  minLineages: 1
+  allowedLineageType: 1
+  defaultLineage: {fileID: 0}
+  minLineages: 0
   maxLineages: 1
