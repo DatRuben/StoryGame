@@ -223,6 +223,48 @@ public sealed class PlayerGripState :
         return count;
     }
 
+
+    public bool TryGetGripAssignment(
+        InventoryItemInstance item,
+        out GripType gripType,
+        out int assignedGripCount,
+        out int singleHandIndex)
+    {
+        gripType = GripType.Hand;
+        assignedGripCount = 0;
+        singleHandIndex = -1;
+
+        if (item == null)
+            return false;
+
+        bool leftHand =
+            ReferenceEquals(handItems[0], item);
+
+        bool rightHand =
+            ReferenceEquals(handItems[1], item);
+
+        if (leftHand || rightHand)
+        {
+            assignedGripCount =
+                (leftHand ? 1 : 0) +
+                (rightHand ? 1 : 0);
+
+            if (assignedGripCount == 1)
+                singleHandIndex = leftHand ? 0 : 1;
+
+            return true;
+        }
+
+        if (ReferenceEquals(mouthItem, item))
+        {
+            gripType = GripType.Mouth;
+            assignedGripCount = 1;
+            return true;
+        }
+
+        return false;
+    }
+
     private int GetAssignedHandGripCount(
         InventoryItemInstance itemInstance)
     {
