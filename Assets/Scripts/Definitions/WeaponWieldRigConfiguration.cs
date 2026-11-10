@@ -10,17 +10,6 @@ public enum WeaponAttachmentSocket
 }
 
 [Serializable]
-public sealed class WeaponWieldSocketPose
-{
-    public HeldItemGripContext context;
-
-    // Target pose for the item's grip marker,
-    // relative to the selected socket.
-    public Vector3 localPosition;
-    public Vector3 localEulerAngles;
-}
-
-[Serializable]
 public sealed class WeaponWieldRigVariant
 {
     [Header("Handling")]
@@ -36,9 +25,6 @@ public sealed class WeaponWieldRigVariant
 
     [Header("Animation")]
     public AnimatorOverrideController readyController;
-
-    [Header("Socket-Relative Grip Targets")]
-    public WeaponWieldSocketPose[] gripTargets;
 }
 
 [CreateAssetMenu(
@@ -55,7 +41,7 @@ public sealed class WeaponWieldRigConfiguration :
         WeaponWieldStyleDefinition style,
         GripType gripType,
         int assignedGripCount,
-        WeaponAttachmentSocket socket,
+        WeaponAttachmentSocket? requestedSocket,
         out WeaponWieldRigVariant result)
     {
         result = null;
@@ -68,13 +54,33 @@ public sealed class WeaponWieldRigConfiguration :
             if (variant == null ||
                 variant.style != style ||
                 variant.gripType != gripType ||
-                variant.assignedGripCount != assignedGripCount ||
-                variant.primarySocket != socket)
+                variant.assignedGripCount != assignedGripCount)
             {
                 continue;
             }
 
-            // Ambiguous configurations are invalid.
+            if (gripType == GripType.Hand &&
+                variant.primarySocket ==
+                    WeaponAttachmentSocket.Mouth)
+            {
+                continue;
+            }
+
+            if (gripType == GripType.Mouth &&
+                variant.primarySocket !=
+                    WeaponAttachmentSocket.Mouth)
+            {
+                continue;
+            }
+
+            if (requestedSocket.HasValue &&
+                variant.primarySocket !=
+                    requestedSocket.Value)
+            {
+                continue;
+            }
+
+
             if (result != null)
             {
                 result = null;
