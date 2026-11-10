@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 56d2176277d8a4844a499abed4a8205b, type: 3}
   m_Name: StaffStyle
   m_EditorClassIdentifier: Assembly-CSharp::WeaponWieldStyleDefinition
-  displayName: 
-  description: 
+  displayName: Magic Staff Style
+  description: basic staff hold
