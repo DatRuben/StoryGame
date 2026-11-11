@@ -12,8 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 10551bd0ca1de1a4387828a69e4e131d, type: 3}
   m_Name: Western Dragon
   m_EditorClassIdentifier: Assembly-CSharp::RaceDefinition
-  raceId: western_dragon
-  displayName: Western Dragon
   baseRace: 7
   description: 
   standardSubrace: {fileID: 11400000, guid: e5a75990c0f7ed14691ff7adba7a5edc, type: 2}

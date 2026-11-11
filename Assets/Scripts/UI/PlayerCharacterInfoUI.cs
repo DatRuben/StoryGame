@@ -160,7 +160,7 @@ public sealed class PlayerCharacterInfoUI :
 
                 if (lineage == null ||
                     string.IsNullOrWhiteSpace(
-                        trait.name))
+                        lineage.DisplayName))
                 {
                     continue;
                 }
@@ -198,7 +198,7 @@ public sealed class PlayerCharacterInfoUI :
 
                 if (trait == null ||
                     string.IsNullOrWhiteSpace(
-                        trait.displayName))
+                        trait.name))
                 {
                     continue;
                 }

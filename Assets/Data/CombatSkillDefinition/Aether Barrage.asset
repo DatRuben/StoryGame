@@ -10,15 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 60e9588665ca569449040afa596142df, type: 3}
-  m_Name: AetherRadianceSkill
+  m_Name: Aether Barrage
   m_EditorClassIdentifier: Assembly-CSharp::CombatSkillDefinition
-  skillName: Aether Radiance
-  skillId: aether_radiance
-  action: {fileID: 11400000, guid: 89a74a04845f2c3419fc3054b57b1edd, type: 2}
+  skillName: Aether Barrage
+  skillId: aether_barrage
+  action: {fileID: 0}
   castTime: 1
   cooldown: 5
-  aetherCost: 10
+  aetherCost: 50
   originSource: 2
-  characterActionPoint: 6
+  characterActionPoint: 0
   customActionPointId: 
   heldItemSource: 0
