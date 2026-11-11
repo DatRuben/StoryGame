@@ -10,17 +10,14 @@ public class StatusEffects : MonoBehaviour
         "Useful for scenarios, enemies, and testing."
     )]
     [SerializeField]
-    private List<StatusEffectDefinition>
-        initialEffects =
-            new List<StatusEffectDefinition>();
+    private List<StatusEffectDefinition> initialEffects =
+        new List<StatusEffectDefinition>();
 
-    private readonly List<ActiveStatusEffect>
-        activeEffects =
-            new List<ActiveStatusEffect>();
+    private readonly List<ActiveStatusEffect> activeEffects =
+        new List<ActiveStatusEffect>();
 
-    public IReadOnlyList<ActiveStatusEffect>
-        ActiveEffects =>
-            activeEffects;
+    public IReadOnlyList<ActiveStatusEffect> ActiveEffects =>
+        activeEffects;
 
     public event Action EffectsChanged;
 
@@ -28,12 +25,9 @@ public class StatusEffects : MonoBehaviour
     {
         bool changed = false;
 
-        foreach (StatusEffectDefinition definition
-                 in initialEffects)
+        foreach (StatusEffectDefinition definition in initialEffects)
         {
-            if (ApplyEffect(
-                definition,
-                false))
+            if (ApplyEffect(definition, false))
             {
                 changed = true;
             }
@@ -47,12 +41,9 @@ public class StatusEffects : MonoBehaviour
     {
         bool changed = false;
 
-        for (int i = activeEffects.Count - 1;
-             i >= 0;
-             i--)
+        for (int i = activeEffects.Count - 1; i >= 0; i--)
         {
-            ActiveStatusEffect activeEffect =
-                activeEffects[i];
+            ActiveStatusEffect activeEffect = activeEffects[i];
 
             if (activeEffect == null ||
                 activeEffect.definition == null)
@@ -62,9 +53,7 @@ public class StatusEffects : MonoBehaviour
                 continue;
             }
 
-            activeEffect.Tick(
-                Time.deltaTime
-            );
+            activeEffect.Tick(Time.deltaTime);
 
             if (!activeEffect.IsExpired)
                 continue;
@@ -77,13 +66,9 @@ public class StatusEffects : MonoBehaviour
             EffectsChanged?.Invoke();
     }
 
-    public bool ApplyEffect(
-        StatusEffectDefinition definition)
+    public bool ApplyEffect(StatusEffectDefinition definition)
     {
-        return ApplyEffect(
-            definition,
-            true
-        );
+        return ApplyEffect(definition, true);
     }
 
     private bool ApplyEffect(
@@ -91,8 +76,7 @@ public class StatusEffects : MonoBehaviour
         bool notify)
     {
         if (definition == null ||
-            string.IsNullOrWhiteSpace(
-                definition.effectId))
+            string.IsNullOrWhiteSpace(definition.Id))
         {
             Debug.LogWarning(
                 "StatusEffects cannot apply an invalid status-effect definition.",
@@ -105,23 +89,17 @@ public class StatusEffects : MonoBehaviour
         EntityClassification classification =
             GetComponent<EntityClassification>();
 
-        if (!definition.CanApplyTo(
-                classification))
+        if (!definition.CanApplyTo(classification))
         {
             return false;
         }
 
-        int existingIndex =
-            FindEffectIndex(
-                definition.effectId
-            );
+        int existingIndex = FindEffectIndex(definition.Id);
 
         if (existingIndex < 0)
         {
             activeEffects.Add(
-                new ActiveStatusEffect(
-                    definition
-                )
+                new ActiveStatusEffect(definition)
             );
 
             if (notify)
@@ -136,8 +114,7 @@ public class StatusEffects : MonoBehaviour
         switch (definition.stacking)
         {
             case StatusEffectStacking.AddStack:
-                existing.definition =
-                    definition;
+                existing.definition = definition;
 
                 existing.AddStack();
                 existing.RefreshDuration();
@@ -145,15 +122,12 @@ public class StatusEffects : MonoBehaviour
 
             case StatusEffectStacking.Replace:
                 activeEffects[existingIndex] =
-                    new ActiveStatusEffect(
-                        definition
-                    );
+                    new ActiveStatusEffect(definition);
                 break;
 
             case StatusEffectStacking.RefreshDuration:
             default:
-                existing.definition =
-                    definition;
+                existing.definition = definition;
 
                 existing.RefreshDuration();
                 break;
@@ -171,16 +145,12 @@ public class StatusEffects : MonoBehaviour
         if (definition == null)
             return false;
 
-        return RemoveEffect(
-            definition.effectId
-        );
+        return RemoveEffect(definition.Id);
     }
 
-    public bool RemoveEffect(
-        string effectId)
+    public bool RemoveEffect(string effectId)
     {
-        int index =
-            FindEffectIndex(effectId);
+        int index = FindEffectIndex(effectId);
 
         if (index < 0)
             return false;
@@ -195,13 +165,10 @@ public class StatusEffects : MonoBehaviour
         StatusEffectDefinition definition)
     {
         return definition != null &&
-               HasEffect(
-                   definition.effectId
-               );
+               HasEffect(definition.Id);
     }
 
-    public bool HasEffect(
-        string effectId)
+    public bool HasEffect(string effectId)
     {
         return FindEffectIndex(effectId) >= 0;
     }
@@ -215,14 +182,12 @@ public class StatusEffects : MonoBehaviour
         EffectsChanged?.Invoke();
     }
 
-    public CharacterAttributeModifiers
-        GetAttributeModifiers()
+    public CharacterAttributeModifiers GetAttributeModifiers()
     {
         CharacterAttributeModifiers total =
             CharacterAttributeModifiers.CreateZero();
 
-        foreach (ActiveStatusEffect activeEffect
-                 in activeEffects)
+        foreach (ActiveStatusEffect activeEffect in activeEffects)
         {
             if (activeEffect == null ||
                 activeEffect.definition == null)
@@ -230,43 +195,35 @@ public class StatusEffects : MonoBehaviour
                 continue;
             }
 
-            CharacterAttributeModifiers
-                stackedModifiers =
-                    CharacterAttributeModifiers
-                        .Multiply(
-                            activeEffect.definition
-                                .attributeModifiers,
-                            activeEffect.stacks
-                        );
-
-            total =
-                CharacterAttributeModifiers.Add(
-                    total,
-                    stackedModifiers
+            CharacterAttributeModifiers stackedModifiers =
+                CharacterAttributeModifiers.Multiply(
+                    activeEffect.definition.attributeModifiers,
+                    activeEffect.stacks
                 );
+
+            total = CharacterAttributeModifiers.Add(
+                total,
+                stackedModifiers
+            );
         }
 
         return total;
     }
 
-    private int FindEffectIndex(
-        string effectId)
+    private int FindEffectIndex(string effectId)
     {
         if (string.IsNullOrWhiteSpace(effectId))
             return -1;
 
-        for (int i = 0;
-             i < activeEffects.Count;
-             i++)
+        for (int i = 0; i < activeEffects.Count; i++)
         {
-            ActiveStatusEffect activeEffect =
-                activeEffects[i];
+            ActiveStatusEffect activeEffect = activeEffects[i];
 
             if (activeEffect?.definition == null)
                 continue;
 
             if (string.Equals(
-                activeEffect.definition.effectId,
+                activeEffect.definition.Id,
                 effectId,
                 StringComparison.OrdinalIgnoreCase))
             {
