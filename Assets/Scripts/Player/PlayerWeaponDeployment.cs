@@ -180,6 +180,16 @@ public sealed class PlayerWeaponDeployment :
         if (WeaponsDrawn)
             return true;
 
+        if (activeWeapons.Count == 0)
+        {
+            Debug.LogWarning(
+                "Cannot draw weapons: the active weapon set is empty.",
+                this
+            );
+
+            return false;
+        }
+
         ReleaseActiveConventionalWeapons();
 
         if (conventionalWeapons.Count > 0 &&
