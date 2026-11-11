@@ -336,7 +336,6 @@ public class SubraceDefinition : GameDefinition
 [CustomEditor(typeof(SubraceDefinition))]
 public class SubraceDefinitionEditor : Editor
 {
-    private SerializedProperty displayName;
     private SerializedProperty race;
     private SerializedProperty description;
     private SerializedProperty baseSubrace;
@@ -354,11 +353,6 @@ public class SubraceDefinitionEditor : Editor
 
     private void OnEnable()
     {
-        displayName =
-            serializedObject.FindProperty(
-                "displayName"
-            );
-
         race =
             serializedObject.FindProperty(
                 "race"
@@ -536,18 +530,11 @@ public class SubraceDefinitionEditor : Editor
 
     private void DrawIdentity()
     {
-        EditorGUILayout.LabelField(
-            "Identity",
-            EditorStyles.boldLabel
+        GameDefinitionEditor.DrawIdentity(
+            (SubraceDefinition)target
         );
 
-        EditorGUILayout.PropertyField(
-            displayName
-        );
-
-        EditorGUILayout.PropertyField(
-            description
-        );
+        EditorGUILayout.PropertyField(description);
 
         EditorGUILayout.Space();
     }
@@ -890,10 +877,7 @@ public class SubraceDefinitionEditor : Editor
 
         if (resolvedBase != null)
         {
-            return !string.IsNullOrWhiteSpace(
-                resolvedBase.displayName)
-                    ? resolvedBase.displayName
-                    : resolvedBase.name;
+            return resolvedBase.name;
         }
 
         return definition.race != null

@@ -212,9 +212,7 @@ public class ItemDefinition : GameDefinition
                 rangedWeaponWarning))
         {
             Debug.LogWarning(
-                itemName +
-                ": " +
-                rangedWeaponWarning,
+                name + ": " + rangedWeaponWarning,
                 this
             );
         }
@@ -678,18 +676,7 @@ public class ItemDefinitionEditor : Editor
 
     private void DrawIdentitySection(ItemDefinition item)
     {
-        EditorGUILayout.LabelField(
-            "Identity",
-            EditorStyles.boldLabel
-        );
-
-        item.itemName =
-            EditorGUILayout.TextField(
-                "Item Name",
-                item.itemName
-            );
-
-        EditorGUILayout.Space();
+        GameDefinitionEditor.DrawIdentity(item);
     }
 
     private void DrawItemTypeSection(ItemDefinition item)

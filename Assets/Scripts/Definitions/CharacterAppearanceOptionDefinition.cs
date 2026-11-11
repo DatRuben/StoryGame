@@ -209,7 +209,6 @@ public class CharacterAppearanceOptionDefinition :
 [CustomEditor(typeof(CharacterAppearanceOptionDefinition))]
 public class CharacterAppearanceOptionDefinitionEditor : Editor
 {
-    private SerializedProperty displayName;
     private SerializedProperty category;
     private SerializedProperty optionImage;
     private SerializedProperty modelPrefab;
@@ -265,12 +264,10 @@ public class CharacterAppearanceOptionDefinitionEditor : Editor
 
     private void DrawIdentity()
     {
-        EditorGUILayout.LabelField(
-            "Identity",
-            EditorStyles.boldLabel
+        GameDefinitionEditor.DrawIdentity(
+            (CharacterAppearanceOptionDefinition)target
         );
 
-        EditorGUILayout.PropertyField(displayName);
         EditorGUILayout.PropertyField(category);
 
         EditorGUILayout.Space();

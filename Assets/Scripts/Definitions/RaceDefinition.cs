@@ -334,6 +334,10 @@ public class RaceDefinitionEditor : Editor
     {
         serializedObject.Update();
 
+        GameDefinitionEditor.DrawIdentity(
+            (RaceDefinition)target
+        );
+
         SerializedProperty property =
             serializedObject.GetIterator();
 

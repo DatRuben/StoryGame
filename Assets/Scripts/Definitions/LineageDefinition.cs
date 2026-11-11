@@ -55,7 +55,6 @@ public class LineageDefinition : GameDefinition
 [CanEditMultipleObjects]
 public class LineageDefinitionEditor : Editor
 {
-    private SerializedProperty displayName;
     private SerializedProperty description;
     private SerializedProperty allowedRace;
     private SerializedProperty hybridAttributeShape;
@@ -139,12 +138,20 @@ public class LineageDefinitionEditor : Editor
 
     private void DrawIdentity()
     {
-        EditorGUILayout.LabelField(
-            "Identity",
-            EditorStyles.boldLabel
-        );
+        if (targets.Length == 1)
+        {
+            GameDefinitionEditor.DrawIdentity(
+                (LineageDefinition)target
+            );
+        }
+        else
+        {
+            EditorGUILayout.LabelField(
+                "Identity",
+                "Select one asset to view its name and ID."
+            );
+        }
 
-        EditorGUILayout.PropertyField(displayName);
         EditorGUILayout.PropertyField(description);
 
         EditorGUILayout.Space();
