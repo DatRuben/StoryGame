@@ -25,6 +25,12 @@ public sealed class CombatSkillDefinition :
     [Header("Gameplay Action")]
     public CombatSkillActionDefinition action;
 
+    [Header("Presentation")]
+    public Sprite icon;
+
+    [TextArea]
+    public string description;
+
     [Header("Timing")]
     [Min(0f)]
     public float castTime;
