@@ -109,65 +109,48 @@ public class RaceDefinition : GameDefinition
         List<LineageSelection> lineages,
         out string errorMessage)
     {
-        int count =
-            lineages == null
-                ? 0
-                : lineages.Count;
+        int count = lineages == null
+            ? 0
+            : lineages.Count;
 
-        if (!IsLineageCountValid(
-            count,
-            out errorMessage))
-        {
+        if (!IsLineageCountValid(count, out errorMessage))
             return false;
-        }
 
         if (lineages == null)
             return true;
 
-        HashSet<string> usedSelectionIds =
-            new HashSet<string>(
-                System.StringComparer.OrdinalIgnoreCase
-            );
+        HashSet<string> usedSelectionIds = new(
+            System.StringComparer.OrdinalIgnoreCase
+        );
 
-        foreach (LineageSelection lineage
-                 in lineages)
+        foreach (LineageSelection lineage in lineages)
         {
-            if (lineage == null ||
-                !lineage.IsValid)
+            if (lineage == null || !lineage.IsValid)
             {
                 errorMessage =
                     "Missing or invalid lineage selection.";
-
                 return false;
             }
 
-            if (string.IsNullOrWhiteSpace(
-                lineage.SelectionId))
+            if (string.IsNullOrWhiteSpace(lineage.SelectionId))
+            {
+                errorMessage =
+                    $"{lineage.DisplayName} has no lineage selection ID.";
+                return false;
+            }
+
+            if (!usedSelectionIds.Add(lineage.SelectionId))
+            {
+                errorMessage =
+                    $"{lineage.DisplayName} was selected more than once.";
+                return false;
+            }
+
+            if (!IsLineageAllowed(lineage, subraceDefinition))
             {
                 errorMessage =
                     $"{name} cannot use lineage " +
                     $"{lineage.DisplayName}.";
-
-                return false;
-            }
-
-            if (!usedSelectionIds.Add(
-                lineage.SelectionId))
-            {
-                errorMessage =
-                    $"{name} cannot use lineages.";
-
-                return false;
-            }
-
-            if (!IsLineageAllowed(
-                lineage,
-                subraceDefinition))
-            {
-                errorMessage =
-                    $"{name} cannot use lineage " +
-                    $"{lineage.DisplayName}.";
-
                 return false;
             }
         }
