@@ -155,4 +155,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 37ffa79c7cf7d5f4e8376d1391899af1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HitscanBeamVisual
-  duration: 0.2
+  duration: 2
