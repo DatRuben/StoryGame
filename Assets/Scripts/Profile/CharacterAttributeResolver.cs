@@ -78,8 +78,7 @@ public static class CharacterAttributeResolver
             BackgroundDefinition backgroundDefinition,
             List<TraitDefinition> traitDefinitions)
     {
-        List<AttributeModifierPreview> sources =
-            new();
+        List<AttributeModifierPreview> sources = new();
 
         if (backgroundDefinition != null &&
             backgroundDefinition.modifiers != null &&
@@ -88,8 +87,8 @@ public static class CharacterAttributeResolver
             sources.Add(
                 AttributeModifierPreview.Create(
                     AttributeModifierSourceType.Background,
-                    backgroundDefinition.backgroundId,
-                    backgroundDefinition.displayName,
+                    backgroundDefinition.Id,
+                    backgroundDefinition.name,
                     backgroundDefinition.modifiers
                 )
             );
@@ -111,8 +110,8 @@ public static class CharacterAttributeResolver
             sources.Add(
                 AttributeModifierPreview.Create(
                     AttributeModifierSourceType.Trait,
-                    traitDefinition.traitId,
-                    traitDefinition.displayName,
+                    traitDefinition.Id,
+                    traitDefinition.name,
                     traitDefinition.modifiers
                 )
             );

@@ -276,7 +276,7 @@ public class PlayerSpawner : MonoBehaviour
         if (defaultRaceDefinition.standardSubrace == null)
         {
             Debug.LogWarning(
-                $"PlayerSpawner could not create a default character because {defaultRaceDefinition.displayName} has no standard subrace.",
+                $"PlayerSpawner could not create a default character because {defaultRaceDefinition.name} has no standard subrace.",
                 defaultRaceDefinition
             );
 
@@ -316,7 +316,7 @@ public class PlayerSpawner : MonoBehaviour
                 defaultRaceDefinition,
                 defaultRaceDefinition.standardSubrace,
                 new List<string>(),
-                defaultBackgroundDefinition.backgroundId,
+                defaultBackgroundDefinition.Id,
                 new List<string>(),
                 CharacterAppearanceData.CreateDefault(),
 
@@ -374,11 +374,7 @@ public class PlayerSpawner : MonoBehaviour
             return false;
         }
 
-        if (subraceDefinition.race == null ||
-            !string.Equals(
-                subraceDefinition.race.raceId,
-                raceDefinition.raceId,
-                System.StringComparison.OrdinalIgnoreCase))
+        if (subraceDefinition.race != raceDefinition)
         {
             Debug.LogWarning(
                 $"PlayerSpawner found a mismatched race and subrace for profile '{profile.characterName}'.",
