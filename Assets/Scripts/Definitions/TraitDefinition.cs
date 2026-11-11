@@ -40,7 +40,10 @@ public class TraitDefinition : ScriptableObject
         if (string.IsNullOrWhiteSpace(displayName))
             displayName = name;
 
-        traitId = MakeId(displayName);
+        if (string.IsNullOrWhiteSpace(traitId))
+        {
+            traitId = MakeId(displayName);
+        }
     }
 
     private string MakeId(string value)

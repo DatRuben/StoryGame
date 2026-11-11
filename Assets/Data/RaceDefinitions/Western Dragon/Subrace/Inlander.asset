@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 376e908953958f448b9282fdc762a931, type: 3}
-  m_Name: Human Subrace
+  m_Name: Inlander
   m_EditorClassIdentifier: Assembly-CSharp::SubraceDefinition
-  subraceId: human
-  displayName: Human
-  race: {fileID: 11400000, guid: 04996e97c0750844d95f7836e2af77e0, type: 2}
+  subraceId: inlander
+  displayName: Inlander
+  race: {fileID: 11400000, guid: 8518a5df7a2504f419e63f8b4b096beb, type: 2}
   description: 
   baseSubrace: {fileID: 0}
   baseStatModifiers:
@@ -40,19 +40,19 @@ MonoBehaviour:
     staggerResist: 50
     carryWeight: 50
   finalAttributesPreview:
-    strength: 10
-    dexterity: 10
-    agility: 10
-    vitality: 10
-    endurance: 10
-    intelligence: 10
-    willpower: 10
-    spirit: 10
-    perception: 10
+    strength: 12
+    dexterity: 4
+    agility: 4
+    vitality: 14
+    endurance: 12
+    intelligence: 14
+    willpower: 12
+    spirit: 14
+    perception: 4
   totalAttributePointsPreview: 90
-  size: 1
-  bodyType: 0
-  previewPrefab: {fileID: 4522967290722631838, guid: 22918e2a35d395944b2aaaae17e6d7ad, type: 3}
+  size: 7
+  bodyType: 2
+  previewPrefab: {fileID: 0}
   standingGripProfile:
     maxHandGripUsage: 2
     mouthGripCount: 0
@@ -63,12 +63,12 @@ MonoBehaviour:
     canOperateWithMouth: 0
     weaponMode: 0
   feralGripProfile:
-    maxHandGripUsage: 2
-    mouthGripCount: 0
-    maxHandGripsWhileMoving: 2
-    maxHandGripsWhileSprinting: 2
+    maxHandGripUsage: 1
+    mouthGripCount: 1
+    maxHandGripsWhileMoving: 1
+    maxHandGripsWhileSprinting: 1
     handCarryMoveMultiplier: 1
     canOperateWithHands: 1
-    canOperateWithMouth: 0
-    weaponMode: 0
-  canEquipSaddles: 0
+    canOperateWithMouth: 1
+    weaponMode: 2
+  canEquipSaddles: 1

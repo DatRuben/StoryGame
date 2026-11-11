@@ -1,0 +1,143 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
+[CreateAssetMenu(menuName = "Game/Skill Definition Library")]
+public sealed class SkillDefinitionLibrary : ScriptableObject
+{
+    [SerializeField]
+    private List<CombatSkillDefinition> skillDefinitions = new();
+
+    public IReadOnlyList<CombatSkillDefinition> SkillDefinitions =>
+        skillDefinitions;
+
+    public bool TryGetSkill(
+        string skillId,
+        out CombatSkillDefinition definition)
+    {
+        definition = null;
+
+        if (string.IsNullOrWhiteSpace(skillId))
+            return false;
+
+        foreach (CombatSkillDefinition skill in skillDefinitions)
+        {
+            if (skill == null ||
+                !string.Equals(
+                    skill.SkillId,
+                    skillId,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            // An ambiguous ID must never resolve arbitrarily.
+            if (definition != null)
+            {
+                definition = null;
+                return false;
+            }
+
+            definition = skill;
+        }
+
+        return definition != null;
+    }
+
+#if UNITY_EDITOR
+    [ContextMenu("Rebuild Library From Project Assets")]
+    public void RebuildLibrary()
+    {
+        RebuildLibraryInternal(true);
+    }
+
+    public void RebuildLibraryFromAuto()
+    {
+        RebuildLibraryInternal(false);
+    }
+
+    private void RebuildLibraryInternal(bool saveAssets)
+    {
+        string[] guids =
+            AssetDatabase.FindAssets("t:CombatSkillDefinition");
+
+        List<CombatSkillDefinition> discovered = new();
+        Dictionary<string, CombatSkillDefinition> ids =
+            new(StringComparer.OrdinalIgnoreCase);
+
+        foreach (string guid in guids)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+
+            CombatSkillDefinition skill =
+                AssetDatabase.LoadAssetAtPath<CombatSkillDefinition>(
+                    path);
+
+            if (skill == null)
+                continue;
+
+            discovered.Add(skill);
+
+            if (string.IsNullOrWhiteSpace(skill.SkillId))
+            {
+                Debug.LogWarning(
+                    $"Skill '{skill.name}' has no persistent Skill ID.",
+                    skill);
+                continue;
+            }
+
+            if (ids.TryGetValue(skill.SkillId, out var existing))
+            {
+                Debug.LogError(
+                    $"Duplicate Skill ID '{skill.SkillId}' on " +
+                    $"'{existing.name}' and '{skill.name}'.",
+                    skill);
+            }
+            else
+            {
+                ids.Add(skill.SkillId, skill);
+            }
+        }
+
+        discovered.Sort((a, b) =>
+        {
+            int comparison = string.Compare(
+                a.SkillId,
+                b.SkillId,
+                StringComparison.OrdinalIgnoreCase);
+
+            return comparison != 0
+                ? comparison
+                : string.CompareOrdinal(a.name, b.name);
+        });
+
+        bool changed = skillDefinitions == null ||
+                       skillDefinitions.Count != discovered.Count;
+
+        if (!changed)
+        {
+            for (int i = 0; i < discovered.Count; i++)
+            {
+                if (skillDefinitions[i] != discovered[i])
+                {
+                    changed = true;
+                    break;
+                }
+            }
+        }
+
+        if (changed)
+        {
+            skillDefinitions = discovered;
+            EditorUtility.SetDirty(this);
+        }
+
+        if (saveAssets)
+            AssetDatabase.SaveAssets();
+    }
+#endif
+}

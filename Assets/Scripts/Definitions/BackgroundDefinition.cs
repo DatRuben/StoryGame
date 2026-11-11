@@ -29,7 +29,10 @@ public class BackgroundDefinition : ScriptableObject
         if (string.IsNullOrWhiteSpace(displayName))
             displayName = name;
 
-        backgroundId = MakeId(displayName);
+        if (string.IsNullOrWhiteSpace(backgroundId))
+        {
+            backgroundId = MakeId(displayName);
+        }
     }
 
     private string MakeId(string value)

@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 376e908953958f448b9282fdc762a931, type: 3}
-  m_Name: Inlander Subrace
+  m_Name: Drakken S1
   m_EditorClassIdentifier: Assembly-CSharp::SubraceDefinition
-  subraceId: inlander
-  displayName: Inlander
-  race: {fileID: 11400000, guid: 8518a5df7a2504f419e63f8b4b096beb, type: 2}
+  subraceId: drakken_s1
+  displayName: Drakken S1
+  race: {fileID: 11400000, guid: 4163000ff3c63644db2f76c943545857, type: 2}
   description: 
   baseSubrace: {fileID: 0}
   baseStatModifiers:
@@ -41,18 +41,18 @@ MonoBehaviour:
     carryWeight: 50
   finalAttributesPreview:
     strength: 12
-    dexterity: 4
-    agility: 4
-    vitality: 14
-    endurance: 12
-    intelligence: 14
-    willpower: 12
-    spirit: 14
-    perception: 4
+    dexterity: 10
+    agility: 12
+    vitality: 10
+    endurance: 8
+    intelligence: 8
+    willpower: 8
+    spirit: 12
+    perception: 10
   totalAttributePointsPreview: 90
-  size: 7
-  bodyType: 2
-  previewPrefab: {fileID: 0}
+  size: 0
+  bodyType: 0
+  previewPrefab: {fileID: 8275497055224690379, guid: 964714dbdaf2a394bb98776a88d13581, type: 3}
   standingGripProfile:
     maxHandGripUsage: 2
     mouthGripCount: 0
@@ -63,12 +63,12 @@ MonoBehaviour:
     canOperateWithMouth: 0
     weaponMode: 0
   feralGripProfile:
-    maxHandGripUsage: 1
-    mouthGripCount: 1
-    maxHandGripsWhileMoving: 1
-    maxHandGripsWhileSprinting: 1
+    maxHandGripUsage: 2
+    mouthGripCount: 0
+    maxHandGripsWhileMoving: 2
+    maxHandGripsWhileSprinting: 2
     handCarryMoveMultiplier: 1
     canOperateWithHands: 1
-    canOperateWithMouth: 1
-    weaponMode: 2
-  canEquipSaddles: 1
+    canOperateWithMouth: 0
+    weaponMode: 0
+  canEquipSaddles: 0

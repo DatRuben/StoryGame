@@ -244,7 +244,10 @@ public class RaceDefinition : ScriptableObject
         if (string.IsNullOrWhiteSpace(displayName))
             displayName = name;
 
-        raceId = MakeId(displayName);
+        if (string.IsNullOrWhiteSpace(raceId))
+        {
+            raceId = MakeId(displayName);
+        }
 
         if (attributeScaling == null)
         {

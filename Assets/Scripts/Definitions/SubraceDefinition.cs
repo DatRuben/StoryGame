@@ -276,7 +276,10 @@ public class SubraceDefinition : ScriptableObject
         if (string.IsNullOrWhiteSpace(displayName))
             displayName = name;
 
-        subraceId = MakeId(displayName);
+        if (string.IsNullOrWhiteSpace(subraceId))
+        {
+            subraceId = MakeId(displayName);
+        }
 
         if (baseSubrace != null &&
             (baseSubrace == this ||

@@ -215,7 +215,10 @@ public class CharacterAppearanceOptionDefinition :
         if (string.IsNullOrWhiteSpace(displayName))
             displayName = name;
 
-        optionId = MakeId(name);
+        if (string.IsNullOrWhiteSpace(optionId))
+        {
+            optionId = MakeId(displayName);
+        }
     }
 
     private string MakeId(
