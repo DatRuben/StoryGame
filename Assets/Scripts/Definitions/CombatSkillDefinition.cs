@@ -20,21 +20,12 @@ public enum CombatSkillHeldItemSource
     menuName = "Game/Combat/Combat Skill Definition"
 )]
 public sealed class CombatSkillDefinition :
-    ScriptableObject
+    GameDefinition
 {
-    [Header("Identity")]
-    public string skillName;
-
-    [SerializeField]
-    private string skillId;
-    public string SkillId => skillId;
-
     [Header("Gameplay Action")]
-
     public CombatSkillActionDefinition action;
 
     [Header("Timing")]
-
     [Min(0f)]
     public float castTime;
 
@@ -42,12 +33,10 @@ public sealed class CombatSkillDefinition :
     public float cooldown;
 
     [Header("Resource Cost")]
-
     [Min(0f)]
     public float aetherCost;
 
     [Header("Action Origin")]
-
     public CombatSkillOriginSource
         originSource =
             CombatSkillOriginSource.None;
@@ -68,8 +57,6 @@ public sealed class CombatSkillDefinition :
 public sealed class CombatSkillDefinitionEditor :
     Editor
 {
-    private SerializedProperty skillId;
-    private SerializedProperty skillName;
     private SerializedProperty castTime;
     private SerializedProperty cooldown;
     private SerializedProperty aetherCost;
@@ -82,8 +69,6 @@ public sealed class CombatSkillDefinitionEditor :
 
     private void OnEnable()
     {
-        skillId = serializedObject.FindProperty("skillId");
-        skillName = serializedObject.FindProperty("skillName");
         action = serializedObject.FindProperty("action");
         castTime = serializedObject.FindProperty("castTime");
         cooldown = serializedObject.FindProperty("cooldown");
@@ -123,25 +108,9 @@ public sealed class CombatSkillDefinitionEditor :
 
     private void DrawIdentity()
     {
-        EditorGUILayout.PropertyField(skillName);
-
-        if (string.IsNullOrWhiteSpace(skillId.stringValue) &&
-            !string.IsNullOrWhiteSpace(skillName.stringValue))
-        {
-            skillId.stringValue =
-                System.Text.RegularExpressions.Regex.Replace(
-                    skillName.stringValue.Trim().ToLowerInvariant(),
-                    @"[^a-z0-9]+",
-                    "_"
-                ).Trim('_');
-        }
-
-        EditorGUILayout.PropertyField(
-            skillId,
-            new GUIContent("Skill ID")
+        GameDefinitionEditor.DrawIdentity(
+            (CombatSkillDefinition)target
         );
-
-        EditorGUILayout.Space();
     }
 
     private void DrawTiming()

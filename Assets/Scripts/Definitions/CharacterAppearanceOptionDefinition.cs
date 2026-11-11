@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Text;
 using UnityEngine;
 
 #if UNITY_EDITOR
@@ -30,13 +29,8 @@ public enum CharacterAppearanceOptionAvailability
     menuName = "Game/Character Appearance Option"
 )]
 public class CharacterAppearanceOptionDefinition :
-    ScriptableObject
+    GameDefinition
 {
-    [HideInInspector]
-    public string optionId;
-
-    public string displayName;
-
     public CharacterAppearanceCategory category;
 
     [Tooltip(
@@ -97,19 +91,6 @@ public class CharacterAppearanceOptionDefinition :
         return CharacterAppearanceOptionAvailability.Locked;
     }
 
-    private bool IsShownForRace(
-        RaceDefinition selectedRace)
-    {
-        if (selectedRace == null ||
-            race == null)
-        {
-            return false;
-        }
-
-        return race == selectedRace ||
-               race.raceId == selectedRace.raceId;
-    }
-
     private bool HasAncestryRequirements()
     {
         bool hasSubraceRequirements =
@@ -122,32 +103,6 @@ public class CharacterAppearanceOptionDefinition :
 
         return hasSubraceRequirements ||
                hasLineageRequirements;
-    }
-
-    private bool IsAllowedForSubrace(
-        SubraceDefinition selectedSubrace)
-    {
-        if (selectedSubrace == null ||
-            allowedSubraces == null)
-        {
-            return false;
-        }
-
-        foreach (SubraceDefinition subraceDefinition
-                 in allowedSubraces)
-        {
-            if (subraceDefinition == null)
-                continue;
-
-            if (subraceDefinition == selectedSubrace ||
-                subraceDefinition.subraceId ==
-                selectedSubrace.subraceId)
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private bool IsAllowedForAnyLineage(
@@ -182,69 +137,27 @@ public class CharacterAppearanceOptionDefinition :
         return false;
     }
 
+    private bool IsShownForRace(
+        RaceDefinition selectedRace)
+    {
+        return selectedRace != null &&
+               race == selectedRace;
+    }
+
+    private bool IsAllowedForSubrace(
+        SubraceDefinition selectedSubrace)
+    {
+        return selectedSubrace != null &&
+               allowedSubraces != null &&
+               allowedSubraces.Contains(selectedSubrace);
+    }
+
     private bool IsAllowedForCustomLineage(
-    LineageDefinition selectedLineage)
+        LineageDefinition selectedLineage)
     {
-        if (selectedLineage == null ||
-            allowedLineages == null)
-        {
-            return false;
-        }
-
-        foreach (LineageDefinition allowedLineage
-                 in allowedLineages)
-        {
-            if (allowedLineage == null)
-                continue;
-
-            if (allowedLineage == selectedLineage ||
-                string.Equals(
-                    allowedLineage.lineageId,
-                    selectedLineage.lineageId,
-                    System.StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private void OnValidate()
-    {
-        if (string.IsNullOrWhiteSpace(displayName))
-            displayName = name;
-
-        if (string.IsNullOrWhiteSpace(optionId))
-        {
-            optionId = MakeId(displayName);
-        }
-    }
-
-    private string MakeId(
-        string value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-            return "";
-
-        StringBuilder builder = new();
-
-        foreach (char character in value)
-        {
-            if (char.IsLetterOrDigit(character))
-            {
-                builder.Append(
-                    char.ToLowerInvariant(character)
-                );
-            }
-            else if (builder.Length > 0 &&
-                     builder[^1] != '_')
-            {
-                builder.Append('_');
-            }
-        }
-
-        return builder.ToString().Trim('_');
+        return selectedLineage != null &&
+               allowedLineages != null &&
+               allowedLineages.Contains(selectedLineage);
     }
 }
 
@@ -252,7 +165,6 @@ public class CharacterAppearanceOptionDefinition :
 [CustomEditor(typeof(CharacterAppearanceOptionDefinition))]
 public class CharacterAppearanceOptionDefinitionEditor : Editor
 {
-    private SerializedProperty displayName;
     private SerializedProperty category;
     private SerializedProperty optionImage;
     private SerializedProperty modelPrefab;
@@ -263,29 +175,22 @@ public class CharacterAppearanceOptionDefinitionEditor : Editor
 
     private void OnEnable()
     {
-        displayName =
-            serializedObject.FindProperty("displayName");
+        category = serializedObject.FindProperty("category");
+        optionImage = serializedObject.FindProperty("optionImage");
+        modelPrefab = serializedObject.FindProperty("modelPrefab");
+        race = serializedObject.FindProperty("race");
 
-        category =
-            serializedObject.FindProperty("category");
+        allowedSubraces = serializedObject.FindProperty(
+            "allowedSubraces"
+        );
 
-        optionImage =
-            serializedObject.FindProperty("optionImage");
+        allowedLineages = serializedObject.FindProperty(
+            "allowedLineages"
+        );
 
-        modelPrefab =
-            serializedObject.FindProperty("modelPrefab");
-
-        race =
-            serializedObject.FindProperty("race");
-
-        allowedSubraces =
-            serializedObject.FindProperty("allowedSubraces");
-
-        allowedLineages =
-            serializedObject.FindProperty("allowedLineages");
-
-        isDefaultOption =
-            serializedObject.FindProperty("isDefaultOption");
+        isDefaultOption = serializedObject.FindProperty(
+            "isDefaultOption"
+        );
     }
 
     public override void OnInspectorGUI()
@@ -308,12 +213,10 @@ public class CharacterAppearanceOptionDefinitionEditor : Editor
 
     private void DrawIdentity()
     {
-        EditorGUILayout.LabelField(
-            "Identity",
-            EditorStyles.boldLabel
+        GameDefinitionEditor.DrawIdentity(
+            (CharacterAppearanceOptionDefinition)target
         );
 
-        EditorGUILayout.PropertyField(displayName);
         EditorGUILayout.PropertyField(category);
 
         EditorGUILayout.Space();
@@ -412,11 +315,10 @@ public class CharacterAppearanceOptionDefinitionEditor : Editor
                     definition
                 );
 
-            bool nextSelected =
-                EditorGUILayout.ToggleLeft(
-                    definition.displayName,
-                    selected
-                );
+            bool nextSelected = EditorGUILayout.ToggleLeft(
+                definition.name,
+                selected
+            );
 
             if (nextSelected != selected)
             {
@@ -458,11 +360,10 @@ public class CharacterAppearanceOptionDefinitionEditor : Editor
                     definition
                 );
 
-            bool nextSelected =
-                EditorGUILayout.ToggleLeft(
-                    definition.displayName,
-                    selected
-                );
+            bool nextSelected = EditorGUILayout.ToggleLeft(
+                definition.name,
+                selected
+            );
 
             if (nextSelected != selected)
             {
@@ -534,13 +435,12 @@ public class CharacterAppearanceOptionDefinitionEditor : Editor
             definitions.Add(definition);
         }
 
-        definitions.Sort(
-            (a, b) =>
-                string.Compare(
-                    a.displayName,
-                    b.displayName,
-                    System.StringComparison.OrdinalIgnoreCase
-                )
+        definitions.Sort((a, b) =>
+            string.Compare(
+                a.name,
+                b.name,
+                System.StringComparison.OrdinalIgnoreCase
+            )
         );
 
         return definitions;
@@ -578,13 +478,12 @@ public class CharacterAppearanceOptionDefinitionEditor : Editor
             definitions.Add(definition);
         }
 
-        definitions.Sort(
-            (a, b) =>
-                string.Compare(
-                    a.displayName,
-                    b.displayName,
-                    System.StringComparison.OrdinalIgnoreCase
-                )
+        definitions.Sort((a, b) =>
+            string.Compare(
+                a.name,
+                b.name,
+                System.StringComparison.OrdinalIgnoreCase
+            )
         );
 
         return definitions;
@@ -594,26 +493,9 @@ public class CharacterAppearanceOptionDefinitionEditor : Editor
         RaceDefinition race,
         List<RaceDefinition> selectedRaces)
     {
-        if (race == null ||
-            selectedRaces == null)
-        {
-            return false;
-        }
-
-        foreach (RaceDefinition selectedRace
-                 in selectedRaces)
-        {
-            if (selectedRace == null)
-                continue;
-
-            if (selectedRace == race ||
-                selectedRace.raceId == race.raceId)
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return race != null &&
+               selectedRaces != null &&
+               selectedRaces.Contains(race);
     }
 
     private bool ContainsReference(

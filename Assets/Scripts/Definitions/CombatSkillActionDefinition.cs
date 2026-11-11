@@ -1,7 +1,7 @@
 using UnityEngine;
 
 public abstract class CombatSkillActionDefinition :
-    ScriptableObject
+    GameDefinition
 {
     public abstract bool TryCreateExecution(
         CombatSkillActionContext context,

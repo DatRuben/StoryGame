@@ -637,14 +637,13 @@ public sealed class PlayerItemHandlingController :
                 operation.TargetGripType
             );
 
-        if (freeGripCount <
-            operation.TargetGripCount)
+        if (freeGripCount < operation.TargetGripCount)
         {
             Debug.LogError(
                 "Item handling could not start because there are not enough free grips. " +
                 "Item: " +
                 (operation.Item.Definition != null
-                    ? operation.Item.Definition.itemName
+                    ? operation.Item.Definition.name
                     : "Unknown") +
                 ", Grip Type: " +
                 operation.TargetGripType +
@@ -658,10 +657,9 @@ public sealed class PlayerItemHandlingController :
             return false;
         }
 
-        return TryAcquireOperationItem(
-            operation
-        );
+        return TryAcquireOperationItem(operation);
     }
+
     private void UpdateTransferOperation()
     {
         ItemHandlingOperation operation =
@@ -707,8 +705,7 @@ public sealed class PlayerItemHandlingController :
             return false;
         }
 
-        if (gripState.IsHolding(
-                operation.Item))
+        if (gripState.IsHolding(operation.Item))
         {
             Debug.LogError(
                 "Cannot retrieve item because the same item instance is already in PlayerGripState while still owned by a source container.",
@@ -726,7 +723,7 @@ public sealed class PlayerItemHandlingController :
             Debug.LogError(
                 "Item handling failed while committing the source Take reservation for " +
                 (operation.Item.Definition != null
-                    ? operation.Item.Definition.itemName
+                    ? operation.Item.Definition.name
                     : "Unknown") +
                 ".",
                 this
@@ -749,9 +746,9 @@ public sealed class PlayerItemHandlingController :
         }
 
         if (gripState.TryHold(
-                operation.Item,
-                operation.TargetGripType,
-                operation.TargetGripCount))
+            operation.Item,
+            operation.TargetGripType,
+            operation.TargetGripCount))
         {
             return true;
         }
@@ -760,7 +757,7 @@ public sealed class PlayerItemHandlingController :
             "PlayerGripState rejected a retrieved item after it was removed from its source. " +
             "Item: " +
             (operation.Item.Definition != null
-                ? operation.Item.Definition.itemName
+                ? operation.Item.Definition.name
                 : "Unknown") +
             ", Grip Type: " +
             operation.TargetGripType +
@@ -771,20 +768,17 @@ public sealed class PlayerItemHandlingController :
                 operation.TargetGripType
             ) +
             ", Already Holding Same Item: " +
-            gripState.IsHolding(
-                operation.Item
-            ),
+            gripState.IsHolding(operation.Item),
             this
         );
 
         bool restored =
-                    operation.SourceContainer
-                .PlaceInstance(
-                    operation.Item,
-                    operation.TakeReservation.Position.x,
-                    operation.TakeReservation.Position.y,
-                    operation.TakeReservation.RotationSteps
-                );
+            operation.SourceContainer.PlaceInstance(
+                operation.Item,
+                operation.TakeReservation.Position.x,
+                operation.TakeReservation.Position.y,
+                operation.TakeReservation.RotationSteps
+            );
 
         if (!restored)
         {

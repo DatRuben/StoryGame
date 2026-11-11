@@ -1,4 +1,3 @@
-using System.Text;
 using UnityEngine;
 using System.Collections.Generic;
 
@@ -20,14 +19,8 @@ public enum StatusEffectDisposition
 [CreateAssetMenu(
     menuName = "Game/Status Effect Definition"
 )]
-public class StatusEffectDefinition : ScriptableObject
+public class StatusEffectDefinition : GameDefinition
 {
-    [Header("Identity")]
-    [HideInInspector]
-    public string effectId;
-
-    public string displayName;
-
     [TextArea]
     public string description;
 
@@ -73,14 +66,6 @@ public class StatusEffectDefinition : ScriptableObject
 
     private void OnValidate()
     {
-        if (string.IsNullOrWhiteSpace(displayName))
-            displayName = name;
-
-        if (string.IsNullOrWhiteSpace(effectId))
-        {
-            effectId = MakeId(displayName);
-        }
-
         duration =
             Mathf.Max(
                 0f,
@@ -199,35 +184,6 @@ public class StatusEffectDefinition : ScriptableObject
             hasPositive = true;
         else if (value < 0)
             hasNegative = true;
-    }
-
-    private string MakeId(
-        string value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-            return "";
-
-        StringBuilder builder =
-            new StringBuilder();
-
-        foreach (char character in value)
-        {
-            if (char.IsLetterOrDigit(character))
-            {
-                builder.Append(
-                    char.ToLowerInvariant(character)
-                );
-            }
-            else if (builder.Length > 0 &&
-                     builder[builder.Length - 1] != '_')
-            {
-                builder.Append('_');
-            }
-        }
-
-        return builder
-            .ToString()
-            .Trim('_');
     }
 
     public bool CanApplyTo(

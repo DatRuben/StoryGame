@@ -37,8 +37,7 @@ public sealed class ResolvedCombatSkill
         get;
     }
 
-    public CharacterActionPointType
-        CharacterActionPoint
+    public CharacterActionPointType CharacterActionPoint
     {
         get;
     }
@@ -48,8 +47,7 @@ public sealed class ResolvedCombatSkill
         get;
     }
 
-    public CombatSkillHeldItemSource
-        HeldItemSource
+    public CombatSkillHeldItemSource HeldItemSource
     {
         get;
     }
@@ -57,61 +55,42 @@ public sealed class ResolvedCombatSkill
     internal ResolvedCombatSkill(
         CombatSkillDefinition definition)
     {
-        Definition =
-            definition;
+        Definition = definition;
 
-        SkillName =
-            definition != null
-                ? definition.skillName
-                : "";
+        SkillName = definition != null
+            ? definition.name
+            : "";
 
-        Action =
-            definition != null
-                ? definition.action
-                : null;
+        Action = definition != null
+            ? definition.action
+            : null;
 
-        CastTime =
-            definition != null
-                ? Mathf.Max(
-                    0f,
-                    definition.castTime
-                )
-                : 0f;
+        CastTime = definition != null
+            ? Mathf.Max(0f, definition.castTime)
+            : 0f;
 
-        Cooldown =
-            definition != null
-                ? Mathf.Max(
-                    0f,
-                    definition.cooldown
-                )
-                : 0f;
+        Cooldown = definition != null
+            ? Mathf.Max(0f, definition.cooldown)
+            : 0f;
 
-        AetherCost =
-            definition != null
-                ? Mathf.Max(
-                    0f,
-                    definition.aetherCost
-                )
-                : 0f;
+        AetherCost = definition != null
+            ? Mathf.Max(0f, definition.aetherCost)
+            : 0f;
 
-        OriginSource =
-            definition != null
-                ? definition.originSource
-                : CombatSkillOriginSource.None;
+        OriginSource = definition != null
+            ? definition.originSource
+            : CombatSkillOriginSource.None;
 
-        CharacterActionPoint =
-            definition != null
-                ? definition.characterActionPoint
-                : CharacterActionPointType.Center;
+        CharacterActionPoint = definition != null
+            ? definition.characterActionPoint
+            : CharacterActionPointType.Center;
 
-        CustomActionPointId =
-            definition != null
-                ? definition.customActionPointId
-                : "";
+        CustomActionPointId = definition != null
+            ? definition.customActionPointId
+            : "";
 
-        HeldItemSource =
-            definition != null
-                ? definition.heldItemSource
-                : CombatSkillHeldItemSource.SkillSourceItem;
+        HeldItemSource = definition != null
+            ? definition.heldItemSource
+            : CombatSkillHeldItemSource.SkillSourceItem;
     }
 }

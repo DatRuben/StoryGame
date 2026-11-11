@@ -146,22 +146,22 @@ public class CharacterCreator : MonoBehaviour
     }
 
     public void SetTailSaturation(
-		float saturation)
-	{
-		selectedAppearance.tailSaturation =
-			Mathf.Clamp01(saturation);
+        float saturation)
+    {
+        selectedAppearance.tailSaturation =
+            Mathf.Clamp01(saturation);
 
-		NotifySelectionChanged();
-	}
+        NotifySelectionChanged();
+    }
 
-	public void SetTailValue(
-		float value)
-	{
-		selectedAppearance.tailValue =
-			Mathf.Clamp01(value);
+    public void SetTailValue(
+        float value)
+    {
+        selectedAppearance.tailValue =
+            Mathf.Clamp01(value);
 
-		NotifySelectionChanged();
-	}
+        NotifySelectionChanged();
+    }
 
     public void SetEyeHue(
         float hue)
@@ -225,7 +225,7 @@ public class CharacterCreator : MonoBehaviour
             CharacterAppearanceOptionAvailability.Available)
         {
             errorMessage =
-                $"{optionDefinition.displayName} is not " +
+                $"{optionDefinition.name} is not " +
                 "available for the selected ancestry.";
 
             return false;
@@ -244,7 +244,7 @@ public class CharacterCreator : MonoBehaviour
 
         if (string.Equals(
             currentOptionId,
-            optionDefinition.optionId,
+            optionDefinition.Id,
             System.StringComparison.OrdinalIgnoreCase))
         {
             return true;
@@ -252,7 +252,7 @@ public class CharacterCreator : MonoBehaviour
 
         if (!selectedAppearance.SetSingleOptionId(
             optionDefinition.category,
-            optionDefinition.optionId))
+            optionDefinition.Id))
         {
             errorMessage =
                 $"{optionDefinition.category} is not a " +
@@ -314,13 +314,13 @@ public class CharacterCreator : MonoBehaviour
 
         string nextSubraceId =
             raceDefinition.standardSubrace != null
-                ? raceDefinition.standardSubrace.subraceId
+                ? raceDefinition.standardSubrace.Id
                 : "";
 
         bool raceOrSubraceChanged =
             !string.Equals(
                 selectedRaceId,
-                raceDefinition.raceId,
+                raceDefinition.Id,
                 System.StringComparison.OrdinalIgnoreCase
             ) ||
             !string.Equals(
@@ -329,7 +329,7 @@ public class CharacterCreator : MonoBehaviour
                 System.StringComparison.OrdinalIgnoreCase
             );
 
-        selectedRaceId = raceDefinition.raceId;
+        selectedRaceId = raceDefinition.Id;
 
         SelectDefaultSubraceFor(raceDefinition);
 
@@ -455,7 +455,7 @@ public class CharacterCreator : MonoBehaviour
         if (subraceDefinition.race == null)
         {
             errorMessage =
-                $"{subraceDefinition.displayName} has no RaceDefinition assigned.";
+                $"{subraceDefinition.name} has no RaceDefinition assigned.";
 
             return false;
         }
@@ -463,17 +463,17 @@ public class CharacterCreator : MonoBehaviour
         bool raceOrSubraceChanged =
             !string.Equals(
                 selectedRaceId,
-                subraceDefinition.race.raceId,
+                subraceDefinition.race.Id,
                 System.StringComparison.OrdinalIgnoreCase
             ) ||
             !string.Equals(
                 selectedSubraceId,
-                subraceDefinition.subraceId,
+                subraceDefinition.Id,
                 System.StringComparison.OrdinalIgnoreCase
             );
 
-        selectedRaceId = subraceDefinition.race.raceId;
-        selectedSubraceId = subraceDefinition.subraceId;
+        selectedRaceId = subraceDefinition.race.Id;
+        selectedSubraceId = subraceDefinition.Id;
 
         CleanSelectedLineages(
             subraceDefinition.race,
@@ -507,7 +507,7 @@ public class CharacterCreator : MonoBehaviour
         if (subraceDefinition.race == null)
         {
             errorMessage =
-                $"{subraceDefinition.displayName} " +
+                $"{subraceDefinition.name} " +
                 "has no RaceDefinition assigned.";
 
             return false;
@@ -538,7 +538,7 @@ public class CharacterCreator : MonoBehaviour
                 raceDefinition.minLineages)
             {
                 errorMessage =
-                    $"{raceDefinition.displayName} requires " +
+                    $"{raceDefinition.name} requires " +
                     $"at least {raceDefinition.minLineages} lineage.";
 
                 return false;
@@ -558,7 +558,7 @@ public class CharacterCreator : MonoBehaviour
             subraceDefinition))
         {
             errorMessage =
-                $"{raceDefinition.displayName} cannot use " +
+                $"{raceDefinition.name} cannot use " +
                 $"lineage {selection.DisplayName}.";
 
             return false;
@@ -593,7 +593,7 @@ public class CharacterCreator : MonoBehaviour
             }
 
             errorMessage =
-                $"{raceDefinition.displayName} can only use " +
+                $"{raceDefinition.name} can only use " +
                 $"up to {raceDefinition.maxLineages} lineages.";
 
             return false;
@@ -640,10 +640,10 @@ public class CharacterCreator : MonoBehaviour
             return false;
         }
 
-        if (selectedBackgroundId == backgroundDefinition.backgroundId)
+        if (selectedBackgroundId == backgroundDefinition.Id)
             return true;
 
-        selectedBackgroundId = backgroundDefinition.backgroundId;
+        selectedBackgroundId = backgroundDefinition.Id;
         NotifySelectionChanged();
         return true;
     }
@@ -671,9 +671,9 @@ public class CharacterCreator : MonoBehaviour
             return false;
         }
 
-        if (selectedTraitIds.Contains(traitDefinition.traitId))
+        if (selectedTraitIds.Contains(traitDefinition.Id))
         {
-            selectedTraitIds.Remove(traitDefinition.traitId);
+            selectedTraitIds.Remove(traitDefinition.Id);
             NotifySelectionChanged();
             return true;
         }
@@ -684,12 +684,12 @@ public class CharacterCreator : MonoBehaviour
             return false;
         }
 
-        selectedTraitIds.Add(traitDefinition.traitId);
+        selectedTraitIds.Add(traitDefinition.Id);
 
         if (!AreSelectedTraitsValid(
             out errorMessage))
         {
-            selectedTraitIds.Remove(traitDefinition.traitId);
+            selectedTraitIds.Remove(traitDefinition.Id);
             return false;
         }
 
@@ -802,7 +802,7 @@ public class CharacterCreator : MonoBehaviour
             return;
 
         if (raceDefinition.standardSubrace != null)
-            selectedSubraceId = raceDefinition.standardSubrace.subraceId;
+            selectedSubraceId = raceDefinition.standardSubrace.Id;
     }
 
     private void EnsureDefaultBackground()
@@ -820,13 +820,13 @@ public class CharacterCreator : MonoBehaviour
 
         if (defaultBackground == null ||
             string.IsNullOrWhiteSpace(
-                defaultBackground.backgroundId))
+                defaultBackground.Id))
         {
             return;
         }
 
         selectedBackgroundId =
-            defaultBackground.backgroundId;
+            defaultBackground.Id;
     }
 
     private bool TryGetRaceDefinition(
@@ -1077,7 +1077,7 @@ public class CharacterCreator : MonoBehaviour
                     existingTrait.IsMutuallyExclusiveWith(traitDefinition))
                 {
                     errorMessage =
-                        $"{traitDefinition.displayName} cannot be combined with {existingTrait.displayName}.";
+                        $"{traitDefinition.name} cannot be combined with {existingTrait.name}.";
 
                     return false;
                 }
@@ -1222,14 +1222,14 @@ public class CharacterCreator : MonoBehaviour
             );
 
         selectedAppearance.tailSaturation =
-			Mathf.Clamp01(
-				selectedAppearance.tailSaturation
-			);
+            Mathf.Clamp01(
+                selectedAppearance.tailSaturation
+            );
 
-		selectedAppearance.tailValue =
-			Mathf.Clamp01(
-				selectedAppearance.tailValue
-			);
+        selectedAppearance.tailValue =
+            Mathf.Clamp01(
+                selectedAppearance.tailValue
+            );
 
         selectedAppearance.hue =
             Mathf.Clamp01(
@@ -1281,11 +1281,11 @@ public class CharacterCreator : MonoBehaviour
 
     private void ClampSelectedSingleAppearanceOptions()
     {
-		ClampSelectedSingleAppearanceOption(
-			CharacterAppearanceCategory.Body
-		);
+        ClampSelectedSingleAppearanceOption(
+            CharacterAppearanceCategory.Body
+        );
 
-		ClampSelectedSingleAppearanceOption(
+        ClampSelectedSingleAppearanceOption(
             CharacterAppearanceCategory.Head
         );
 
@@ -1334,16 +1334,16 @@ public class CharacterCreator : MonoBehaviour
             return;
         }
 
-        string selectedOptionId =
+        string selectedId =
             selectedAppearance.GetSingleOptionId(
                 category
             );
 
         if (!string.IsNullOrWhiteSpace(
-                selectedOptionId) &&
+                selectedId) &&
             characterDataLibrary
                 .TryGetAppearanceOptionDefinition(
-                    selectedOptionId,
+                    selectedId,
                     out CharacterAppearanceOptionDefinition
                         selectedOption) &&
             selectedOption.category == category &&
@@ -1354,7 +1354,7 @@ public class CharacterCreator : MonoBehaviour
         {
             selectedAppearance.SetSingleOptionId(
                 category,
-                selectedOption.optionId
+                selectedOption.Id
             );
 
             return;
@@ -1368,7 +1368,7 @@ public class CharacterCreator : MonoBehaviour
         selectedAppearance.SetSingleOptionId(
             category,
             defaultOption != null
-                ? defaultOption.optionId
+                ? defaultOption.Id
                 : ""
         );
     }
@@ -1455,13 +1455,13 @@ public class CharacterCreator : MonoBehaviour
 
         if (subraceDefinition != null &&
             (subraceDefinition.race == null ||
-             subraceDefinition.race.raceId !=
-             raceDefinition.raceId))
+             subraceDefinition.race !=
+             raceDefinition))
         {
             errorMessage =
-                $"{subraceDefinition.displayName} " +
+                $"{subraceDefinition.name} " +
                 $"does not belong to " +
-                $"{raceDefinition.displayName}.";
+                $"{raceDefinition.name}.";
 
             return false;
         }
@@ -1532,10 +1532,10 @@ public class CharacterCreator : MonoBehaviour
         }
 
         if (subraceDefinition.race == null ||
-            subraceDefinition.race.raceId != raceDefinition.raceId)
+            subraceDefinition.race != raceDefinition)
         {
             errorMessage =
-                $"{subraceDefinition.displayName} does not belong to {raceDefinition.displayName}.";
+                $"{subraceDefinition.name} does not belong to {raceDefinition.name}.";
             return false;
         }
 

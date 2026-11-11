@@ -211,7 +211,7 @@ public class CharacterCreatorAppearanceUI : MonoBehaviour
             );
 
         button.name =
-            $"{option.optionId}AppearanceOptionButton";
+            $"{option.Id}AppearanceOptionButton";
 
         button.gameObject.SetActive(true);
         button.SetImage(option.optionImage);
@@ -252,7 +252,7 @@ public class CharacterCreatorAppearanceUI : MonoBehaviour
         }
 
         if (!characterCreator.SelectAppearanceOption(
-                option.optionId,
+                option.Id,
                 out string errorMessage))
         {
             Debug.LogWarning(
@@ -343,7 +343,7 @@ public class CharacterCreatorAppearanceUI : MonoBehaviour
                 available &&
                 string.Equals(
                     selectedOptionId,
-                    option.optionId,
+                    option.Id,
                     System.StringComparison.OrdinalIgnoreCase
                 );
 

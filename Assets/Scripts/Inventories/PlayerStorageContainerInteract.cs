@@ -675,41 +675,29 @@ public sealed class PlayerStorageContainerInteract :
     {
         switch (interactionType)
         {
-            case PlayerInteractionType
-                .PickUpItem:
+            case PlayerInteractionType.PickUpItem:
 
                 if (worldItem != null &&
                     worldItem.Item != null &&
                     worldItem.Item.Definition != null &&
                     !string.IsNullOrWhiteSpace(
-                        worldItem.Item.Definition
-                            .itemName))
+                        worldItem.Item.Definition.name))
                 {
-                    return
-                        "Pick Up " +
-                        worldItem.Item.Definition
-                            .itemName;
+                    return "Pick Up " +
+                        worldItem.Item.Definition.name;
                 }
 
                 return "Pick Up Item";
 
-            case PlayerInteractionType
-                .OpenContainer:
+            case PlayerInteractionType.OpenContainer:
 
-                return
-                    "Open " +
-                    GetContainerDisplayName(
-                        container
-                    );
+                return "Open " +
+                    GetContainerDisplayName(container);
 
-            case PlayerInteractionType
-                .CloseContainer:
+            case PlayerInteractionType.CloseContainer:
 
-                return
-                    "Close " +
-                    GetContainerDisplayName(
-                        container
-                    );
+                return "Close " +
+                    GetContainerDisplayName(container);
 
             default:
                 return "";

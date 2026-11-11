@@ -74,7 +74,7 @@ public sealed class CombatElementBuildupRule
         "Game/Combat/Element Buildup Rules"
 )]
 public sealed class CombatElementBuildupRules :
-    ScriptableObject
+    GameDefinition
 {
     [SerializeField]
     private CombatElementBuildupRule[] rules =

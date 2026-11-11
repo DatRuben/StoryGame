@@ -1,14 +1,9 @@
 using System.Collections.Generic;
-using System.Text;
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "Game/Trait Definition")]
-public class TraitDefinition : ScriptableObject
+public class TraitDefinition : GameDefinition
 {
-    [Header("Identity")]
-    [HideInInspector] public string traitId;
-    public string displayName;
-
     [TextArea]
     public string description;
 
@@ -33,39 +28,5 @@ public class TraitDefinition : ScriptableObject
     {
         return modifiers == null ||
                modifiers.Total() == 0;
-    }
-
-    private void OnValidate()
-    {
-        if (string.IsNullOrWhiteSpace(displayName))
-            displayName = name;
-
-        if (string.IsNullOrWhiteSpace(traitId))
-        {
-            traitId = MakeId(displayName);
-        }
-    }
-
-    private string MakeId(string value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-            return "";
-
-        StringBuilder builder = new();
-
-        foreach (char character in value)
-        {
-            if (char.IsLetterOrDigit(character))
-            {
-                builder.Append(char.ToLowerInvariant(character));
-            }
-            else if (builder.Length > 0 &&
-                     builder[^1] != '_')
-            {
-                builder.Append('_');
-            }
-        }
-
-        return builder.ToString().Trim('_');
     }
 }

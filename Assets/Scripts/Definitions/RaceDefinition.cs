@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Text;
 using UnityEngine;
 
 #if UNITY_EDITOR
@@ -12,13 +11,8 @@ public enum LineageType
 }
 
 [CreateAssetMenu(menuName = "Game/Race Definition")]
-public class RaceDefinition : ScriptableObject
+public class RaceDefinition : GameDefinition
 {
-    [Header("Identity")]
-    [HideInInspector]
-    public string raceId;
-
-    public string displayName;
     public BaseRace baseRace;
 
     [TextArea]
@@ -115,64 +109,48 @@ public class RaceDefinition : ScriptableObject
         List<LineageSelection> lineages,
         out string errorMessage)
     {
-        int count =
-            lineages == null
-                ? 0
-                : lineages.Count;
+        int count = lineages == null
+            ? 0
+            : lineages.Count;
 
-        if (!IsLineageCountValid(
-            count,
-            out errorMessage))
-        {
+        if (!IsLineageCountValid(count, out errorMessage))
             return false;
-        }
 
         if (lineages == null)
             return true;
 
-        HashSet<string> usedSelectionIds =
-            new HashSet<string>(
-                System.StringComparer.OrdinalIgnoreCase
-            );
+        HashSet<string> usedSelectionIds = new(
+            System.StringComparer.OrdinalIgnoreCase
+        );
 
-        foreach (LineageSelection lineage
-                 in lineages)
+        foreach (LineageSelection lineage in lineages)
         {
-            if (lineage == null ||
-                !lineage.IsValid)
+            if (lineage == null || !lineage.IsValid)
             {
                 errorMessage =
                     "Missing or invalid lineage selection.";
-
                 return false;
             }
 
-            if (string.IsNullOrWhiteSpace(
-                lineage.SelectionId))
+            if (string.IsNullOrWhiteSpace(lineage.SelectionId))
             {
                 errorMessage =
                     $"{lineage.DisplayName} has no lineage selection ID.";
-
                 return false;
             }
 
-            if (!usedSelectionIds.Add(
-                lineage.SelectionId))
+            if (!usedSelectionIds.Add(lineage.SelectionId))
             {
                 errorMessage =
                     $"{lineage.DisplayName} was selected more than once.";
-
                 return false;
             }
 
-            if (!IsLineageAllowed(
-                lineage,
-                subraceDefinition))
+            if (!IsLineageAllowed(lineage, subraceDefinition))
             {
                 errorMessage =
-                    $"{displayName} cannot use lineage " +
+                    $"{name} cannot use lineage " +
                     $"{lineage.DisplayName}.";
-
                 return false;
             }
         }
@@ -192,7 +170,7 @@ public class RaceDefinition : ScriptableObject
             if (count > 0)
             {
                 errorMessage =
-                    $"{displayName} cannot use lineages.";
+                    $"{name} cannot use lineages.";
 
                 return false;
             }
@@ -203,7 +181,7 @@ public class RaceDefinition : ScriptableObject
         if (count < minLineages)
         {
             errorMessage =
-                $"{displayName} requires at least " +
+                $"{name} requires at least " +
                 $"{minLineages} lineage.";
 
             return false;
@@ -212,7 +190,7 @@ public class RaceDefinition : ScriptableObject
         if (count > maxLineages)
         {
             errorMessage =
-                $"{displayName} can only use up to " +
+                $"{name} can only use up to " +
                 $"{maxLineages} lineages.";
 
             return false;
@@ -241,14 +219,6 @@ public class RaceDefinition : ScriptableObject
 
     private void OnValidate()
     {
-        if (string.IsNullOrWhiteSpace(displayName))
-            displayName = name;
-
-        if (string.IsNullOrWhiteSpace(raceId))
-        {
-            raceId = MakeId(displayName);
-        }
-
         if (attributeScaling == null)
         {
             attributeScaling =
@@ -291,32 +261,6 @@ public class RaceDefinition : ScriptableObject
         {
             defaultLineage = null;
         }
-    }
-
-    private string MakeId(
-        string value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-            return "";
-
-        StringBuilder builder = new();
-
-        foreach (char character in value)
-        {
-            if (char.IsLetterOrDigit(character))
-            {
-                builder.Append(
-                    char.ToLowerInvariant(character)
-                );
-            }
-            else if (builder.Length > 0 &&
-                     builder[^1] != '_')
-            {
-                builder.Append('_');
-            }
-        }
-
-        return builder.ToString().Trim('_');
     }
 }
 
@@ -373,6 +317,10 @@ public class RaceDefinitionEditor : Editor
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
+
+        GameDefinitionEditor.DrawIdentity(
+            (RaceDefinition)target
+        );
 
         SerializedProperty property =
             serializedObject.GetIterator();

@@ -794,23 +794,21 @@ public class PlayerCharacterProfile : MonoBehaviour
             this
         );
     }
-
     private void ValidateCharacterModel()
     {
         if (SubraceDefinition == null)
             return;
 
-        if (SubraceDefinition
-            .TryValidateCharacterModel(
-                gameObject,
-                out string warning))
+        if (SubraceDefinition.TryValidateCharacterModel(
+            gameObject,
+            out string warning))
         {
             return;
         }
 
         Debug.LogWarning(
-            $"Character model validation failed for " +
-            $"'{SubraceDefinition.displayName}':\n" +
+            "Character model validation failed for " +
+            $"'{SubraceDefinition.name}':\n" +
             warning,
             this
         );

@@ -12,8 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 10551bd0ca1de1a4387828a69e4e131d, type: 3}
   m_Name: Animali
   m_EditorClassIdentifier: Assembly-CSharp::RaceDefinition
-  raceId: animali
-  displayName: Animali
   baseRace: 0
   description: 
   standardSubrace: {fileID: 0}

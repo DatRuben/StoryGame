@@ -12,8 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 10551bd0ca1de1a4387828a69e4e131d, type: 3}
   m_Name: Drakken
   m_EditorClassIdentifier: Assembly-CSharp::RaceDefinition
-  raceId: drakken
-  displayName: Drakken
   baseRace: 2
   description: 
   standardSubrace: {fileID: 11400000, guid: 10ccb86a2d0cb24429be39083f24cf0e, type: 2}

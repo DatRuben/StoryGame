@@ -1,11 +1,8 @@
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "Game/Shapeshift Profile")]
-public class ShapeshiftProfile : ScriptableObject
+public class ShapeshiftProfile : GameDefinition
 {
-    [Header("Identity")]
-    public string formName;
-
     [TextArea]
     public string description;
 

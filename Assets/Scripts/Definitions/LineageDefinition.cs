@@ -1,4 +1,3 @@
-using System.Text;
 using UnityEngine;
 
 #if UNITY_EDITOR
@@ -6,14 +5,8 @@ using UnityEditor;
 #endif
 
 [CreateAssetMenu(menuName = "Game/Lineage Definition")]
-public class LineageDefinition : ScriptableObject
+public class LineageDefinition : GameDefinition
 {
-    [Header("Identity")]
-    [HideInInspector]
-    public string lineageId;
-
-    public string displayName;
-
     [TextArea]
     public string description;
 
@@ -39,58 +32,10 @@ public class LineageDefinition : ScriptableObject
     public string skillTheme;
     public string skillTreeTheme;
 
-    public bool IsAllowedForRace(
-        RaceDefinition race)
+    public bool IsAllowedForRace(RaceDefinition race)
     {
-        if (race == null ||
-            allowedRace == null)
-        {
-            return false;
-        }
-
-        return allowedRace == race ||
-               string.Equals(
-                   allowedRace.raceId,
-                   race.raceId,
-                   System.StringComparison.OrdinalIgnoreCase
-               );
-    }
-
-    private void OnValidate()
-    {
-        if (string.IsNullOrWhiteSpace(displayName))
-            displayName = name;
-
-        if (string.IsNullOrWhiteSpace(lineageId))
-        {
-            lineageId = MakeId(displayName);
-        }
-    }
-
-    private string MakeId(
-        string value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-            return "";
-
-        StringBuilder builder = new();
-
-        foreach (char character in value)
-        {
-            if (char.IsLetterOrDigit(character))
-            {
-                builder.Append(
-                    char.ToLowerInvariant(character)
-                );
-            }
-            else if (builder.Length > 0 &&
-                     builder[^1] != '_')
-            {
-                builder.Append('_');
-            }
-        }
-
-        return builder.ToString().Trim('_');
+        return race != null &&
+               allowedRace == race;
     }
 }
 
@@ -99,7 +44,6 @@ public class LineageDefinition : ScriptableObject
 [CanEditMultipleObjects]
 public class LineageDefinitionEditor : Editor
 {
-    private SerializedProperty displayName;
     private SerializedProperty description;
     private SerializedProperty allowedRace;
     private SerializedProperty hybridAttributeShape;
@@ -109,30 +53,19 @@ public class LineageDefinitionEditor : Editor
 
     private void OnEnable()
     {
-        displayName =
-            serializedObject.FindProperty("displayName");
+        description = serializedObject.FindProperty("description");
+        allowedRace = serializedObject.FindProperty("allowedRace");
 
-        description =
-            serializedObject.FindProperty("description");
+        hybridAttributeShape = serializedObject.FindProperty(
+            "hybridAttributeShape"
+        );
 
-        allowedRace =
-            serializedObject.FindProperty("allowedRace");
+        animalSpeciesModifiers = serializedObject.FindProperty(
+            "animalSpeciesModifiers"
+        );
 
-        hybridAttributeShape =
-            serializedObject.FindProperty(
-                "hybridAttributeShape"
-            );
-
-        animalSpeciesModifiers =
-            serializedObject.FindProperty(
-                "animalSpeciesModifiers"
-            );
-
-        skillTheme =
-            serializedObject.FindProperty("skillTheme");
-
-        skillTreeTheme =
-            serializedObject.FindProperty("skillTreeTheme");
+        skillTheme = serializedObject.FindProperty("skillTheme");
+        skillTreeTheme = serializedObject.FindProperty("skillTreeTheme");
     }
 
     public override void OnInspectorGUI()
@@ -183,12 +116,20 @@ public class LineageDefinitionEditor : Editor
 
     private void DrawIdentity()
     {
-        EditorGUILayout.LabelField(
-            "Identity",
-            EditorStyles.boldLabel
-        );
+        if (targets.Length == 1)
+        {
+            GameDefinitionEditor.DrawIdentity(
+                (LineageDefinition)target
+            );
+        }
+        else
+        {
+            EditorGUILayout.LabelField(
+                "Identity",
+                "Select one asset to view its name and ID."
+            );
+        }
 
-        EditorGUILayout.PropertyField(displayName);
         EditorGUILayout.PropertyField(description);
 
         EditorGUILayout.Space();

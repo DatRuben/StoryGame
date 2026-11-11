@@ -28,16 +28,22 @@ public sealed class SkillDefinitionLibrary : ScriptableObject
         {
             if (skill == null ||
                 !string.Equals(
-                    skill.SkillId,
+                    skill.Id,
                     skillId,
                     StringComparison.OrdinalIgnoreCase))
             {
                 continue;
             }
 
-            // An ambiguous ID must never resolve arbitrarily.
+            // Do not resolve ambiguous IDs.
             if (definition != null)
             {
+                Debug.LogError(
+                    $"Cannot resolve Skill ID '{skillId}': " +
+                    $"both '{definition.name}' and " +
+                    $"'{skill.name}' use this ID."
+                );
+
                 definition = null;
                 return false;
             }
@@ -66,6 +72,7 @@ public sealed class SkillDefinitionLibrary : ScriptableObject
             AssetDatabase.FindAssets("t:CombatSkillDefinition");
 
         List<CombatSkillDefinition> discovered = new();
+
         Dictionary<string, CombatSkillDefinition> ids =
             new(StringComparer.OrdinalIgnoreCase);
 
@@ -75,48 +82,55 @@ public sealed class SkillDefinitionLibrary : ScriptableObject
 
             CombatSkillDefinition skill =
                 AssetDatabase.LoadAssetAtPath<CombatSkillDefinition>(
-                    path);
+                    path
+                );
 
             if (skill == null)
                 continue;
 
             discovered.Add(skill);
 
-            if (string.IsNullOrWhiteSpace(skill.SkillId))
+            if (string.IsNullOrWhiteSpace(skill.Id))
             {
-                Debug.LogWarning(
-                    $"Skill '{skill.name}' has no persistent Skill ID.",
-                    skill);
+                Debug.LogError(
+                    $"Skill '{skill.name}' generates an empty ID. " +
+                    "Rename the asset to a valid name.",
+                    skill
+                );
+
                 continue;
             }
 
-            if (ids.TryGetValue(skill.SkillId, out var existing))
+            if (ids.TryGetValue(skill.Id, out var existing))
             {
                 Debug.LogError(
-                    $"Duplicate Skill ID '{skill.SkillId}' on " +
+                    $"Duplicate Skill ID '{skill.Id}' on " +
                     $"'{existing.name}' and '{skill.name}'.",
-                    skill);
+                    skill
+                );
             }
             else
             {
-                ids.Add(skill.SkillId, skill);
+                ids.Add(skill.Id, skill);
             }
         }
 
         discovered.Sort((a, b) =>
         {
             int comparison = string.Compare(
-                a.SkillId,
-                b.SkillId,
-                StringComparison.OrdinalIgnoreCase);
+                a.Id,
+                b.Id,
+                StringComparison.OrdinalIgnoreCase
+            );
 
             return comparison != 0
                 ? comparison
                 : string.CompareOrdinal(a.name, b.name);
         });
 
-        bool changed = skillDefinitions == null ||
-                       skillDefinitions.Count != discovered.Count;
+        bool changed =
+            skillDefinitions == null ||
+            skillDefinitions.Count != discovered.Count;
 
         if (!changed)
         {

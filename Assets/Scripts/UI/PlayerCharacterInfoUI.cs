@@ -128,17 +128,17 @@ public sealed class PlayerCharacterInfoUI :
 
         string raceName =
             characterProfile.RaceDefinition != null
-                ? characterProfile.RaceDefinition.displayName
+                ? characterProfile.RaceDefinition.name
                 : profile.raceId;
 
         string subraceName =
             characterProfile.SubraceDefinition != null
-                ? characterProfile.SubraceDefinition.displayName
+                ? characterProfile.SubraceDefinition.name
                 : profile.subraceId;
 
         string backgroundName =
             characterProfile.BackgroundDefinition != null
-                ? characterProfile.BackgroundDefinition.displayName
+                ? characterProfile.BackgroundDefinition.name
                 : profile.backgroundId;
 
         string lineageText = "None";
@@ -198,7 +198,7 @@ public sealed class PlayerCharacterInfoUI :
 
                 if (trait == null ||
                     string.IsNullOrWhiteSpace(
-                        trait.displayName))
+                        trait.name))
                 {
                     continue;
                 }
@@ -208,7 +208,7 @@ public sealed class PlayerCharacterInfoUI :
                     traitsText += ", ";
                 }
 
-                traitsText += trait.displayName;
+                traitsText += trait.name;
             }
 
             if (traitsText.Length == 0)

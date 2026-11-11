@@ -36,11 +36,8 @@ public enum EquipmentCombatRole
 }
 
 [CreateAssetMenu(menuName = "Game/Item Definition")]
-public class ItemDefinition : ScriptableObject
+public class ItemDefinition : GameDefinition
 {
-    [Header("Identity")]
-    public string itemName;
-
     [Header("Item Type")]
     public ItemCategory itemCategory = ItemCategory.Misc;
 
@@ -217,9 +214,7 @@ public class ItemDefinition : ScriptableObject
                 rangedWeaponWarning))
         {
             Debug.LogWarning(
-                itemName +
-                ": " +
-                rangedWeaponWarning,
+                name + ": " + rangedWeaponWarning,
                 this
             );
         }
@@ -697,18 +692,7 @@ public class ItemDefinitionEditor : Editor
 
     private void DrawIdentitySection(ItemDefinition item)
     {
-        EditorGUILayout.LabelField(
-            "Identity",
-            EditorStyles.boldLabel
-        );
-
-        item.itemName =
-            EditorGUILayout.TextField(
-                "Item Name",
-                item.itemName
-            );
-
-        EditorGUILayout.Space();
+        GameDefinitionEditor.DrawIdentity(item);
     }
 
     private void DrawItemTypeSection(ItemDefinition item)

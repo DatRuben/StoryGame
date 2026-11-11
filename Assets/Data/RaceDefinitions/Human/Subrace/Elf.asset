@@ -12,8 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 376e908953958f448b9282fdc762a931, type: 3}
   m_Name: Elf
   m_EditorClassIdentifier: Assembly-CSharp::SubraceDefinition
-  subraceId: elf
-  displayName: Elf
   race: {fileID: 11400000, guid: 04996e97c0750844d95f7836e2af77e0, type: 2}
   description: 
   baseSubrace: {fileID: 0}

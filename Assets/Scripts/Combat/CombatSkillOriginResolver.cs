@@ -170,6 +170,8 @@ public static class CombatSkillOriginResolver
         }
     }
 
+
+
     private static bool TryResolveSkillSourceItemOrigin(
         CombatSkillRequestContext context,
         ResolvedCombatSkill skill,
@@ -187,7 +189,8 @@ public static class CombatSkillOriginResolver
         {
             error =
                 $"Cannot use skill '{skill.SkillName}'. " +
-                "It requires a held source item, but no source item was provided.";
+                "It requires a held source item, " +
+                "but no source item was provided.";
 
             return false;
         }
@@ -200,27 +203,27 @@ public static class CombatSkillOriginResolver
         {
             error =
                 $"Cannot use skill '{skill.SkillName}'. " +
-                $"Actor '{context.Actor.name}' has no PlayerHeldItemPresenter.";
+                $"Actor '{context.Actor.name}' " +
+                "has no PlayerHeldItemPresenter.";
 
             return false;
         }
 
         if (!presenter.TryGetHeldItemCastPoint(
-                sourceItem,
-                out Transform castPoint))
+            sourceItem,
+            out Transform castPoint))
         {
             error =
                 $"Cannot use skill '{skill.SkillName}'. " +
-                $"Source item '{sourceItem.Definition?.itemName}' " +
+                $"Source item '{sourceItem.Definition?.name}' " +
                 "is not currently held or has no CastPoint configured.";
 
             return false;
         }
 
-        origin =
-            new TransformCombatSkillOrigin(
-                castPoint
-            );
+        origin = new TransformCombatSkillOrigin(
+            castPoint
+        );
 
         return true;
     }

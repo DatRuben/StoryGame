@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Text;
 using UnityEngine;
 
 #if UNITY_EDITOR
@@ -7,11 +6,8 @@ using UnityEditor;
 #endif
 
 [CreateAssetMenu(menuName = "Game/Subrace Definition")]
-public class SubraceDefinition : ScriptableObject
+public class SubraceDefinition : GameDefinition
 {
-    [Header("Identity")]
-    [HideInInspector] public string subraceId;
-    public string displayName;
     public RaceDefinition race;
 
     [TextArea]
@@ -98,22 +94,11 @@ public class SubraceDefinition : ScriptableObject
         return GetDefaultSubrace();
     }
 
-    private bool IsSameRace(
-        SubraceDefinition other)
+    private bool IsSameRace(SubraceDefinition other)
     {
-        if (other == null ||
-            race == null ||
-            other.race == null)
-        {
-            return false;
-        }
-
-        return race == other.race ||
-               string.Equals(
-                   race.raceId,
-                   other.race.raceId,
-                   System.StringComparison.OrdinalIgnoreCase
-               );
+        return other != null &&
+               race != null &&
+               race == other.race;
     }
 
     private bool WouldCreateCycle(
@@ -273,14 +258,6 @@ public class SubraceDefinition : ScriptableObject
 
     private void OnValidate()
     {
-        if (string.IsNullOrWhiteSpace(displayName))
-            displayName = name;
-
-        if (string.IsNullOrWhiteSpace(subraceId))
-        {
-            subraceId = MakeId(displayName);
-        }
-
         if (baseSubrace != null &&
             (baseSubrace == this ||
              !IsSameRace(baseSubrace) ||
@@ -342,36 +319,12 @@ public class SubraceDefinition : ScriptableObject
             out warning
         );
     }
-
-    private string MakeId(string value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-            return "";
-
-        StringBuilder builder = new();
-
-        foreach (char character in value)
-        {
-            if (char.IsLetterOrDigit(character))
-            {
-                builder.Append(char.ToLowerInvariant(character));
-            }
-            else if (builder.Length > 0 &&
-                     builder[^1] != '_')
-            {
-                builder.Append('_');
-            }
-        }
-
-        return builder.ToString().Trim('_');
-    }
 }
 
 #if UNITY_EDITOR
 [CustomEditor(typeof(SubraceDefinition))]
 public class SubraceDefinitionEditor : Editor
 {
-    private SerializedProperty displayName;
     private SerializedProperty race;
     private SerializedProperty description;
     private SerializedProperty baseSubrace;
@@ -389,11 +342,6 @@ public class SubraceDefinitionEditor : Editor
 
     private void OnEnable()
     {
-        displayName =
-            serializedObject.FindProperty(
-                "displayName"
-            );
-
         race =
             serializedObject.FindProperty(
                 "race"
@@ -571,18 +519,11 @@ public class SubraceDefinitionEditor : Editor
 
     private void DrawIdentity()
     {
-        EditorGUILayout.LabelField(
-            "Identity",
-            EditorStyles.boldLabel
+        GameDefinitionEditor.DrawIdentity(
+            (SubraceDefinition)target
         );
 
-        EditorGUILayout.PropertyField(
-            displayName
-        );
-
-        EditorGUILayout.PropertyField(
-            description
-        );
+        EditorGUILayout.PropertyField(description);
 
         EditorGUILayout.Space();
     }
@@ -907,8 +848,7 @@ public class SubraceDefinitionEditor : Editor
         EditorGUILayout.Space();
     }
 
-    private string GetBaseName(
-        SubraceDefinition definition)
+    private string GetBaseName(SubraceDefinition definition)
     {
         if (definition == null)
             return "the Race";
@@ -916,7 +856,7 @@ public class SubraceDefinitionEditor : Editor
         if (definition.IsDefaultSubrace())
         {
             return definition.race != null
-                ? $"{definition.race.displayName} Race"
+                ? $"{definition.race.name} Race"
                 : "the Race";
         }
 
@@ -924,15 +864,10 @@ public class SubraceDefinitionEditor : Editor
             definition.GetBaseSubrace();
 
         if (resolvedBase != null)
-        {
-            return !string.IsNullOrWhiteSpace(
-                resolvedBase.displayName)
-                    ? resolvedBase.displayName
-                    : resolvedBase.name;
-        }
+            return resolvedBase.name;
 
         return definition.race != null
-            ? $"{definition.race.displayName} Race"
+            ? $"{definition.race.name} Race"
             : "the Race";
     }
 

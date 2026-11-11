@@ -253,10 +253,7 @@ public sealed class EquipmentSlotUI :
         if (interactionController != null &&
             interactionController.HasSelection)
         {
-            RefreshForSelection(
-                equippedItem
-            );
-
+            RefreshForSelection(equippedItem);
             return;
         }
 
@@ -275,26 +272,20 @@ public sealed class EquipmentSlotUI :
             equippedItem.Definition;
 
         string text =
-            string.IsNullOrWhiteSpace(
-                definition.itemName)
+            string.IsNullOrWhiteSpace(definition.name)
                 ? GetSlotName()
-                : definition.itemName;
+                : definition.name;
 
-        Color color =
-            equippedColor;
+        Color color = equippedColor;
 
-        if (equipmentSlotType ==
-                EquipmentSlotType.Saddle &&
+        if (equipmentSlotType == EquipmentSlotType.Saddle &&
             definition.hasManualSaddleTurret)
         {
             text += turretSuffix;
             color = turretColor;
         }
 
-        SetSlot(
-            text,
-            color
-        );
+        SetSlot(text, color);
     }
 
     private void RefreshLoadoutWarning()

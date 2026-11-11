@@ -73,7 +73,7 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
             CharacterOptionButtonUI button =
                 Instantiate(optionButtonPrefab, backgroundButtonParent);
 
-            button.name = $"{backgroundDefinition.backgroundId}BackgroundButton";
+            button.name = $"{backgroundDefinition.Id}BackgroundButton";
             button.SetText(GetBackgroundButtonText(backgroundDefinition));
             button.SetSelected(false);
             button.SetInteractable(true);
@@ -86,7 +86,7 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
             );
 
             backgroundButtons.Add(button);
-            backgroundButtonIds.Add(backgroundDefinition.backgroundId);
+            backgroundButtonIds.Add(backgroundDefinition.Id);
         }
     }
 
@@ -100,7 +100,7 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
             CharacterOptionButtonUI button =
                 Instantiate(optionButtonPrefab, traitButtonParent);
 
-            button.name = $"{traitDefinition.traitId}TraitButton";
+            button.name = $"{traitDefinition.Id}TraitButton";
             button.SetText(GetTraitButtonText(traitDefinition));
             button.SetSelected(false);
             button.SetInteractable(true);
@@ -113,7 +113,7 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
             );
 
             traitButtons.Add(button);
-            traitButtonIds.Add(traitDefinition.traitId);
+            traitButtonIds.Add(traitDefinition.Id);
         }
     }
 
@@ -127,7 +127,7 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
         }
 
         if (!characterCreator.SelectBackground(
-            backgroundDefinition.backgroundId,
+            backgroundDefinition.Id,
             out _))
         {
             RefreshUI();
@@ -153,15 +153,15 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
             return;
         }
 
-        if (!CanUseTrait(traitDefinition.traitId) &&
-            !IsTraitSelected(traitDefinition.traitId))
+        if (!CanUseTrait(traitDefinition.Id) &&
+            !IsTraitSelected(traitDefinition.Id))
         {
             RefreshUI();
             return;
         }
 
         if (!characterCreator.ToggleTrait(
-            traitDefinition.traitId,
+            traitDefinition.Id,
             out _))
         {
             RefreshUI();
@@ -304,25 +304,17 @@ public class CharacterCreatorTraitsUI : MonoBehaviour
     private string GetBackgroundButtonText(
         BackgroundDefinition backgroundDefinition)
     {
-        if (backgroundDefinition == null)
-            return "Missing Background";
-
-        if (string.IsNullOrWhiteSpace(backgroundDefinition.displayName))
-            return backgroundDefinition.name;
-
-        return backgroundDefinition.displayName;
+        return backgroundDefinition != null
+            ? backgroundDefinition.name
+            : "Missing Background";
     }
 
     private string GetTraitButtonText(
         TraitDefinition traitDefinition)
     {
-        if (traitDefinition == null)
-            return "Missing Trait";
-
-        if (string.IsNullOrWhiteSpace(traitDefinition.displayName))
-            return traitDefinition.name;
-
-        return traitDefinition.displayName;
+        return traitDefinition != null
+            ? traitDefinition.name
+            : "Missing Trait";
     }
 
     private bool HasRequiredReferences()

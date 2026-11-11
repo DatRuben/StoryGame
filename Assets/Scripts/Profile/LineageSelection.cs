@@ -20,19 +20,15 @@ public sealed class LineageSelection
         get
         {
             if (Subrace != null &&
-                !string.IsNullOrWhiteSpace(
-                    Subrace.subraceId))
+                !string.IsNullOrWhiteSpace(Subrace.Id))
             {
-                return
-                    $"subrace:{Subrace.subraceId}";
+                return $"subrace:{Subrace.Id}";
             }
 
             if (CustomLineage != null &&
-                !string.IsNullOrWhiteSpace(
-                    CustomLineage.lineageId))
+                !string.IsNullOrWhiteSpace(CustomLineage.Id))
             {
-                return
-                    $"lineage:{CustomLineage.lineageId}";
+                return $"lineage:{CustomLineage.Id}";
             }
 
             return "";
@@ -44,10 +40,10 @@ public sealed class LineageSelection
         get
         {
             if (Subrace != null)
-                return Subrace.displayName;
+                return Subrace.name;
 
             if (CustomLineage != null)
-                return CustomLineage.displayName;
+                return CustomLineage.name;
 
             return "";
         }
@@ -140,35 +136,17 @@ public sealed class LineageSelection
         RaceDefinition first,
         RaceDefinition second)
     {
-        if (first == null ||
-            second == null)
-        {
-            return false;
-        }
-
-        return first == second ||
-                string.Equals(
-                    first.raceId,
-                    second.raceId,
-                    StringComparison.OrdinalIgnoreCase
-                );
+        return first != null &&
+               second != null &&
+               first == second;
     }
 
     private static bool SameSubrace(
         SubraceDefinition first,
         SubraceDefinition second)
     {
-        if (first == null ||
-            second == null)
-        {
-            return false;
-        }
-
-        return first == second ||
-               string.Equals(
-                   first.subraceId,
-                   second.subraceId,
-                   StringComparison.OrdinalIgnoreCase
-               );
+        return first != null &&
+               second != null &&
+               first == second;
     }
 }
