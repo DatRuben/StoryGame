@@ -1,4 +1,3 @@
-using System.Text;
 using UnityEngine;
 
 #if UNITY_EDITOR
@@ -65,32 +64,6 @@ public class LineageDefinition : GameDefinition
         {
             lineageId = MakeId(displayName);
         }
-    }
-
-    private string MakeId(
-        string value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-            return "";
-
-        StringBuilder builder = new();
-
-        foreach (char character in value)
-        {
-            if (char.IsLetterOrDigit(character))
-            {
-                builder.Append(
-                    char.ToLowerInvariant(character)
-                );
-            }
-            else if (builder.Length > 0 &&
-                     builder[^1] != '_')
-            {
-                builder.Append('_');
-            }
-        }
-
-        return builder.ToString().Trim('_');
     }
 }
 

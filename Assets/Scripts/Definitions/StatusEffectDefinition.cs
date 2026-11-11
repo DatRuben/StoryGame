@@ -1,4 +1,3 @@
-using System.Text;
 using UnityEngine;
 using System.Collections.Generic;
 
@@ -199,35 +198,6 @@ public class StatusEffectDefinition : GameDefinition
             hasPositive = true;
         else if (value < 0)
             hasNegative = true;
-    }
-
-    private string MakeId(
-        string value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-            return "";
-
-        StringBuilder builder =
-            new StringBuilder();
-
-        foreach (char character in value)
-        {
-            if (char.IsLetterOrDigit(character))
-            {
-                builder.Append(
-                    char.ToLowerInvariant(character)
-                );
-            }
-            else if (builder.Length > 0 &&
-                     builder[builder.Length - 1] != '_')
-            {
-                builder.Append('_');
-            }
-        }
-
-        return builder
-            .ToString()
-            .Trim('_');
     }
 
     public bool CanApplyTo(
