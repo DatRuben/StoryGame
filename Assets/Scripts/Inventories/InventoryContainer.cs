@@ -656,6 +656,7 @@ public class InventoryContainer : MonoBehaviour
         Changed?.Invoke();
     }
 
+
     private void SpawnStartingItems()
     {
         if (grid == null ||
@@ -666,9 +667,7 @@ public class InventoryContainer : MonoBehaviour
 
         bool placedAny = false;
 
-        for (int i = 0;
-             i < startingItems.Count;
-             i++)
+        for (int i = 0; i < startingItems.Count; i++)
         {
             InventoryStartingItem startingItem =
                 startingItems[i];
@@ -697,16 +696,14 @@ public class InventoryContainer : MonoBehaviour
             {
                 Debug.LogWarning(
                     "Could not place starting item: " +
-                    startingItem.item.itemName,
+                    startingItem.item.name,
                     this
                 );
 
                 continue;
             }
 
-            SubscribeItem(
-                itemInstance
-            );
+            SubscribeItem(itemInstance);
 
             placedAny = true;
         }
