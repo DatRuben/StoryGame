@@ -17,6 +17,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 4163000ff3c63644db2f76c943545857, type: 2}
   - {fileID: 11400000, guid: 04996e97c0750844d95f7836e2af77e0, type: 2}
   - {fileID: 11400000, guid: 8518a5df7a2504f419e63f8b4b096beb, type: 2}
+  defaultRaceDefinition: {fileID: 11400000, guid: 04996e97c0750844d95f7836e2af77e0, type: 2}
   subraceDefinitions:
   - {fileID: 11400000, guid: ea62e3cf94c7de245b36d84fc8aea762, type: 2}
   - {fileID: 11400000, guid: 10ccb86a2d0cb24429be39083f24cf0e, type: 2}
