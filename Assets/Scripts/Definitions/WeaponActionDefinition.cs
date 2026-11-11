@@ -12,9 +12,6 @@ public enum WeaponActionType
 public sealed class WeaponActionDefinition :
     GameDefinition
 {
-    [Header("Identity")]
-    public string actionName;
-
     [Header("Action")]
     public WeaponActionType actionType =
         WeaponActionType.None;

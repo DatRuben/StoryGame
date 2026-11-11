@@ -31,11 +31,6 @@ public enum CharacterAppearanceOptionAvailability
 public class CharacterAppearanceOptionDefinition :
     GameDefinition
 {
-    [HideInInspector]
-    public string optionId;
-
-    public string displayName;
-
     public CharacterAppearanceCategory category;
 
     [Tooltip(
@@ -207,17 +202,6 @@ public class CharacterAppearanceOptionDefinition :
         }
 
         return false;
-    }
-
-    private void OnValidate()
-    {
-        if (string.IsNullOrWhiteSpace(displayName))
-            displayName = name;
-
-        if (string.IsNullOrWhiteSpace(optionId))
-        {
-            optionId = MakeId(displayName);
-        }
     }
 }
 

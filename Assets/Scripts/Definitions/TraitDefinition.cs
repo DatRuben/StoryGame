@@ -4,10 +4,6 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Game/Trait Definition")]
 public class TraitDefinition : GameDefinition
 {
-    [Header("Identity")]
-    [HideInInspector] public string traitId;
-    public string displayName;
-
     [TextArea]
     public string description;
 
@@ -32,16 +28,5 @@ public class TraitDefinition : GameDefinition
     {
         return modifiers == null ||
                modifiers.Total() == 0;
-    }
-
-    private void OnValidate()
-    {
-        if (string.IsNullOrWhiteSpace(displayName))
-            displayName = name;
-
-        if (string.IsNullOrWhiteSpace(traitId))
-        {
-            traitId = MakeId(displayName);
-        }
     }
 }

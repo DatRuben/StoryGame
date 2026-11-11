@@ -7,12 +7,6 @@ using UnityEditor;
 [CreateAssetMenu(menuName = "Game/Lineage Definition")]
 public class LineageDefinition : GameDefinition
 {
-    [Header("Identity")]
-    [HideInInspector]
-    public string lineageId;
-
-    public string displayName;
-
     [TextArea]
     public string description;
 
@@ -53,17 +47,6 @@ public class LineageDefinition : GameDefinition
                    race.raceId,
                    System.StringComparison.OrdinalIgnoreCase
                );
-    }
-
-    private void OnValidate()
-    {
-        if (string.IsNullOrWhiteSpace(displayName))
-            displayName = name;
-
-        if (string.IsNullOrWhiteSpace(lineageId))
-        {
-            lineageId = MakeId(displayName);
-        }
     }
 }
 

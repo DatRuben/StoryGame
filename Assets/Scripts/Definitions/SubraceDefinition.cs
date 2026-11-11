@@ -8,9 +8,6 @@ using UnityEditor;
 [CreateAssetMenu(menuName = "Game/Subrace Definition")]
 public class SubraceDefinition : GameDefinition
 {
-    [Header("Identity")]
-    [HideInInspector] public string subraceId;
-    public string displayName;
     public RaceDefinition race;
 
     [TextArea]
@@ -272,14 +269,6 @@ public class SubraceDefinition : GameDefinition
 
     private void OnValidate()
     {
-        if (string.IsNullOrWhiteSpace(displayName))
-            displayName = name;
-
-        if (string.IsNullOrWhiteSpace(subraceId))
-        {
-            subraceId = MakeId(displayName);
-        }
-
         if (baseSubrace != null &&
             (baseSubrace == this ||
              !IsSameRace(baseSubrace) ||

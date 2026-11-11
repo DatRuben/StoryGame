@@ -13,11 +13,6 @@ public enum LineageType
 [CreateAssetMenu(menuName = "Game/Race Definition")]
 public class RaceDefinition : GameDefinition
 {
-    [Header("Identity")]
-    [HideInInspector]
-    public string raceId;
-
-    public string displayName;
     public BaseRace baseRace;
 
     [TextArea]
@@ -240,14 +235,6 @@ public class RaceDefinition : GameDefinition
 
     private void OnValidate()
     {
-        if (string.IsNullOrWhiteSpace(displayName))
-            displayName = name;
-
-        if (string.IsNullOrWhiteSpace(raceId))
-        {
-            raceId = MakeId(displayName);
-        }
-
         if (attributeScaling == null)
         {
             attributeScaling =

@@ -21,12 +21,6 @@ public enum StatusEffectDisposition
 )]
 public class StatusEffectDefinition : GameDefinition
 {
-    [Header("Identity")]
-    [HideInInspector]
-    public string effectId;
-
-    public string displayName;
-
     [TextArea]
     public string description;
 
@@ -72,14 +66,6 @@ public class StatusEffectDefinition : GameDefinition
 
     private void OnValidate()
     {
-        if (string.IsNullOrWhiteSpace(displayName))
-            displayName = name;
-
-        if (string.IsNullOrWhiteSpace(effectId))
-        {
-            effectId = MakeId(displayName);
-        }
-
         duration =
             Mathf.Max(
                 0f,

@@ -22,19 +22,10 @@ public enum CombatSkillHeldItemSource
 public sealed class CombatSkillDefinition :
     GameDefinition
 {
-    [Header("Identity")]
-    public string skillName;
-
-    [SerializeField]
-    private string skillId;
-    public string SkillId => skillId;
-
     [Header("Gameplay Action")]
-
     public CombatSkillActionDefinition action;
 
     [Header("Timing")]
-
     [Min(0f)]
     public float castTime;
 
@@ -42,12 +33,10 @@ public sealed class CombatSkillDefinition :
     public float cooldown;
 
     [Header("Resource Cost")]
-
     [Min(0f)]
     public float aetherCost;
 
     [Header("Action Origin")]
-
     public CombatSkillOriginSource
         originSource =
             CombatSkillOriginSource.None;

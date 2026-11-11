@@ -38,9 +38,6 @@ public enum EquipmentCombatRole
 [CreateAssetMenu(menuName = "Game/Item Definition")]
 public class ItemDefinition : GameDefinition
 {
-    [Header("Identity")]
-    public string itemName;
-
     [Header("Item Type")]
     public ItemCategory itemCategory = ItemCategory.Misc;
 
