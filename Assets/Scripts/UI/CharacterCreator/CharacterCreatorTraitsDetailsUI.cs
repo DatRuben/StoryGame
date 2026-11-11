@@ -68,7 +68,7 @@ public class CharacterCreatorTraitsDetailsUI :
     {
         shownTraitId =
             traitDefinition != null
-                ? traitDefinition.traitId
+                ? traitDefinition.Id
                 : "";
 
         RefreshTraitDescription();
@@ -207,25 +207,17 @@ public class CharacterCreatorTraitsDetailsUI :
     private string GetBackgroundName(
         BackgroundDefinition backgroundDefinition)
     {
-        if (backgroundDefinition == null)
-            return "Missing Background";
-
-        return string.IsNullOrWhiteSpace(
-            backgroundDefinition.displayName)
-                ? backgroundDefinition.name
-                : backgroundDefinition.displayName;
+        return backgroundDefinition != null
+            ? backgroundDefinition.name
+            : "Missing Background";
     }
 
     private string GetTraitName(
         TraitDefinition traitDefinition)
     {
-        if (traitDefinition == null)
-            return "Missing Trait";
-
-        return string.IsNullOrWhiteSpace(
-            traitDefinition.displayName)
-                ? traitDefinition.name
-                : traitDefinition.displayName;
+        return traitDefinition != null
+            ? traitDefinition.name
+            : "Missing Trait";
     }
 
     private string GetModifierText(
