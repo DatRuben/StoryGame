@@ -30,18 +30,18 @@ public static class CharacterSelection
         CharacterBaseStats createdBaseStats)
     {
         CharacterProfileData profile =
-                CharacterProfileData.CreateNew(
-                    characterName,
-                    gender,
-                    raceDefinition.raceId,
-                    subraceDefinition.subraceId,
-                    lineageIds,
-                    backgroundId,
-                    traitIds,
-                    appearance,
-                    createdAttributes,
-                    createdBaseStats
-                );
+            CharacterProfileData.CreateNew(
+                characterName,
+                gender,
+                raceDefinition.Id,
+                subraceDefinition.Id,
+                lineageIds,
+                backgroundId,
+                traitIds,
+                appearance,
+                createdAttributes,
+                createdBaseStats
+            );
 
         CharacterSaveSystem.SaveProfile(profile);
         SelectProfile(profile.profileId);
@@ -68,35 +68,27 @@ public static class CharacterSelection
 
         if (string.IsNullOrWhiteSpace(characterName))
         {
-            errorMessage =
-                "Character name is required.";
-
+            errorMessage = "Character name is required.";
             return false;
         }
 
         if (raceDefinition == null)
         {
-            errorMessage =
-                "Race definition is missing.";
-
+            errorMessage = "Race definition is missing.";
             return false;
         }
 
         if (subraceDefinition == null)
         {
-            errorMessage =
-                "Subrace definition is missing.";
-
+            errorMessage = "Subrace definition is missing.";
             return false;
         }
 
-        if (subraceDefinition.race == null ||
-            subraceDefinition.race.raceId !=
-                raceDefinition.raceId)
+        if (subraceDefinition.race != raceDefinition)
         {
             errorMessage =
-                $"{subraceDefinition.displayName} does not belong to " +
-                $"{raceDefinition.displayName}.";
+                $"{subraceDefinition.name} does not belong to " +
+                $"{raceDefinition.name}.";
 
             return false;
         }
@@ -122,51 +114,49 @@ public static class CharacterSelection
                     continue;
                 }
 
-                lineageIds.Add(
-                    selection.SelectionId
-                );
+                lineageIds.Add(selection.SelectionId);
             }
         }
 
         string backgroundId =
             backgroundDefinition != null
-                ? backgroundDefinition.backgroundId
+                ? backgroundDefinition.Id
                 : "";
 
         List<string> traitIds =
             GetTraitIds(traitDefinitions);
 
-        profile =
-            CreateCharacter(
-                characterName,
-                gender,
-                raceDefinition,
-                subraceDefinition,
-                lineageIds,
-                backgroundId,
-                traitIds,
-                appearance,
-                createdAttributes,
-                createdBaseStats
-            );
+        profile = CreateCharacter(
+            characterName,
+            gender,
+            raceDefinition,
+            subraceDefinition,
+            lineageIds,
+            backgroundId,
+            traitIds,
+            appearance,
+            createdAttributes,
+            createdBaseStats
+        );
 
         return true;
     }
 
     private static List<string> GetTraitIds(
-    List<TraitDefinition> traitDefinitions)
+        List<TraitDefinition> traitDefinitions)
     {
         List<string> traitIds = new();
 
         if (traitDefinitions == null)
             return traitIds;
 
-        foreach (TraitDefinition traitDefinition in traitDefinitions)
+        foreach (TraitDefinition traitDefinition
+                 in traitDefinitions)
         {
             if (traitDefinition == null)
                 continue;
 
-            traitIds.Add(traitDefinition.traitId);
+            traitIds.Add(traitDefinition.Id);
         }
 
         return traitIds;
