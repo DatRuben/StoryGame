@@ -36,7 +36,7 @@ public enum EquipmentCombatRole
 }
 
 [CreateAssetMenu(menuName = "Game/Item Definition")]
-public class ItemDefinition : ScriptableObject
+public class ItemDefinition : GameDefinition
 {
     [Header("Identity")]
     public string itemName;

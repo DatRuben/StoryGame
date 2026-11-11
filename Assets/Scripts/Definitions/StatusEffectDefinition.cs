@@ -20,7 +20,7 @@ public enum StatusEffectDisposition
 [CreateAssetMenu(
     menuName = "Game/Status Effect Definition"
 )]
-public class StatusEffectDefinition : ScriptableObject
+public class StatusEffectDefinition : GameDefinition
 {
     [Header("Identity")]
     [HideInInspector]

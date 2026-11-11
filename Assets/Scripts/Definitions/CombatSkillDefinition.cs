@@ -20,7 +20,7 @@ public enum CombatSkillHeldItemSource
     menuName = "Game/Combat/Combat Skill Definition"
 )]
 public sealed class CombatSkillDefinition :
-    ScriptableObject
+    GameDefinition
 {
     [Header("Identity")]
     public string skillName;

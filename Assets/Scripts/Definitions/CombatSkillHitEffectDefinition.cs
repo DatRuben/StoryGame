@@ -6,7 +6,7 @@ public interface ICombatSkillHitEffect
 }
 
 public abstract class CombatSkillHitEffectDefinition :
-    ScriptableObject
+    GameDefinition
 {
     public abstract ICombatSkillHitEffect CreateRuntimeEffect();
 }

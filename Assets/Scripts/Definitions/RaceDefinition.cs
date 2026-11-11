@@ -12,7 +12,7 @@ public enum LineageType
 }
 
 [CreateAssetMenu(menuName = "Game/Race Definition")]
-public class RaceDefinition : ScriptableObject
+public class RaceDefinition : GameDefinition
 {
     [Header("Identity")]
     [HideInInspector]

@@ -3,7 +3,7 @@ using System.Text;
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "Game/Trait Definition")]
-public class TraitDefinition : ScriptableObject
+public class TraitDefinition : GameDefinition
 {
     [Header("Identity")]
     [HideInInspector] public string traitId;

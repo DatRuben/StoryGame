@@ -7,7 +7,7 @@ using UnityEditor;
 #endif
 
 [CreateAssetMenu(menuName = "Game/Subrace Definition")]
-public class SubraceDefinition : ScriptableObject
+public class SubraceDefinition : GameDefinition
 {
     [Header("Identity")]
     [HideInInspector] public string subraceId;

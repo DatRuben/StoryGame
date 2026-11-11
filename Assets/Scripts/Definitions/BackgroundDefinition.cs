@@ -2,7 +2,7 @@ using System.Text;
 using UnityEngine;
 
 [CreateAssetMenu(menuName = "Game/Background Definition")]
-public class BackgroundDefinition : ScriptableObject
+public class BackgroundDefinition : GameDefinition
 {
     [Header("Identity")]
     [HideInInspector] public string backgroundId;

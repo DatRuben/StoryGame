@@ -10,7 +10,7 @@ public enum WeaponActionType
     menuName = "Game/Combat/Weapon Action Definition"
 )]
 public sealed class WeaponActionDefinition :
-    ScriptableObject
+    GameDefinition
 {
     [Header("Identity")]
     public string actionName;

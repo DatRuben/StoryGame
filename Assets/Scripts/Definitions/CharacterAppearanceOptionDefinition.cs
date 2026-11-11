@@ -30,7 +30,7 @@ public enum CharacterAppearanceOptionAvailability
     menuName = "Game/Character Appearance Option"
 )]
 public class CharacterAppearanceOptionDefinition :
-    ScriptableObject
+    GameDefinition
 {
     [HideInInspector]
     public string optionId;

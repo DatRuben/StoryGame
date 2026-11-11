@@ -6,7 +6,7 @@ using UnityEditor;
 #endif
 
 [CreateAssetMenu(menuName = "Game/Lineage Definition")]
-public class LineageDefinition : ScriptableObject
+public class LineageDefinition : GameDefinition
 {
     [Header("Identity")]
     [HideInInspector]
