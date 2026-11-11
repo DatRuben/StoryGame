@@ -119,7 +119,7 @@ public sealed class HitscanSkillExecution :
         if (beamVisualPrefab != null)
         {
             HitscanBeamVisual beam =
-                Object.Instantiate(beamVisualPrefab);
+                UnityEngine.Object.Instantiate(beamVisualPrefab);
 
             beam.Show(
                 origin,
