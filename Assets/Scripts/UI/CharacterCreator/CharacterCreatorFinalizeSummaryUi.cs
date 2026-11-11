@@ -154,32 +154,6 @@ public class CharacterCreatorFinalizeSummaryUI : MonoBehaviour
         );
     }
 
-    private string GetRaceName()
-    {
-        if (!characterDataLibrary.TryGetRaceDefinition(
-            characterCreator.SelectedRaceId,
-            out RaceDefinition raceDefinition) ||
-            raceDefinition == null)
-        {
-            return "None";
-        }
-
-        return raceDefinition.displayName;
-    }
-
-    private string GetSubraceName()
-    {
-        if (!characterDataLibrary.TryGetSubraceDefinition(
-            characterCreator.SelectedSubraceId,
-            out SubraceDefinition subraceDefinition) ||
-            subraceDefinition == null)
-        {
-            return "None";
-        }
-
-        return subraceDefinition.displayName;
-    }
-
     private string GetLineageNames()
     {
         List<string> lineageIds =
@@ -220,18 +194,44 @@ public class CharacterCreatorFinalizeSummaryUI : MonoBehaviour
             : "None";
     }
 
+
+    private string GetRaceName()
+    {
+        if (!characterDataLibrary.TryGetRaceDefinition(
+            characterCreator.SelectedRaceId,
+            out RaceDefinition raceDefinition) ||
+            raceDefinition == null)
+        {
+            return "None";
+        }
+
+        return raceDefinition.name;
+    }
+
+    private string GetSubraceName()
+    {
+        if (!characterDataLibrary.TryGetSubraceDefinition(
+            characterCreator.SelectedSubraceId,
+            out SubraceDefinition subraceDefinition) ||
+            subraceDefinition == null)
+        {
+            return "None";
+        }
+
+        return subraceDefinition.name;
+    }
+
     private string GetBackgroundName()
     {
-        if (!characterDataLibrary
-            .TryGetBackgroundDefinition(
-                characterCreator.SelectedBackgroundId,
-                out BackgroundDefinition backgroundDefinition) ||
+        if (!characterDataLibrary.TryGetBackgroundDefinition(
+            characterCreator.SelectedBackgroundId,
+            out BackgroundDefinition backgroundDefinition) ||
             backgroundDefinition == null)
         {
             return "None";
         }
 
-        return backgroundDefinition.displayName;
+        return backgroundDefinition.name;
     }
 
     private string GetTraitNames()
@@ -246,33 +246,27 @@ public class CharacterCreatorFinalizeSummaryUI : MonoBehaviour
                 traitIds
             );
 
-        if (traits == null ||
-            traits.Count == 0)
-        {
+        if (traits == null || traits.Count == 0)
             return "None";
-        }
 
-        List<string> names =
-            new List<string>();
+        List<string> names = new();
 
         foreach (TraitDefinition trait in traits)
         {
             if (trait == null ||
-                string.IsNullOrWhiteSpace(
-                    trait.displayName))
+                string.IsNullOrWhiteSpace(trait.name))
             {
                 continue;
             }
 
-            names.Add(
-                trait.displayName
-            );
+            names.Add(trait.name);
         }
 
         return names.Count > 0
             ? string.Join(", ", names)
             : "None";
     }
+
 
     private void SetText(
         TMP_Text target,

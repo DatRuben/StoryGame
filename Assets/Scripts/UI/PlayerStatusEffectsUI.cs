@@ -99,11 +99,7 @@ public sealed class PlayerStatusEffectsUI :
             StatusEffectDefinition definition =
                 activeEffect.definition;
 
-            string displayName =
-                string.IsNullOrWhiteSpace(
-                    definition.displayName)
-                    ? definition.name
-                    : definition.displayName;
+            string displayName = definition.name;
 
             if (builder.Length > 0)
             {

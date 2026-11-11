@@ -147,35 +147,28 @@ public class CharacterSlotButtonUI : MonoBehaviour
 
         return subraceDefinition;
     }
-
     private string GetRaceName(
         RaceDefinition raceDefinition,
         string fallback)
     {
-        if (raceDefinition == null)
-            return string.IsNullOrWhiteSpace(fallback)
-                ? "Unknown"
-                : fallback;
+        if (raceDefinition != null)
+            return raceDefinition.name;
 
-        if (!string.IsNullOrWhiteSpace(raceDefinition.displayName))
-            return raceDefinition.displayName;
-
-        return raceDefinition.raceId;
+        return string.IsNullOrWhiteSpace(fallback)
+            ? "Unknown"
+            : fallback;
     }
 
     private string GetSubraceName(
         SubraceDefinition subraceDefinition,
         string fallback)
     {
-        if (subraceDefinition == null)
-            return string.IsNullOrWhiteSpace(fallback)
-                ? "Unknown"
-                : fallback;
+        if (subraceDefinition != null)
+            return subraceDefinition.name;
 
-        if (!string.IsNullOrWhiteSpace(subraceDefinition.displayName))
-            return subraceDefinition.displayName;
-
-        return subraceDefinition.subraceId;
+        return string.IsNullOrWhiteSpace(fallback)
+            ? "Unknown"
+            : fallback;
     }
 
     private void SetText(TMP_Text text, string value)
