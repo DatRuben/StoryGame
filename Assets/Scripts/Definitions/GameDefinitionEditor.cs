@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEditor;
 using UnityEngine;
 
@@ -10,11 +11,15 @@ public sealed class GameDefinitionEditor : Editor
 {
     public override void OnInspectorGUI()
     {
-        DrawIdentity((GameDefinition)target);
+        GameDefinition definition =
+            (GameDefinition)target;
+
+        DrawIdentity(definition);
         DrawDefaultInspector();
     }
 
-    public static void DrawIdentity(GameDefinition definition)
+    public static void DrawIdentity(
+        GameDefinition definition)
     {
         if (definition == null)
             return;
@@ -37,3 +42,4 @@ public sealed class GameDefinitionEditor : Editor
         EditorGUILayout.Space();
     }
 }
+#endif
