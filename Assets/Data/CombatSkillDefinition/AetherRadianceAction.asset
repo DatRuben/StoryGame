@@ -18,4 +18,4 @@ MonoBehaviour:
     m_Bits: 4294967295
   hitEffects:
   - {fileID: 11400000, guid: ae4836ae0134a8545b59f6d78e94042d, type: 2}
-  debugLineDuration: 5
+  beamVisualPrefab: {fileID: 4124741591795841270, guid: 9c114c3ae7c4d1c4f8969e6f77c72af0, type: 3}
