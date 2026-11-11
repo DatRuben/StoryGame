@@ -165,8 +165,8 @@ public class RaceDefinition : GameDefinition
                 subraceDefinition))
             {
                 errorMessage =
-                    $"{name} requires at least " +
-                    $"{minLineages} lineage.";
+                    $"{name} cannot use lineage " +
+                    $"{lineage.DisplayName}.";
 
                 return false;
             }

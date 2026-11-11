@@ -37,167 +37,114 @@ public class CharacterDataLibrary : ScriptableObject
     AppearanceOptionDefinitions =>
         appearanceOptionDefinitions;
 
+
     public bool TryGetRaceDefinition(
         string raceId,
         out RaceDefinition raceDefinition)
     {
-        raceDefinition = null;
-
-        if (string.IsNullOrWhiteSpace(raceId))
-            return false;
-
-        foreach (RaceDefinition definition in raceDefinitions)
-        {
-            if (definition == null)
-                continue;
-
-            if (string.Equals(
-                definition.raceId,
-                raceId,
-                System.StringComparison.OrdinalIgnoreCase))
-            {
-                raceDefinition = definition;
-                return true;
-            }
-        }
-
-        return false;
+        return TryGetUniqueDefinition(
+            raceDefinitions,
+            raceId,
+            out raceDefinition
+        );
     }
 
     public bool TryGetSubraceDefinition(
         string subraceId,
         out SubraceDefinition subraceDefinition)
     {
-        subraceDefinition = null;
-
-        if (string.IsNullOrWhiteSpace(subraceId))
-            return false;
-
-        foreach (SubraceDefinition definition in subraceDefinitions)
-        {
-            if (definition == null)
-                continue;
-
-            if (string.Equals(
-                definition.subraceId,
-                subraceId,
-                System.StringComparison.OrdinalIgnoreCase))
-            {
-                subraceDefinition = definition;
-                return true;
-            }
-        }
-
-        return false;
+        return TryGetUniqueDefinition(
+            subraceDefinitions,
+            subraceId,
+            out subraceDefinition
+        );
     }
 
     public bool TryGetLineageDefinition(
         string lineageId,
         out LineageDefinition lineageDefinition)
     {
-        lineageDefinition = null;
-
-        if (string.IsNullOrWhiteSpace(lineageId))
-            return false;
-
-        foreach (LineageDefinition definition in lineageDefinitions)
-        {
-            if (definition == null)
-                continue;
-
-            if (string.Equals(
-                definition.lineageId,
-                lineageId,
-                System.StringComparison.OrdinalIgnoreCase))
-            {
-                lineageDefinition = definition;
-                return true;
-            }
-        }
-
-        return false;
+        return TryGetUniqueDefinition(
+            lineageDefinitions,
+            lineageId,
+            out lineageDefinition
+        );
     }
 
     public bool TryGetBackgroundDefinition(
-    string backgroundId,
-    out BackgroundDefinition backgroundDefinition)
+        string backgroundId,
+        out BackgroundDefinition backgroundDefinition)
     {
-        backgroundDefinition = null;
-
-        if (string.IsNullOrWhiteSpace(backgroundId))
-            return false;
-
-        foreach (BackgroundDefinition definition in backgroundDefinitions)
-        {
-            if (definition == null)
-                continue;
-
-            if (string.Equals(
-                definition.backgroundId,
-                backgroundId,
-                System.StringComparison.OrdinalIgnoreCase))
-            {
-                backgroundDefinition = definition;
-                return true;
-            }
-        }
-
-        return false;
+        return TryGetUniqueDefinition(
+            backgroundDefinitions,
+            backgroundId,
+            out backgroundDefinition
+        );
     }
 
     public bool TryGetTraitDefinition(
         string traitId,
         out TraitDefinition traitDefinition)
     {
-        traitDefinition = null;
-
-        if (string.IsNullOrWhiteSpace(traitId))
-            return false;
-
-        foreach (TraitDefinition definition in traitDefinitions)
-        {
-            if (definition == null)
-                continue;
-
-            if (string.Equals(
-                definition.traitId,
-                traitId,
-                System.StringComparison.OrdinalIgnoreCase))
-            {
-                traitDefinition = definition;
-                return true;
-            }
-        }
-
-        return false;
+        return TryGetUniqueDefinition(
+            traitDefinitions,
+            traitId,
+            out traitDefinition
+        );
     }
 
     public bool TryGetAppearanceOptionDefinition(
         string optionId,
         out CharacterAppearanceOptionDefinition optionDefinition)
     {
-        optionDefinition = null;
+        return TryGetUniqueDefinition(
+            appearanceOptionDefinitions,
+            optionId,
+            out optionDefinition
+        );
+    }
 
-        if (string.IsNullOrWhiteSpace(optionId))
-            return false;
+    private static bool TryGetUniqueDefinition<T>(
+        IReadOnlyList<T> definitions,
+        string id,
+        out T definition)
+        where T : GameDefinition
+    {
+        definition = null;
 
-        foreach (CharacterAppearanceOptionDefinition definition
-                 in appearanceOptionDefinitions)
+        if (definitions == null ||
+            string.IsNullOrWhiteSpace(id))
         {
-            if (definition == null)
-                continue;
-
-            if (string.Equals(
-                definition.optionId,
-                optionId,
-                System.StringComparison.OrdinalIgnoreCase))
-            {
-                optionDefinition = definition;
-                return true;
-            }
+            return false;
         }
 
-        return false;
+        foreach (T candidate in definitions)
+        {
+            if (candidate == null ||
+                !string.Equals(
+                    candidate.Id,
+                    id,
+                    System.StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            if (definition != null)
+            {
+                Debug.LogError(
+                    $"Duplicate {typeof(T).Name} ID '{id}' " +
+                    $"on '{definition.name}' and '{candidate.name}'.",
+                    candidate
+                );
+
+                definition = null;
+                return false;
+            }
+
+            definition = candidate;
+        }
+
+        return definition != null;
     }
 
     public List<TraitDefinition> GetTraitDefinitions(
@@ -220,7 +167,6 @@ public class CharacterDataLibrary : ScriptableObject
 
         return foundDefinitions;
     }
-
     public List<SubraceDefinition> GetSubraceDefinitionsForRace(
         RaceDefinition raceDefinition)
     {
@@ -231,14 +177,8 @@ public class CharacterDataLibrary : ScriptableObject
 
         foreach (SubraceDefinition definition in subraceDefinitions)
         {
-            if (definition == null)
-                continue;
-
-            if (definition.race == null)
-                continue;
-
-            if (definition.race == raceDefinition ||
-                definition.race.raceId == raceDefinition.raceId)
+            if (definition != null &&
+                definition.race == raceDefinition)
             {
                 found.Add(definition);
             }
@@ -248,8 +188,8 @@ public class CharacterDataLibrary : ScriptableObject
     }
 
     public bool TryGetLineageSelection(
-    string selectionId,
-    out LineageSelection selection)
+        string selectionId,
+        out LineageSelection selection)
     {
         selection = null;
 

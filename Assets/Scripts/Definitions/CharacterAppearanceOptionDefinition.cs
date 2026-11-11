@@ -315,11 +315,10 @@ public class CharacterAppearanceOptionDefinitionEditor : Editor
                     definition
                 );
 
-            bool nextSelected =
-                EditorGUILayout.ToggleLeft(
-                    definition.displayName,
-                    selected
-                );
+            bool nextSelected = EditorGUILayout.ToggleLeft(
+                definition.name,
+                selected
+            );
 
             if (nextSelected != selected)
             {
@@ -361,11 +360,10 @@ public class CharacterAppearanceOptionDefinitionEditor : Editor
                     definition
                 );
 
-            bool nextSelected =
-                EditorGUILayout.ToggleLeft(
-                    definition.displayName,
-                    selected
-                );
+            bool nextSelected = EditorGUILayout.ToggleLeft(
+                definition.name,
+                selected
+            );
 
             if (nextSelected != selected)
             {
@@ -437,13 +435,12 @@ public class CharacterAppearanceOptionDefinitionEditor : Editor
             definitions.Add(definition);
         }
 
-        definitions.Sort(
-            (a, b) =>
-                string.Compare(
-                    a.displayName,
-                    b.displayName,
-                    System.StringComparison.OrdinalIgnoreCase
-                )
+        definitions.Sort((a, b) =>
+            string.Compare(
+                a.name,
+                b.name,
+                System.StringComparison.OrdinalIgnoreCase
+            )
         );
 
         return definitions;
@@ -481,13 +478,12 @@ public class CharacterAppearanceOptionDefinitionEditor : Editor
             definitions.Add(definition);
         }
 
-        definitions.Sort(
-            (a, b) =>
-                string.Compare(
-                    a.displayName,
-                    b.displayName,
-                    System.StringComparison.OrdinalIgnoreCase
-                )
+        definitions.Sort((a, b) =>
+            string.Compare(
+                a.name,
+                b.name,
+                System.StringComparison.OrdinalIgnoreCase
+            )
         );
 
         return definitions;
