@@ -667,17 +667,18 @@ public class CharacterCreatorRaceUI : MonoBehaviour
             }
         }
 
-        foreach (RaceDefinition raceDefinition
-                 in raceDefinitions)
+        RaceDefinition defaultRace =
+            characterDataLibrary.GetDefaultRaceDefinition();
+
+        if (defaultRace != null &&
+            raceDefinitions.Contains(defaultRace))
         {
-            if (raceDefinition != null &&
-                raceDefinition.baseRace == BaseRace.Human)
-            {
-                return raceDefinition;
-            }
+            return defaultRace;
         }
 
-        return raceDefinitions[0];
+        return raceDefinitions.Count > 0
+            ? raceDefinitions[0]
+            : null;
     }
 
     private SubraceDefinition GetStartingSubraceDefinition(

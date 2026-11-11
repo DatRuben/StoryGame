@@ -266,7 +266,7 @@ public class PlayerSpawner : MonoBehaviour
         if (defaultRaceDefinition == null)
         {
             Debug.LogWarning(
-                "PlayerSpawner could not create a default character because the CharacterDataLibrary has no race definitions.",
+                "PlayerSpawner could not create a default character because CharacterDataLibrary has no valid default race configured.",
                 this
             );
 

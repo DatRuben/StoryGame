@@ -16,6 +16,7 @@ public class CharacterDataLibrary : ScriptableObject
 
     [Header("Race Data")]
     [SerializeField] private List<RaceDefinition> raceDefinitions = new();
+    [SerializeField] private RaceDefinition defaultRaceDefinition;
     [SerializeField] private List<SubraceDefinition> subraceDefinitions = new();
     [SerializeField] private List<LineageDefinition> lineageDefinitions = new();
     [SerializeField] private List<BackgroundDefinition> backgroundDefinitions = new();
@@ -367,13 +368,14 @@ public class CharacterDataLibrary : ScriptableObject
 
     public RaceDefinition GetDefaultRaceDefinition()
     {
-        foreach (RaceDefinition definition in raceDefinitions)
+        if (defaultRaceDefinition == null ||
+            raceDefinitions == null ||
+            !raceDefinitions.Contains(defaultRaceDefinition))
         {
-            if (definition != null)
-                return definition;
+            return null;
         }
 
-        return null;
+        return defaultRaceDefinition;
     }
 
     public BackgroundDefinition GetDefaultBackgroundDefinition()
