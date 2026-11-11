@@ -9,20 +9,20 @@ public sealed class HitscanSkillExecution :
     private readonly float maximumRange;
     private readonly int collisionLayers;
     private readonly IReadOnlyList<ICombatSkillHitEffect> effects;
-    private readonly float debugDuration;
+    private readonly HitscanBeamVisual beamVisualPrefab;
 
     public HitscanSkillExecution(
         CombatSkillActionContext context,
         float maximumRange,
         int collisionLayers,
         IReadOnlyList<ICombatSkillHitEffect> effects,
-        float debugDuration)
+        HitscanBeamVisual beamVisualPrefab)
     {
         this.context = context;
         this.maximumRange = maximumRange;
         this.collisionLayers = collisionLayers;
         this.effects = effects;
-        this.debugDuration = debugDuration;
+        this.beamVisualPrefab = beamVisualPrefab;
     }
 
     public override bool TryBegin(out string error)
@@ -116,13 +116,15 @@ public sealed class HitscanSkillExecution :
             break;
         }
 
-        if (debugDuration > 0f)
+        if (beamVisualPrefab != null)
         {
-            Debug.DrawLine(
+            HitscanBeamVisual beam =
+                Object.Instantiate(beamVisualPrefab);
+
+            beam.Show(
                 origin,
-                origin + direction * impactDistance,
-                Color.cyan,
-                debugDuration);
+                origin + direction * impactDistance
+            );
         }
     }
 

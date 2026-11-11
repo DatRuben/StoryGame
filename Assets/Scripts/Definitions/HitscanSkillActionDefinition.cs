@@ -18,9 +18,9 @@ public sealed class HitscanSkillActionDefinition :
     private List<CombatSkillHitEffectDefinition> hitEffects =
         new List<CombatSkillHitEffectDefinition>();
 
-    [Header("Development Visualization")]
-    [SerializeField, Min(0f)]
-    private float debugLineDuration = 0.5f;
+    [Header("Visual Effect")]
+    [SerializeField]
+    private HitscanBeamVisual beamVisualPrefab;
 
     public override bool TryCreateExecution(
         CombatSkillActionContext context,
@@ -73,7 +73,7 @@ public sealed class HitscanSkillActionDefinition :
             Mathf.Max(0.1f, maximumRange),
             collisionLayers.value,
             resolvedEffects,
-            Mathf.Max(0f, debugLineDuration));
+            beamVisualPrefab);
 
         return true;
     }
