@@ -262,13 +262,9 @@ public sealed class WeaponSetSlotUI :
             );
 
         if (interactionController != null &&
-            interactionController
-                .HasWeaponSlotSelection)
+            interactionController.HasWeaponSlotSelection)
         {
-            RefreshForSelection(
-                weapon
-            );
-
+            RefreshForSelection(weapon);
             return;
         }
 
@@ -284,22 +280,17 @@ public sealed class WeaponSetSlotUI :
         }
 
         string weaponName =
-            string.IsNullOrWhiteSpace(
-                weapon.Definition.itemName
-            )
+            string.IsNullOrWhiteSpace(weapon.Definition.name)
                 ? GetDefaultSlotName()
-                : weapon.Definition.itemName;
+                : weapon.Definition.name;
 
         bool activeSet =
-            weaponLoadout
-                .ActiveWeaponSetIndex ==
+            weaponLoadout.ActiveWeaponSetIndex ==
             weaponSetIndex;
 
         if (activeSet)
         {
-            weaponName =
-                activePrefix +
-                weaponName;
+            weaponName = activePrefix + weaponName;
         }
 
         SetSlot(

@@ -274,8 +274,7 @@ public sealed class HeldItemClosedPreviewUI :
 
         if (interactionController == null ||
             !interactionController.HasSelection ||
-            interactionController
-                .SelectedDefinition == null)
+            interactionController.SelectedDefinition == null)
         {
             heldItemNameText.text = "";
             return;
@@ -283,9 +282,7 @@ public sealed class HeldItemClosedPreviewUI :
 
         heldItemNameText.text =
             holdingPrefix +
-            interactionController
-                .SelectedDefinition
-                .itemName;
+            interactionController.SelectedDefinition.name;
     }
 
     private void BuildPreview()

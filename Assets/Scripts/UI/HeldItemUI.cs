@@ -54,40 +54,30 @@ public sealed class HeldItemUI :
                 root.SetActive(true);
 
             bool hasControls =
-                !string.IsNullOrWhiteSpace(
-                    controls
-                );
+                !string.IsNullOrWhiteSpace(controls);
 
             if (controlsRoot != null)
             {
-                controlsRoot.SetActive(
-                    hasControls
-                );
+                controlsRoot.SetActive(hasControls);
             }
 
             if (iconImage != null)
             {
-                iconImage.sprite =
-                    item.itemIcon;
-
-                iconImage.enabled =
-                    item.itemIcon != null;
+                iconImage.sprite = item.itemIcon;
+                iconImage.enabled = item.itemIcon != null;
             }
 
             if (nameText != null)
             {
                 nameText.text =
-                    string.IsNullOrWhiteSpace(
-                        item.itemName
-                    )
+                    string.IsNullOrWhiteSpace(item.name)
                         ? fallbackName
-                        : item.itemName;
+                        : item.name;
             }
 
             if (controlsText != null)
             {
-                controlsText.text =
-                    controls;
+                controlsText.text = controls;
             }
         }
 
