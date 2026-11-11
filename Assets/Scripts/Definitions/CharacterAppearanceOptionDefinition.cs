@@ -91,19 +91,6 @@ public class CharacterAppearanceOptionDefinition :
         return CharacterAppearanceOptionAvailability.Locked;
     }
 
-    private bool IsShownForRace(
-        RaceDefinition selectedRace)
-    {
-        if (selectedRace == null ||
-            race == null)
-        {
-            return false;
-        }
-
-        return race == selectedRace ||
-               race.raceId == selectedRace.raceId;
-    }
-
     private bool HasAncestryRequirements()
     {
         bool hasSubraceRequirements =
@@ -116,32 +103,6 @@ public class CharacterAppearanceOptionDefinition :
 
         return hasSubraceRequirements ||
                hasLineageRequirements;
-    }
-
-    private bool IsAllowedForSubrace(
-        SubraceDefinition selectedSubrace)
-    {
-        if (selectedSubrace == null ||
-            allowedSubraces == null)
-        {
-            return false;
-        }
-
-        foreach (SubraceDefinition subraceDefinition
-                 in allowedSubraces)
-        {
-            if (subraceDefinition == null)
-                continue;
-
-            if (subraceDefinition == selectedSubrace ||
-                subraceDefinition.subraceId ==
-                selectedSubrace.subraceId)
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private bool IsAllowedForAnyLineage(
@@ -176,32 +137,27 @@ public class CharacterAppearanceOptionDefinition :
         return false;
     }
 
-    private bool IsAllowedForCustomLineage(
-    LineageDefinition selectedLineage)
+    private bool IsShownForRace(
+        RaceDefinition selectedRace)
     {
-        if (selectedLineage == null ||
-            allowedLineages == null)
-        {
-            return false;
-        }
+        return selectedRace != null &&
+               race == selectedRace;
+    }
 
-        foreach (LineageDefinition allowedLineage
-                 in allowedLineages)
-        {
-            if (allowedLineage == null)
-                continue;
+    private bool IsAllowedForSubrace(
+        SubraceDefinition selectedSubrace)
+    {
+        return selectedSubrace != null &&
+               allowedSubraces != null &&
+               allowedSubraces.Contains(selectedSubrace);
+    }
 
-            if (allowedLineage == selectedLineage ||
-                string.Equals(
-                    allowedLineage.lineageId,
-                    selectedLineage.lineageId,
-                    System.StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-        }
-
-        return false;
+    private bool IsAllowedForCustomLineage(
+        LineageDefinition selectedLineage)
+    {
+        return selectedLineage != null &&
+               allowedLineages != null &&
+               allowedLineages.Contains(selectedLineage);
     }
 }
 
@@ -219,29 +175,22 @@ public class CharacterAppearanceOptionDefinitionEditor : Editor
 
     private void OnEnable()
     {
-        displayName =
-            serializedObject.FindProperty("displayName");
+        category = serializedObject.FindProperty("category");
+        optionImage = serializedObject.FindProperty("optionImage");
+        modelPrefab = serializedObject.FindProperty("modelPrefab");
+        race = serializedObject.FindProperty("race");
 
-        category =
-            serializedObject.FindProperty("category");
+        allowedSubraces = serializedObject.FindProperty(
+            "allowedSubraces"
+        );
 
-        optionImage =
-            serializedObject.FindProperty("optionImage");
+        allowedLineages = serializedObject.FindProperty(
+            "allowedLineages"
+        );
 
-        modelPrefab =
-            serializedObject.FindProperty("modelPrefab");
-
-        race =
-            serializedObject.FindProperty("race");
-
-        allowedSubraces =
-            serializedObject.FindProperty("allowedSubraces");
-
-        allowedLineages =
-            serializedObject.FindProperty("allowedLineages");
-
-        isDefaultOption =
-            serializedObject.FindProperty("isDefaultOption");
+        isDefaultOption = serializedObject.FindProperty(
+            "isDefaultOption"
+        );
     }
 
     public override void OnInspectorGUI()
@@ -548,26 +497,9 @@ public class CharacterAppearanceOptionDefinitionEditor : Editor
         RaceDefinition race,
         List<RaceDefinition> selectedRaces)
     {
-        if (race == null ||
-            selectedRaces == null)
-        {
-            return false;
-        }
-
-        foreach (RaceDefinition selectedRace
-                 in selectedRaces)
-        {
-            if (selectedRace == null)
-                continue;
-
-            if (selectedRace == race ||
-                selectedRace.raceId == race.raceId)
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return race != null &&
+               selectedRaces != null &&
+               selectedRaces.Contains(race);
     }
 
     private bool ContainsReference(

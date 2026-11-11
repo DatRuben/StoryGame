@@ -145,7 +145,8 @@ public class RaceDefinition : GameDefinition
                 lineage.SelectionId))
             {
                 errorMessage =
-                    $"{lineage.DisplayName} has no lineage selection ID.";
+                    $"{name} cannot use lineage " +
+                    $"{lineage.DisplayName}.";
 
                 return false;
             }
@@ -154,7 +155,7 @@ public class RaceDefinition : GameDefinition
                 lineage.SelectionId))
             {
                 errorMessage =
-                    $"{lineage.DisplayName} was selected more than once.";
+                    $"{name} cannot use lineages.";
 
                 return false;
             }
@@ -164,8 +165,8 @@ public class RaceDefinition : GameDefinition
                 subraceDefinition))
             {
                 errorMessage =
-                    $"{displayName} cannot use lineage " +
-                    $"{lineage.DisplayName}.";
+                    $"{name} requires at least " +
+                    $"{minLineages} lineage.";
 
                 return false;
             }
@@ -186,7 +187,7 @@ public class RaceDefinition : GameDefinition
             if (count > 0)
             {
                 errorMessage =
-                    $"{displayName} cannot use lineages.";
+                    $"{name} cannot use lineages.";
 
                 return false;
             }
@@ -197,7 +198,7 @@ public class RaceDefinition : GameDefinition
         if (count < minLineages)
         {
             errorMessage =
-                $"{displayName} requires at least " +
+                $"{name} requires at least " +
                 $"{minLineages} lineage.";
 
             return false;
@@ -206,7 +207,7 @@ public class RaceDefinition : GameDefinition
         if (count > maxLineages)
         {
             errorMessage =
-                $"{displayName} can only use up to " +
+                $"{name} can only use up to " +
                 $"{maxLineages} lineages.";
 
             return false;

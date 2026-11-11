@@ -94,22 +94,11 @@ public class SubraceDefinition : GameDefinition
         return GetDefaultSubrace();
     }
 
-    private bool IsSameRace(
-        SubraceDefinition other)
+    private bool IsSameRace(SubraceDefinition other)
     {
-        if (other == null ||
-            race == null ||
-            other.race == null)
-        {
-            return false;
-        }
-
-        return race == other.race ||
-               string.Equals(
-                   race.raceId,
-                   other.race.raceId,
-                   System.StringComparison.OrdinalIgnoreCase
-               );
+        return other != null &&
+               race != null &&
+               race == other.race;
     }
 
     private bool WouldCreateCycle(
@@ -859,8 +848,7 @@ public class SubraceDefinitionEditor : Editor
         EditorGUILayout.Space();
     }
 
-    private string GetBaseName(
-        SubraceDefinition definition)
+    private string GetBaseName(SubraceDefinition definition)
     {
         if (definition == null)
             return "the Race";
@@ -868,7 +856,7 @@ public class SubraceDefinitionEditor : Editor
         if (definition.IsDefaultSubrace())
         {
             return definition.race != null
-                ? $"{definition.race.displayName} Race"
+                ? $"{definition.race.name} Race"
                 : "the Race";
         }
 
@@ -876,12 +864,10 @@ public class SubraceDefinitionEditor : Editor
             definition.GetBaseSubrace();
 
         if (resolvedBase != null)
-        {
             return resolvedBase.name;
-        }
 
         return definition.race != null
-            ? $"{definition.race.displayName} Race"
+            ? $"{definition.race.name} Race"
             : "the Race";
     }
 

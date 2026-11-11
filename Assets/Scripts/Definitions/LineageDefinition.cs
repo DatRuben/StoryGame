@@ -32,21 +32,10 @@ public class LineageDefinition : GameDefinition
     public string skillTheme;
     public string skillTreeTheme;
 
-    public bool IsAllowedForRace(
-        RaceDefinition race)
+    public bool IsAllowedForRace(RaceDefinition race)
     {
-        if (race == null ||
-            allowedRace == null)
-        {
-            return false;
-        }
-
-        return allowedRace == race ||
-               string.Equals(
-                   allowedRace.raceId,
-                   race.raceId,
-                   System.StringComparison.OrdinalIgnoreCase
-               );
+        return race != null &&
+               allowedRace == race;
     }
 }
 
@@ -64,30 +53,19 @@ public class LineageDefinitionEditor : Editor
 
     private void OnEnable()
     {
-        displayName =
-            serializedObject.FindProperty("displayName");
+        description = serializedObject.FindProperty("description");
+        allowedRace = serializedObject.FindProperty("allowedRace");
 
-        description =
-            serializedObject.FindProperty("description");
+        hybridAttributeShape = serializedObject.FindProperty(
+            "hybridAttributeShape"
+        );
 
-        allowedRace =
-            serializedObject.FindProperty("allowedRace");
+        animalSpeciesModifiers = serializedObject.FindProperty(
+            "animalSpeciesModifiers"
+        );
 
-        hybridAttributeShape =
-            serializedObject.FindProperty(
-                "hybridAttributeShape"
-            );
-
-        animalSpeciesModifiers =
-            serializedObject.FindProperty(
-                "animalSpeciesModifiers"
-            );
-
-        skillTheme =
-            serializedObject.FindProperty("skillTheme");
-
-        skillTreeTheme =
-            serializedObject.FindProperty("skillTreeTheme");
+        skillTheme = serializedObject.FindProperty("skillTheme");
+        skillTreeTheme = serializedObject.FindProperty("skillTreeTheme");
     }
 
     public override void OnInspectorGUI()
