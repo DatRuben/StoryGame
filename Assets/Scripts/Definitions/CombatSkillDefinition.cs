@@ -63,6 +63,9 @@ public sealed class CombatSkillDefinition :
 public sealed class CombatSkillDefinitionEditor :
     Editor
 {
+    private SerializedProperty icon;
+    private SerializedProperty description;
+
     private SerializedProperty castTime;
     private SerializedProperty cooldown;
     private SerializedProperty aetherCost;
@@ -75,6 +78,8 @@ public sealed class CombatSkillDefinitionEditor :
 
     private void OnEnable()
     {
+        icon = serializedObject.FindProperty("icon");
+        description = serializedObject.FindProperty("description");
         action = serializedObject.FindProperty("action");
         castTime = serializedObject.FindProperty("castTime");
         cooldown = serializedObject.FindProperty("cooldown");
@@ -90,6 +95,7 @@ public sealed class CombatSkillDefinitionEditor :
         serializedObject.Update();
 
         DrawIdentity();
+        DrawPresentation();
         DrawTiming();
         DrawResourceCost();
         DrawActionOrigin();
@@ -221,6 +227,19 @@ public sealed class CombatSkillDefinitionEditor :
                 "Custom Action Point ID"
             )
         );
+    }
+
+    private void DrawPresentation()
+    {
+        EditorGUILayout.LabelField(
+            "Presentation",
+            EditorStyles.boldLabel
+        );
+
+        EditorGUILayout.PropertyField(icon);
+        EditorGUILayout.PropertyField(description);
+
+        EditorGUILayout.Space();
     }
 }
 #endif
