@@ -87,6 +87,106 @@ public sealed class PlayerHeldItemPresenter :
         ClearVisuals();
     }
 
+
+    private static void ApplyWeaponFit(
+        Transform root,
+        WeaponWieldItemFit fit)
+    {
+        if (root == null || fit == null)
+            return;
+
+        root.localPosition = fit.localPosition;
+        root.localRotation = fit.LocalRotation;
+        root.localScale = fit.localScaleMultiplier;
+    }
+
+    private bool TryResolveWeaponFit(
+        InventoryItemInstance item,
+        CharacterModelSetup model,
+        HeldItemAnchors anchors,
+        out Transform anchor,
+        out WeaponWieldItemFit fit)
+    {
+        anchor = null;
+        fit = null;
+
+        if (item == null ||
+            item.Definition == null ||
+            model == null ||
+            model.WieldConfiguration == null ||
+            anchors == null ||
+            gripState == null)
+        {
+            return false;
+        }
+
+        if (!gripState.TryGetGripAssignment(
+            item,
+            out GripType gripType,
+            out int gripCount,
+            out int singleHandIndex))
+        {
+            return false;
+        }
+
+        WeaponAttachmentSocket? requestedSocket = null;
+
+        if (gripType == GripType.Mouth)
+        {
+            requestedSocket = WeaponAttachmentSocket.Mouth;
+        }
+        else if (singleHandIndex == 0)
+        {
+            requestedSocket = WeaponAttachmentSocket.LeftHand;
+        }
+        else if (singleHandIndex == 1)
+        {
+            requestedSocket = WeaponAttachmentSocket.RightHand;
+        }
+
+        if (!model.WieldConfiguration.TryGetVariant(
+            item.Definition.wieldStyle,
+            gripType,
+            gripCount,
+            requestedSocket,
+            out WeaponWieldRigVariant variant))
+        {
+            return false;
+        }
+
+        switch (variant.primarySocket)
+        {
+            case WeaponAttachmentSocket.LeftHand:
+                anchor = anchors.LeftHand;
+                break;
+
+            case WeaponAttachmentSocket.RightHand:
+                anchor = anchors.RightHand;
+                break;
+
+            case WeaponAttachmentSocket.Mouth:
+                anchor = anchors.Mouth;
+                break;
+
+            default:
+                return false;
+        }
+
+        if (anchor == null)
+            return false;
+
+        HeldItemGripContext context =
+            weaponDeployment != null
+                ? weaponDeployment.GetGripContext(item)
+                : HeldItemGripContext.Held;
+
+        return variant.TryGetItemFit(
+            item.Definition,
+            context,
+            out fit);
+    }
+
+
     private void Refresh()
     {
         if (gripState == null)
@@ -168,112 +268,110 @@ public sealed class PlayerHeldItemPresenter :
             ref mouthVisualItem,
             ref mouthVisual
         );
+
+        CharacterModelSetup model =
+        GetComponentInChildren<CharacterModelSetup>(true);
     }
+
 
     private void RefreshVisual(
         InventoryItemInstance item,
-        Transform anchor,
+        Transform fallbackAnchor,
         GripType gripType,
+        CharacterModelSetup model,
+        HeldItemAnchors anchors,
         ref InventoryItemInstance shownItem,
         ref GameObject visual)
     {
-        
-        //reposition weapon without changing its visual
-        if (ReferenceEquals(
+        if (item == null || item.Definition == null)
+        {
+            ClearVisual(ref shownItem, ref visual);
+            return;
+        }
+
+        Transform anchor = fallbackAnchor;
+        WeaponWieldItemFit fit = null;
+
+        bool isWeapon = item.Definition.IsConventionalWeapon;
+
+        if (isWeapon &&
+            !TryResolveWeaponFit(
                 item,
-                shownItem) &&
+                model,
+                anchors,
+                out anchor,
+                out fit))
+        {
+            Debug.LogWarning(
+                $"Missing weapon attachment configuration for " +
+                $"{item.Definition.name}.",
+                this);
+
+            ClearVisual(ref shownItem, ref visual);
+            return;
+        }
+
+        if (anchor == null)
+        {
+            ClearVisual(ref shownItem, ref visual);
+            return;
+        }
+
+        if (ReferenceEquals(item, shownItem) &&
             visual != null)
         {
-            ApplyGrip(
-                visual.transform,
-                item,
-                gripType,
-                anchor
-            );
+            Transform root = visual.transform;
+
+            if (root.parent != anchor)
+                root.SetParent(anchor, false);
+
+            if (isWeapon)
+                ApplyWeaponFit(root, fit);
+            else
+                ApplyGrip(root, item, gripType, anchor);
 
             return;
         }
 
-        ClearVisual(
-            ref shownItem,
-            ref visual
-        );
-
-        if (item == null ||
-            item.Definition == null ||
-            anchor == null)
-        {
-            return;
-        }
+        ClearVisual(ref shownItem, ref visual);
 
         GameObject visualPrefab =
             visualResolver != null
-                ? visualResolver.ResolveWorldPrefab(
-                    item.Definition
-                )
+                ? visualResolver.ResolveWorldPrefab(item.Definition)
                 : item.Definition.worldPrefab;
 
         if (visualPrefab == null)
-        {
             return;
-        }
 
-        GameObject visualRoot =
-            new GameObject(
-                "HeldItemVisual"
-            );
+        GameObject visualRoot = new GameObject("HeldItemVisual");
+        Transform rootTransform = visualRoot.transform;
 
-        Transform rootTransform =
-            visualRoot.transform;
-
-        rootTransform.position =
-            anchor.position;
-
-        rootTransform.rotation =
-            anchor.rotation;
-
-        rootTransform.localScale =
-            Vector3.one;
-
-        rootTransform.SetParent(
-            anchor,
-            true
-        );
+        rootTransform.SetParent(anchor, false);
+        rootTransform.localPosition = Vector3.zero;
+        rootTransform.localRotation = Quaternion.identity;
+        rootTransform.localScale = Vector3.one;
 
         GameObject itemVisual =
-            Instantiate(
-                visualPrefab,
-                rootTransform,
-                false
-            );
+            Instantiate(visualPrefab, rootTransform, false);
 
         if (itemVisual == null)
         {
-            Destroy(
-                visualRoot
-            );
-
+            Destroy(visualRoot);
             return;
         }
 
-         ApplyGrip(
-             rootTransform,
-             item,
-             gripType,
-             anchor
-            );
+        if (isWeapon)
+            ApplyWeaponFit(rootTransform, fit);
+        else
+            ApplyGrip(rootTransform, item, gripType, anchor);
 
-        visual =
-            visualRoot;
+        visual = visualRoot;
+        shownItem = item;
 
-        shownItem =
-            item;
-
-        DisablePhysics(
-            visual
-        );
+        DisablePhysics(visual);
     }
-    
+
+
     //apply the transform in the presenter
     private void ApplyGrip(
     Transform root,

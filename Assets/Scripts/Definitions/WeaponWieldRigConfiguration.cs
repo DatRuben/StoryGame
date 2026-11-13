@@ -9,6 +9,24 @@ public enum WeaponAttachmentSocket
     Mouth
 }
 
+
+
+
+[Serializable]
+public sealed class WeaponWieldItemFit
+{
+    public ItemDefinition weapon;
+    public HeldItemGripContext context;
+
+    public Vector3 localPosition;
+    public Vector3 localEulerAngles;
+    public Vector3 localScaleMultiplier = Vector3.one;
+
+    public Quaternion LocalRotation =>
+        Quaternion.Euler(localEulerAngles);
+}
+
+
 [Serializable]
 public sealed class WeaponWieldRigVariant
 {
@@ -25,6 +43,44 @@ public sealed class WeaponWieldRigVariant
 
     [Header("Animation")]
     public AnimatorOverrideController readyController;
+
+
+    [Header("Weapon Fitting")]
+    [SerializeField]
+    private WeaponWieldItemFit[] itemFits;
+
+    public bool TryGetItemFit(
+        ItemDefinition weapon,
+        HeldItemGripContext context,
+        out WeaponWieldItemFit result)
+    {
+        result = null;
+
+        if (weapon == null || itemFits == null)
+            return false;
+
+        foreach (WeaponWieldItemFit fit in itemFits)
+        {
+            if (fit == null ||
+                fit.weapon != weapon ||
+                fit.context != context)
+            {
+                continue;
+            }
+
+            // Reject duplicate matching entries.
+            if (result != null)
+            {
+                result = null;
+                return false;
+            }
+
+            result = fit;
+        }
+
+        return result != null;
+    }
+
 }
 
 [CreateAssetMenu(
