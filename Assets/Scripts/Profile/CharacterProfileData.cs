@@ -40,6 +40,14 @@ public class CharacterProfileData
 
     public List<CharacterSkillLevel> skillLevels = new();
 
+    public List<string> learnedCombatSkillIds = new();
+
+    public CharacterCombatSkillLoadoutData[] combatSkillLoadouts =
+    {
+        new CharacterCombatSkillLoadoutData(),
+        new CharacterCombatSkillLoadoutData()
+    };
+
     public string createdUtc;
     public string lastSavedUtc;
 
@@ -107,4 +115,12 @@ public class CharacterSkillLevel
         this.skillId = skillId;
         this.level = level;
     }
+}
+
+[Serializable]
+public sealed class CharacterCombatSkillLoadoutData
+{
+    public const int MaxSlots = 9;
+
+    public string[] skillIds = new string[MaxSlots];
 }
