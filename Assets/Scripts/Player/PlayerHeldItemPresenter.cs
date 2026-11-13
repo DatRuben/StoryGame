@@ -187,14 +187,14 @@ public sealed class PlayerHeldItemPresenter :
     }
 
 
+
     private void Refresh()
     {
         if (gripState == null)
             return;
 
         HeldItemAnchors anchors =
-            GetComponentInChildren<
-                HeldItemAnchors>(true);
+            GetComponentInChildren<HeldItemAnchors>(true);
 
         if (anchors == null)
         {
@@ -202,30 +202,21 @@ public sealed class PlayerHeldItemPresenter :
             return;
         }
 
+        CharacterModelSetup model =
+            GetComponentInChildren<CharacterModelSetup>(true);
+
         InventoryItemInstance leftItem =
-            gripState.GetItem(
-                GripType.Hand,
-                0
-            );
+            gripState.GetItem(GripType.Hand, 0);
 
         InventoryItemInstance rightItem =
-            gripState.GetItem(
-                GripType.Hand,
-                1
-            );
+            gripState.GetItem(GripType.Hand, 1);
 
         InventoryItemInstance mouthItem =
-            gripState.GetItem(
-                GripType.Mouth,
-                0
-            );
+            gripState.GetItem(GripType.Mouth, 0);
 
         bool sameTwoHandItem =
             leftItem != null &&
-            ReferenceEquals(
-                leftItem,
-                rightItem
-            );
+            ReferenceEquals(leftItem, rightItem);
 
         if (sameTwoHandItem)
         {
@@ -233,6 +224,8 @@ public sealed class PlayerHeldItemPresenter :
                 leftItem,
                 anchors.RightHand,
                 GripType.Hand,
+                model,
+                anchors,
                 ref rightVisualItem,
                 ref rightVisual
             );
@@ -248,6 +241,8 @@ public sealed class PlayerHeldItemPresenter :
                 leftItem,
                 anchors.LeftHand,
                 GripType.Hand,
+                model,
+                anchors,
                 ref leftVisualItem,
                 ref leftVisual
             );
@@ -256,6 +251,8 @@ public sealed class PlayerHeldItemPresenter :
                 rightItem,
                 anchors.RightHand,
                 GripType.Hand,
+                model,
+                anchors,
                 ref rightVisualItem,
                 ref rightVisual
             );
@@ -265,13 +262,13 @@ public sealed class PlayerHeldItemPresenter :
             mouthItem,
             anchors.Mouth,
             GripType.Mouth,
+            model,
+            anchors,
             ref mouthVisualItem,
             ref mouthVisual
         );
-
-        CharacterModelSetup model =
-        GetComponentInChildren<CharacterModelSetup>(true);
     }
+
 
 
     private void RefreshVisual(
