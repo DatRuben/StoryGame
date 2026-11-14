@@ -175,7 +175,8 @@ public sealed class PlayerHeldItemPresenter :
 
 
 
-    private static void ApplyWeaponFit( //align weapon to the virtual marker thats parented to the socket
+
+    private static void ApplyWeaponFit(
         Transform visualRoot,
         Transform weaponVisual,
         WeaponWieldItemFit fit)
@@ -184,6 +185,24 @@ public sealed class PlayerHeldItemPresenter :
             weaponVisual == null ||
             fit == null)
         {
+            return;
+        }
+
+        Transform socket = visualRoot.parent;
+
+        if (socket == null)
+            return;
+
+        Vector3 socketScale = socket.lossyScale;
+
+        if (Mathf.Approximately(socketScale.x, 0f) ||
+            Mathf.Approximately(socketScale.y, 0f) ||
+            Mathf.Approximately(socketScale.z, 0f))
+        {
+            Debug.LogError(
+                $"Weapon socket '{socket.name}' has zero scale.",
+                socket
+            );
             return;
         }
 
@@ -199,9 +218,13 @@ public sealed class PlayerHeldItemPresenter :
             weaponVisual.localRotation *
             fit.LocalRotation;
 
-
-        visualRoot.localScale =
-            fit.localScaleMultiplier;
+        // Preserve the prefab's world scale independently
+        // of the character rig's inherited scale.
+        visualRoot.localScale = new Vector3(
+            fit.localScaleMultiplier.x / socketScale.x,
+            fit.localScaleMultiplier.y / socketScale.y,
+            fit.localScaleMultiplier.z / socketScale.z
+        );
 
         visualRoot.localRotation =
             Quaternion.Inverse(gripRotation);
@@ -215,6 +238,7 @@ public sealed class PlayerHeldItemPresenter :
                 )
             );
     }
+
 
 
     private bool TryResolveWeaponFit(

@@ -34,4 +34,4 @@ MonoBehaviour:
       context: 1
       localPosition: {x: -1.0003878, y: 1.4555167, z: 4.9520826}
       localEulerAngles: {x: 349.5619, y: 154.95471, z: 69.58237}
-      localScaleMultiplier: {x: 5, y: 5, z: 5}
+      localScaleMultiplier: {x: 1, y: 1, z: 1}
