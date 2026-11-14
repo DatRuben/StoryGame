@@ -302,6 +302,7 @@ public sealed class PlayerHeldItemPresenter :
 
 
 
+
     private void RefreshVisual(
         InventoryItemInstance item,
         Transform fallbackAnchor,
@@ -320,9 +321,14 @@ public sealed class PlayerHeldItemPresenter :
         Transform anchor = fallbackAnchor;
         WeaponWieldItemFit fit = null;
 
-        bool isWeapon = item.Definition.IsConventionalWeapon;
+        // Specialized weapon fitting is only needed
+        // when the weapon is deployed.
+        bool usesWeaponFit =
+            item.Definition.IsConventionalWeapon &&
+            weaponDeployment != null &&
+            weaponDeployment.IsDeployed(item);
 
-        if (isWeapon &&
+        if (usesWeaponFit &&
             !TryResolveWeaponFit(
                 item,
                 model,
@@ -331,7 +337,7 @@ public sealed class PlayerHeldItemPresenter :
                 out fit))
         {
             Debug.LogWarning(
-                $"Missing weapon attachment configuration for " +
+                $"Missing weapon fitting for " +
                 $"{item.Definition.name}.",
                 this);
 
@@ -345,6 +351,8 @@ public sealed class PlayerHeldItemPresenter :
             return;
         }
 
+        // Reuse the visual if this is still
+        // the same item instance.
         if (ReferenceEquals(item, shownItem) &&
             visual != null)
         {
@@ -353,8 +361,7 @@ public sealed class PlayerHeldItemPresenter :
             if (root.parent != anchor)
                 root.SetParent(anchor, false);
 
-
-            if (isWeapon)
+            if (usesWeaponFit)
             {
                 if (root.childCount == 0)
                 {
@@ -365,19 +372,15 @@ public sealed class PlayerHeldItemPresenter :
                 ApplyWeaponFit(
                     root,
                     root.GetChild(0),
-                    fit
-                );
+                    fit);
             }
             else
             {
-                ApplyGrip(
+                ApplyHeldOrientation(
                     root,
-                    item,
                     gripType,
-                    anchor
-                );
+                    anchor);
             }
-
 
             return;
         }
@@ -386,14 +389,18 @@ public sealed class PlayerHeldItemPresenter :
 
         GameObject visualPrefab =
             visualResolver != null
-                ? visualResolver.ResolveWorldPrefab(item.Definition)
+                ? visualResolver.ResolveWorldPrefab(
+                    item.Definition)
                 : item.Definition.worldPrefab;
 
         if (visualPrefab == null)
             return;
 
-        GameObject visualRoot = new GameObject("HeldItemVisual");
-        Transform rootTransform = visualRoot.transform;
+        GameObject visualRoot =
+            new GameObject("HeldItemVisual");
+
+        Transform rootTransform =
+            visualRoot.transform;
 
         rootTransform.SetParent(anchor, false);
         rootTransform.localPosition = Vector3.zero;
@@ -401,7 +408,10 @@ public sealed class PlayerHeldItemPresenter :
         rootTransform.localScale = Vector3.one;
 
         GameObject itemVisual =
-            Instantiate(visualPrefab, rootTransform, false);
+            Instantiate(
+                visualPrefab,
+                rootTransform,
+                false);
 
         if (itemVisual == null)
         {
@@ -409,25 +419,20 @@ public sealed class PlayerHeldItemPresenter :
             return;
         }
 
-
-        if (isWeapon)
+        if (usesWeaponFit)
         {
             ApplyWeaponFit(
                 rootTransform,
                 itemVisual.transform,
-                fit
-            );
+                fit);
         }
         else
         {
-            ApplyGrip(
+            ApplyHeldOrientation(
                 rootTransform,
-                item,
                 gripType,
-                anchor
-            );
+                anchor);
         }
-
 
         visual = visualRoot;
         shownItem = item;
@@ -436,47 +441,59 @@ public sealed class PlayerHeldItemPresenter :
     }
 
 
+
     //apply the transform in the presenter
-    private void ApplyGrip(
-    Transform root,
-    InventoryItemInstance item,
-    GripType gripType,
-    Transform anchor)
+
+    private static void ApplyHeldOrientation(
+        Transform root,
+        GripType gripType,
+        Transform anchor)
     {
+        if (root == null || anchor == null)
+            return;
+
+        // The character socket determines
+        // where the item appears.
+        root.localPosition = Vector3.zero;
+        root.localRotation = Quaternion.identity;
+        root.localScale = Vector3.one;
+
         HeldItemGripPoints points =
             root.GetComponentInChildren<
                 HeldItemGripPoints>(true);
 
+        // The prefab's original orientation is
+        // used if there is no Held reference.
         if (points == null)
             return;
 
-        Transform gripPoint;
+        Transform reference = null;
 
         if (points.HasGripSets)
         {
-            HeldItemGripContext context =
-                weaponDeployment != null
-                    ? weaponDeployment.GetGripContext(item)
-                    : HeldItemGripContext.Held;
-
-            if (!points.TryGetGripPoint(
-                    context, out gripPoint))
-            {
-                Debug.LogWarning(
-                    $"Missing {context} grip on {points.name}.",
-                    points
-                );
-                return;
-            }
+            points.TryGetGripPoint(
+                HeldItemGripContext.Held,
+                out reference);
         }
         else
         {
-            gripPoint = points.GetPrimaryGrip(gripType);
+            reference =
+                points.GetPrimaryGrip(gripType);
         }
 
-        if (gripPoint != null)
-            AlignGripPointToAnchor(root, gripPoint, anchor);
+        if (reference == null)
+            return;
+
+        // Correct orientation only.
+        // Item-side reference position is ignored.
+        Quaternion rotationDelta =
+            anchor.rotation *
+            Quaternion.Inverse(reference.rotation);
+
+        root.rotation =
+            rotationDelta * root.rotation;
     }
+
 
 
     private void DisablePhysics(
@@ -652,33 +669,5 @@ public sealed class PlayerHeldItemPresenter :
         return true;
     }
 
-    private static void AlignGripPointToAnchor(
-        Transform itemRoot,
-        Transform gripPoint,
-        Transform anchor)
-    {
-        if (itemRoot == null ||
-            gripPoint == null ||
-            anchor == null)
-        {
-            return;
-        }
-
-        Quaternion rotationDelta =
-            anchor.rotation *
-            Quaternion.Inverse(
-                gripPoint.rotation
-            );
-
-        itemRoot.rotation =
-            rotationDelta *
-            itemRoot.rotation;
-
-        Vector3 positionDelta =
-            anchor.position -
-            gripPoint.position;
-
-        itemRoot.position +=
-            positionDelta;
-    }
+  
 }
