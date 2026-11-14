@@ -23,7 +23,7 @@ MonoBehaviour:
       context: 1
       localPosition: {x: -0.054981783, y: 0.19343787, z: -0.25486997}
       localEulerAngles: {x: 291.70972, y: 171.5791, z: 297.4001}
-      localScaleMultiplier: {x: 0, y: 0, z: 0}
+      localScaleMultiplier: {x: 1, y: 1, z: 1}
   - style: {fileID: 11400000, guid: 358a7b434618bef439aab8876d2bfa13, type: 2}
     gripType: 0
     assignedGripCount: 2
@@ -34,4 +34,4 @@ MonoBehaviour:
       context: 1
       localPosition: {x: -1.0003878, y: 1.4555167, z: 4.9520826}
       localEulerAngles: {x: 349.5619, y: 154.95471, z: 69.58237}
-      localScaleMultiplier: {x: 0, y: 0, z: 0}
+      localScaleMultiplier: {x: 5, y: 5, z: 5}
