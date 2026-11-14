@@ -399,7 +399,7 @@ public sealed class PlayerHeldItemPresenter :
             else
             {
                 ApplyHeldOrientation(
-                    root,
+                    rootTransform,
                     gripType,
                     anchor,
                     heldPresentation);
@@ -452,10 +452,9 @@ public sealed class PlayerHeldItemPresenter :
         else
         {
             ApplyHeldOrientation(
-                root,
+                rootTransform,
                 gripType,
-                anchor,
-                heldPresentation);
+                anchor);
         }
 
         visual = visualRoot;
@@ -471,8 +470,7 @@ public sealed class PlayerHeldItemPresenter :
     private static void ApplyHeldOrientation(
         Transform root,
         GripType gripType,
-        Transform anchor,
-        HeldItemPresentationBinding presentation)
+        Transform anchor)
     {
         if (root == null || anchor == null)
             return;
@@ -480,9 +478,7 @@ public sealed class PlayerHeldItemPresenter :
         // The character socket determines
         // where the item appears.
 
-        root.localPosition = presentation != null
-        ? presentation.localPositionOffset
-        : Vector3.zero;
+        root.localPosition = Vector3.zero;
         root.localRotation = Quaternion.identity;
 
         // Preserve the prefab's authored world scale
