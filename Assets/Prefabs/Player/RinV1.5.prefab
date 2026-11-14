@@ -1294,7 +1294,7 @@ MonoBehaviour:
   - gripType: 0
     assignedGripCount: 2
     singleHandIndex: -1
-    socket: {fileID: 3934505573824520026}
+    socket: {fileID: 7160793492489846361}
     controller: {fileID: 22100000, guid: 8dbe706e30cfd374384b548714e22430, type: 2}
 --- !u!114 &2005116167343531484
 MonoBehaviour:
