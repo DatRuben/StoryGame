@@ -481,8 +481,8 @@ public sealed class PlayerHeldItemPresenter :
         // where the item appears.
 
         root.localPosition = presentation != null
-        presentation.localPositionOffset
-        Vector3.zero;
+        ? presentation.localPositionOffset
+        : Vector3.zero;
         root.localRotation = Quaternion.identity;
 
         // Preserve the prefab's authored world scale
