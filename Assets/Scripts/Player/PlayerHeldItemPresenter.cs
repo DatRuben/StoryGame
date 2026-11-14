@@ -350,7 +350,7 @@ public sealed class PlayerHeldItemPresenter :
             model != null &&
             gripState != null &&
             gripState.TryGetGripAssignment(
-                item,
+                item,  
                 out GripType assignedType,
                 out int assignedCount,
                 out int singleHandIndex) &&

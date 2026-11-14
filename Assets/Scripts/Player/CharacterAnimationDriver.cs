@@ -7,8 +7,8 @@ public sealed class CharacterAnimationDriver : MonoBehaviour
     private static readonly int IsMoving =
         Animator.StringToHash("isMoving");
 
-    private static readonly int IsWeaponReady =
-        Animator.StringToHash("isWeaponReady");
+    private static readonly int IsItemPoseActive =
+        Animator.StringToHash("isItemPoseActive");
 
     private PlayerWeaponDeployment weaponDeployment;
     private PlayerGripState gripState;
@@ -163,6 +163,24 @@ public sealed class CharacterAnimationDriver : MonoBehaviour
             }
         }
 
+
+
+        bool itemPoseActive = isReady;
+
+        // Only use ordinary holding-out animations
+        // while weapons are not deployed.
+        if ((weaponDeployment == null ||
+             !weaponDeployment.WeaponsDrawn) &&
+            TryGetHeldItemController(
+                model,
+                out AnimatorOverrideController heldController))
+        {
+            selectedController = heldController;
+            itemPoseActive = true;
+        }
+
+
+
         if (target.runtimeAnimatorController !=
             selectedController)
         {
@@ -170,6 +188,6 @@ public sealed class CharacterAnimationDriver : MonoBehaviour
                 selectedController;
         }
 
-        target.SetBool(IsWeaponReady, isReady);
+        target.SetBool(IsItemPoseActive, itemPoseActive);
     }
 }
