@@ -1286,19 +1286,19 @@ MonoBehaviour:
     singleHandIndex: 0
     socket: {fileID: 8029919731960370168}
     controller: {fileID: 22100000, guid: 3411d10d3b403914dad9cc9e0cd3747f, type: 2}
-    localPositionOffset: {x: 0, y: -0.2, z: 0}
+    localPositionOffset: {x: 0, y: 0.2, z: 0}
   - gripType: 0
     assignedGripCount: 1
     singleHandIndex: 1
     socket: {fileID: 3934505573824520026}
     controller: {fileID: 0}
-    localPositionOffset: {x: 0, y: -0.2, z: 0}
+    localPositionOffset: {x: 0, y: 0.2, z: 0}
   - gripType: 0
     assignedGripCount: 2
     singleHandIndex: -1
     socket: {fileID: 7160793492489846361}
     controller: {fileID: 22100000, guid: 8dbe706e30cfd374384b548714e22430, type: 2}
-    localPositionOffset: {x: 0, y: -0.2, z: 0}
+    localPositionOffset: {x: 0, y: 0.2, z: 0}
 --- !u!114 &2005116167343531484
 MonoBehaviour:
   m_ObjectHideFlags: 0

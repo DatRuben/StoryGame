@@ -530,14 +530,30 @@ public sealed class PlayerHeldItemPresenter :
         if (reference == null)
             return;
 
-        // Correct orientation only.
-        // Item-side reference position is ignored.
+
+        // The character determines where the item's
+        // grip point should be positioned.
+        Vector3 targetGripPosition =
+            anchor.TransformPoint(
+                presentation != null
+                    ? presentation.localPositionOffset
+                    : Vector3.zero
+            );
+
+        // Align the item's Held reference orientation
+        // with the character's socket orientation.
         Quaternion rotationDelta =
             anchor.rotation *
             Quaternion.Inverse(reference.rotation);
 
         root.rotation =
             rotationDelta * root.rotation;
+
+        // Move the complete item so its Held reference
+        // reaches the character-defined position.
+        root.position +=
+            targetGripPosition - reference.position;
+
     }
 
 
