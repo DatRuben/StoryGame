@@ -399,7 +399,7 @@ public sealed class PlayerHeldItemPresenter :
             else
             {
                 ApplyHeldOrientation(
-                    rootTransform,
+                    root,
                     gripType,
                     anchor,
                     heldPresentation);
