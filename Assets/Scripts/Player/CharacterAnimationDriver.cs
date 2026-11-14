@@ -190,4 +190,79 @@ public sealed class CharacterAnimationDriver : MonoBehaviour
 
         target.SetBool(IsItemPoseActive, itemPoseActive);
     }
+
+
+    private bool TryGetHeldItemController(
+        CharacterModelSetup model,
+        out AnimatorOverrideController controller)
+    {
+        controller = null;
+
+        if (model == null || gripState == null)
+            return false;
+
+        InventoryItemInstance leftItem =
+            gripState.GetItem(GripType.Hand, 0);
+
+        InventoryItemInstance rightItem =
+            gripState.GetItem(GripType.Hand, 1);
+
+        InventoryItemInstance mouthItem =
+            gripState.GetItem(GripType.Mouth, 0);
+
+        InventoryItemInstance item = null;
+
+        if (leftItem != null &&
+            ReferenceEquals(leftItem, rightItem) &&
+            mouthItem == null)
+        {
+            item = leftItem;
+        }
+        else if (leftItem != null &&
+                 rightItem == null &&
+                 mouthItem == null)
+        {
+            item = leftItem;
+        }
+        else if (rightItem != null &&
+                 leftItem == null &&
+                 mouthItem == null)
+        {
+            item = rightItem;
+        }
+        else if (mouthItem != null &&
+                 leftItem == null &&
+                 rightItem == null)
+        {
+            item = mouthItem;
+        }
+
+        // No held item, or multiple distinct items
+        // requiring independent animations.
+        if (item == null)
+            return false;
+
+        if (!gripState.TryGetGripAssignment(
+                item,
+                out GripType gripType,
+                out int gripCount,
+                out int singleHandIndex))
+        {
+            return false;
+        }
+
+        if (!model.TryGetHeldItemPresentation(
+                gripType,
+                gripCount,
+                singleHandIndex,
+                out HeldItemPresentationBinding presentation))
+        {
+            return false;
+        }
+
+        controller = presentation.controller;
+
+        return controller != null;
+    }
+
 }
