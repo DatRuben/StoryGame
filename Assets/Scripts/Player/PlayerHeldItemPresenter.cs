@@ -454,7 +454,8 @@ public sealed class PlayerHeldItemPresenter :
             ApplyHeldOrientation(
                 rootTransform,
                 gripType,
-                anchor);
+                anchor,
+                heldPresentation);
         }
 
         visual = visualRoot;
@@ -468,17 +469,18 @@ public sealed class PlayerHeldItemPresenter :
     //apply the transform in the presenter
 
     private static void ApplyHeldOrientation(
-        Transform root,
-        GripType gripType,
-        Transform anchor)
+    Transform root,
+    GripType gripType,
+    Transform anchor,
+    HeldItemPresentationBinding presentation)
     {
         if (root == null || anchor == null)
             return;
 
-        // The character socket determines
-        // where the item appears.
+        root.localPosition = presentation != null
+            ? presentation.localPositionOffset
+            : Vector3.zero;
 
-        root.localPosition = Vector3.zero;
         root.localRotation = Quaternion.identity;
 
         // Preserve the prefab's authored world scale
