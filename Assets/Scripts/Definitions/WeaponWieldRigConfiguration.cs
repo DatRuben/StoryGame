@@ -22,21 +22,15 @@ public sealed class WeaponWieldItemFit
 
     [Header("Virtual Grip Marker")]
 
-    [Tooltip(
-        "Position of the grip reference relative " +
-        "to the weapon prefab root, not the socket."
-    )]
     public Vector3 localPosition;
 
     [Tooltip(
-        "Rotation of the grip reference relative " +
-        "to the weapon prefab root."
+        "Intended Position"
     )]
     public Vector3 localEulerAngles;
 
     [Tooltip(
-        "Additional visual scale for this character. " +
-        "One preserves the prefab's authored scale."
+        "Intended Rotation"
     )]
     public Vector3 localScaleMultiplier = Vector3.one;
 

@@ -345,6 +345,25 @@ public sealed class PlayerHeldItemPresenter :
             return;
         }
 
+
+        if (!usesWeaponFit &&
+            model != null &&
+            gripState != null &&
+            gripState.TryGetGripAssignment(
+                item,
+                out GripType assignedType,
+                out int assignedCount,
+                out int singleHandIndex) &&
+            model.TryGetHeldItemPresentation(
+                assignedType,
+                assignedCount,
+                singleHandIndex,
+                out HeldItemPresentationBinding presentation))
+        {
+            anchor = presentation.socket;
+        }
+
+
         if (anchor == null)
         {
             ClearVisual(ref shownItem, ref visual);
