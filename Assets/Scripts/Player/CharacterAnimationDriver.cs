@@ -196,6 +196,7 @@ public sealed class CharacterAnimationDriver : MonoBehaviour
         CharacterModelSetup model,
         out AnimatorOverrideController controller)
     {
+
         controller = null;
 
         if (model == null || gripState == null)
@@ -207,8 +208,31 @@ public sealed class CharacterAnimationDriver : MonoBehaviour
         InventoryItemInstance rightItem =
             gripState.GetItem(GripType.Hand, 1);
 
+
+
         InventoryItemInstance mouthItem =
             gripState.GetItem(GripType.Mouth, 0);
+
+        // Two independent items occupy both hands.
+        // Use the two-handed pose, but let the presenter
+        // attach each item to its own hand socket.
+        if (leftItem != null &&
+            rightItem != null &&
+            !ReferenceEquals(leftItem, rightItem) &&
+            mouthItem == null)
+        {
+            if (!model.TryGetHeldItemPresentation(
+                    GripType.Hand,
+                    2,
+                    -1,
+                    out HeldItemPresentationBinding twoItemPresentation))
+            {
+                return false;
+            }
+
+            controller = twoItemPresentation.controller;
+            return controller != null;
+        }
 
         InventoryItemInstance item = null;
 
@@ -263,6 +287,10 @@ public sealed class CharacterAnimationDriver : MonoBehaviour
         controller = presentation.controller;
 
         return controller != null;
+
+
+
+
     }
 
 }
