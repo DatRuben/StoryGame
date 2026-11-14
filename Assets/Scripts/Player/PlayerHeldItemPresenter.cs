@@ -88,6 +88,92 @@ public sealed class PlayerHeldItemPresenter :
     }
 
 
+    private void LateUpdate()
+    {
+        if (gripState == null)
+            return;
+
+        if (leftVisual == null &&
+            rightVisual == null &&
+            mouthVisual == null)
+        {
+            return;
+        }
+
+        CharacterModelSetup model =
+            GetComponentInChildren<CharacterModelSetup>(true);
+
+        UpdateHeldVisualPose(
+            leftVisualItem,
+            leftVisual,
+            model);
+
+        UpdateHeldVisualPose(
+            rightVisualItem,
+            rightVisual,
+            model);
+
+        UpdateHeldVisualPose(
+            mouthVisualItem,
+            mouthVisual,
+            model);
+    }
+
+    private void UpdateHeldVisualPose(
+        InventoryItemInstance item,
+        GameObject visual,
+        CharacterModelSetup model)
+    {
+        if (item == null ||
+            item.Definition == null ||
+            visual == null ||
+            gripState == null)
+        {
+            return;
+        }
+
+        // Deployed weapons use their separate Ready fit.
+        if (item.Definition.IsConventionalWeapon &&
+            weaponDeployment != null &&
+            weaponDeployment.IsDeployed(item))
+        {
+            return;
+        }
+
+        if (!gripState.TryGetGripAssignment(
+            item,
+            out GripType gripType,
+            out int gripCount,
+            out int singleHandIndex))
+        {
+            return;
+        }
+
+        HeldItemPresentationBinding presentation = null;
+
+        if (model != null)
+        {
+            model.TryGetHeldItemPresentation(
+                gripType,
+                gripCount,
+                singleHandIndex,
+                out presentation);
+        }
+
+        Transform root = visual.transform;
+        Transform anchor = root.parent;
+
+        if (anchor == null)
+            return;
+
+        ApplyHeldOrientation(
+            root,
+            gripType,
+            anchor,
+            presentation);
+    }
+
+
 
     private static void ApplyWeaponFit( //align weapon to the virtual marker thats parented to the socket
         Transform visualRoot,
@@ -468,23 +554,35 @@ public sealed class PlayerHeldItemPresenter :
 
     //apply the transform in the presenter
 
-    private static void ApplyHeldOrientation(
-    Transform root,
-    GripType gripType,
-    Transform anchor,
-    HeldItemPresentationBinding presentation)
+
+    private void ApplyHeldOrientation(
+        Transform root,
+        GripType gripType,
+        Transform anchor,
+        HeldItemPresentationBinding presentation)
     {
         if (root == null || anchor == null)
             return;
 
-        root.localPosition = presentation != null
-            ? presentation.localPositionOffset
-            : Vector3.zero;
+        // Resolve upright orientation from the player,
+        // independently of the animated hand socket.
+        Vector3 forward = Vector3.ProjectOnPlane(
+            transform.forward,
+            Vector3.up
+        );
 
+        Quaternion facingRotation =
+            forward.sqrMagnitude > 0.0001f
+                ? Quaternion.LookRotation(
+                    forward,
+                    Vector3.up)
+                : Quaternion.identity;
+
+        // Reset the attachment wrapper before alignment.
+        root.localPosition = Vector3.zero;
         root.localRotation = Quaternion.identity;
 
-        // Preserve the prefab's authored world scale
-        // instead of multiplying it by the character's scale.
+        // Preserve the item's authored prefab scale.
         Vector3 socketScale = anchor.lossyScale;
 
         if (Mathf.Approximately(socketScale.x, 0f) ||
@@ -503,58 +601,60 @@ public sealed class PlayerHeldItemPresenter :
             1f / socketScale.z
         );
 
+        // The socket supplies the animated position.
+        // The offset uses character-facing axes,
+        // not the socket's animated rotation.
+        Vector3 offset = presentation != null
+            ? presentation.localPositionOffset
+            : Vector3.zero;
+
+        Vector3 targetPosition =
+            anchor.position +
+            facingRotation *
+            Vector3.Scale(socketScale, offset);
 
         HeldItemGripPoints points =
-            root.GetComponentInChildren<
-                HeldItemGripPoints>(true);
-
-        // The prefab's original orientation is
-        // used if there is no Held reference.
-        if (points == null)
-            return;
+            root.GetComponentInChildren<HeldItemGripPoints>(true);
 
         Transform reference = null;
 
-        if (points.HasGripSets)
+        if (points != null)
         {
-            points.TryGetGripPoint(
-                HeldItemGripContext.Held,
-                out reference);
-        }
-        else
-        {
-            reference =
-                points.GetPrimaryGrip(gripType);
+            if (points.HasGripSets)
+            {
+                points.TryGetGripPoint(
+                    HeldItemGripContext.Held,
+                    out reference);
+            }
+            else
+            {
+                reference = points.GetPrimaryGrip(gripType);
+            }
         }
 
+        // Fallback for items without a valid Held reference.
         if (reference == null)
+        {
+            root.rotation = facingRotation;
+            root.position = targetPosition;
             return;
+        }
 
-
-        // The character determines where the item's
-        // grip point should be positioned.
-        Vector3 targetGripPosition =
-            anchor.TransformPoint(
-                presentation != null
-                    ? presentation.localPositionOffset
-                    : Vector3.zero
-            );
-
-        // Align the item's Held reference orientation
-        // with the character's socket orientation.
+        // Align the item's Held reference to the
+        // character-facing orientation.
         Quaternion rotationDelta =
-            anchor.rotation *
+            facingRotation *
             Quaternion.Inverse(reference.rotation);
 
         root.rotation =
             rotationDelta * root.rotation;
 
-        // Move the complete item so its Held reference
-        // reaches the character-defined position.
+        // Align the physical Held reference position
+        // with the character's target position.
         root.position +=
-            targetGripPosition - reference.position;
-
+            targetPosition - reference.position;
     }
+
 
 
 
