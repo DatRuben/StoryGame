@@ -88,17 +88,48 @@ public sealed class PlayerHeldItemPresenter :
     }
 
 
-    private static void ApplyWeaponFit(
-        Transform root,
+
+    private static void ApplyWeaponFit( //align weapon to the virtual marker thats parented to the socket
+        Transform visualRoot,
+        Transform weaponVisual,
         WeaponWieldItemFit fit)
     {
-        if (root == null || fit == null)
+        if (visualRoot == null ||
+            weaponVisual == null ||
+            fit == null)
+        {
             return;
+        }
 
-        root.localPosition = fit.localPosition;
-        root.localRotation = fit.LocalRotation;
-        root.localScale = fit.localScaleMultiplier;
+        Vector3 gripPosition =
+            weaponVisual.localPosition +
+            weaponVisual.localRotation *
+            Vector3.Scale(
+                weaponVisual.localScale,
+                fit.localPosition
+            );
+
+        Quaternion gripRotation =
+            weaponVisual.localRotation *
+            fit.LocalRotation;
+
+
+        visualRoot.localScale =
+            fit.localScaleMultiplier;
+
+        visualRoot.localRotation =
+            Quaternion.Inverse(gripRotation);
+
+        visualRoot.localPosition =
+            -(
+                visualRoot.localRotation *
+                Vector3.Scale(
+                    visualRoot.localScale,
+                    gripPosition
+                )
+            );
     }
+
 
     private bool TryResolveWeaponFit(
         InventoryItemInstance item,
@@ -322,10 +353,31 @@ public sealed class PlayerHeldItemPresenter :
             if (root.parent != anchor)
                 root.SetParent(anchor, false);
 
+
             if (isWeapon)
-                ApplyWeaponFit(root, fit);
+            {
+                if (root.childCount == 0)
+                {
+                    ClearVisual(ref shownItem, ref visual);
+                    return;
+                }
+
+                ApplyWeaponFit(
+                    root,
+                    root.GetChild(0),
+                    fit
+                );
+            }
             else
-                ApplyGrip(root, item, gripType, anchor);
+            {
+                ApplyGrip(
+                    root,
+                    item,
+                    gripType,
+                    anchor
+                );
+            }
+
 
             return;
         }
@@ -357,10 +409,25 @@ public sealed class PlayerHeldItemPresenter :
             return;
         }
 
+
         if (isWeapon)
-            ApplyWeaponFit(rootTransform, fit);
+        {
+            ApplyWeaponFit(
+                rootTransform,
+                itemVisual.transform,
+                fit
+            );
+        }
         else
-            ApplyGrip(rootTransform, item, gripType, anchor);
+        {
+            ApplyGrip(
+                rootTransform,
+                item,
+                gripType,
+                anchor
+            );
+        }
+
 
         visual = visualRoot;
         shownItem = item;

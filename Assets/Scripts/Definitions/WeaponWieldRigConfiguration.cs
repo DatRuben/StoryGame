@@ -12,19 +12,38 @@ public enum WeaponAttachmentSocket
 
 
 
+
+
 [Serializable]
 public sealed class WeaponWieldItemFit
 {
     public ItemDefinition weapon;
     public HeldItemGripContext context;
 
+    [Header("Virtual Grip Marker")]
+
+    [Tooltip(
+        "Position of the grip reference relative " +
+        "to the weapon prefab root, not the socket."
+    )]
     public Vector3 localPosition;
+
+    [Tooltip(
+        "Rotation of the grip reference relative " +
+        "to the weapon prefab root."
+    )]
     public Vector3 localEulerAngles;
+
+    [Tooltip(
+        "Additional visual scale for this character. " +
+        "One preserves the prefab's authored scale."
+    )]
     public Vector3 localScaleMultiplier = Vector3.one;
 
     public Quaternion LocalRotation =>
         Quaternion.Euler(localEulerAngles);
 }
+
 
 
 [Serializable]

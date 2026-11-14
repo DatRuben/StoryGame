@@ -542,6 +542,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: MagicStaff
       objectReference: {fileID: 0}
+    - target: {fileID: 1299846430720804019, guid: 68b114e9f678bf34583204a4391bc6f4, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1820065429865635337, guid: 68b114e9f678bf34583204a4391bc6f4, type: 3}
       propertyPath: m_LocalScale.x
       value: 0.2
@@ -1128,7 +1132,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6060643367178977144, guid: 671443c6aff1e4a41b39cd71e85c7da6, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6868107786974651842, guid: 671443c6aff1e4a41b39cd71e85c7da6, type: 3}
       propertyPath: m_LocalScale.x
