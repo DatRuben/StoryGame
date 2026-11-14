@@ -320,6 +320,7 @@ public sealed class PlayerHeldItemPresenter :
 
         Transform anchor = fallbackAnchor;
         WeaponWieldItemFit fit = null;
+        HeldItemPresentationBinding heldPresentation = null;
 
         // Specialized weapon fitting is only needed
         // when the weapon is deployed.
@@ -346,11 +347,12 @@ public sealed class PlayerHeldItemPresenter :
         }
 
 
+
         if (!usesWeaponFit &&
             model != null &&
             gripState != null &&
             gripState.TryGetGripAssignment(
-                item,  
+                item,
                 out GripType assignedType,
                 out int assignedCount,
                 out int singleHandIndex) &&
@@ -358,10 +360,11 @@ public sealed class PlayerHeldItemPresenter :
                 assignedType,
                 assignedCount,
                 singleHandIndex,
-                out HeldItemPresentationBinding presentation))
+                out heldPresentation))
         {
-            anchor = presentation.socket;
+            anchor = heldPresentation.socket;
         }
+
 
 
         if (anchor == null)
@@ -398,7 +401,8 @@ public sealed class PlayerHeldItemPresenter :
                 ApplyHeldOrientation(
                     root,
                     gripType,
-                    anchor);
+                    anchor,
+                    heldPresentation);
             }
 
             return;
@@ -448,9 +452,10 @@ public sealed class PlayerHeldItemPresenter :
         else
         {
             ApplyHeldOrientation(
-                rootTransform,
+                root,
                 gripType,
-                anchor);
+                anchor,
+                heldPresentation);
         }
 
         visual = visualRoot;
@@ -466,7 +471,8 @@ public sealed class PlayerHeldItemPresenter :
     private static void ApplyHeldOrientation(
         Transform root,
         GripType gripType,
-        Transform anchor)
+        Transform anchor,
+        HeldItemPresentationBinding presentation)
     {
         if (root == null || anchor == null)
             return;
@@ -474,7 +480,9 @@ public sealed class PlayerHeldItemPresenter :
         // The character socket determines
         // where the item appears.
 
-        root.localPosition = Vector3.zero;
+        root.localPosition = presentation != null
+        presentation.localPositionOffset
+        Vector3.zero;
         root.localRotation = Quaternion.identity;
 
         // Preserve the prefab's authored world scale

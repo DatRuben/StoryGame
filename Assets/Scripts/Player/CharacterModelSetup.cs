@@ -35,6 +35,10 @@ public sealed class HeldItemPresentationBinding
     public Transform socket;
     public AnimatorOverrideController controller;
 
+    [Header("Held Item Position")]
+    [Tooltip("Position offset relative to the selected socket.")]
+    public Vector3 localPositionOffset = Vector3.zero;
+
     public bool Matches(
         GripType type,
         int count,
