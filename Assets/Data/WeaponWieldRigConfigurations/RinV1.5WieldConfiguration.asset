@@ -31,7 +31,7 @@ MonoBehaviour:
     readyController: {fileID: 22100000, guid: d72f101cabf339c4e921dc985e020c1d, type: 2}
     itemFits:
     - weapon: {fileID: 11400000, guid: 9d03ad027aa691f42b140034f64dbd35, type: 2}
-      context: 0
+      context: 1
       localPosition: {x: -1.0003878, y: 1.4555167, z: 4.9520826}
       localEulerAngles: {x: 349.5619, y: 154.95471, z: 69.58237}
       localScaleMultiplier: {x: 0, y: 0, z: 0}
