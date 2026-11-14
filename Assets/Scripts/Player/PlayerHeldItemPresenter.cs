@@ -454,9 +454,30 @@ public sealed class PlayerHeldItemPresenter :
 
         // The character socket determines
         // where the item appears.
+
         root.localPosition = Vector3.zero;
         root.localRotation = Quaternion.identity;
-        root.localScale = Vector3.one;
+
+        // Preserve the prefab's authored world scale
+        // instead of multiplying it by the character's scale.
+        Vector3 socketScale = anchor.lossyScale;
+
+        if (Mathf.Approximately(socketScale.x, 0f) ||
+            Mathf.Approximately(socketScale.y, 0f) ||
+            Mathf.Approximately(socketScale.z, 0f))
+        {
+            Debug.LogError(
+                $"Holding socket '{anchor.name}' has a zero scale.",
+                anchor);
+            return;
+        }
+
+        root.localScale = new Vector3(
+            1f / socketScale.x,
+            1f / socketScale.y,
+            1f / socketScale.z
+        );
+
 
         HeldItemGripPoints points =
             root.GetComponentInChildren<
