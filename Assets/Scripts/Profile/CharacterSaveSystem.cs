@@ -35,6 +35,11 @@ public static class CharacterSaveSystem
         if (saveFile.profiles == null)
             saveFile.profiles = new List<CharacterProfileData>();
 
+        foreach (CharacterProfileData profile in saveFile.profiles)
+        {
+            profile?.NormalizeCombatSkillData();
+        }
+
         return saveFile;
     }
 
@@ -48,8 +53,11 @@ public static class CharacterSaveSystem
 
         foreach (CharacterProfileData profile in saveFile.profiles)
         {
-            if (profile != null)
-                profile.lastSavedUtc = DateTime.UtcNow.ToString("O");
+            if (profile == null)
+                continue;
+
+            profile.NormalizeCombatSkillData();
+            profile.lastSavedUtc = DateTime.UtcNow.ToString("O");
         }
 
         string json =

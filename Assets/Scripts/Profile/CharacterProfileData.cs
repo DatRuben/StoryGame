@@ -48,6 +48,44 @@ public class CharacterProfileData
         new CharacterCombatSkillLoadoutData()
     };
 
+    public void NormalizeCombatSkillData()
+    {
+        if (learnedCombatSkillIds == null)
+            learnedCombatSkillIds = new List<string>();
+
+        const int loadoutCount = 2;
+
+        if (combatSkillLoadouts == null ||
+            combatSkillLoadouts.Length != loadoutCount)
+        {
+            CharacterCombatSkillLoadoutData[] normalized =
+                new CharacterCombatSkillLoadoutData[loadoutCount];
+
+            if (combatSkillLoadouts != null)
+            {
+                Array.Copy(
+                    combatSkillLoadouts,
+                    normalized,
+                    Math.Min(
+                        combatSkillLoadouts.Length,
+                        normalized.Length));
+            }
+
+            combatSkillLoadouts = normalized;
+        }
+
+        for (int i = 0; i < combatSkillLoadouts.Length; i++)
+        {
+            if (combatSkillLoadouts[i] == null)
+            {
+                combatSkillLoadouts[i] =
+                    new CharacterCombatSkillLoadoutData();
+            }
+
+            combatSkillLoadouts[i].Normalize();
+        }
+    }
+
     public string createdUtc;
     public string lastSavedUtc;
 
@@ -123,4 +161,27 @@ public sealed class CharacterCombatSkillLoadoutData
     public const int MaxSlots = 9;
 
     public string[] skillIds = new string[MaxSlots];
+
+
+    public void Normalize()
+    {
+        if (skillIds != null &&
+            skillIds.Length == MaxSlots)
+        {
+            return;
+        }
+
+        string[] normalized = new string[MaxSlots];
+
+        if (skillIds != null)
+        {
+            Array.Copy(
+                skillIds,
+                normalized,
+                Math.Min(skillIds.Length, MaxSlots));
+        }
+
+        skillIds = normalized;
+    }
+
 }
