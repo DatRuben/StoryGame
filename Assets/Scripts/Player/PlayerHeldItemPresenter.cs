@@ -168,7 +168,6 @@ public sealed class PlayerHeldItemPresenter :
 
         ApplyHeldOrientation(
             root,
-            gripType,
             anchor,
             presentation);
     }
@@ -506,7 +505,6 @@ public sealed class PlayerHeldItemPresenter :
             {
                 ApplyHeldOrientation(
                     root,
-                    gripType,
                     anchor,
                     heldPresentation);
             }
@@ -559,7 +557,6 @@ public sealed class PlayerHeldItemPresenter :
         {
             ApplyHeldOrientation(
                 rootTransform,
-                gripType,
                 anchor,
                 heldPresentation);
         }
@@ -577,7 +574,6 @@ public sealed class PlayerHeldItemPresenter :
 
     private void ApplyHeldOrientation(
         Transform root,
-        GripType gripType,
         Transform anchor,
         HeldItemPresentationBinding presentation)
     {
