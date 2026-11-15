@@ -675,8 +675,7 @@ public sealed class PlayerHeldItemPresenter :
 
         // Align the physical Held reference position
         // with the character's target position.
-        root.position +=
-            targetPosition - reference.position;
+        root.position = targetPosition;
     }
 
 
