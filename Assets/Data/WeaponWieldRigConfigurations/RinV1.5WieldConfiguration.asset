@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3265bf03448ce8945afe04ff420f6cf6, type: 3}
-  m_Name: RinV1.5Greatsword2HWieldConfig
+  m_Name: RinV1.5WieldConfiguration
   m_EditorClassIdentifier: Assembly-CSharp::WeaponWieldRigConfiguration
   variants:
   - style: {fileID: 11400000, guid: fdab9122f52eef54b8db6b8c57b484d2, type: 2}
