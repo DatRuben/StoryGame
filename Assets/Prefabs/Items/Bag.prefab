@@ -194,8 +194,29 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 156a0e7492dab574395f9c6f9246217c, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1516931204263969091}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 156a0e7492dab574395f9c6f9246217c, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7070409412320180926}
   m_SourcePrefab: {fileID: 100100000, guid: 156a0e7492dab574395f9c6f9246217c, type: 3}
+--- !u!1 &6086656152923968378 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 156a0e7492dab574395f9c6f9246217c, type: 3}
+  m_PrefabInstance: {fileID: 6393225070444523051}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &7070409412320180926
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6086656152923968378}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6c7945e9bdcf404ea632604be45c0f0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HeldItemOrientationReference
+  orientationReference: {fileID: 1516931204263969091}
 --- !u!4 &6860096215238494656 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 156a0e7492dab574395f9c6f9246217c, type: 3}

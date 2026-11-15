@@ -217,12 +217,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c7945e9bdcf404ea632604be45c0f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HeldItemGripPoints
-  gripSets:
-  - context: 0
-    gripPoint: {fileID: 7443552535670981337}
-  primaryHandGrip: {fileID: 0}
-  secondaryHandGrip: {fileID: 0}
-  mouthGrip: {fileID: 0}
+  orientationReference: {fileID: 7443552535670981337}
 --- !u!4 &1820065429865635337 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 24f6bfe7802025b48ba80e7b33658673, type: 3}
