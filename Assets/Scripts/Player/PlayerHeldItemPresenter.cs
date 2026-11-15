@@ -359,7 +359,6 @@ public sealed class PlayerHeldItemPresenter :
             RefreshVisual(
                 leftItem,
                 anchors.RightHand,
-                GripType.Hand,
                 model,
                 anchors,
                 ref rightVisualItem,
@@ -376,7 +375,6 @@ public sealed class PlayerHeldItemPresenter :
             RefreshVisual(
                 leftItem,
                 anchors.LeftHand,
-                GripType.Hand,
                 model,
                 anchors,
                 ref leftVisualItem,
@@ -386,7 +384,6 @@ public sealed class PlayerHeldItemPresenter :
             RefreshVisual(
                 rightItem,
                 anchors.RightHand,
-                GripType.Hand,
                 model,
                 anchors,
                 ref rightVisualItem,
@@ -397,7 +394,6 @@ public sealed class PlayerHeldItemPresenter :
         RefreshVisual(
             mouthItem,
             anchors.Mouth,
-            GripType.Mouth,
             model,
             anchors,
             ref mouthVisualItem,
@@ -411,7 +407,6 @@ public sealed class PlayerHeldItemPresenter :
     private void RefreshVisual(
         InventoryItemInstance item,
         Transform fallbackAnchor,
-        GripType gripType,
         CharacterModelSetup model,
         HeldItemAnchors anchors,
         ref InventoryItemInstance shownItem,
