@@ -45,14 +45,7 @@ public sealed class PlayerWeaponDeployment :
     public bool WeaponsDrawn =>
         loadoutDeployed;
 
-    //give the context based on if its deployed or not
-    public HeldItemGripContext GetGripContext(
-    InventoryItemInstance item)
-    {
-        return IsDeployed(item)
-            ? HeldItemGripContext.Ready
-            : HeldItemGripContext.Held;
-    }
+
 
     public bool TryGetPrimaryDeployedWeapon(
         out InventoryItemInstance weapon)

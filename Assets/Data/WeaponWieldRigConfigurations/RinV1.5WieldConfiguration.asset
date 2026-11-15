@@ -20,7 +20,6 @@ MonoBehaviour:
     readyController: {fileID: 22100000, guid: 860d830ff40a96b41a0aa69cc7b1658a, type: 2}
     itemFits:
     - weapon: {fileID: 11400000, guid: 00840a1482c71db4d9ff7c9360be1132, type: 2}
-      context: 1
       localPosition: {x: -0.054981783, y: 0.19343787, z: -0.25486997}
       localEulerAngles: {x: 291.70972, y: 171.5791, z: 297.4001}
       localScaleMultiplier: {x: 1, y: 1, z: 1}
@@ -31,7 +30,6 @@ MonoBehaviour:
     readyController: {fileID: 22100000, guid: d72f101cabf339c4e921dc985e020c1d, type: 2}
     itemFits:
     - weapon: {fileID: 11400000, guid: 9d03ad027aa691f42b140034f64dbd35, type: 2}
-      context: 1
       localPosition: {x: -1.0003878, y: 1.4555167, z: 4.9520826}
       localEulerAngles: {x: 349.5619, y: 154.95471, z: 69.58237}
       localScaleMultiplier: {x: 1, y: 1, z: 1}

@@ -316,14 +316,10 @@ public sealed class PlayerHeldItemPresenter :
         if (anchor == null)
             return false;
 
-        HeldItemGripContext context =
-            weaponDeployment != null
-                ? weaponDeployment.GetGripContext(item)
-                : HeldItemGripContext.Held;
+
 
         return variant.TryGetItemFit(
             item.Definition,
-            context,
             out fit);
     }
 

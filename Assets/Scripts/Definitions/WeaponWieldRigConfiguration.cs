@@ -18,7 +18,6 @@ public enum WeaponAttachmentSocket
 public sealed class WeaponWieldItemFit
 {
     public ItemDefinition weapon;
-    public HeldItemGripContext context;
 
     [Header("Virtual Grip Marker")]
 
@@ -63,9 +62,8 @@ public sealed class WeaponWieldRigVariant
     private WeaponWieldItemFit[] itemFits;
 
     public bool TryGetItemFit(
-        ItemDefinition weapon,
-        HeldItemGripContext context,
-        out WeaponWieldItemFit result)
+    ItemDefinition weapon,
+    out WeaponWieldItemFit result)
     {
         result = null;
 
@@ -75,13 +73,12 @@ public sealed class WeaponWieldRigVariant
         foreach (WeaponWieldItemFit fit in itemFits)
         {
             if (fit == null ||
-                fit.weapon != weapon ||
-                fit.context != context)
+                fit.weapon != weapon)
             {
                 continue;
             }
 
-            // Reject duplicate matching entries.
+            // Reject duplicate entries for this weapon.
             if (result != null)
             {
                 result = null;
