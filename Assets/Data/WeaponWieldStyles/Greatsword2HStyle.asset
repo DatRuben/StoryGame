@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 56d2176277d8a4844a499abed4a8205b, type: 3}
-  m_Name: GreatswordStyle
+  m_Name: Greatsword2HStyle
   m_EditorClassIdentifier: Assembly-CSharp::WeaponWieldStyleDefinition
   displayName: Greatsword Style
   description: basic greatsword hold
