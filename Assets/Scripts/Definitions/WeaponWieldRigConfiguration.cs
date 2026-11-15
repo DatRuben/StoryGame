@@ -21,16 +21,13 @@ public sealed class WeaponWieldItemFit
 
     [Header("Virtual Grip Marker")]
 
+    [Tooltip("Position relative to the weapon prefab root.")]
     public Vector3 localPosition;
 
-    [Tooltip(
-        "Intended Position"
-    )]
+    [Tooltip("Rotation relative to the weapon prefab root, in degrees.")]
     public Vector3 localEulerAngles;
 
-    [Tooltip(
-        "Intended Rotation"
-    )]
+    [Tooltip("Additional scale multiplier for this rig's weapon fit.")]
     public Vector3 localScaleMultiplier = Vector3.one;
 
     public Quaternion LocalRotation =>
