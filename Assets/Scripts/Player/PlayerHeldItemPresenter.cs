@@ -633,24 +633,14 @@ public sealed class PlayerHeldItemPresenter :
             facingRotation *
             Vector3.Scale(socketScale, offset);
 
-        HeldItemGripPoints points =
-            root.GetComponentInChildren<HeldItemGripPoints>(true);
+        HeldItemOrientationReference orientation =
+    root.GetComponentInChildren<
+        HeldItemOrientationReference>(true);
 
-        Transform reference = null;
-
-        if (points != null)
-        {
-            if (points.HasGripSets)
-            {
-                points.TryGetGripPoint(
-                    HeldItemGripContext.Held,
-                    out reference);
-            }
-            else
-            {
-                reference = points.GetPrimaryGrip(gripType);
-            }
-        }
+        Transform reference =
+            orientation != null
+                ? orientation.OrientationReference
+                : null;
 
         // Fallback for items without a valid Held reference.
         if (reference == null)
