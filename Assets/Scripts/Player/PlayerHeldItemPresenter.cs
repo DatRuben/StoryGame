@@ -576,7 +576,7 @@ public sealed class PlayerHeldItemPresenter :
 
 
 
-    //apply the transform in the presenter
+    //apply the rotation in the presenter
 
 
     private void ApplyHeldOrientation(

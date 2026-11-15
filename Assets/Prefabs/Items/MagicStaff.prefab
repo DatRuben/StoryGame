@@ -220,8 +220,6 @@ MonoBehaviour:
   gripSets:
   - context: 0
     gripPoint: {fileID: 7443552535670981337}
-  - context: 1
-    gripPoint: {fileID: 0}
   primaryHandGrip: {fileID: 0}
   secondaryHandGrip: {fileID: 0}
   mouthGrip: {fileID: 0}
