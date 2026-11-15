@@ -9,5 +9,5 @@ AnimatorOverrideController:
   m_Name: RinV1.5Hold1Hand
   m_Controller: {fileID: 9100000, guid: fa6007e96790f6441aec8c04eef0800f, type: 2}
   m_Clips:
-  - m_OriginalClip: {fileID: -623603649343465320, guid: 4722c1a49b2eca74fbcf1e305276bf06, type: 3}
+  - m_OriginalClip: {fileID: 1363105662119528985, guid: 020836082c51d8e44b02e9ac432f85f0, type: 3}
     m_OverrideClip: {fileID: 3776204997832840652, guid: 020836082c51d8e44b02e9ac432f85f0, type: 3}
