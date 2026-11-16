@@ -96,6 +96,21 @@ public sealed class CombatSkillController : MonoBehaviour
         }
     }
 
+    public bool TrySwitchActiveLoadout(int loadoutIndex)
+    {
+        ResolveReferences();
+
+        if (skillLoadout == null ||
+            gameplayState == null ||
+            IsBusy ||
+            !gameplayState.Allows(PlayerGameplayCapability.Combat))
+        {
+            return false;
+        }
+
+        return skillLoadout.TrySetActiveLoadout(loadoutIndex);
+    }
+
     public bool TryRequestSkill(int slotIndex)
     {
         return TryRequestSkill(slotIndex, null);
