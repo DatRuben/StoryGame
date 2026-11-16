@@ -404,9 +404,6 @@ MonoBehaviour:
   weaponDeployment: {fileID: 5893228079581215452}
   storageInteract: {fileID: 6082714783708757298}
   playerResources: {fileID: 5991753881997761642}
-  characterAnimator: {fileID: 0}
-  isMovingParameter: isMoving
-  isWeaponReadyParameter: isWeaponReady
 --- !u!114 &5991753881997761642
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -544,6 +541,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 35e3f1d6f5097b0418d9b0896ae1eea3, type: 2}
   - {fileID: 0}
   - {fileID: 0}
+  skillDefinitionLibrary: {fileID: 11400000, guid: 7920d3ea47dce9341a1a97e7c1ed8d74, type: 2}
 --- !u!82 &5825084448164040582
 AudioSource:
   m_ObjectHideFlags: 0

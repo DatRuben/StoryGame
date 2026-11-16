@@ -9,17 +9,62 @@ public sealed class CombatSkillLoadout :
     private CombatSkillDefinition[] skillSlots =
         new CombatSkillDefinition[SlotCount];
 
-    public CombatSkillDefinition GetSkill(
-        int slotIndex)
+
+    [Header("Skill Definitions")]
+    [SerializeField]
+    private SkillDefinitionLibrary skillDefinitionLibrary;
+
+    private CharacterProfileData boundProfile;
+
+    public void BindProfile(CharacterProfileData profile)
     {
-        if (slotIndex < 0 ||
-            slotIndex >= skillSlots.Length)
+        boundProfile = profile;
+
+        boundProfile?.NormalizeCombatSkillData();
+    }
+
+
+    public CombatSkillDefinition GetSkill(int slotIndex)
+    {
+        if (slotIndex < 0 || slotIndex >= SlotCount)
+            return null;
+
+        if (boundProfile == null)
+            return skillSlots[slotIndex];
+
+        if (skillDefinitionLibrary == null)
+            return null;
+
+        CharacterCombatSkillLoadoutData[] loadouts =
+            boundProfile.combatSkillLoadouts;
+
+        if (loadouts == null ||
+            loadouts.Length == 0 ||
+            loadouts[0] == null)
         {
             return null;
         }
 
-        return skillSlots[slotIndex];
+        string[] skillIds = loadouts[0].skillIds;
+
+        if (skillIds == null ||
+            slotIndex >= skillIds.Length)
+        {
+            return null;
+        }
+
+        string skillId = skillIds[slotIndex];
+
+        if (string.IsNullOrWhiteSpace(skillId))
+            return null;
+
+        return skillDefinitionLibrary.TryGetSkill(
+            skillId,
+            out CombatSkillDefinition skill)
+                ? skill
+                : null;
     }
+
 
     private void OnValidate()
     {
