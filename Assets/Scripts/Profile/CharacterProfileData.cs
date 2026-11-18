@@ -86,6 +86,14 @@ public class CharacterProfileData
         }
     }
 
+    public bool HasLearnedCombatSkill(string skillId)
+    {
+        return !string.IsNullOrWhiteSpace(skillId) &&
+               learnedCombatSkillIds != null &&
+               learnedCombatSkillIds.Exists(
+                   learnedId => string.Equals(learnedId, skillId, StringComparison.OrdinalIgnoreCase));
+    }
+
     public string createdUtc;
     public string lastSavedUtc;
 

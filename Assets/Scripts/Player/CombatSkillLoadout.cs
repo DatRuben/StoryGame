@@ -54,12 +54,85 @@ public sealed class CombatSkillLoadout : MonoBehaviour
 
         string skillId = loadout.skillIds[slotIndex];
 
-        if (string.IsNullOrWhiteSpace(skillId))
+        if (!boundProfile.HasLearnedCombatSkill(skillId))
             return null;
 
         return skillDefinitionLibrary.TryGetSkill(skillId, out CombatSkillDefinition skill)
             ? skill
             : null;
+    }
+
+
+    public bool TryAssignSkill(int loadoutIndex, int slotIndex, CombatSkillDefinition skill, out string error)
+    {
+        error = null;
+
+        if (boundProfile == null)
+        {
+            error = "No character profile is bound.";
+            return false;
+        }
+
+        EntityCombatState combatState = GetComponent<EntityCombatState>();
+        CombatSkillController skillController = GetComponent<CombatSkillController>();
+
+        if (combatState == null || skillController == null)
+        {
+            error = "Combat systems are unavailable.";
+            return false;
+        }
+
+        if (combatState.IsInCombat || skillController.IsBusy)
+        {
+            error = "Skills cannot be changed during combat or an active skill.";
+            return false;
+        }
+
+        CharacterCombatSkillLoadoutData[] loadouts = boundProfile.combatSkillLoadouts;
+
+        if (loadouts == null || loadoutIndex < 0 || loadoutIndex >= loadouts.Length)
+        {
+            error = "Invalid skill loadout.";
+            return false;
+        }
+
+        CharacterCombatSkillLoadoutData loadout = loadouts[loadoutIndex];
+
+        if (loadout?.skillIds == null || slotIndex < 0 ||
+            slotIndex >= UnlockedSlotCount || slotIndex >= loadout.skillIds.Length)
+        {
+            error = "Skill slot is unavailable.";
+            return false;
+        }
+
+        if (skill != null)
+        {
+            if (skillDefinitionLibrary == null ||
+                !skillDefinitionLibrary.TryGetSkill(skill.Id, out CombatSkillDefinition definition) ||
+                definition != skill)
+            {
+                error = "Skill is not available in the Skill Definition Library.";
+                return false;
+            }
+
+            if (!boundProfile.HasLearnedCombatSkill(skill.Id))
+            {
+                error = "This character has not learned the skill.";
+                return false;
+            }
+        }
+
+        string skillId = skill != null ? skill.Id : null;
+
+        if (string.Equals(loadout.skillIds[slotIndex], skillId, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        loadout.skillIds[slotIndex] = skillId;
+
+        CharacterSaveSystem.SaveProfile(boundProfile);
+        Changed?.Invoke();
+
+        return true;
     }
 
     internal bool TrySetActiveLoadout(int index)
