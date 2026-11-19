@@ -89,8 +89,10 @@ public sealed class CharacterRuntimeBinder :
     [SerializeField]
     private RuntimeDiagnosticsUI runtimeDiagnosticsUI;
 
-    public void Bind(
-        GameObject player)
+    [SerializeField]
+    private SkillLibraryUI skillLibraryUI;
+
+    public void Bind(GameObject player)
     {
         if (player == null)
         {
@@ -186,6 +188,9 @@ public sealed class CharacterRuntimeBinder :
             characterProfile != null
                 ? characterProfile.StatusEffects
                 : player.GetComponent<StatusEffects>();
+
+        if (skillLibraryUI != null)
+            skillLibraryUI.BindPlayer(characterProfile);
 
         PlayerStorageContainerInteract
             storageInteract =

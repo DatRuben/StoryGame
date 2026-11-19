@@ -34,10 +34,44 @@ public sealed class SkillLibraryUI : MonoBehaviour
 
     private readonly List<Button> spawnedButtons = new();
 
+    private PlayerCharacterProfile characterProfile;
+    private CombatSkillDefinition selectedSkill;
+
     private void Awake()
     {
         Close();
     }
+
+    private void OnDestroy()
+    {
+        if (characterProfile != null)
+            characterProfile.CombatSkillsChanged -= HandleCombatSkillsChanged;
+    }
+
+    public void BindPlayer(PlayerCharacterProfile profile)
+    {
+        if (characterProfile != null)
+            characterProfile.CombatSkillsChanged -= HandleCombatSkillsChanged;
+
+        characterProfile = profile;
+
+        if (characterProfile != null)
+            characterProfile.CombatSkillsChanged += HandleCombatSkillsChanged;
+
+        RefreshIfOpen();
+    }
+
+    private void HandleCombatSkillsChanged()
+    {
+        RefreshIfOpen();
+    }
+
+    private void RefreshIfOpen()
+    {
+        if (panelRoot != null && panelRoot.activeSelf && skillLibrary != null)
+            Rebuild();
+    }
+
 
     public void Open()
     {
@@ -69,9 +103,9 @@ public sealed class SkillLibraryUI : MonoBehaviour
         ClearButtons();
 
         CombatSkillDefinition firstSkill = null;
+        bool selectedSkillExists = false;
 
-        foreach (CombatSkillDefinition skill
-                 in skillLibrary.SkillDefinitions)
+        foreach (CombatSkillDefinition skill in skillLibrary.SkillDefinitions)
         {
             if (skill == null)
                 continue;
@@ -79,35 +113,39 @@ public sealed class SkillLibraryUI : MonoBehaviour
             if (firstSkill == null)
                 firstSkill = skill;
 
-            Button button = Instantiate(
-                skillButtonPrefab,
-                skillListParent
-            );
+            if (skill == selectedSkill)
+                selectedSkillExists = true;
 
-            TMP_Text label =
-                button.GetComponentInChildren<TMP_Text>(
-                    true
-                );
+            Button button = Instantiate(skillButtonPrefab, skillListParent);
+            TMP_Text label = button.GetComponentInChildren<TMP_Text>(true);
 
             if (label != null)
+            {
                 label.text = skill.name;
+
+                if (characterProfile?.ProfileData != null)
+                {
+                    bool learned = characterProfile.ProfileData.HasLearnedCombatSkill(skill.Id);
+                    label.text += learned ? " (Learned)" : " (Locked)";
+                }
+            }
 
             CombatSkillDefinition capturedSkill = skill;
 
             button.onClick.RemoveAllListeners();
-            button.onClick.AddListener(
-                () => SelectSkill(capturedSkill)
-            );
+            button.onClick.AddListener(() => SelectSkill(capturedSkill));
 
             spawnedButtons.Add(button);
         }
 
-        SelectSkill(firstSkill);
+        SelectSkill(selectedSkillExists ? selectedSkill : firstSkill);
     }
 
     private void SelectSkill(
         CombatSkillDefinition skill)
     {
+        selectedSkill = skill;
+
         if (skillNameText != null)
         {
             skillNameText.text =
@@ -126,12 +164,27 @@ public sealed class SkillLibraryUI : MonoBehaviour
 
         if (skillStatsText != null)
         {
-            skillStatsText.text =
-                skill != null
-                    ? $"Aether: {skill.aetherCost:0.#}\n" +
-                      $"Cast Time: {skill.castTime:0.#}s\n" +
-                      $"Cooldown: {skill.cooldown:0.#}s"
-                    : "";
+            if (skill == null)
+            {
+                skillStatsText.text = "";
+            }
+            else
+            {
+                string status = "No Character";
+
+                if (characterProfile?.ProfileData != null)
+                {
+                    status = characterProfile.ProfileData.HasLearnedCombatSkill(skill.Id)
+                        ? "Learned"
+                        : "Locked";
+                }
+
+                skillStatsText.text =
+                    $"Status: {status}\n" +
+                    $"Aether: {skill.aetherCost:0.#}\n" +
+                    $"Cast Time: {skill.castTime:0.#}s\n" +
+                    $"Cooldown: {skill.cooldown:0.#}s";
+            }
         }
 
         if (skillIconImage != null)
