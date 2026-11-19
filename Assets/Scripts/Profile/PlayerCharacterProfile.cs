@@ -118,6 +118,8 @@ public class PlayerCharacterProfile : MonoBehaviour
 
     public event Action AttributesChanged;
 
+    public event Action CombatSkillsChanged;
+
     private StatusEffects statusEffects;
     private PlayerFormState formState;
 
@@ -282,6 +284,37 @@ public class PlayerCharacterProfile : MonoBehaviour
         AttributesChanged?.Invoke();
 
         LogResolvedCharacter();
+    }
+
+    public bool TryGrantCombatSkill(CombatSkillDefinition skill, SkillDefinitionLibrary skillLibrary, out string error)
+    {
+        error = null;
+
+        if (ProfileData == null)
+        {
+            error = "Character profile is unavailable.";
+            return false;
+        }
+
+        if (skill == null || skillLibrary == null ||
+            !skillLibrary.TryGetSkill(skill.Id, out CombatSkillDefinition definition) ||
+            definition != skill)
+        {
+            error = "Skill is not available in the Skill Definition Library.";
+            return false;
+        }
+
+        ProfileData.NormalizeCombatSkillData();
+
+        if (ProfileData.HasLearnedCombatSkill(skill.Id))
+            return true;
+
+        ProfileData.learnedCombatSkillIds.Add(skill.Id);
+
+        CharacterSaveSystem.SaveProfile(ProfileData);
+        CombatSkillsChanged?.Invoke();
+
+        return true;
     }
 
     private void HandleStatusEffectsChanged()
