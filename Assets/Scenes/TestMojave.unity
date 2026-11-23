@@ -443678,6 +443678,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InventoryContextPanelController
   defaultPanel: {fileID: 1027015755}
+  skillLibraryPanel: {fileID: 1735615630}
+  navigationButtons: {fileID: 1332566167}
   storagePanel: {fileID: 586219158}
   storageInventoryGridUI: {fileID: 586219160}
   storageTitleText: {fileID: 1919677273}
