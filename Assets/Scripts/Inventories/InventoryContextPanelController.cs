@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public sealed class InventoryContextPanelController :
     MonoBehaviour
@@ -13,6 +14,12 @@ public sealed class InventoryContextPanelController :
 
     [SerializeField]
     private GameObject navigationButtons;
+
+    [SerializeField]
+    private Button characterStatsButton;
+
+    [SerializeField]
+    private Button skillLibraryButton;
 
     [SerializeField]
     private GameObject storagePanel;
@@ -42,6 +49,23 @@ public sealed class InventoryContextPanelController :
     private void Awake()
     {
         ResolveReferences();
+    }
+    private void OnEnable()
+    {
+        if (characterStatsButton != null)
+            characterStatsButton.onClick.AddListener(ShowCharacterStats);
+
+        if (skillLibraryButton != null)
+            skillLibraryButton.onClick.AddListener(ShowSkillLibrary);
+    }
+
+    private void OnDisable()
+    {
+        if (characterStatsButton != null)
+            characterStatsButton.onClick.RemoveListener(ShowCharacterStats);
+
+        if (skillLibraryButton != null)
+            skillLibraryButton.onClick.RemoveListener(ShowSkillLibrary);
     }
 
     private void Start()
