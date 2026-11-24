@@ -9,12 +9,6 @@ public sealed class InventoryContextPanelController :
     private GameObject defaultPanel;
 
     [SerializeField]
-    private GameObject skillLibraryPanel;
-
-    [SerializeField]
-    private GameObject navigationButtons;
-
-    [SerializeField]
     private GameObject storagePanel;
 
     [Header("Storage UI")]
@@ -30,14 +24,6 @@ public sealed class InventoryContextPanelController :
 
     [SerializeField]
     private bool hideTitleWhenNoStorageOpen = true;
-    private enum ContextTab
-    {
-        CharacterStats,
-        Skills
-    }
-
-    private ContextTab selectedTab = ContextTab.CharacterStats;
-    private bool showingStorage;
 
     private void Awake()
     {
@@ -54,36 +40,25 @@ public sealed class InventoryContextPanelController :
         ResolveReferences();
     }
 
-
-    public void ShowCharacterStats()
-    {
-        if (showingStorage)
-            return;
-
-        selectedTab = ContextTab.CharacterStats;
-        RefreshPanels();
-    }
-
-    public void ShowSkillLibrary()
-    {
-        if (showingStorage)
-            return;
-
-        selectedTab = ContextTab.Skills;
-        RefreshPanels();
-    }
-
     public void ShowDefaultPanel()
     {
-        showingStorage = false;
+        if (defaultPanel != null)
+            defaultPanel.SetActive(true);
+
+        if (storagePanel != null)
+            storagePanel.SetActive(false);
 
         if (storageInventoryGridUI != null)
-            storageInventoryGridUI.BindContainer(null);
+        {
+            storageInventoryGridUI
+                .BindContainer(null);
+        }
 
         UpdateStorageTitle(null);
-        RefreshPanels();
     }
-    public void ShowStorageContainer(InventoryContainer storageContainer)
+
+    public void ShowStorageContainer(
+        InventoryContainer storageContainer)
     {
         if (storageContainer == null)
         {
@@ -91,33 +66,28 @@ public sealed class InventoryContextPanelController :
             return;
         }
 
-        showingStorage = true;
+        if (defaultPanel != null)
+            defaultPanel.SetActive(false);
+
+        if (storagePanel != null)
+            storagePanel.SetActive(true);
 
         if (storageInventoryGridUI != null)
-            storageInventoryGridUI.BindContainer(storageContainer);
+        {
+            storageInventoryGridUI
+                .BindContainer(
+                    storageContainer
+                );
+        }
 
-        UpdateStorageTitle(storageContainer);
-        RefreshPanels();
+        UpdateStorageTitle(
+            storageContainer
+        );
     }
 
     public void HideStorageContainer()
     {
         ShowDefaultPanel();
-    }
-
-    private void RefreshPanels()
-    {
-        if (navigationButtons != null)
-            navigationButtons.SetActive(!showingStorage);
-
-        if (defaultPanel != null)
-            defaultPanel.SetActive(!showingStorage && selectedTab == ContextTab.CharacterStats);
-
-        if (skillLibraryPanel != null)
-            skillLibraryPanel.SetActive(!showingStorage && selectedTab == ContextTab.Skills);
-
-        if (storagePanel != null)
-            storagePanel.SetActive(showingStorage);
     }
 
     private void ResolveReferences()
