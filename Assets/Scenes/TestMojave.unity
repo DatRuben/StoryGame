@@ -443680,6 +443680,8 @@ MonoBehaviour:
   defaultPanel: {fileID: 1027015755}
   skillLibraryPanel: {fileID: 1735615630}
   navigationButtons: {fileID: 1332566167}
+  characterStatsButton: {fileID: 3553473}
+  skillLibraryButton: {fileID: 1676472801}
   storagePanel: {fileID: 586219158}
   storageInventoryGridUI: {fileID: 586219160}
   storageTitleText: {fileID: 1919677273}
@@ -517926,19 +517928,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 727086898}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 56657023}
-        m_TargetAssemblyTypeName: Menus, Assembly-CSharp
-        m_MethodName: ShowCharacterSelect
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &727086898
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1492250,19 +1492240,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 2091917259}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 56657023}
-        m_TargetAssemblyTypeName: Menus, Assembly-CSharp
-        m_MethodName: QuitGame
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &2091917259
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1524402,19 +1524380,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 2136835157}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 56657023}
-        m_TargetAssemblyTypeName: Menus, Assembly-CSharp
-        m_MethodName: ShowStartMenu
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &2136835157
 MonoBehaviour:
   m_ObjectHideFlags: 0
