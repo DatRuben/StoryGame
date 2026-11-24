@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Menus : MonoBehaviour
 {
@@ -10,6 +11,11 @@ public class Menus : MonoBehaviour
     [SerializeField] private GameObject gameplayHudPanel;
     [SerializeField] private GameObject characterCreatorStage;
     [SerializeField] private CharacterSelectUI characterSelectUI;
+
+    [Header("Buttons")]
+    [SerializeField] private Button startMenuContinueButton;
+    [SerializeField] private Button quitButton;
+    [SerializeField] private Button characterSelectBackButton;
 
     [Header("Character Creator")]
     [SerializeField] private CharacterCreator characterCreator;
@@ -29,6 +35,28 @@ public class Menus : MonoBehaviour
     private void Awake()
     {
         ShowStartMenu();
+    }
+    private void OnEnable()
+    {
+        if (startMenuContinueButton != null)
+            startMenuContinueButton.onClick.AddListener(ShowCharacterSelect);
+
+        if (quitButton != null)
+            quitButton.onClick.AddListener(QuitGame);
+
+        if (characterSelectBackButton != null)
+            characterSelectBackButton.onClick.AddListener(ShowStartMenu);
+    }
+    private void OnDisable()
+    {
+        if (startMenuContinueButton != null)
+            startMenuContinueButton.onClick.RemoveListener(ShowCharacterSelect);
+
+        if (quitButton != null)
+            quitButton.onClick.RemoveListener(QuitGame);
+
+        if (characterSelectBackButton != null)
+            characterSelectBackButton.onClick.RemoveListener(ShowStartMenu);
     }
 
     public void ShowStartMenu()
