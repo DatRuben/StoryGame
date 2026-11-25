@@ -42725,6 +42725,9 @@ MonoBehaviour:
   gameplayHudPanel: {fileID: 517312581}
   characterCreatorStage: {fileID: 1440362784}
   characterSelectUI: {fileID: 1085209178}
+  startMenuContinueButton: {fileID: 727086897}
+  quitButton: {fileID: 2091917258}
+  characterSelectBackButton: {fileID: 2136835156}
   characterCreator: {fileID: 620856637}
   creatorPlayer: {fileID: 1515401748}
   creatorModelPreview: {fileID: 1678303956}
