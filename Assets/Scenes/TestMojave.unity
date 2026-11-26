@@ -1209837,7 +1209837,7 @@ MonoBehaviour:
   cameraPivotName: CameraPivot
   aimTargetName: AimTarget
   runtimeDiagnosticsUI: {fileID: 229951166}
-  skillLibraryUI: {fileID: 0}
+  skillLibraryUI: {fileID: 1735615634}
 --- !u!4 &1688523096
 Transform:
   m_ObjectHideFlags: 0
@@ -1244604,6 +1244604,7 @@ GameObject:
   - component: {fileID: 1735615631}
   - component: {fileID: 1735615633}
   - component: {fileID: 1735615632}
+  - component: {fileID: 1735615634}
   m_Layer: 5
   m_Name: SkillLibraryPanel
   m_TagString: Untagged
@@ -1244668,6 +1244669,25 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1735615630}
   m_CullTransparentMesh: 1
+--- !u!114 &1735615634
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1735615630}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7741ce4cc07d2714495aa6adf099233b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SkillLibraryUI
+  skillLibrary: {fileID: 11400000, guid: 7920d3ea47dce9341a1a97e7c1ed8d74, type: 2}
+  skillListParent: {fileID: 0}
+  skillButtonPrefab: {fileID: 0}
+  skillNameText: {fileID: 0}
+  skillDescriptionText: {fileID: 0}
+  skillStatsText: {fileID: 0}
+  skillIconImage: {fileID: 0}
 --- !u!1001 &1735706674
 PrefabInstance:
   m_ObjectHideFlags: 0
