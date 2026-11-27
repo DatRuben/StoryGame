@@ -9,10 +9,6 @@ public sealed class SkillLibraryUI : MonoBehaviour
     [SerializeField]
     private SkillDefinitionLibrary skillLibrary;
 
-    [Header("Panel")]
-    [SerializeField]
-    private GameObject panelRoot;
-
     [SerializeField]
     private Transform skillListParent;
 
@@ -36,11 +32,6 @@ public sealed class SkillLibraryUI : MonoBehaviour
 
     private PlayerCharacterProfile characterProfile;
     private CombatSkillDefinition selectedSkill;
-
-    private void Awake()
-    {
-        Close();
-    }
 
     private void OnDestroy()
     {
@@ -68,34 +59,21 @@ public sealed class SkillLibraryUI : MonoBehaviour
 
     private void RefreshIfOpen()
     {
-        if (panelRoot != null && panelRoot.activeSelf && skillLibrary != null)
-            Rebuild();
-    }
+        if (!isActiveAndEnabled)
+            return;
 
-
-    public void Open()
-    {
-        if (skillLibrary == null ||
-            panelRoot == null ||
-            skillListParent == null ||
-            skillButtonPrefab == null)
+        if (skillLibrary == null || skillListParent == null || skillButtonPrefab == null)
         {
-            Debug.LogWarning(
-                "SkillLibraryUI has missing references.",
-                this
-            );
-
+            Debug.LogWarning("SkillLibraryUI has missing references.", this);
             return;
         }
 
-        panelRoot.SetActive(true);
         Rebuild();
     }
 
-    public void Close()
+    private void OnEnable()
     {
-        if (panelRoot != null)
-            panelRoot.SetActive(false);
+        RefreshIfOpen();
     }
 
     private void Rebuild()
@@ -201,8 +179,11 @@ public sealed class SkillLibraryUI : MonoBehaviour
     {
         foreach (Button button in spawnedButtons)
         {
-            if (button != null)
-                Destroy(button.gameObject);
+            if (button == null)
+                continue;
+
+            button.gameObject.SetActive(false);
+            Destroy(button.gameObject);
         }
 
         spawnedButtons.Clear();
